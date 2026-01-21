@@ -180,6 +180,7 @@ function useSearchSelectorBase({
     const computedSearchTerm = useMemo(() => {
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
+    const trimmedSearchInput = debouncedSearchTerm.trim();
 
     const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -213,6 +214,7 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
                     includeUserToInvite,
                     currentUserAccountID,
                     currentUserEmail,
@@ -222,6 +224,7 @@ function useSearchSelectorBase({
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
@@ -246,6 +249,7 @@ function useSearchSelectorBase({
                         includeThreads: true,
                         includeReadOnly: false,
                         searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
                         maxElements: maxResults,
                         includeUserToInvite,
                         currentUserAccountID,
@@ -268,6 +272,7 @@ function useSearchSelectorBase({
                     includeOwnedWorkspaceChats: true,
                     includeSelfDM: true,
                     searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
                     maxElements: maxResults,
                     includeUserToInvite,
                     currentUserAccountID,
@@ -285,6 +290,7 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
                     includeUserToInvite,
                     includeCurrentUser,
                     currentUserAccountID,
@@ -315,6 +321,7 @@ function useSearchSelectorBase({
         currentUserAccountID,
         currentUserEmail,
         allPolicies,
+        trimmedSearchInput,
     ]);
 
     const isOptionSelected = useMemo(() => {

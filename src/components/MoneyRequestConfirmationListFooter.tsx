@@ -1,4 +1,5 @@
 import {emailSelector} from '@selectors/Session';
+import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
@@ -38,7 +39,7 @@ import {
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -283,7 +284,7 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
 
@@ -299,11 +300,6 @@ function MoneyRequestConfirmationListFooter({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
-
-    const formattedCreatedDate = useMemo(() => {
-        const formatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
-        return formatter.format(new Date(iouCreated ?? Date.now()));
-    }, [iouCreated, preferredLocale]);
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
 
@@ -698,7 +694,7 @@ function MoneyRequestConfirmationListFooter({
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title={formattedCreatedDate}
+                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
