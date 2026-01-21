@@ -105,11 +105,14 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const handlePress = useCallback((event?: GestureResponderEvent | KeyboardEvent) => {
-        event?.preventDefault();
-        calculatePopoverPosition();
-        setIsModalVisible(true);
-    }, [calculatePopoverPosition]);
+    const handlePress = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            event?.preventDefault();
+            calculatePopoverPosition();
+            setIsModalVisible(true);
+        },
+        [calculatePopoverPosition],
+    );
 
     const closeDatePicker = useCallback(() => {
         textInputRef.current?.blur();
