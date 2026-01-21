@@ -51,6 +51,7 @@ import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {
     calculateAmount as calculateIOUAmount,
     formatCurrentUserToAttendee,
@@ -1382,50 +1383,6 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
             },
         },
     });
-}
-
-function getGPSWaypoints(gpsDraftDetails: OnyxTypes.GpsDraftDetails | undefined): WaypointCollection {
-    const gpsCoordinates = gpsDraftDetails?.gpsPoints ?? [];
-    const firstPoint = gpsCoordinates.at(0);
-    const lastPoint = gpsCoordinates.at(-1);
-
-    return {
-        ...(firstPoint
-            ? {
-                  waypoint0: {
-                      lat: firstPoint.lat,
-                      lng: firstPoint.long,
-                      address: gpsDraftDetails?.startAddress.value ?? '',
-                      name: gpsDraftDetails?.startAddress.value ?? '',
-                  },
-              }
-            : {}),
-        ...(lastPoint
-            ? {
-                  waypoint1: {
-                      lat: lastPoint.lat,
-                      lng: lastPoint.long,
-                      address: gpsDraftDetails?.endAddress.value ?? '',
-                      name: gpsDraftDetails?.endAddress.value ?? '',
-                  },
-              }
-            : {}),
-    };
-}
-
-function getGPSRoutes(gpsDraftDetails: OnyxTypes.GpsDraftDetails | undefined): Routes {
-    const distanceInMeters = parseFloat((gpsDraftDetails?.distanceInMeters ?? 0).toFixed(2));
-    const gpsCoordinates = gpsDraftDetails?.gpsPoints ?? [];
-
-    return {
-        route0: {
-            distance: distanceInMeters,
-            geometry: {
-                type: 'LineString',
-                coordinates: gpsCoordinates.map(({lat, long}) => [long, lat]),
-            },
-        },
-    };
 }
 
 function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: OnyxTypes.GpsDraftDetails | undefined, distance: number) {
@@ -14574,8 +14531,6 @@ export {
     resetDraftTransactionsCustomUnit,
     savePreferredPaymentMethod,
     setCustomUnitRateID,
-    getGPSWaypoints,
-    getGPSRoutes,
     setGPSTransactionDraftData,
     setCustomUnitID,
     removeSubrate,

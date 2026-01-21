@@ -11,11 +11,11 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGPSWaypoints, setGPSTransactionDraftData} from '@libs/actions/IOU';
+import {setGPSTransactionDraftData} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -83,10 +83,8 @@ function IOURequestStepDistanceGPS({
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
     const navigateToNextStep = () => {
-        const gpsCoordinates = gpsDraftDetails?.gpsPoints ? JSON.stringify(gpsDraftDetails.gpsPoints.map((val) => ({lng: val.long, lat: val.lat}))) : undefined;
-        const distanceInMeters = gpsDraftDetails?.distanceInMeters ?? 0;
-        const convertedDistance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
-        const distance = roundToTwoDecimalPlaces(convertedDistance);
+        const gpsCoordinates = getGPSCoordinates(gpsDraftDetails);
+        const distance = getGPSConvertedDistance(gpsDraftDetails, unit);
 
         setGPSTransactionDraftData(transactionID, gpsDraftDetails, distance);
 
