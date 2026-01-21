@@ -58,7 +58,7 @@ function enablePolicyTravel(policyID: string, enabled: boolean) {
 }
 
 function setPolicyTravelSettings(policyID: string, settings: Partial<OnyxTypes.WorkspaceTravelSettings>) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
