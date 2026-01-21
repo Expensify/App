@@ -67,7 +67,8 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
-            aria-disabled={!!(disabled || showLockIcon)}
+            aria-disabled={disabled}
+            accessibilityState={{disabled: !!disabled}}
             accessibilityLabel={accessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
