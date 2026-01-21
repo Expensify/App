@@ -267,6 +267,18 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
+    const headerButtonsComponent = (showCards || isLoadingPage || isFeedPending) ? (
+        <View style={shouldUseNarrowLayout && styles.mb5}>
+            <WorkspaceCompanyCardsTableHeaderButtons
+                isLoading={isLoadingPage}
+                policyID={policy?.id}
+                feedName={feedName}
+                showTableControls={showTableControls}
+                CardFeedIcon={cardFeedIcon}
+            />
+        </View>
+    ) : undefined;
+
     return (
         <Table
             ref={tableRef}
@@ -280,17 +292,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             filters={filterConfig}
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {(showCards || isLoadingPage || isFeedPending) && (
-                <View style={shouldUseNarrowTableLayout && styles.mb5}>
-                    <WorkspaceCompanyCardsTableHeaderButtons
-                        isLoading={isLoadingPage}
-                        policyID={policy?.id}
-                        feedName={feedName}
-                        showTableControls={showTableControls}
-                        CardFeedIcon={cardFeedIcon}
-                    />
-                </View>
-            )}
+             {!shouldUseNarrowLayout && headerButtonsComponent}
 
             {(isLoadingPage || isFeedPending || isNoFeed) && (
                 <ScrollView>
