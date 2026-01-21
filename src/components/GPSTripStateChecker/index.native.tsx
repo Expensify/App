@@ -13,11 +13,14 @@ import coordinatesToString from '@pages/iou/request/step/IOURequestStepDistanceG
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+
+    const {splashScreenState} = useSplashScreenStateContext();
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
@@ -99,7 +102,7 @@ function GPSTripStateChecker() {
 
     return (
         <ConfirmModal
-            isVisible={showContinueTripModal}
+            isVisible={showContinueTripModal && splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN}
             title={translate('gps.continueGpsTripModal.title')}
             prompt={translate('gps.continueGpsTripModal.prompt')}
             shouldReverseStackedButtons
