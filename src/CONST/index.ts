@@ -7657,6 +7657,9 @@ const CONST = {
             REFUND: 'REFUND',
             EXCHANGE: 'EXCHANGE',
         },
+        SETTINGS: {
+            AUTO_ADD_TRIP_NAME: 'autoAddTripName',
+        },
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
