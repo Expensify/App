@@ -68,7 +68,7 @@ function TransactionPreviewContent({
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
-
+    const [allReportsViolations] = useOnyx(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
@@ -107,8 +107,9 @@ function TransactionPreviewContent({
                 currentUserEmail,
                 currentUserAccountID,
                 reportActions,
+                allReportsViolations,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions, allReportsViolations],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
