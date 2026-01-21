@@ -61,8 +61,8 @@ jest.mock('@libs/ReportUtils', () => {
     return {
         ...originalModule,
         generateReportID: mockGenerateReportID,
-        buildOptimisticChatReport: jest.fn().mockImplementation((params) => {
-            const mockReportID = params.optimisticReportID ?? mockGenerateReportID();
+        buildOptimisticChatReport: jest.fn().mockImplementation((params: Record<string, unknown>) => {
+            const mockReportID = (params.optimisticReportID as string | undefined) ?? mockGenerateReportID();
             return {
                 reportID: mockReportID,
                 type: 'chat',
@@ -3272,9 +3272,9 @@ describe('actions/Report', () => {
 
     describe('explain', () => {
         beforeEach(() => {
-            jest.spyOn(global, 'requestAnimationFrame').mockImplementation((cb: any) => {
+            jest.spyOn(global, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
                 cb(0);
-                return 0 as any;
+                return 0;
             });
         });
         const TEST_USER_ACCOUNT_ID = 1;

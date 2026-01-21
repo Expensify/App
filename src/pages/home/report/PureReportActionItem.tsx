@@ -1298,6 +1298,7 @@ function PureReportActionItem({
                     <ReportActionItemBasicMessage>
                         <RenderHTML
                             html={`<comment><muted-text>${automaticallySubmittedMessageText}</muted-text></comment>`}
+                            isSelectable={false}
                             onLinkPress={(_evt, href) => {
                                 if (!href.endsWith('/concierge/explain')) {
                                     return;
