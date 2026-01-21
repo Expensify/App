@@ -38,6 +38,8 @@ type BookTravelButtonProps = {
     shouldShowVerifyAccountModal?: boolean;
 };
 
+// asdfasdf
+
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policyID?: string) => {
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
