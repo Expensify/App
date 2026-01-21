@@ -42,6 +42,9 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+// This cycle import is safe because the functions imported here don't create initialization-time dependencies.
+// ReportActionsUtils imports utility functions from ReportUtils, and ReportUtils imports utility functions from ReportActionsUtils.
+// Some functions use module-level variables (e.g., allReports, allReportActions) that are initialized asynchronously via Onyx.connect(), so there's no circular dependency during module initialization.
 // eslint-disable-next-line import/no-cycle
 import {getReportOrDraftReport, isExpenseReport, isHarvestCreatedExpenseReport, isPolicyExpenseChat} from './ReportUtils';
 // eslint-disable-next-line import/no-cycle

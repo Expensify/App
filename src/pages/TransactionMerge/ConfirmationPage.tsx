@@ -17,7 +17,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
-import {openReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -72,14 +71,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             return;
         }
         const reportID = mergeTransaction.reportID;
-
-        // Ensure expense report exists in Onyx before merge (required by getUpdateMoneyRequestParams)
-        if (reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-            const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            if (!expenseReport) {
-                openReport(reportID);
-            }
-        }
 
         setIsMergingExpenses(true);
         mergeTransactionRequest({
