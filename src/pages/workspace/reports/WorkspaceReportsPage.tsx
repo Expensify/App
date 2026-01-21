@@ -267,7 +267,7 @@ function WorkspaceReportFieldsPage({
                             <ToggleSettingOptionRow
                                 pendingAction={policy?.pendingFields?.areReportFieldsEnabled}
                                 title={translate('workspace.common.reportFields')}
-                                switchAccessibilityLabel={translate('workspace.common.reportFields')}
+                                switchAccessibilityLabel={`${translate('workspace.common.reportFields')}, ${translate('workspace.reportFields.subtitle')}`}
                                 subtitle={getHeaderText()}
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                                 isActive={!!policy?.areReportFieldsEnabled}
