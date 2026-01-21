@@ -39,6 +39,11 @@ type DomainPendingAction = {
      * Pending action for the "use technical contact billing card" setting
      */
     useTechnicalContactBillingCard?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the domain itself
+     */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 export default DomainPendingAction;
