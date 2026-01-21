@@ -31,7 +31,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 vacationDelegate={vacationDelegate}
                 errors={getLatestError(domainErrors?.memberErrors?.[accountID]?.vacationDelegateErrors)}
                 pendingAction={domainPendingActions?.member?.[accountID]?.vacationDelegate}
-                onCloseError={() => clearVacationDelegateError(domainAccountID, accountID,vacationDelegate?.previousDelegate)}
+                onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, vacationDelegate?.previousDelegate)}
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
             />
         </BaseDomainMemberDetailsComponent>

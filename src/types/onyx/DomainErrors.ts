@@ -1,6 +1,5 @@
 import type * as OnyxCommon from './OnyxCommon';
 
-
 /**
  * Basic errors for domain admins
  */
