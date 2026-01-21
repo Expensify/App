@@ -1,9 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
-import type {NumberWithSymbolFormRef} from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,7 +15,6 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -59,23 +56,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const defaultApprovalLimit = currentApprover?.approvalLimit ? convertToFrontendAmountAsString(currentApprover.approvalLimit, currency) : '';
 
-    const [editedApprovalLimit, setEditedApprovalLimit] = useState<string | null>(null);
+    const [editedApprovalLimit, setEditedApprovalLimit] = useState<{approverEmail: string; value: string} | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const amountFormRef = useRef<NumberWithSymbolFormRef>(null);
-    const previousApproverEmail = usePrevious(currentApprover?.email);
-    const isFocused = useIsFocused();
 
-    const approvalLimit = editedApprovalLimit ?? defaultApprovalLimit;
-
-    // Clear the amount input when the main approver changes
-    useEffect(() => {
-        if (!isFocused || previousApproverEmail === currentApprover?.email) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setEditedApprovalLimit(null);
-        amountFormRef.current?.updateNumber('');
-    }, [isFocused, currentApprover?.email, previousApproverEmail]);
+    const approverEmail = currentApprover?.email ?? '';
+    const approvalLimit = editedApprovalLimit?.approverEmail === approverEmail ? editedApprovalLimit.value : defaultApprovalLimit;
 
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
@@ -172,7 +157,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     };
 
     const handleAmountChange = (value: string) => {
-        setEditedApprovalLimit(value);
+        setEditedApprovalLimit({approverEmail, value});
         setHasSubmitted(false);
     };
 
@@ -239,6 +224,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
                             <View style={styles.mb4}>
                                 <AmountForm
+                                    key={approverEmail}
                                     label={translate('workflowsApprovalLimitPage.reportAmountLabel')}
                                     currency={currency}
                                     value={approvalLimit}
@@ -248,7 +234,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     disabled={areLimitFieldsDisabled}
                                     errorText={amountError}
                                     onSubmitEditing={handleSubmit}
-                                    numberFormRef={amountFormRef}
                                 />
                             </View>
 
