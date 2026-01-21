@@ -5,10 +5,48 @@ import {useOnyx} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type TodoSearchResultsData = SearchResults['data'];
+
+type TodoMetadata = {
+    /** Total number of transactions across all reports */
+    count: number;
+    /** Sum of all report totals (in cents) */
+    total: number;
+    /** Currency of the first report, used as reference currency */
+    currency: string | undefined;
+};
+
+function computeMetadata(reports: Report[], transactionsByReportID: Record<string, Transaction[]>): TodoMetadata {
+    let count = 0;
+    let total = 0;
+    let currency: string | undefined;
+
+    for (const report of reports) {
+        if (!report?.reportID) {
+            continue;
+        }
+
+        const reportTransactions = transactionsByReportID[report.reportID];
+        if (reportTransactions) {
+            count += reportTransactions.length;
+
+            for (const transaction of reportTransactions) {
+                if (transaction.groupAmount) {
+                    total -= transaction.groupAmount;
+                }
+
+                if (currency === undefined && transaction.groupCurrency) {
+                    currency = transaction.groupCurrency;
+                }
+            }
+        }
+    }
+
+    return {count, total, currency};
+}
 
 /**
  * Builds a SearchResults-compatible data object from the given reports and related data.
@@ -18,11 +56,11 @@ function buildSearchResultsData(
     reports: Report[],
     transactionsByReportID: Record<string, Transaction[]>,
     allReports: Record<string, Report> | undefined,
-    allPolicies: Record<string, unknown> | undefined,
-    allReportActions: Record<string, Record<string, unknown>> | undefined,
-    allReportNameValuePairs: Record<string, unknown> | undefined,
-    personalDetails: Record<string, unknown> | undefined,
-    transactionViolations: Record<string, unknown[]> | undefined,
+    allPolicies: Record<string, Policy> | undefined,
+    allReportActions: Record<string, ReportActions> | undefined,
+    allReportNameValuePairs: Record<string, ReportNameValuePairs> | undefined,
+    personalDetails: PersonalDetailsList | undefined,
+    transactionViolations: Record<string, TransactionViolations> | undefined,
 ): TodoSearchResultsData {
     const data: Record<string, unknown> = {};
 
@@ -150,21 +188,28 @@ export default function useTodos() {
 
     // Build SearchResults-formatted data for each to-do category
     const todoSearchResultsData = useMemo(() => {
-        const buildData = (reports: Report[]): TodoSearchResultsData => {
+        const buildData = (reports: Report[]): {data: TodoSearchResultsData; metadata: TodoMetadata} => {
             if (reports.length === 0) {
                 // Return empty object like the Search API would when there's no data
-                return {} as TodoSearchResultsData;
+                return {
+                    data: {} as TodoSearchResultsData,
+                    metadata: {count: 0, total: 0, currency: undefined},
+                };
             }
-            return buildSearchResultsData(
+
+            const metadata = computeMetadata(reports, transactionsByReportID);
+            const data = buildSearchResultsData(
                 reports,
                 transactionsByReportID,
                 allReports as Record<string, Report> | undefined,
-                allPolicies as Record<string, unknown> | undefined,
-                allReportActions as Record<string, Record<string, unknown>> | undefined,
-                allReportNameValuePairs as Record<string, unknown> | undefined,
-                personalDetailsList as Record<string, unknown> | undefined,
-                allTransactionViolations as Record<string, unknown[]> | undefined,
+                allPolicies as Record<string, Policy> | undefined,
+                allReportActions as Record<string, ReportActions> | undefined,
+                allReportNameValuePairs as Record<string, ReportNameValuePairs> | undefined,
+                personalDetailsList,
+                allTransactionViolations as Record<string, TransactionViolations> | undefined,
             );
+
+            return {data, metadata};
         };
 
         return {
