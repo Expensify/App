@@ -1,4 +1,5 @@
 import React from 'react';
+import type {KeyboardEvent} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
@@ -6,6 +7,7 @@ import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat as navigateToConciergeChatAction} from '@userActions/Report';
+import CONST from '@src/CONST';
 
 type ConciergeLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
@@ -32,11 +34,21 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
         ];
     }
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            navigateToConciergeChat();
+        }
+    };
+
     return (
         <Text
             style={[style as TextStyle, linkStyle]}
             onPress={navigateToConciergeChat}
+            onKeyDown={handleKeyDown}
             suppressHighlighting
+            role={CONST.ROLE.LINK}
+            tabIndex={0}
         >
             <TNodeChildrenRenderer tnode={tnode} />
         </Text>

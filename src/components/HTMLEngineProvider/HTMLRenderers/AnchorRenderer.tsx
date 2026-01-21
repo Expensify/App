@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
+import type {KeyboardEvent} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
@@ -51,6 +52,13 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
         return undefined;
     }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment]);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            openLink(attrHref, environmentURL, isAttachment);
+        }
+    };
 
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
@@ -104,8 +112,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         return (
             <Text
                 style={linkStyle}
+                href={attrHref}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
+                onKeyDown={handleKeyDown}
                 suppressHighlighting
+                role={CONST.ROLE.LINK}
+                tabIndex={0}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
