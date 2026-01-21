@@ -51,7 +51,6 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
-    doesReportMatchExpenseParticipant,
     doesReportReceiverMatchParticipant,
     generateReportID,
     getReportOrDraftReport,
@@ -556,12 +555,6 @@ function IOURequestStepConfirmation({
             const optimisticCreatedReportActionID = rand64();
             const optimisticReportPreviewActionID = rand64();
 
-            // Check if the report from route matches the selected participant.
-            // If not (e.g., user started from workspace chat but selected a 1:1 DM participant),
-            // we pass undefined so getMoneyRequestInformation will find/create the correct chat.
-            const reportMatchesParticipant = doesReportMatchExpenseParticipant(report, participant, currentUserPersonalDetails.accountID);
-            const reportToUse = reportMatchesParticipant ? report : undefined;
-
             let existingIOUReport: Report | undefined;
 
             for (const [index, item] of transactions.entries()) {
@@ -584,7 +577,7 @@ function IOURequestStepConfirmation({
                 }
 
                 const {iouReport} = requestMoneyIOUActions({
-                    report: reportToUse,
+                    report,
                     existingIOUReport,
                     optimisticChatReportID,
                     optimisticCreatedReportActionID,
@@ -749,19 +742,13 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-
-            // Check if the report from route matches the selected participant.
-            // If not, pass undefined so the IOU action will find/create the correct chat.
-            const reportMatchesParticipant = doesReportMatchExpenseParticipant(report, participant, currentUserPersonalDetails.accountID);
-            const reportToUse = reportMatchesParticipant ? report : undefined;
-
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
                 const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
                 trackExpenseIOUActions({
-                    report: reportToUse,
+                    report,
                     isDraftPolicy,
                     action,
                     participantParams: {
@@ -842,14 +829,8 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            const participant = selectedParticipants.at(0);
-            // Check if the report from route matches the selected participant.
-            // If not, pass undefined so the IOU action will find/create the correct chat.
-            const reportMatchesParticipant = participant ? doesReportMatchExpenseParticipant(report, participant, currentUserPersonalDetails.accountID) : true;
-            const reportToUse = reportMatchesParticipant ? report : undefined;
-
             createDistanceRequestIOUActions({
-                report: reportToUse,
+                report,
                 participants: selectedParticipants,
                 currentUserLogin: currentUserPersonalDetails.login,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
