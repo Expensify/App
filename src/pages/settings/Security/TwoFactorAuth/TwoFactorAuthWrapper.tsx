@@ -1,7 +1,8 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -44,6 +45,7 @@ function TwoFactorAuthWrapper({
     children,
 }: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const {isDelegateAccessRestricted} = useContext(DelegateNoAccessContext);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {
@@ -71,6 +73,18 @@ function TwoFactorAuthWrapper({
 
     const viewportOffsetTop = useViewportOffsetTop();
 
+    if (isDelegateAccessRestricted) {
+        return (
+            <ScreenWrapper
+                testID="TwoFactorAuthWrapper"
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
+    }
+
     const defaultGoBack = () => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
 
     return (
@@ -81,20 +95,18 @@ function TwoFactorAuthWrapper({
             testID={stepName}
             style={shouldEnableViewportOffsetTop ? {marginTop: viewportOffsetTop} : undefined}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <FullPageNotFoundView
-                    shouldShow={shouldShowNotFound}
-                    linkTranslationKey="securityPage.goToSecurity"
-                    onLinkPress={defaultGoBack}
-                >
-                    <HeaderWithBackButton
-                        title={title}
-                        stepCounter={stepCounter}
-                        onBackButtonPress={onBackButtonPress ?? defaultGoBack}
-                    />
-                    <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
-                </FullPageNotFoundView>
-            </DelegateNoAccessWrapper>
+            <FullPageNotFoundView
+                shouldShow={shouldShowNotFound}
+                linkTranslationKey="securityPage.goToSecurity"
+                onLinkPress={defaultGoBack}
+            >
+                <HeaderWithBackButton
+                    title={title}
+                    stepCounter={stepCounter}
+                    onBackButtonPress={onBackButtonPress ?? defaultGoBack}
+                />
+                <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
