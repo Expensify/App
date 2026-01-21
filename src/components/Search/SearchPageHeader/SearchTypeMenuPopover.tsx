@@ -27,7 +27,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             <Button
                 icon={expensifyIcons.Menu}
                 onPress={openMenu}
-                accessibilityLabel={translate('reportActionContextMenu.menu')}
+                accessibilityLabel={translate('search.filtersHeader')}
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
