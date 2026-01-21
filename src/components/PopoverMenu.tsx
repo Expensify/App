@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -81,6 +82,13 @@ type PopoverMenuItem = MenuItemProps & {
 type ModalAnimationProps = Pick<ReanimatedModalProps, 'animationInDelay' | 'animationIn' | 'animationInTiming' | 'animationOut' | 'animationOutTiming'>;
 
 type PopoverMenuProps = Partial<ModalAnimationProps> & {
+    /**
+     * Whether the menu was opened via keyboard (for auto-focus on first item).
+     * Consumers must capture this state BEFORE opening the menu using:
+     *   NavigationFocusManager.wasRecentKeyboardInteraction()
+     */
+    wasOpenedViaKeyboard?: boolean;
+
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
@@ -258,6 +266,7 @@ function BasePopoverMenu({
     onModalHide,
     headerText,
     fromSidebarMediumScreen,
+    wasOpenedViaKeyboard,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -298,6 +307,44 @@ function BasePopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+
+    // Ref for scoping DOM queries to this menu's container
+    // CRITICAL: Prevents finding menuitems from other modals in nested scenarios
+    const menuContainerRef = useRef<View>(null);
+
+    /**
+     * Compute initialFocus for FocusTrapForModal.
+     * Returns a function that finds the first menuitem when trap activates.
+     * Returns false for mouse opens (no auto-focus) or non-web platforms.
+     */
+    const computeInitialFocus = (() => {
+        // Skip for mouse/touch opens or non-web platforms
+        if (!wasOpenedViaKeyboard || !isWeb) {
+            return false;
+        }
+
+        // Return function that will be called when FocusTrap activates
+        // At activation time, content is already rendered in the DOM
+        return () => {
+            // CRITICAL: Scope query to this menu's container
+            // This prevents focusing menuitems from OTHER open modals
+            // in nested scenarios (e.g., ThreeDotsMenu → PopoverMenu → ConfirmModal)
+            const container = menuContainerRef.current as unknown as HTMLElement;
+            if (!container) {
+                Log.warn('[PopoverMenu] menuContainerRef is null during initialFocus');
+                return false;
+            }
+
+            const firstMenuItem = container.querySelector('[role="menuitem"]');
+
+            Log.info('[PopoverMenu] initialFocus activated via keyboard', false, {
+                foundMenuItem: !!firstMenuItem,
+                menuItemText: firstMenuItem?.textContent?.slice(0, 30),
+            });
+
+            return firstMenuItem instanceof HTMLElement ? firstMenuItem : false;
+        };
+    })();
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -567,11 +614,14 @@ function BasePopoverMenu({
         >
             <FocusTrapForModal
                 active={isVisible}
+                initialFocus={computeInitialFocus}
                 shouldReturnFocus={!shouldEnableNewFocusManagement}
             >
                 <View
+                    ref={menuContainerRef}
                     onLayout={onLayout}
                     style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
+                    testID="popover-menu-container"
                 >
                     {renderWithConditionalWrapper(
                         shouldUseScrollView,

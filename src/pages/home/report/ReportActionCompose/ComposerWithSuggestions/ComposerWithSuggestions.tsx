@@ -44,6 +44,7 @@ import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/Report
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
+import NavigationFocusManager from '@libs/NavigationFocusManager';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
 import {areAllModalsHidden} from '@userActions/Modal';
@@ -722,10 +723,24 @@ function ComposerWithSuggestions({
             return;
         }
 
+        // Skip auto-focus for keyboard navigation returns
+        // This allows FocusTrapForScreen to restore focus to the original element
+        // Must check BOTH scenarios:
+        //   - Screen focus change (!prevIsFocused) - e.g., navigating between screens
+        //   - Modal/RHP close (!!prevIsModalVisible) - e.g., closing RHP overlay
+        // Note: RHP doesn't change isFocused, it triggers prevIsModalVisible change
+        const isScreenFocusChange = !prevIsFocused;
+        const isModalClose = !!prevIsModalVisible;
+        if ((isScreenFocusChange || isModalClose) && NavigationFocusManager.wasRecentKeyboardInteraction()) {
+            NavigationFocusManager.clearKeyboardInteractionFlag();
+            return;
+        }
+
         if (editFocused) {
             inputFocusChange(false);
             return;
         }
+
         focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
 

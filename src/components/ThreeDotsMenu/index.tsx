@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile} from '@libs/Browser';
+import NavigationFocusManager from '@libs/NavigationFocusManager';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -54,6 +55,7 @@ function ThreeDotsMenu({
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
+    const wasOpenedViaKeyboardRef = useRef(false);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
@@ -67,6 +69,7 @@ function ThreeDotsMenu({
             return;
         }
         setPopupMenuVisible(false);
+        wasOpenedViaKeyboardRef.current = false;
     }, []);
 
     const {calculatePopoverPosition} = usePopoverPosition();
@@ -82,6 +85,13 @@ function ThreeDotsMenu({
         }
         hideProductTrainingTooltip?.();
         buttonRef.current?.blur();
+
+        // Capture keyboard state BEFORE menu opens
+        // NavigationFocusManager sets flag on Enter/Space keydown (capture phase)
+        wasOpenedViaKeyboardRef.current = NavigationFocusManager.wasRecentKeyboardInteraction();
+        if (wasOpenedViaKeyboardRef.current) {
+            NavigationFocusManager.clearKeyboardInteractionFlag();
+        }
 
         if (getMenuPosition) {
             getMenuPosition?.().then((value) => {
@@ -191,6 +201,7 @@ function ThreeDotsMenu({
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
+                wasOpenedViaKeyboard={wasOpenedViaKeyboardRef.current}
             />
         </>
     );
