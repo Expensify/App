@@ -2,8 +2,6 @@ import * as Sentry from '@sentry/react-native';
 
 type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-const PARAMETERS_WHITELIST = new Set(['timestamp', 'spanExists', 'spanId', 'spanOptions', 'spanExtraOptions']);
-
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.
  *
@@ -13,9 +11,6 @@ const PARAMETERS_WHITELIST = new Set(['timestamp', 'spanExists', 'spanId', 'span
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
-    if (log.message?.search('[Sentry]') !== -1) {
-        return true;
-    }
     return false;
 }
 
@@ -30,14 +25,6 @@ function mapLogMessageToSentryLevel(message: string): SentryLogLevel {
         return 'info';
     }
     return 'debug';
-}
-
-function filterParameters(parameters: Record<string, unknown> | undefined) {
-    if (!parameters) {
-        return undefined;
-    }
-
-    return Object.fromEntries(Object.entries(parameters).filter(([key]) => PARAMETERS_WHITELIST.has(key)));
 }
 
 function forwardLogsToSentry(logPacket: string | undefined) {
@@ -72,7 +59,7 @@ function forwardLogsToSentry(logPacket: string | undefined) {
         }
 
         if (logLine.parameters) {
-            logMethod(logLine.message, filterParameters(logLine.parameters));
+            logMethod(logLine.message, logLine.parameters);
         } else {
             logMethod(logLine.message);
         }
