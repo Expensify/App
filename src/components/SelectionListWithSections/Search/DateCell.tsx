@@ -1,5 +1,6 @@
 import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -12,8 +13,13 @@ type DateCellProps = {
 
 function DateCell({date, showTooltip, isLargeScreenWidth}: DateCellProps) {
     const styles = useThemeStyles();
+    const {preferredLocale} = useLocalize();
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const formattedDate = DateUtils.formatWithUTCTimeZone(
+        date,
+        DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        preferredLocale,
+    );
 
     return (
         <TextWithTooltip
