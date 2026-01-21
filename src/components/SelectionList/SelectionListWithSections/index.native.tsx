@@ -1,6 +1,6 @@
 import React from 'react';
 import {Keyboard} from 'react-native';
-import BaseSelectionList from './NewBaseSelectionListWithSections';
+import BaseSelectionList from './BaseSelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from './types';
 
 function SelectionList<TItem extends ListItem>(props: SelectionListWithSectionsProps<TItem>) {

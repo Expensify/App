@@ -34,7 +34,7 @@ function isItemSelected<TItem extends ListItem>(item: TItem): boolean {
     return item?.isSelected ?? false;
 }
 
-function NewBaseSelectionListWithSections<TItem extends ListItem>({
+function BaseSelectionListWithSections<TItem extends ListItem>({
     sections,
     ListItem,
     onSelectRow,
@@ -392,4 +392,4 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
     );
 }
 
-export default NewBaseSelectionListWithSections;
+export default BaseSelectionListWithSections;

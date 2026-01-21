@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {isMobileChrome} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import BaseSelectionList from './NewBaseSelectionListWithSections';
+import BaseSelectionList from './BaseSelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from './types';
 
 function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListWithSectionsProps<TItem>) {
