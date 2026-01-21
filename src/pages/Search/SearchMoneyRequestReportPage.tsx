@@ -153,7 +153,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportIDFromRoute, transactionThreadReportID]);
+    }, [reportIDFromRoute, transactionThreadReportID, oneTransactionID]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
