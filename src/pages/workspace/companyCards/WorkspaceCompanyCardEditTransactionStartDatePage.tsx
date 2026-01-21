@@ -3,7 +3,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -58,7 +57,6 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
     });
 
     const [errorText, setErrorText] = useState('');
-    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
 
     const handleSelectDateOption = (dateOption: DateOption) => {
         setErrorText('');
@@ -72,31 +70,16 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
         }
     };
 
-    const getNewStartDate = () => {
-        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
-        return dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate;
-    };
-
     const submit = () => {
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
             setErrorText(translate('common.error.fieldRequired'));
             return;
         }
 
-        const newStartDate = getNewStartDate();
+        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
+        const newStartDate = dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate;
 
-        if (currentStartDate === newStartDate) {
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false});
-            return;
-        }
-
-        setIsWarningModalVisible(true);
-    };
-
-    const confirmSubmit = () => {
-        const newStartDate = getNewStartDate();
         updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
-        setIsWarningModalVisible(false);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false});
     };
 
@@ -172,17 +155,6 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
                         }
                     />
                 </View>
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                    isVisible={isWarningModalVisible}
-                    onConfirm={confirmSubmit}
-                    onCancel={() => setIsWarningModalVisible(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.moreFeatures.companyCards.changeTransactionStartDateWarning')}
-                    confirmText={translate('common.save')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
