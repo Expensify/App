@@ -20,10 +20,10 @@ type TrainTripDetailsProps = {
 function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
+    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
     const trainRouteDescription = `${reservation.start.longName} (${reservation.start.shortName}) ${translate('common.conjunctionTo')} ${reservation.end.longName} (${
         reservation.end.shortName
     })`;
