@@ -4338,7 +4338,11 @@ function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<O
             }
         }
         if (taxAmount) {
-            taxTotal += taxAmount;
+            if (currency === report?.currency) {
+                taxTotal += taxAmount;
+            } else {
+                taxTotal -= transaction?.convertedTaxAmount ?? 0;
+            }
         }
     }
     return {
@@ -13429,5 +13433,4 @@ export type {
     OptimisticNewReport,
     PrepareOnboardingOnyxDataParams,
     SelfDMParameters,
-    
 };

@@ -37,12 +37,12 @@ import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportL
 import {
     canAddTransaction,
     getAddExpenseDropdownOptions,
+    getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
     isCurrentUserSubmitter,
     isExpenseReport,
     isIOUReport,
-    getBillableAndTaxTotal,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {
@@ -623,32 +623,34 @@ function MoneyRequestReportTransactionList({
                                 {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: nonReimbursableSpend + reimbursableSpend !== 0},
                                 {text: 'common.billable', value: formattedBillableAmount, shouldShow: !!billableTotal},
                                 {text: 'common.tax', value: formattedTaxAmount, shouldShow: !!taxTotal},
-                            ].filter(({shouldShow}) => shouldShow).map(({text, value}) => (
-                                <View
-                                    key={text}
-                                    style={[
-                                        styles.dFlex,
-                                        styles.flexRow,
-                                        styles.alignItemsCenter,
-                                        styles.pr3,
-                                        styles.mw100,
-                                        shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
-                                    ]}
-                                >
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mr3]}
-                                        numberOfLines={1}
+                            ]
+                                .filter(({shouldShow}) => shouldShow)
+                                .map(({text, value}) => (
+                                    <View
+                                        key={text}
+                                        style={[
+                                            styles.dFlex,
+                                            styles.flexRow,
+                                            styles.alignItemsCenter,
+                                            styles.pr3,
+                                            styles.mw100,
+                                            shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
+                                        ]}
                                     >
-                                        {translate(text as TranslationPaths)}
-                                    </Text>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
-                                    >
-                                        {value}
-                                    </Text>
-                                </View>
-                            ))}
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mr3]}
+                                            numberOfLines={1}
+                                        >
+                                            {translate(text as TranslationPaths)}
+                                        </Text>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
+                                        >
+                                            {value}
+                                        </Text>
+                                    </View>
+                                ))}
                         </View>
                     )}
 
