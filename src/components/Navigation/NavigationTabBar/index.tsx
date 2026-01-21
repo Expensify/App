@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
+import FloatingGPSButton from '@components/FloatingGPSButton';
 import Icon from '@components/Icon';
 // import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -36,14 +37,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
-import type {
-    DomainSplitNavigatorParamList,
-    ReportsSplitNavigatorParamList,
-    RootNavigatorParamList,
-    SearchFullscreenNavigatorParamList,
-    State,
-    WorkspaceSplitNavigatorParamList,
-} from '@navigation/types';
+import type {DomainSplitNavigatorParamList, RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -58,18 +52,10 @@ import NAVIGATION_TABS from './NAVIGATION_TABS';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTopLevelBar?: boolean;
-    shouldShowFloatingCameraButton?: boolean;
+    shouldShowFloatingButtons?: boolean;
 };
 
-function getLastRoute(navigator: string, screen: string) {
-    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-    const lastNavigator = rootState.routes.findLast((route) => route.name === navigator);
-    const lastNavigatorState = lastNavigator && lastNavigator.key ? getPreservedNavigatorState(lastNavigator?.key) : undefined;
-    const lastRoute = lastNavigatorState?.routes.findLast((route) => route.name === screen);
-    return lastRoute;
-}
-
-function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingCameraButton = true}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -176,21 +162,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
             op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         });
-
-        if (shouldUseNarrowLayout) {
-            Navigation.navigate(ROUTES.HOME);
-            return;
-        }
-
-        const lastReportRoute = getLastRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
-        if (lastReportRoute) {
-            const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
-            return;
-        }
-
         Navigation.navigate(ROUTES.HOME);
-    }, [selectedTab, shouldUseNarrowLayout]);
+    }, [selectedTab]);
 
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
 
@@ -200,7 +173,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+            const parentSpan = startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
                 name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
             });
@@ -208,9 +181,14 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
                 name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
                 op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+                parentSpan,
             });
 
-            const lastSearchRoute = getLastRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
+            const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+            const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+            const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+
             if (lastSearchRoute) {
                 const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
                 const queryJSON = buildSearchQueryJSON(q);
@@ -535,7 +513,12 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     onPress={navigateToSettings}
                 />
             </View>
-            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
+            {shouldShowFloatingButtons && (
+                <>
+                    <FloatingGPSButton />
+                    <FloatingCameraButton />
+                </>
+            )}
         </>
     );
 }
