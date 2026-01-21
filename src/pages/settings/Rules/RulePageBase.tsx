@@ -222,7 +222,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                 {sections.map((section) => (
                     <View key={section.titleTranslationKey}>
-                        <Text style={[styles.headerText, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                        <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
                         {section.items.map((item) => {
                             if (!item) {
                                 return null;
