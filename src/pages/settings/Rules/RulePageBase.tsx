@@ -125,7 +125,14 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         const newRule = extractRuleFromForm(form, selectedTaxRate);
         let newRules;
         if (hash) {
-            newRules = expenseRules.map((rule) => (getKeyForRule(rule) === hash ? newRule : rule));
+            let isUpdated = false;
+            newRules = expenseRules.map((rule) => {
+                if (!isUpdated && getKeyForRule(rule) === hash) {
+                    isUpdated = true;
+                    return newRule;
+                }
+                return rule;
+            });
         } else {
             newRules = [...expenseRules, newRule];
         }

@@ -36,6 +36,8 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+const getKeyForList = (rule: ExpenseRule, index: number) => `${getKeyForRule(rule)}-${index}`;
+
 function ExpenseRulesPage() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
@@ -70,8 +72,8 @@ function ExpenseRulesPage() {
     };
 
     const toggleAllRules = () => {
-        const someSelected = expenseRules.some((rule) => selectedRules.includes(getKeyForRule(rule)));
-        setSelectedRules(someSelected ? [] : expenseRules.map((rule) => getKeyForRule(rule)));
+        const someSelected = selectedRules.length > 0;
+        setSelectedRules(someSelected ? [] : expenseRules.map(getKeyForList));
     };
 
     const navigateToNewRulePage = () => {
@@ -79,10 +81,11 @@ function ExpenseRulesPage() {
         Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute());
     };
 
-    const navigateToEditRulePage = (hash?: string) => {
-        if (!hash) {
+    const navigateToEditRulePage = (keyForList?: string) => {
+        if (!keyForList) {
             return;
         }
+        const hash = keyForList.substring(0, keyForList.indexOf('-'));
         const expenseRule = expenseRules.find((rule) => getKeyForRule(rule) === hash);
         if (!expenseRule) {
             return;
@@ -104,7 +107,7 @@ function ExpenseRulesPage() {
 
     const handleDeleteRules = () => {
         if (selectedRules.length > 0) {
-            const rulesToDelete = expenseRules.filter((rule) => !selectedRules.includes(getKeyForRule(rule)));
+            const rulesToDelete = expenseRules.filter((rule, index) => !selectedRules.includes(getKeyForList(rule, index)));
             setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules);
         }
         setDeleteConfirmModalVisible(false);
@@ -128,12 +131,12 @@ function ExpenseRulesPage() {
         });
     }
 
-    const rulesList: ListItem[] = expenseRules.map((rule) => {
+    const rulesList: ListItem[] = expenseRules.map((rule, index) => {
         const changes = formatExpenseRuleChanges(rule, translate);
         return {
             text: rule.merchantToMatch,
             alternateText: shouldUseNarrowLayout ? changes : undefined,
-            keyForList: getKeyForRule(rule),
+            keyForList: getKeyForList(rule, index),
             rightElement: !shouldUseNarrowLayout && (
                 <View style={[styles.flex1]}>
                     <Text
