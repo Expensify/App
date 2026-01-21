@@ -13,7 +13,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Switch from '@components/Switch';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -30,6 +29,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
 import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable, syncCompanyCard, unassignCompanyCard} from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -172,27 +172,19 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     />
                 </OfflineWithFeedback>
 
-                <OfflineWithFeedback
-                    pendingAction={card?.pendingFields?.markTransactionsAsReimbursable}
-                    errors={card?.errorFields?.markTransactionsAsReimbursable}
-                    errorRowStyles={[styles.ph5, styles.mb3]}
-                    onClose={() => card && clearCardErrorField(card.cardID, 'markTransactionsAsReimbursable')}
-                >
-                    <MenuItem
-                        title={translate('cardPage.markTransactionsAsReimbursable')}
-                        description={translate('cardPage.markTransactionsDescription')}
-                        interactive={false}
-                        shouldShowRightComponent
-                        rightComponent={
-                            <Switch
-                                isOn={reimbursableSetting}
-                                onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
-                                accessibilityLabel={translate('cardPage.markTransactionsAsReimbursable')}
-                                disabled={isOffline || !!card?.pendingFields?.markTransactionsAsReimbursable}
-                            />
-                        }
-                    />
-                </OfflineWithFeedback>
+                <ToggleSettingOptionRow
+                    title={translate('cardPage.markTransactionsAsReimbursable')}
+                    subtitle={translate('cardPage.markTransactionsDescription')}
+                    shouldPlaceSubtitleBelowSwitch
+                    switchAccessibilityLabel={translate('cardPage.markTransactionsAsReimbursable')}
+                    isActive={reimbursableSetting}
+                    onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
+                    disabled={isOffline || !!card?.pendingFields?.markTransactionsAsReimbursable}
+                    pendingAction={card?.pendingFields?.markTransactionsAsReimbursable ?? undefined}
+                    errors={card?.errorFields?.markTransactionsAsReimbursable ?? undefined}
+                    onCloseError={() => card && clearCardErrorField(card.cardID, 'markTransactionsAsReimbursable')}
+                    wrapperStyle={[styles.ph5, styles.mb3]}
+                />
 
                 <MenuItemWithTopDescription
                     shouldShowRightComponent={card?.isLoadingLastUpdated}
