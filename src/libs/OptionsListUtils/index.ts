@@ -478,8 +478,8 @@ function getAlternateText(
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const formattedLastMessageText =
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
+    formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
         getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, policyTags});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -1013,6 +1013,7 @@ function getReportOption(
         visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated 
         translateLocal,
         policyTags,
         {
@@ -1070,6 +1071,7 @@ function getReportDisplayOption(
         visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         translateLocal,
         policyTags,
         {
