@@ -6564,7 +6564,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
-                            allBetas: [CONST.BETAS.ALL],
+                            allBetas: [],
                             quickAction: undefined,
                         });
                     }
@@ -6761,7 +6761,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
-                            allBetas: [CONST.BETAS.ALL],
+                            allBetas: [],
                             quickAction: undefined,
                         });
                     }

@@ -910,7 +910,7 @@ describe('MoneyRequest', () => {
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
                     allBetas: baseParams.allBetas,
-                    }),
+                }),
             );
         });
 
