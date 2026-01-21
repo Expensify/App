@@ -1,7 +1,7 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useContext, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,7 +36,6 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
@@ -401,6 +400,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
+        /** The accessibility role to use for this menu item */
+        role?: Role;
+
         /** Whether to show the badge in a separate row */
         shouldShowBadgeInSeparateRow?: boolean;
 
@@ -544,10 +546,11 @@ function MenuItem({
     ref,
     isFocused,
     sentryLabel,
+    role = CONST.ROLE.MENUITEM,
     shouldBeAccessible = true,
     tabIndex = 0,
 }: MenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -743,7 +746,7 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={CONST.ROLE.MENUITEM}
+                                role={role}
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}
@@ -988,7 +991,7 @@ function MenuItem({
                                                 {!!brickRoadIndicator && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
-                                                            src={Expensicons.DotIndicator}
+                                                            src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
@@ -1020,7 +1023,7 @@ function MenuItem({
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                                                 {shouldShowSelectedItemCheck && isSelected && (
                                                     <Icon
-                                                        src={Expensicons.Checkmark}
+                                                        src={icons.Checkmark}
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
