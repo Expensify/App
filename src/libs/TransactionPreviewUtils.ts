@@ -1,5 +1,5 @@
 import truncate from 'lodash/truncate';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -215,7 +215,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
     const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isTransactionScanning = isScanning(transaction);
-    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -363,7 +363,7 @@ function createTransactionPreviewConditionals({
     currentUserAccountID,
     reportActions,
 }: {
-    iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
     action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
@@ -389,7 +389,7 @@ function createTransactionPreviewConditionals({
     const policy = getPolicy(iouReport?.policyID);
     const hasViolationsOfTypeNotice =
         hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
-    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
 

@@ -60,6 +60,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
     const {isBetaEnabled} = usePermissions();
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
@@ -204,7 +205,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, allBetas, false, shouldDismissEmptyReportsConfirmation);
         handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 
