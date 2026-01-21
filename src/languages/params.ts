@@ -5,10 +5,6 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-type EmployeesSeeTagsAsParams = {
-    customTagName: string;
-};
-
 type MultifactorAuthenticationTranslationParams = {
     authType?: string;
     registered?: boolean;
@@ -825,7 +821,6 @@ export type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
     WorkspaceUpgradeNoteParams,
-    EmployeesSeeTagsAsParams,
     WorkflowSettingsParam,
     MovedActionParams,
     WorkspaceShareNoteParams,

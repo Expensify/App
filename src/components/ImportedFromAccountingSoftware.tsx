@@ -54,36 +54,23 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                 textStyles={[styles.textNormal, styles.colorMuted]}
                 text={`${translatedText} `}
             />
-            {[
-                <TextLinkBlock
-                    key="settingsLink"
-                    style={[styles.textNormal, styles.link]}
-                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                    text={`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                    prefixIcon={
-                        icon ? (
-                            <Icon
-                                src={icon}
-                                height={variables.iconSizeMedium}
-                                width={variables.iconSizeMedium}
-                                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
-                            />
-                        ) : undefined
-                    }
-                />,
-                <Text
-                    key="period"
-                    style={[styles.textNormal, styles.colorMuted]}
-                >
-                    .{' '}
-                </Text>,
-                shouldShow && !!customTagName ? (
-                    <EmployeesSeeTagsAsText
-                        key="employeesSeeTagsAs"
-                        customTagName={customTagName}
-                    />
-                ) : null,
-            ]}
+            <TextLinkBlock
+                style={[styles.textNormal, styles.link]}
+                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                text={`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                prefixIcon={
+                    icon ? (
+                        <Icon
+                            src={icon}
+                            height={variables.iconSizeMedium}
+                            width={variables.iconSizeMedium}
+                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
+                        />
+                    ) : undefined
+                }
+            />
+            <Text style={[styles.textNormal, styles.colorMuted]}>. </Text>
+            {shouldShow && !!customTagName && <EmployeesSeeTagsAsText customTagName={customTagName} />}
         </View>
     );
 }

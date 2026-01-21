@@ -5166,7 +5166,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             invalidTagNameError: '标签名称不能为 0。请选择其他值。',
             genericFailureMessage: '更新标签时出错，请重试',
             importedFromAccountingSoftware: '标签在您的系统中管理',
-            employeesSeeTagsAs: ({customTagName}) => `员工看到的标签为 ${customTagName}。`,
+            employeesSeeTagsAs: '员工看到的标签为',
             glCode: '总账代码',
             updateGLCodeFailureMessage: '更新总账代码时发生错误，请重试',
             tagRules: '标签规则',

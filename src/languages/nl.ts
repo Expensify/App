@@ -5275,7 +5275,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             invalidTagNameError: 'Tagnaam kan niet 0 zijn. Kies een andere waarde.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de tag, probeer het opnieuw',
             importedFromAccountingSoftware: 'Tags worden beheerd in je',
-            employeesSeeTagsAs: ({customTagName}) => `Werknemers zien tags als ${customTagName}.`,
+            employeesSeeTagsAs: 'Werknemers zien tags als',
             glCode: 'Grootboekcode',
             updateGLCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de GL-code, probeer het opnieuw',
             tagRules: 'Tagregels',
