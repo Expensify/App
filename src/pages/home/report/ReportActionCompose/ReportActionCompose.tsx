@@ -13,7 +13,6 @@ import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -53,7 +52,6 @@ import {
     isConciergeChatReport,
     isGroupChat,
     isInvoiceReport,
-    isMoneyRequestReport,
     isReportApproved,
     isReportTransactionThread,
     isSettled,
@@ -126,24 +124,6 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
-/**
- * List of AI-aware placeholder translation keys for expense threads
- */
-const AI_PLACEHOLDER_KEYS = [
-    'reportActionCompose.askConciergeToCreate',
-    'reportActionCompose.askConciergeToUpdate',
-    'reportActionCompose.askConciergeToCorrect',
-    'reportActionCompose.addColleagueWithMention',
-] as const;
-
-/**
- * Returns a random AI-aware placeholder for expense threads
- */
-function getRandomPlaceholder(translate: LocalizedTranslate): string {
-    const randomIndex = Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length);
-    return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
-}
-
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
@@ -178,6 +158,7 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -265,29 +246,19 @@ function ReportActionCompose({
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
+        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, allBetas, isReportArchived, isRestrictedToPreferredPolicy).length;
         const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
         const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
         return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
-    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
-
-    // Check if this is an expense-related report (IOU, expense report, or transaction thread)
-    const isExpenseRelatedReport = useMemo(() => isTransactionThreadView || isMoneyRequestReport(report), [isTransactionThreadView, report]);
+    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy, allBetas]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
         if (includesConcierge && userBlockedFromConcierge) {
             return translate('reportActionCompose.blockedFromConcierge');
         }
-
-        // Show AI-aware placeholder for expense-related reports where user can write
-        // to encourage using Concierge AI for expense management
-        if (isExpenseRelatedReport && canUserPerformWriteAction) {
-            return getRandomPlaceholder(translate);
-        }
-
         return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction]);
+    }, [includesConcierge, translate, userBlockedFromConcierge]);
 
     const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
 
