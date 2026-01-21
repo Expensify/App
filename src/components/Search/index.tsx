@@ -50,7 +50,6 @@ import {
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
-    isTodoSearch,
     isTransactionCardGroupListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
