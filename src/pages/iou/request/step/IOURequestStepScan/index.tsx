@@ -348,7 +348,7 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
-                        allBetas,
+                allBetas,
             });
         },
         [

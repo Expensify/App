@@ -296,7 +296,7 @@ function IOURequestStepScan({
                 isTestTransaction,
                 locationPermissionGranted,
                 allBetas,
-                });
+            });
         },
         [
             backTo,
