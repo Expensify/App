@@ -179,9 +179,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     switchAccessibilityLabel={translate('cardPage.markTransactionsAsReimbursable')}
                     isActive={reimbursableSetting}
                     onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
-                    disabled={isOffline || !!card?.pendingFields?.markTransactionsAsReimbursable}
-                    pendingAction={card?.pendingFields?.markTransactionsAsReimbursable ?? undefined}
-                    errors={card?.errorFields?.markTransactionsAsReimbursable ?? undefined}
+                    pendingAction={card?.pendingFields?.markTransactionsAsReimbursable}
+                    errors={card?.errorFields?.markTransactionsAsReimbursable}
                     onCloseError={() => card && clearCardErrorField(card.cardID, 'markTransactionsAsReimbursable')}
                     wrapperStyle={[styles.ph5, styles.mb3]}
                 />
