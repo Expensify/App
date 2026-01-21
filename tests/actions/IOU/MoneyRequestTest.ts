@@ -516,6 +516,7 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 shouldHandleNavigation: true,
+                allBetas: baseParams.allBetas,
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
@@ -808,6 +809,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
+                allBetas: baseParams.allBetas,
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -869,6 +871,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
+                allBetas: baseParams.allBetas,
             });
         });
 
@@ -906,7 +909,8 @@ describe('MoneyRequest', () => {
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
-                }),
+                    allBetas: baseParams.allBetas,
+                    }),
             );
         });
 
