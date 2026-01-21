@@ -37,6 +37,7 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import Crop from '@assets/images/crop.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
@@ -224,6 +225,7 @@ export {
     Inbox,
     ImageCropCircleMask,
     ImageCropSquareMask,
+    Crop,
     Info,
     Invoice,
     InvoiceGeneric,

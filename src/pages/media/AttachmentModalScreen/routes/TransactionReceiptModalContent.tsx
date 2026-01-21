@@ -460,7 +460,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {!!shouldShowCropReceiptButton && (
                     <Button
-                        icon={Expensicons.ImageCropSquareMask}
+                        icon={Expensicons.Crop}
                         onPress={enterCropMode}
                         text={translate('receipt.crop')}
                     />
