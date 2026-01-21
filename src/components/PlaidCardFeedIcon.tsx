@@ -8,15 +8,17 @@ import variables from '@styles/variables';
 import ActivityIndicator from './ActivityIndicator';
 import Icon from './Icon';
 import Image from './Image';
+import CardIconSkeleton from './Skeletons/CardIconSkeleton';
 
 type PlaidCardFeedIconProps = {
     plaidUrl: string;
     style?: StyleProp<ViewStyle>;
     isLarge?: boolean;
     isSmall?: boolean;
+    useSkeletonLoader?: boolean;
 };
 
-function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall}: PlaidCardFeedIconProps) {
+function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader = false}: PlaidCardFeedIconProps) {
     const [isBrokenImage, setIsBrokenImage] = useState<boolean>(false);
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
@@ -56,11 +58,18 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall}: PlaidCardFeedIco
                         onError={() => setIsBrokenImage(true)}
                         onLoadEnd={() => setLoading(false)}
                     />
-                    {loading ? (
+                    {loading && useSkeletonLoader && (
+                        <CardIconSkeleton
+                            width={iconWidth}
+                            height={iconHeight}
+                        />
+                    )}
+                    {loading && !useSkeletonLoader && (
                         <View style={[styles.justifyContentCenter, {width: iconWidth, height: iconHeight}]}>
                             <ActivityIndicator size={isSmall ? 10 : 20} />
                         </View>
-                    ) : (
+                    )}
+                    {!loading && (
                         <Icon
                             src={isLarge ? companyCardFeedIcons.PlaidCompanyCardDetailLarge : companyCardBankIcons.PlaidCompanyCardDetail}
                             height={iconHeight}

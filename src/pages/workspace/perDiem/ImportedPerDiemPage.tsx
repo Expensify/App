@@ -1,15 +1,15 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
-import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -49,6 +49,7 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
 type ImportedPerDiemPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORTED>;
 function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const {translate} = useLocalize();
+    const {currencyList} = useCurrencyList();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImportingPerDiemRates, setIsImportingPerDiemRates] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -76,7 +77,15 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
-    const validate = useCallback(() => {
+    const sanitizeCurrencyCode = (currencyCode: string) => {
+        if (currencyList[currencyCode]) {
+            return currencyCode;
+        }
+        // If the currency code is not found in the currency list, default to USD
+        return CONST.CURRENCY.USD;
+    };
+
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
@@ -93,9 +102,9 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
+    };
 
-    const importRates = useCallback(() => {
+    const importRates = () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
@@ -124,7 +133,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             setIsImportingPerDiemRates(true);
             importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

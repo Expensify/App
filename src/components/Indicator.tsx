@@ -16,7 +16,15 @@ function Indicator() {
     const isError = indicatorColor === theme.danger;
     const accessibilityLabel = isError ? translate('accessibilityHints.hasItemsToReview') : translate('accessibilityHints.hasActionToTake');
 
-    return !!status && <View style={StyleSheet.flatten(indicatorStyles)} accessibilityLabel={accessibilityLabel} role="img" />;
+    return (
+        !!status && (
+            <View
+                style={StyleSheet.flatten(indicatorStyles)}
+                accessibilityLabel={accessibilityLabel}
+                role="img"
+            />
+        )
+    );
 }
 
 export default Indicator;
