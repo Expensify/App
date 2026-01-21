@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -16,7 +16,6 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
-import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -24,6 +23,8 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SectionHeader, SectionListItem, SelectionListWithSectionsProps} from './types';
+import useSelectedItemFocusSync from '../hooks/useSelectedItemFocusSync';
+import useSearchFocusSync from '../hooks/useSearchFocusSync';
 
 function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): 'header' | 'row' {
     return item?.type ?? 'row';
@@ -52,7 +53,7 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
     isLoadingNewOptions,
     shouldShowTextInput,
     listEmptyContent,
-    shouldShowListEmptyContent = true,
+    showListEmptyContent = true,
     shouldScrollToFocusedIndex = true,
     shouldDebounceScrolling = false,
     style,
@@ -243,65 +244,25 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
         }
     }, []);
 
-    const selectedItemIndex = useMemo(() => (initiallyFocusedOptionKey ? itemsOnly.findIndex(isItemSelected) : -1), [itemsOnly, initiallyFocusedOptionKey]);
+    useSelectedItemFocusSync({
+        items: itemsOnly,
+        initiallyFocusedItemKey: initiallyFocusedOptionKey,
+        isItemSelected,
+        focusedIndex,
+        searchValue: textInputOptions?.value,
+        setFocusedIndex,
+    });
 
-    useEffect(() => {
-        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputOptions?.value) {
-            return;
-        }
-        setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedItemIndex]);
-
-    const prevSearchValue = usePrevious(textInputOptions?.value);
-    const prevSelectedOptionsLength = usePrevious(selectedItems.length);
-    const prevAllOptionsLength = usePrevious(itemsOnly.length);
-
-    useEffect(() => {
-        const currentSearchValue = textInputOptions?.value;
-        const searchChanged = prevSearchValue !== currentSearchValue;
-        const selectedOptionsChanged = selectedItems.length !== prevSelectedOptionsLength;
-        const selectionChangedByClicking = !searchChanged && selectedOptionsChanged && shouldUpdateFocusedIndex;
-        // Do not change focus if:
-        // 1. Input value is the same or
-        // 2. Data length is 0 or
-        // 3. Selection changed via user interaction (not filtering), so focus is handled externally
-        if ((!searchChanged && !selectedOptionsChanged) || itemsOnly.length === 0 || selectionChangedByClicking) {
-            return;
-        }
-
-        const hasSearchBeenCleared = prevSearchValue && !currentSearchValue;
-        if (hasSearchBeenCleared) {
-            const foundSelectedItemIndex = itemsOnly.findIndex(isItemSelected);
-
-            if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
-                scrollToIndex(foundSelectedItemIndex);
-                setFocusedIndex(foundSelectedItemIndex);
-                return;
-            }
-        }
-
-        // Remove focus (set focused index to -1) if:
-        // 1. If the search is idle or
-        // 2. If the user is just toggling options without changing the list content
-        // Otherwise (e.g. when filtering/typing), focus on the first item (0)
-        const isSearchIdle = !prevSearchValue && !currentSearchValue;
-        const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevAllOptionsLength === itemsOnly.length) ? -1 : 0;
-
-        scrollToIndex(newSelectedIndex);
-        setFocusedIndex(newSelectedIndex);
-    }, [
+    useSearchFocusSync({
+        searchValue: textInputOptions?.value,
+        items: itemsOnly,
+        selectedOptionsCount: selectedItems.length,
+        isItemSelected,
         canSelectMultiple,
-        itemsOnly,
-        selectedItems.length,
-        prevAllOptionsLength,
-        prevSelectedOptionsLength,
-        prevSearchValue,
+        shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
-        shouldUpdateFocusedIndex,
-        textInputOptions?.value,
-    ]);
+    });
 
     const textInputComponent = () => {
         return (
@@ -326,7 +287,7 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
         if (showLoadingPlaceholder) {
             return <OptionsListSkeletonView />;
         }
-        if (shouldShowListEmptyContent) {
+        if (showListEmptyContent) {
             return listEmptyContent;
         }
     };
@@ -398,7 +359,7 @@ function NewBaseSelectionListWithSections<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent()}
-            {itemsOnly.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {itemsOnly.length === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
