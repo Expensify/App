@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
+import INPUT_IDS from '@src/types/form/EditPersonalCardNameForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME>;
@@ -34,12 +34,12 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM>) => {
         updateAssignedCardName(cardID, values[INPUT_IDS.NAME], defaultValue);
         Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM> => {
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
         const length = values.name.length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
@@ -64,7 +64,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
             />
             <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
             <FormProvider
-                formID={ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM}
+                formID={ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM}
                 submitButtonText={translate('common.save')}
                 onSubmit={submit}
                 style={[styles.flex1, styles.mh5]}
