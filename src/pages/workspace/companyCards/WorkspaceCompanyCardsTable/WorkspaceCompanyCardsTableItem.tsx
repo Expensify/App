@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
@@ -5,10 +6,12 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardAssignment} from '@libs/actions/CompanyCards';
@@ -17,13 +20,23 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetails} from '@src/types/onyx';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCompanyCardTableItemData = {
-    /** Card number */
+    /**
+     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
+     */
     cardName: string;
 
-    /** Card name */
+    /**
+     * The card identifier sent to backend.
+     * For direct feeds (Plaid/OAuth): equals cardName
+     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
+     */
+    encryptedCardNumber: string;
+
+    /** User-defined name for the card (e.g., "John's card") */
     customCardName?: string;
 
     /** Cardholder personal details */
@@ -32,8 +45,14 @@ type WorkspaceCompanyCardTableItemData = {
     /** Assigned card */
     assignedCard: Card | undefined;
 
-    /** Pending company card assignment */
-    failedCompanyCardAssignment: FailedCompanyCardAssignment | undefined;
+    /** Failed company card assignment */
+    hasFailedCardAssignment: boolean;
+
+    /** Errors */
+    errors?: Errors;
+
+    /** Pending action */
+    pendingAction?: PendingAction;
 
     /** Whether the card is deleted */
     isCardDeleted: boolean;
@@ -70,8 +89,12 @@ type WorkspaceCompanyCardTableItemProps = {
     /** Number of columns in the table */
     columnCount: number;
 
-    /** On assign card callback */
-    onAssignCard: (cardID: string) => void;
+    /**
+     * Callback when assigning a card.
+     * @param cardName - The masked card number displayed to users
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    onAssignCard: (cardName: string, cardID: string) => void;
 };
 
 function WorkspaceCompanyCardTableItem({
@@ -90,39 +113,27 @@ function WorkspaceCompanyCardTableItem({
     const theme = useTheme();
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {isOffline} = useNetwork();
 
-    const {failedCompanyCardAssignment} = item;
-    let {cardName, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted} = item;
-    let errors = assignedCard?.errors;
-    let pendingAction = assignedCard?.pendingAction;
-
-    if (failedCompanyCardAssignment) {
-        cardName = failedCompanyCardAssignment.cardNumber;
-        customCardName = failedCompanyCardAssignment.cardName;
-        cardholder = failedCompanyCardAssignment.cardholder;
-        assignedCard = undefined;
-        isAssigned = true;
-        isCardDeleted = false;
-        errors = failedCompanyCardAssignment?.errors;
-        pendingAction = failedCompanyCardAssignment?.pendingAction;
-    }
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted, hasFailedCardAssignment, errors, pendingAction} = item;
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
-    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? cardholder?.login : undefined;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${customCardName ?? ''}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : cardName;
 
-    const leftColumnTitle = isAssigned ? (cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const leftColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const resetFailedCompanyCardAssignment = () => {
-        if (!failedCompanyCardAssignment) {
+        if (!hasFailedCardAssignment) {
             return;
         }
 
-        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, cardName);
+        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, encryptedCardNumber);
     };
 
-    const assignCard = () => onAssignCard(cardName);
+    const assignCard = () => onAssignCard(cardName, encryptedCardNumber);
+    const isDeleting = !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     return (
         <OfflineWithFeedback
@@ -130,115 +141,127 @@ function WorkspaceCompanyCardTableItem({
             errors={errors}
             pendingAction={pendingAction}
             onClose={resetFailedCompanyCardAssignment}
+            shouldHideOnDelete={false}
         >
-            <PressableWithFeedback
-                role={CONST.ROLE.BUTTON}
-                style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}
-                accessibilityLabel="row"
-                hoverStyle={styles.hoveredComponentBG}
-                disabled={isCardDeleted}
-                onPress={() => {
-                    if (!assignedCard) {
-                        assignCard();
-                        return;
-                    }
+            {isDeleting ? (
+                <View style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}>
+                    <TableRowSkeleton
+                        fixedNumItems={1}
+                        useCompanyCardsLayout
+                    />
+                </View>
+            ) : (
+                <PressableWithFeedback
+                    role={isAssigned ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+                    style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}
+                    accessibilityLabel="row"
+                    hoverStyle={isAssigned && styles.hoveredComponentBG}
+                    disabled={isCardDeleted}
+                    interactive={isAssigned}
+                    pressDimmingValue={isAssigned ? undefined : 1}
+                    onPress={() => {
+                        if (!assignedCard) {
+                            assignCard();
+                            return;
+                        }
 
-                    if (!assignedCard?.accountID || !assignedCard?.fundID) {
-                        return;
-                    }
+                        if (!assignedCard?.accountID || !assignedCard?.fundID) {
+                            return;
+                        }
 
-                    const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
+                        const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
 
-                    return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, assignedCard.cardID.toString()));
-                }}
-            >
-                {({hovered}) => (
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.p4,
-                            styles.gap3,
-                            styles.dFlex,
-                            // Use Grid on web when available (will override flex if supported)
-                            !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
-                        ]}
-                    >
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            {isAssigned ? (
-                                <Avatar
-                                    source={
-                                        cardholder?.avatar ??
-                                        getDefaultAvatarURL({
-                                            accountID: cardholder?.accountID,
-                                        })
-                                    }
-                                    avatarID={cardholder?.accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.DEFAULT}
-                                />
-                            ) : (
-                                CardFeedIcon
+                        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, assignedCard.cardID.toString()));
+                    }}
+                >
+                    {({hovered}) => (
+                        <View
+                            style={[
+                                styles.flex1,
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                                styles.p4,
+                                styles.gap3,
+                                styles.dFlex,
+                                // Use Grid on web when available (will override flex if supported)
+                                !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
+                            ]}
+                        >
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                                {isAssigned ? (
+                                    <Avatar
+                                        source={
+                                            cardholder?.avatar ??
+                                            getDefaultAvatarURL({
+                                                accountID: cardholder?.accountID,
+                                            })
+                                        }
+                                        avatarID={cardholder?.accountID}
+                                        type={CONST.ICON_TYPE_AVATAR}
+                                        size={CONST.AVATAR_SIZE.DEFAULT}
+                                    />
+                                ) : (
+                                    CardFeedIcon
+                                )}
+
+                                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                                    <TextWithTooltip
+                                        text={leftColumnTitle}
+                                        style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter, !isAssigned && styles.cursorText]}
+                                    />
+                                    {!!leftColumnSubtitle && (
+                                        <TextWithTooltip
+                                            text={leftColumnSubtitle}
+                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3, !isAssigned && styles.cursorText]}
+                                        />
+                                    )}
+                                </View>
+                            </View>
+
+                            {!shouldUseNarrowTableLayout && (
+                                <View style={[styles.flex1]}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.lh16, styles.optionDisplayName, styles.pre, !isAssigned && styles.cursorText]}
+                                    >
+                                        {cardName}
+                                    </Text>
+                                </View>
                             )}
 
-                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                                <TextWithTooltip
-                                    text={leftColumnTitle}
-                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter]}
-                                />
-                                {!!leftColumnSubtitle && (
-                                    <TextWithTooltip
-                                        text={leftColumnSubtitle}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
+                            <View style={[styles.flexRow, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                                {isAssigned ? (
+                                    <View style={[styles.flexRow, styles.ml2, styles.gap3, styles.mw100]}>
+                                        {!shouldUseNarrowTableLayout && (
+                                            <Text
+                                                numberOfLines={1}
+                                                style={[styles.optionDisplayName, styles.pre]}
+                                            >
+                                                {customCardName}
+                                            </Text>
+                                        )}
+                                        <Icon
+                                            src={Expensicons.ArrowRight}
+                                            fill={theme.icon}
+                                            additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                            medium
+                                            isButtonIcon
+                                        />
+                                    </View>
+                                ) : (
+                                    <Button
+                                        success
+                                        small={shouldUseNarrowTableLayout}
+                                        text={shouldUseNarrowTableLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
+                                        onPress={assignCard}
+                                        isDisabled={isAssigningCardDisabled}
                                     />
                                 )}
                             </View>
                         </View>
-
-                        {!shouldUseNarrowTableLayout && (
-                            <View style={[styles.flex1]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                                >
-                                    {cardName}
-                                </Text>
-                            </View>
-                        )}
-
-                        <View style={[styles.flexRow, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                            {isAssigned ? (
-                                <View style={[styles.flexRow, styles.ml2, styles.gap3, styles.mw100]}>
-                                    {!shouldUseNarrowTableLayout && (
-                                        <Text
-                                            numberOfLines={1}
-                                            style={[styles.optionDisplayName, styles.pre]}
-                                        >
-                                            {customCardName}
-                                        </Text>
-                                    )}
-                                    <Icon
-                                        src={Expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                        additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                        medium
-                                        isButtonIcon
-                                    />
-                                </View>
-                            ) : (
-                                <Button
-                                    success
-                                    small={shouldUseNarrowTableLayout}
-                                    text={shouldUseNarrowTableLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
-                                    onPress={assignCard}
-                                    isDisabled={isAssigningCardDisabled}
-                                />
-                            )}
-                        </View>
-                    </View>
-                )}
-            </PressableWithFeedback>
+                    )}
+                </PressableWithFeedback>
+            )}
         </OfflineWithFeedback>
     );
 }

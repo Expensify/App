@@ -114,7 +114,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                             return;
                         }
                         if (option.login !== technicalContactSettings?.technicalContactEmail) {
-                            setPrimaryContact(domainAccountID, option.accountID, option.login, technicalContactSettings?.technicalContactEmail);
+                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
                         }
                         Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                     }}
