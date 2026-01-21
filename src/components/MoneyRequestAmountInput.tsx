@@ -167,7 +167,7 @@ function MoneyRequestAmountInput({
     disabled,
     ...props
 }: MoneyRequestAmountInputProps) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
