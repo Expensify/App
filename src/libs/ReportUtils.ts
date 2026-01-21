@@ -9,7 +9,6 @@ import isEmpty from 'lodash/isEmpty';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
-import type {ReactNode} from 'react';
 import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -906,8 +905,6 @@ type OptionData = {
     lastName?: string;
     avatar?: AvatarSource;
     timezone?: Timezone;
-    shouldOnlyRenderHeaderContent?: boolean;
-    headerContent?: ReactNode;
 } & Report &
     ReportNameValuePairs;
 

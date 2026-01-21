@@ -208,12 +208,6 @@ type ListItem<K extends string | number = string> = {
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
 
-    /** Allows us to render only the header content, making it easier to embed items other than ListItem into the list */
-    shouldOnlyRenderHeaderContent?: boolean;
-
-    /** Element to render above the ListItem */
-    headerContent?: ReactNode;
-
     /** Element to render below the ListItem */
     footerContent?: ReactNode;
 
@@ -875,6 +869,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom content to display in the header of list component. */
     listHeaderContent?: React.JSX.Element | null;
+
+    /** By default, when `listHeaderContent` is passed, the section title will not be rendered. This flag allows the section title to still be rendered in certain cases. */
+    shouldShowSectionTitleEvenWithListHeaderContent?: boolean;
 
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
