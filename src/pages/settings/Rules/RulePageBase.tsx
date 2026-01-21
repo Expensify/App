@@ -6,6 +6,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -17,7 +18,6 @@ import {getAvailableNonPersonalPolicyCategories} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRatesNamesAndValues, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -141,11 +141,6 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         Navigation.goBack();
     };
 
-    const doesRuleExist = !!hash && expenseRules.some((rule) => getKeyForRule(rule) === hash);
-    if (!isSaving && !!hash && !doesRuleExist) {
-        return <NotFoundPage />;
-    }
-
     const sections: SectionType[] = [
         {
             titleTranslationKey: 'expenseRulesPage.addRule.expenseContains',
@@ -211,58 +206,63 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     ];
 
     return (
-        <ScreenWrapper
-            testID={testID}
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
+        <RuleNotFoundPageWrapper
+            hash={hash}
+            shouldPreventShow={isSaving}
         >
-            <HeaderWithBackButton title={translate(titleKey)} />
-            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                {sections.map((section) => (
-                    <View key={section.titleTranslationKey ?? section.items.at(0)?.descriptionTranslationKey}>
-                        {!!section.titleTranslationKey && (
-                            <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
-                        )}
-                        {section.items.map((item) => {
-                            if (!item) {
-                                return null;
-                            }
-                            return (
-                                <MenuItemWithTopDescription
-                                    key={item.descriptionTranslationKey}
-                                    description={translate(item.descriptionTranslationKey)}
-                                    errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                                    onPress={item.onPress}
-                                    rightLabel={item.required ? translate('common.required') : undefined}
-                                    shouldShowRightIcon
-                                    title={item.title}
-                                    titleStyle={styles.flex1}
-                                />
-                            );
-                        })}
+            <ScreenWrapper
+                testID={testID}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+            >
+                <HeaderWithBackButton title={translate(titleKey)} />
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    {sections.map((section) => (
+                        <View key={section.titleTranslationKey ?? section.items.at(0)?.descriptionTranslationKey}>
+                            {!!section.titleTranslationKey && (
+                                <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                            )}
+                            {section.items.map((item) => {
+                                if (!item) {
+                                    return null;
+                                }
+                                return (
+                                    <MenuItemWithTopDescription
+                                        key={item.descriptionTranslationKey}
+                                        description={translate(item.descriptionTranslationKey)}
+                                        errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                                        onPress={item.onPress}
+                                        rightLabel={item.required ? translate('common.required') : undefined}
+                                        shouldShowRightIcon
+                                        title={item.title}
+                                        titleStyle={styles.flex1}
+                                    />
+                                );
+                            })}
+                        </View>
+                    ))}
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
+                        <ToggleSettingOptionRow
+                            isActive={form?.createReport ?? false}
+                            onToggle={(isEnabled) => updateDraftRule({createReport: isEnabled})}
+                            switchAccessibilityLabel={translate('expenseRulesPage.addRule.createReport')}
+                            title={translate('expenseRulesPage.addRule.createReport')}
+                            titleStyle={styles.pv2}
+                            wrapperStyle={styles.flex1}
+                        />
                     </View>
-                ))}
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                    <ToggleSettingOptionRow
-                        isActive={form?.createReport ?? false}
-                        onToggle={(isEnabled) => updateDraftRule({createReport: isEnabled})}
-                        switchAccessibilityLabel={translate('expenseRulesPage.addRule.createReport')}
-                        title={translate('expenseRulesPage.addRule.createReport')}
-                        titleStyle={styles.pv2}
-                        wrapperStyle={styles.flex1}
-                    />
-                </View>
-            </ScrollView>
-            <FormAlertWithSubmitButton
-                buttonText={translate('expenseRulesPage.addRule.saveRule')}
-                containerStyles={[styles.m4, styles.mb5]}
-                isAlertVisible={shouldShowError && !!errorMessage}
-                message={errorMessage}
-                onSubmit={handleSubmit}
-                enabledWhenOffline
-            />
-        </ScreenWrapper>
+                </ScrollView>
+                <FormAlertWithSubmitButton
+                    buttonText={translate('expenseRulesPage.addRule.saveRule')}
+                    containerStyles={[styles.m4, styles.mb5]}
+                    isAlertVisible={shouldShowError && !!errorMessage}
+                    message={errorMessage}
+                    onSubmit={handleSubmit}
+                    enabledWhenOffline
+                />
+            </ScreenWrapper>
+        </RuleNotFoundPageWrapper>
     );
 }
 

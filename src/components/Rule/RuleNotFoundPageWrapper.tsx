@@ -14,9 +14,10 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 type RuleNotFoundPageWrapperProps = {
     children: React.ReactNode;
     hash?: string;
+    shouldPreventShow?: boolean;
 };
 
-function RuleNotFoundPageWrapper({children, hash}: RuleNotFoundPageWrapperProps) {
+function RuleNotFoundPageWrapper({children, hash, shouldPreventShow}: RuleNotFoundPageWrapperProps) {
     const [expenseRules = getEmptyArray<ExpenseRule>(), rulesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
     const doesRuleExist = !!hash && expenseRules.some((rule) => getKeyForRule(rule) === hash);
 
@@ -27,7 +28,7 @@ function RuleNotFoundPageWrapper({children, hash}: RuleNotFoundPageWrapperProps)
         return <FullscreenLoadingIndicator />;
     }
 
-    if (shouldShowNotFoundPage) {
+    if (!shouldPreventShow && shouldShowNotFoundPage) {
         return (
             <NotFoundPage
                 onBackButtonPress={() => {
