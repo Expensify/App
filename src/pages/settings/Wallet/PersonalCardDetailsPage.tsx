@@ -1,7 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -36,7 +36,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Session} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -55,15 +54,13 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {isOffline} = useNetwork();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = getDisplayNameOrDefault(cardholder);
-
-    const currentUserAccountID = (session as OnyxEntry<Session>)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isPersonalCard = !!(card && isPersonalCardFromOldDot(card, currentUserAccountID));
     const reimbursableSetting = card?.markTransactionsAsReimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isPersonalCard && card && (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
@@ -79,9 +76,10 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     };
 
     const updateCard = () => {
-        if (card) {
-            syncCompanyCard(card.cardID, card.lastScrapeResult);
+        if (!card) {
+            return;
         }
+        syncCompanyCard(card.cardID, card.lastScrapeResult);
     };
 
     const lastScrape = useMemo(() => {
