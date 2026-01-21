@@ -65,7 +65,7 @@ const webpack = {
 };
 
 const metro = {
-    presets: [require('@react-native/babel-preset')],
+    presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: true}]],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
