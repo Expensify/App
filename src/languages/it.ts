@@ -259,8 +259,7 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
         previous: 'Precedente',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
-        goBack: 'Torna indietro',
+        goBack: 'Indietro',
         create: 'Crea',
         add: 'Aggiungi',
         resend: 'Reinvia',
@@ -628,7 +627,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copia negli appunti',
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
-        viewReport: 'Visualizza rendiconto',
         actionRequired: 'Azione richiesta',
         duplicate: 'Duplica',
         duplicated: 'Duplicato',
@@ -1469,7 +1467,13 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
         splitByDate: 'Dividi per data',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
-        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`, hrs: 'ore'},
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`,
+            hrs: 'ore',
+            hours: 'Ore',
+            ratePreview: (rate: string) => `${rate} / ora`,
+            amountTooLargeError: 'L’importo totale è troppo elevato. Riduci le ore o diminuisci la tariffa.',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -1947,13 +1951,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Il tuo account è bloccato',
         chatToConciergeToUnlock: 'Chatta con Concierge per risolvere i problemi di sicurezza e sbloccare il tuo account.',
         chatWithConcierge: 'Chatta con Concierge',
-    },
-    passwordPage: {
-        changePassword: 'Cambia password',
-        changingYourPasswordPrompt: 'La modifica della password aggiornerà la password sia per il tuo account Expensify.com sia per il tuo account New Expensify.',
-        currentPassword: 'Password attuale',
-        newPassword: 'Nuova password',
-        newPasswordPrompt: 'La nuova password deve essere diversa dalla vecchia password e contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticazione a due fattori',
@@ -2989,15 +2986,6 @@ ${
         subtitle: 'Impossibile completare la tua richiesta. Riprova più tardi.',
         wrongTypeSubtitle: 'Questa ricerca non è valida. Prova a modificare i criteri di ricerca.',
     },
-    setPasswordPage: {
-        enterPassword: 'Inserisci una password',
-        setPassword: 'Imposta password',
-        newPasswordPrompt: 'La tua password deve contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
-        passwordFormTitle: 'Bentornato nella nuova Expensify! Imposta la tua password.',
-        passwordNotSet: 'Non è stato possibile impostare la tua nuova password. Ti abbiamo inviato un nuovo link per la password per riprovare.',
-        setPasswordLinkInvalid: 'Questo link per impostare la password non è valido o è scaduto. Un nuovo link ti sta aspettando nella tua casella di posta!',
-        validateAccount: 'Verifica account',
-    },
     statusPage: {
         status: 'Stato',
         statusExplanation: "Aggiungi un'emoji per offrire a colleghi e amici un modo semplice per capire cosa sta succedendo. Puoi anche aggiungere un messaggio opzionale!",
@@ -3143,6 +3131,8 @@ ${
     onfidoStep: {
         acceptTerms: 'Continuando con la richiesta di attivare il tuo Expensify Wallet, confermi di aver letto, compreso e accettato',
         facialScan: 'Informativa e liberatoria di Onfido per la scansione facciale',
+        onfidoLinks: (onfidoTitle: string) =>
+            `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Informativa e liberatoria di Onfido per la scansione facciale</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacy</a> e <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Termini di servizio</a>.</muted-text-micro>`,
         tryAgain: 'Riprova',
         verifyIdentity: 'Verifica identità',
         letsVerifyIdentity: 'Verifichiamo la tua identità',
@@ -5087,6 +5077,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     `Scegli il conto ${integration} in cui esportare le transazioni. Seleziona una <a href="${exportPageLink}">opzione di esportazione</a> diversa per modificare i conti disponibili.`,
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
+                changeTransactionStartDateWarning:
+                    'Modificando la data di inizio verranno eliminate tutte le transazioni non segnalate/bozze di segnalazione e verranno reimportate tutte le transazioni dalla nuova data di inizio. Ciò può causare transazioni duplicate.',
                 updateCard: 'Aggiorna carta',
                 unassignCard: 'Rimuovi assegnazione carta',
                 unassign: 'Rimuovi assegnazione',
@@ -6612,21 +6604,45 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 }
             }
         },
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `imposta il conto bancario aziendale predefinito su "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}"`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `ha rimosso il conto bancario aziendale predefinito "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}"`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `ha modificato il conto bancario aziendale predefinito in "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}" (precedentemente "${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}")`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `ha modificato il nome dell'azienda in fattura in "${newValue}" (precedentemente "${oldValue}")` : `imposta il nome dell’azienda della fattura su "${newValue}"`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue
+                ? `ha modificato il sito web dell’azienda in fattura in "${newValue}" (precedentemente "${oldValue}")`
+                : `imposta il sito web dell'azienda della fattura su "${newValue}"`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `ha modificato la formula del nome del report personalizzato in "${newValue}" (precedentemente "${oldValue}")`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser
                 ? `ha modificato il pagatore autorizzato in "${newReimburser}" (precedentemente "${previousReimburser}")`
                 : `ha cambiato il pagatore autorizzato in "${newReimburser}"`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta l'importo richiesto per la ricevuta su "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `ha modificato l'importo della ricevuta obbligatoria a "${newValue}" (in precedenza "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `importo richiesto per la ricevuta rimosso (precedentemente "${oldValue}")`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta l'importo massimo spesa su "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `ha modificato l'importo massimo della spesa a "${newValue}" (precedentemente "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `importo massimo spesa rimosso (precedentemente "${oldValue}")`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta età massima della spesa a "${newValue}" giorni`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima della spesa cambiata a "${newValue}" giorni (in precedenza "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima spesa rimossa (precedentemente "${oldValue}" giorni)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -7331,6 +7347,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'ha risolto il duplicato',
         companyCardRequired: 'Acquisti con carta aziendale obbligatori',
+        noRoute: 'Seleziona un indirizzo valido',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
@@ -8004,6 +8021,13 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
         },
+        notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
+        locationServicesRequiredModal: {
+            title: 'È necessario l’accesso alla posizione',
+            confirm: 'Apri impostazioni',
+            prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza tramite GPS.',
+        },
+        fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
