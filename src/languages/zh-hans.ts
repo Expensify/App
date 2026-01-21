@@ -764,7 +764,7 @@ const translations: TranslationDeepObject<typeof en> = {
             请输入在最初请求该代码的设备上显示的代码
         `),
         doNotShare: dedent(`
-            不要与任何人分享你的验证码。  
+            不要与任何人分享你的验证码。
             Expensify 永远不会向你索要它！
         `),
         or: '，或',
@@ -773,7 +773,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: '返回原始设备并请求新验证码',
         successfulNewCodeRequest: '已请求验证码。请检查您的设备。',
         tfaRequiredTitle: dedent(`
-            双重身份验证  
+            双重身份验证
             必填
         `),
         tfaRequiredDescription: dedent(`
@@ -6607,6 +6607,7 @@ ${reportName}
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
+        topCategories: '热门类别',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
             approve: '批准',
@@ -6666,6 +6667,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '从',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
             },
             feed: '动态',
             withdrawalType: {

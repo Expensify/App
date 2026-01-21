@@ -6801,6 +6801,7 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+            CATEGORY: 'category'
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -7234,6 +7235,7 @@ const CONST = {
             UNAPPROVED_CARD: 'unapprovedCard',
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
+            TOP_CATEGORIES: 'topCategories'
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {

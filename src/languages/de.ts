@@ -778,7 +778,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Gehe zurück zum ursprünglichen Gerät und fordere einen neuen Code an',
         successfulNewCodeRequest: 'Code angefordert. Bitte überprüfe dein Gerät.',
         tfaRequiredTitle: dedent(`
-            Zwei-Faktor-Authentifizierung  
+            Zwei-Faktor-Authentifizierung
             erforderlich
         `),
         tfaRequiredDescription: dedent(`
@@ -6787,6 +6787,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         deleteSavedSearchConfirm: 'Möchten Sie diese Suche wirklich löschen?',
         searchName: 'Name suchen',
         savedSearchesMenuItemTitle: 'Gespeichert',
+        topCategories: 'Top-Kategorien',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
             approve: 'Genehmigen',
@@ -6845,7 +6846,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Abhebe-ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
             },
             feed: 'Feed',
             withdrawalType: {
