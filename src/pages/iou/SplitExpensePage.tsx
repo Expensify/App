@@ -84,6 +84,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
@@ -223,6 +224,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             currentUserPersonalDetails,
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            allBetas,
             quickAction,
             iouReportNextStep,
         });
