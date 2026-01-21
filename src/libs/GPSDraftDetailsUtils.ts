@@ -9,6 +9,8 @@ function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined): Waypoint
     const gpsCoordinates = gpsDraftDetails?.gpsPoints ?? [];
     const firstPoint = gpsCoordinates.at(0);
     const lastPoint = gpsCoordinates.at(-1);
+    const startAddress = gpsDraftDetails?.startAddress.value ?? '';
+    const endAddress = gpsDraftDetails?.endAddress.value ?? '';
 
     return {
         ...(firstPoint
@@ -16,8 +18,8 @@ function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined): Waypoint
                   waypoint0: {
                       lat: firstPoint.lat,
                       lng: firstPoint.long,
-                      address: gpsDraftDetails?.startAddress.value ?? '',
-                      name: gpsDraftDetails?.startAddress.value ?? '',
+                      address: startAddress,
+                      name: startAddress,
                   },
               }
             : {}),
@@ -26,8 +28,8 @@ function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined): Waypoint
                   waypoint1: {
                       lat: lastPoint.lat,
                       lng: lastPoint.long,
-                      address: gpsDraftDetails?.endAddress.value ?? '',
-                      name: gpsDraftDetails?.endAddress.value ?? '',
+                      address: endAddress,
+                      name: endAddress,
                   },
               }
             : {}),
@@ -35,7 +37,7 @@ function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined): Waypoint
 }
 
 function getGPSRoutes(gpsDraftDetails: GpsDraftDetails | undefined): Routes {
-    const distanceInMeters = parseFloat((gpsDraftDetails?.distanceInMeters ?? 0).toFixed(2));
+    const distanceInMeters = roundToTwoDecimalPlaces(gpsDraftDetails?.distanceInMeters ?? 0);
     const gpsCoordinates = gpsDraftDetails?.gpsPoints ?? [];
 
     return {

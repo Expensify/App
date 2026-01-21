@@ -30,6 +30,7 @@ import {
     isDistanceRequest as isDistanceRequestUtil,
     isGPSDistanceRequest as isGPSDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
+    isMapDistanceRequest as isMapDistanceRequestUtil,
     isScanning,
 } from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
@@ -84,7 +85,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         session?.accountID === actorAccountID && (areRequiredFieldsEmpty(transaction, transactionReport) || (transaction?.amount === 0 && !hasReceipt(transaction))) && !isDistanceRequest;
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
-    const isMapDistanceRequest = isDistanceRequest && !isGPSDistanceRequest && !isManualDistanceRequest;
+    const isMapDistanceRequest = isMapDistanceRequestUtil(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
