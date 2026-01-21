@@ -641,6 +641,7 @@ function SearchAutocompleteList({
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
+        visibleReportActionsData,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

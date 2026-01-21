@@ -284,6 +284,7 @@ function useSearchSelectorBase({
         areOptionsInitialized,
         searchContext,
         optionsWithContacts,
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         betas,
@@ -298,6 +299,7 @@ function useSearchSelectorBase({
         getValidOptionsConfig,
         selectedOptions,
         includeCurrentUser,
+        visibleReportActionsData,
     ]);
 
     const isOptionSelected = useMemo(() => {

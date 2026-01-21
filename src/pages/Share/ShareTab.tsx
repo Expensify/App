@@ -82,7 +82,7 @@ function ShareTab({ref}: ShareTabProps) {
             loginList,
             visibleReportActionsData,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList, visibleReportActionsData]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
