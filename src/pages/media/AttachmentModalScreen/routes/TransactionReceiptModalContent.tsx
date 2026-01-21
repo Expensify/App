@@ -543,7 +543,24 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             customAttachmentContent,
             attachmentViewContainerStyles: [styles.mv3, styles.ph2],
         }),
-        [source, originalFileName, report, headerTitle, threeDotsMenuItems, isAuthTokenRequired, isTrackExpenseActionValue, transaction, reportMetadata?.isLoadingInitialReportActions, shouldShowNotFoundPage, allowDownload, onDownloadAttachment, footerActionButtons, customAttachmentContent, styles.mv3, styles.ph2],
+        [
+            source,
+            originalFileName,
+            report,
+            headerTitle,
+            threeDotsMenuItems,
+            isAuthTokenRequired,
+            isTrackExpenseActionValue,
+            transaction,
+            reportMetadata?.isLoadingInitialReportActions,
+            shouldShowNotFoundPage,
+            allowDownload,
+            onDownloadAttachment,
+            footerActionButtons,
+            customAttachmentContent,
+            styles.mv3,
+            styles.ph2,
+        ],
     );
 
     return (

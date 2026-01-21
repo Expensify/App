@@ -168,84 +168,86 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
      */
     const createCornerGesture = useCallback(
         (corner: CornerPosition) => {
-            return Gesture.Pan().runOnJS(true).onChange((event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
-                'worklet';
+            return Gesture.Pan()
+                .runOnJS(true)
+                .onChange((event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
+                    'worklet';
 
-                const currentX = cropX.get();
-                const currentY = cropY.get();
-                const currentWidth = cropWidth.get();
-                const currentHeight = cropHeight.get();
+                    const currentX = cropX.get();
+                    const currentY = cropY.get();
+                    const currentWidth = cropWidth.get();
+                    const currentHeight = cropHeight.get();
 
-                let newX = currentX;
-                let newY = currentY;
-                let newWidth = currentWidth;
-                let newHeight = currentHeight;
+                    let newX = currentX;
+                    let newY = currentY;
+                    let newWidth = currentWidth;
+                    let newHeight = currentHeight;
 
-                const minSize = variables.cornerHandleSize * 2;
-                const imgDisplayWidth = displayWidthSV.get();
-                const imgDisplayHeight = displayHeightSV.get();
-                const imageLeft = imageOffsetXSV.get();
-                const imageRight = imageLeft + imgDisplayWidth;
-                const imageTop = imageOffsetYSV.get();
-                const imageBottom = imageTop + imgDisplayHeight;
+                    const minSize = variables.cornerHandleSize * 2;
+                    const imgDisplayWidth = displayWidthSV.get();
+                    const imgDisplayHeight = displayHeightSV.get();
+                    const imageLeft = imageOffsetXSV.get();
+                    const imageRight = imageLeft + imgDisplayWidth;
+                    const imageTop = imageOffsetYSV.get();
+                    const imageBottom = imageTop + imgDisplayHeight;
 
-                switch (corner) {
-                    case 'topLeft':
-                        newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                        newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                        newWidth = currentWidth - (newX - currentX);
-                        newHeight = currentHeight - (newY - currentY);
-                        break;
-                    case 'topRight':
-                        newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                        newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                        newHeight = currentHeight - (newY - currentY);
-                        break;
-                    case 'bottomLeft':
-                        newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                        newWidth = currentWidth - (newX - currentX);
-                        newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                        break;
-                    case 'bottomRight':
-                        newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                        newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                        break;
-                    default:
-                        break;
-                }
+                    switch (corner) {
+                        case 'topLeft':
+                            newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                            newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                            newWidth = currentWidth - (newX - currentX);
+                            newHeight = currentHeight - (newY - currentY);
+                            break;
+                        case 'topRight':
+                            newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                            newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                            newHeight = currentHeight - (newY - currentY);
+                            break;
+                        case 'bottomLeft':
+                            newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                            newWidth = currentWidth - (newX - currentX);
+                            newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                            break;
+                        case 'bottomRight':
+                            newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                            newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                            break;
+                        default:
+                            break;
+                    }
 
-                // Ensure crop rectangle stays within image bounds
-                if (newX < imageLeft) {
-                    const diff = imageLeft - newX;
-                    newX = imageLeft;
-                    newWidth -= diff;
-                }
-                if (newX + newWidth > imageRight) {
-                    newWidth = imageRight - newX;
-                }
-                if (newY < imageTop) {
-                    const diff = imageTop - newY;
-                    newY = imageTop;
-                    newHeight -= diff;
-                }
-                if (newY + newHeight > imageBottom) {
-                    newHeight = imageBottom - newY;
-                }
+                    // Ensure crop rectangle stays within image bounds
+                    if (newX < imageLeft) {
+                        const diff = imageLeft - newX;
+                        newX = imageLeft;
+                        newWidth -= diff;
+                    }
+                    if (newX + newWidth > imageRight) {
+                        newWidth = imageRight - newX;
+                    }
+                    if (newY < imageTop) {
+                        const diff = imageTop - newY;
+                        newY = imageTop;
+                        newHeight -= diff;
+                    }
+                    if (newY + newHeight > imageBottom) {
+                        newHeight = imageBottom - newY;
+                    }
 
-                cropX.set(newX);
-                cropY.set(newY);
-                cropWidth.set(newWidth);
-                cropHeight.set(newHeight);
+                    cropX.set(newX);
+                    cropY.set(newY);
+                    cropWidth.set(newWidth);
+                    cropHeight.set(newHeight);
 
-                const crop: CropRect = {
-                    x: (newX - imageOffsetX) * scaleX,
-                    y: (newY - imageOffsetY) * scaleY,
-                    width: newWidth * scaleX,
-                    height: newHeight * scaleY,
-                };
+                    const crop: CropRect = {
+                        x: (newX - imageOffsetX) * scaleX,
+                        y: (newY - imageOffsetY) * scaleY,
+                        width: newWidth * scaleX,
+                        height: newHeight * scaleY,
+                    };
 
-                onCropChange?.(crop);
-            });
+                    onCropChange?.(crop);
+                });
         },
         [cropX, cropY, cropWidth, cropHeight, displayWidthSV, displayHeightSV, imageOffsetXSV, imageOffsetYSV, imageOffsetX, scaleX, imageOffsetY, scaleY, onCropChange, clamp],
     );
