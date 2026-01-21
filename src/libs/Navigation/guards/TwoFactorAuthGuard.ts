@@ -125,36 +125,29 @@ const TwoFactorAuthGuard: NavigationGuard = {
     },
 
     evaluate(state: NavigationState, action: NavigationAction, context: GuardContext): GuardResult {
-        if (!shouldShow2FASetup(context)) {
-            return {type: 'ALLOW'};
-        }
-        // Already on 2FA page - only allow navigation to other 2FA pages
-        if (isCurrentlyOn2FAPage(state)) {
-            if (!isNavigatingTo2FAPage(action)) {
-                // On 2FA page but trying to navigate elsewhere - redirect back
-                Log.info('[TwoFactorAuthGuard] On 2FA page but navigating away, redirecting to 2FA setup');
-                return {
-                    type: 'REDIRECT',
-                    route: ROUTES.REQUIRE_TWO_FACTOR_AUTH as Route,
-                };
+        if (shouldShow2FASetup(context)) {
+            // Already on 2FA page - allow navigation
+            if (isCurrentlyOn2FAPage(state)) {
+                Log.info('[TwoFactorAuthGuard] Already on 2FA page, allowing navigation');
+                return {type: 'ALLOW'};
             }
 
-            Log.info('[TwoFactorAuthGuard] On 2FA page, navigating to another 2FA page, allowing navigation');
-            return {type: 'ALLOW'};
+            // Navigating to 2FA page - allow
+            if (isNavigatingTo2FAPage(action)) {
+                Log.info('[TwoFactorAuthGuard] Navigating to 2FA page, allowing navigation');
+                return {type: 'ALLOW'};
+            }
+
+            // Redirect to 2FA setup page
+            Log.info('[TwoFactorAuthGuard] Redirecting to 2FA setup');
+            return {
+                type: 'REDIRECT',
+                route: ROUTES.REQUIRE_TWO_FACTOR_AUTH as Route,
+            };
         }
 
-        // Navigating to 2FA page - allow
-        if (isNavigatingTo2FAPage(action)) {
-            Log.info('[TwoFactorAuthGuard] Navigating to 2FA page, allowing navigation');
-            return {type: 'ALLOW'};
-        }
-
-        // Redirect to 2FA setup page
-        Log.info('[TwoFactorAuthGuard] Redirecting to 2FA setup');
-        return {
-            type: 'REDIRECT',
-            route: ROUTES.REQUIRE_TWO_FACTOR_AUTH as Route,
-        };
+        // 2FA not required or already completed
+        return {type: 'ALLOW'};
     },
 };
 
