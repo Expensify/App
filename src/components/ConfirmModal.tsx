@@ -1,9 +1,13 @@
 import type {ReactNode} from 'react';
-import React from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
+import NavigationFocusManager from '@libs/NavigationFocusManager';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmContent from './ConfirmContent';
@@ -161,6 +165,92 @@ function ConfirmModal({
     // Previous state needed for exiting animation to play correctly.
     const prevVisible = usePrevious(isVisible);
 
+    // Use undefined as initial value to distinguish "not yet captured" from "captured as false"
+    // This is critical for StrictMode double-invocation protection
+    const wasOpenedViaKeyboardRef = useRef<boolean | undefined>(undefined);
+
+    // Ref for scoping DOM queries to this modal's container
+    // CRITICAL: Prevents finding buttons from other modals in nested scenarios
+    const modalContainerRef = useRef<View>(null);
+
+    // Ref for storing the captured anchor element for focus restoration
+    // Captured when modal opens, used when modal closes
+    const capturedAnchorRef = useRef<HTMLElement | null>(null);
+
+    // Capture keyboard state and anchor element when modal opens
+    // useLayoutEffect ensures this runs synchronously before FocusTrap activates
+    useLayoutEffect(() => {
+        if (isVisible && !prevVisible) {
+            // STRICTMODE GUARD: Only capture if we haven't already
+            // In StrictMode, effects run twice. Without this guard:
+            //   1st run: reads true, clears flag, stores true in ref
+            //   2nd run: reads false (already cleared!), overwrites ref with false ← BUG!
+            if (wasOpenedViaKeyboardRef.current === undefined) {
+                const wasKeyboard = NavigationFocusManager.wasRecentKeyboardInteraction();
+                wasOpenedViaKeyboardRef.current = wasKeyboard;
+                if (wasKeyboard) {
+                    NavigationFocusManager.clearKeyboardInteractionFlag();
+                }
+                Log.info('[ConfirmModal] Keyboard state captured on open', false, {
+                    wasKeyboard,
+                });
+            }
+
+            // Capture the anchor element for focus restoration
+            // This must happen NOW, before user clicks within the modal (which would overwrite it)
+            if (capturedAnchorRef.current === null) {
+                capturedAnchorRef.current = NavigationFocusManager.getCapturedAnchorElement();
+                Log.info('[ConfirmModal] Captured anchor for focus restoration', false, {
+                    hasAnchor: !!capturedAnchorRef.current,
+                    anchorLabel: capturedAnchorRef.current?.getAttribute('aria-label'),
+                });
+            }
+        } else if (!isVisible && prevVisible) {
+            // Reset keyboard ref when modal closes (allows next open to capture)
+            // NOTE: capturedAnchorRef is reset in onModalHide AFTER focus restoration
+            wasOpenedViaKeyboardRef.current = undefined;
+        }
+    }, [isVisible, prevVisible]);
+
+    /**
+     * Compute initialFocus for Modal's FocusTrap.
+     * Returns a function that finds the first button in this modal's container.
+     * Returns false for mouse opens (no auto-focus) or non-web platforms.
+     */
+    const computeInitialFocus = (() => {
+        const platform = getPlatform();
+
+        // Skip for mouse/touch opens or non-web platforms
+        if (!wasOpenedViaKeyboardRef.current || platform !== CONST.PLATFORM.WEB) {
+            return false;
+        }
+
+        // Return function called when FocusTrap activates
+        return () => {
+            // CRITICAL: Scope query to this modal's container
+            // This prevents focusing buttons from OTHER open modals
+            // in nested scenarios (e.g., ThreeDotsMenu → PopoverMenu → ConfirmModal)
+            const container = modalContainerRef.current as unknown as HTMLElement;
+            if (!container) {
+                // Fallback: If container ref not set, use last dialog (legacy behavior)
+                Log.warn('[ConfirmModal] modalContainerRef is null, falling back to last dialog');
+                const dialogs = document.querySelectorAll('[role="dialog"]');
+                const lastDialog = dialogs[dialogs.length - 1];
+                const firstButton = lastDialog?.querySelector('button');
+                return firstButton instanceof HTMLElement ? firstButton : false;
+            }
+
+            const firstButton = container.querySelector('button');
+
+            Log.info('[ConfirmModal] initialFocus activated via keyboard', false, {
+                foundButton: !!firstButton,
+                buttonText: firstButton?.textContent?.slice(0, 30),
+            });
+
+            return firstButton instanceof HTMLElement ? firstButton : false;
+        };
+    })();
+
     // Perf: Prevents from rendering whole confirm modal on initial render.
     if (!isVisible && !prevVisible) {
         return null;
@@ -172,46 +262,64 @@ function ConfirmModal({
             onBackdropPress={onBackdropPress}
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
-            onModalHide={onModalHide}
+            onModalHide={() => {
+                // Restore focus to captured anchor (web only)
+                // This improves accessibility by returning focus to the trigger element
+                if (getPlatform() === CONST.PLATFORM.WEB && capturedAnchorRef.current && document.body.contains(capturedAnchorRef.current)) {
+                    capturedAnchorRef.current.focus();
+                    Log.info('[ConfirmModal] Restored focus to captured anchor', false, {
+                        anchorLabel: capturedAnchorRef.current.getAttribute('aria-label'),
+                    });
+                }
+                // Reset the ref AFTER focus restoration (not in useLayoutEffect)
+                capturedAnchorRef.current = null;
+                onModalHide();
+            }}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
+            initialFocus={computeInitialFocus}
         >
-            <ConfirmContent
-                title={title}
-                /* Disable onConfirm function if the modal is being dismissed, otherwise the confirmation
-            function can be triggered multiple times if the user clicks on the button multiple times. */
-                onConfirm={() => (isVisible ? onConfirm() : null)}
-                onCancel={onCancel}
-                confirmText={confirmText}
-                cancelText={cancelText}
-                prompt={prompt}
-                success={success}
-                danger={danger}
-                isVisible={isVisible}
-                shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
-                shouldShowCancelButton={shouldShowCancelButton}
-                shouldCenterContent={shouldCenterContent}
-                iconSource={iconSource}
-                contentStyles={isSmallScreenWidth && shouldShowDismissIcon ? styles.mt2 : undefined}
-                iconFill={iconFill}
-                iconHeight={iconHeight}
-                iconWidth={iconWidth}
-                shouldCenterIcon={shouldCenterIcon}
-                shouldShowDismissIcon={shouldShowDismissIcon}
-                titleContainerStyles={titleContainerStyles}
-                iconAdditionalStyles={iconAdditionalStyles}
-                titleStyles={titleStyles}
-                promptStyles={promptStyles}
-                shouldStackButtons={shouldStackButtons}
-                shouldReverseStackedButtons={shouldReverseStackedButtons}
-                image={image}
-                imageStyles={imageStyles}
-                isConfirmLoading={isConfirmLoading}
-            />
+            <View
+                ref={modalContainerRef}
+                testID="confirm-modal-container"
+            >
+                <ConfirmContent
+                    title={title}
+                    /* Disable onConfirm function if the modal is being dismissed, otherwise the confirmation
+                function can be triggered multiple times if the user clicks on the button multiple times. */
+                    onConfirm={() => (isVisible ? onConfirm() : null)}
+                    onCancel={onCancel}
+                    confirmText={confirmText}
+                    cancelText={cancelText}
+                    prompt={prompt}
+                    success={success}
+                    danger={danger}
+                    isVisible={isVisible}
+                    shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
+                    shouldShowCancelButton={shouldShowCancelButton}
+                    shouldCenterContent={shouldCenterContent}
+                    iconSource={iconSource}
+                    contentStyles={isSmallScreenWidth && shouldShowDismissIcon ? styles.mt2 : undefined}
+                    iconFill={iconFill}
+                    iconHeight={iconHeight}
+                    iconWidth={iconWidth}
+                    shouldCenterIcon={shouldCenterIcon}
+                    shouldShowDismissIcon={shouldShowDismissIcon}
+                    titleContainerStyles={titleContainerStyles}
+                    iconAdditionalStyles={iconAdditionalStyles}
+                    titleStyles={titleStyles}
+                    promptStyles={promptStyles}
+                    shouldStackButtons={shouldStackButtons}
+                    shouldReverseStackedButtons={shouldReverseStackedButtons}
+                    image={image}
+                    imageStyles={imageStyles}
+                    isConfirmLoading={isConfirmLoading}
+                />
+            </View>
         </Modal>
     );
 }

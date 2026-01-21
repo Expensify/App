@@ -14,6 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
+import NavigationFocusManager from '@libs/NavigationFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -73,6 +74,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const defaultPopoverAnchorPosition = process.env.NODE_ENV === 'test' ? {horizontal: 100, vertical: 100} : null;
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
     const dropdownAnchor = useRef<View | null>(null);
+    const wasOpenedViaKeyboardRef = useRef(false);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -121,12 +123,26 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         [options, onPress, onOptionSelected, onSubItemSelected],
     );
 
+    /** Opens or closes the menu with keyboard tracking */
+    const toggleMenu = useCallback(() => {
+        if (!isMenuVisible) {
+            // Capture keyboard state BEFORE menu opens
+            wasOpenedViaKeyboardRef.current = NavigationFocusManager.wasRecentKeyboardInteraction();
+            if (wasOpenedViaKeyboardRef.current) {
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+            }
+        } else {
+            wasOpenedViaKeyboardRef.current = false;
+        }
+        setIsMenuVisible(!isMenuVisible);
+    }, [isMenuVisible]);
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
             if (shouldAlwaysShowDropdownMenu || options.length) {
                 if (!isSplitButton) {
-                    setIsMenuVisible(!isMenuVisible);
+                    toggleMenu();
                     return;
                 }
                 if (selectedItem?.value) {
@@ -148,12 +164,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const handlePress = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
             if (!isSplitButton) {
-                setIsMenuVisible(!isMenuVisible);
+                toggleMenu();
             } else if (selectedItem?.value) {
                 onPress(event, selectedItem.value);
             }
         },
-        [isMenuVisible, isSplitButton, onPress, selectedItem?.value],
+        [isSplitButton, onPress, selectedItem?.value, toggleMenu],
     );
 
     useImperativeHandle(ref, () => ({
@@ -198,7 +214,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             isDisabled={isDisabled}
                             shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                             style={[styles.pl0]}
-                            onPress={() => setIsMenuVisible(!isMenuVisible)}
+                            onPress={toggleMenu}
                             shouldRemoveLeftBorderRadius
                             extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                             large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -264,8 +280,10 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     isVisible={isMenuVisible}
                     onClose={() => {
                         setIsMenuVisible(false);
+                        wasOpenedViaKeyboardRef.current = false;
                         onOptionsMenuHide?.();
                     }}
+                    wasOpenedViaKeyboard={wasOpenedViaKeyboardRef.current}
                     onModalShow={onOptionsMenuShow}
                     onModalHide={() => {
                         // Focus the anchor button after modal closes but before navigation triggers

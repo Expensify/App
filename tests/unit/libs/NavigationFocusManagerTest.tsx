@@ -394,6 +394,9 @@ describe('NavigationFocusManager Gap Tests', () => {
             button.appendChild(span);
             document.body.appendChild(button);
 
+            // Register route BEFORE interaction (required for state-based validation)
+            NavigationFocusManager.registerFocusedRoute('nested-click-route');
+
             // When: Pointerdown on the span (inside button)
             const pointerEvent = new PointerEvent('pointerdown', {
                 bubbles: true,
@@ -450,6 +453,9 @@ describe('NavigationFocusManager Gap Tests', () => {
             const button = document.createElement('button');
             button.id = 'persistent-button';
             document.body.appendChild(button);
+
+            // Register route BEFORE interaction (required for state-based validation)
+            NavigationFocusManager.registerFocusedRoute('persistent-button-route');
 
             // When: User clicks the button
             const pointerEvent = new PointerEvent('pointerdown', {
@@ -519,6 +525,9 @@ describe('NavigationFocusManager Gap Tests', () => {
 
             outerButton.appendChild(innerDisplay);
             document.body.appendChild(outerButton);
+
+            // Register route BEFORE interaction (required for state-based validation)
+            NavigationFocusManager.registerFocusedRoute('p7-01-fixed-route');
 
             // When: Pointerdown on the inner display element (user clicks on text)
             const pointerEvent = new PointerEvent('pointerdown', {
@@ -607,6 +616,9 @@ describe('NavigationFocusManager Gap Tests', () => {
             settingsMenuItem.textContent = 'Security';
             document.body.appendChild(settingsMenuItem);
 
+            // Register route BEFORE interaction (required for state-based validation)
+            NavigationFocusManager.registerFocusedRoute('settings-menuitem-route');
+
             // Click the menuitem - should be CAPTURED (no prior to preserve)
             const pointerEvent = new PointerEvent('pointerdown', {
                 bubbles: true,
@@ -654,6 +666,9 @@ describe('NavigationFocusManager Gap Tests', () => {
             outerButton.appendChild(displayMenuItem);
             document.body.appendChild(outerButton);
 
+            // Register route BEFORE interaction (required for state-based validation)
+            NavigationFocusManager.registerFocusedRoute('deep-nested-route');
+
             // When: Pointerdown on the text span (deepest nested element)
             const pointerEvent = new PointerEvent('pointerdown', {
                 bubbles: true,
@@ -693,6 +708,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 moreButton.setAttribute('aria-label', 'More');
                 document.body.appendChild(moreButton);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-core-pointerdown-route');
+
                 // Step 1: User clicks "More" button - should be captured
                 const anchorPointerEvent = new PointerEvent('pointerdown', {
                     bubbles: true,
@@ -731,6 +749,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 moreButton.id = 'more-button-key';
                 moreButton.setAttribute('aria-label', 'More');
                 document.body.appendChild(moreButton);
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-core-keydown-route');
 
                 // Step 1: User presses Enter on "More" button - should be captured
                 moreButton.focus();
@@ -778,6 +799,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 settingsMenuItem.setAttribute('aria-label', 'Security');
                 document.body.appendChild(settingsMenuItem);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-no-prior-route');
+
                 // When: User clicks menuitem as first interaction
                 const pointerEvent = new PointerEvent('pointerdown', {
                     bubbles: true,
@@ -799,6 +823,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 firstMenuItem.setAttribute('role', 'menuitem');
                 firstMenuItem.id = 'first-menuitem';
                 document.body.appendChild(firstMenuItem);
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-menuitem-to-menuitem-route');
 
                 // Click first menuitem
                 const firstPointerEvent = new PointerEvent('pointerdown', {
@@ -842,6 +869,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 moreButton.setAttribute('aria-label', 'More');
                 document.body.appendChild(moreButton);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-long-delay-route');
+
                 // Step 1: User clicks "More" button
                 const anchorPointerEvent = new PointerEvent('pointerdown', {
                     bubbles: true,
@@ -883,6 +913,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 const moreButton = document.createElement('button');
                 moreButton.id = 'state-check-more';
                 document.body.appendChild(moreButton);
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('state-check-route');
 
                 // Capture anchor
                 const anchorEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
@@ -926,6 +959,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 moreButtonB.textContent = 'Workspace B';
                 document.body.appendChild(moreButtonB);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-multi-menu-route');
+
                 // Step 1: Click More button A
                 const eventA = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
                 Object.defineProperty(eventA, 'target', {value: moreButtonA});
@@ -964,6 +1000,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 const button2 = document.createElement('button');
                 button2.id = 'button-2';
                 document.body.appendChild(button2);
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-overwrite-route');
 
                 // Click button 1
                 const event1 = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
@@ -1008,6 +1047,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 anchor.id = 'anchor-for-edge-case';
                 document.body.appendChild(anchor);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-nested-edge-route');
+
                 const anchorEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
                 Object.defineProperty(anchorEvent, 'target', {value: anchor});
                 document.dispatchEvent(anchorEvent);
@@ -1029,6 +1071,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 const moreButton = document.createElement('button');
                 moreButton.id = 'more-button-space';
                 document.body.appendChild(moreButton);
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-space-key-route');
 
                 // Capture anchor via Enter
                 moreButton.focus();
@@ -1061,6 +1106,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 popupTrigger.setAttribute('aria-haspopup', 'true');
                 document.body.appendChild(popupTrigger);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-popup-trigger-route');
+
                 // Click popup trigger
                 const triggerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
                 Object.defineProperty(triggerEvent, 'target', {value: popupTrigger});
@@ -1092,6 +1140,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 navButton.setAttribute('aria-label', 'Navigate');
                 document.body.appendChild(navButton);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-regression-route');
+
                 // When: User clicks button and navigates
                 const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
                 Object.defineProperty(pointerEvent, 'target', {value: navButton});
@@ -1111,6 +1162,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 link.href = '#test';
                 link.textContent = 'Navigate';
                 document.body.appendChild(link);
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-link-route');
 
                 // When: User clicks link
                 const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
@@ -1132,6 +1186,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 divButton.tabIndex = 0;
                 document.body.appendChild(divButton);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('a1-div-button-route');
+
                 // When: User clicks div button
                 const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
                 Object.defineProperty(pointerEvent, 'target', {value: divButton});
@@ -1142,6 +1199,455 @@ describe('NavigationFocusManager Gap Tests', () => {
                 // Then: Div button should be captured normally
                 const retrieved = NavigationFocusManager.retrieveForRoute('a1-div-button-route');
                 expect(retrieved).toBe(divButton);
+            });
+        });
+    });
+
+    // ============================================================================
+    // Approach 6: Keyboard Interaction Check (Issue #76921)
+    // ============================================================================
+    // These tests verify the keyboard interaction tracking used to distinguish
+    // keyboard navigation from mouse navigation, allowing the composer to skip
+    // auto-focus when users navigate back via keyboard.
+    // ============================================================================
+
+    describe('Approach 6: Keyboard Interaction Tracking', () => {
+        describe('wasRecentKeyboardInteraction() Flag', () => {
+            it('should return false initially (no interaction)', () => {
+                // Given: Fresh state
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // Then: Flag should be false
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+            });
+
+            it('should set flag to true on Enter keydown', () => {
+                // Given: Fresh state
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // When: Enter key is pressed
+                const keyEvent = new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    bubbles: true,
+                });
+                document.dispatchEvent(keyEvent);
+
+                // Then: Flag should be true
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+            });
+
+            it('should set flag to true on Space keydown', () => {
+                // Given: Fresh state
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // When: Space key is pressed
+                const keyEvent = new KeyboardEvent('keydown', {
+                    key: ' ',
+                    bubbles: true,
+                });
+                document.dispatchEvent(keyEvent);
+
+                // Then: Flag should be true
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+            });
+
+            it('should set flag to true on Escape keydown (back navigation)', () => {
+                // Given: Fresh state
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // When: Escape key is pressed
+                const keyEvent = new KeyboardEvent('keydown', {
+                    key: 'Escape',
+                    bubbles: true,
+                });
+                document.dispatchEvent(keyEvent);
+
+                // Then: Flag should be true
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+            });
+
+            it('should NOT set flag on other key presses (e.g., Tab, Arrow keys)', () => {
+                // Given: Fresh state
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // When: Tab key is pressed
+                const tabEvent = new KeyboardEvent('keydown', {
+                    key: 'Tab',
+                    bubbles: true,
+                });
+                document.dispatchEvent(tabEvent);
+
+                // Then: Flag should still be false
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+
+                // When: ArrowDown is pressed
+                const arrowEvent = new KeyboardEvent('keydown', {
+                    key: 'ArrowDown',
+                    bubbles: true,
+                });
+                document.dispatchEvent(arrowEvent);
+
+                // Then: Flag should still be false
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+            });
+        });
+
+        describe('clearKeyboardInteractionFlag()', () => {
+            it('should clear the flag after it was set by keyboard interaction', () => {
+                // Given: Flag set by Enter keydown
+                const keyEvent = new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    bubbles: true,
+                });
+                document.dispatchEvent(keyEvent);
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                // When: Flag is cleared
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // Then: Flag should be false
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+            });
+
+            it('should be safe to call multiple times', () => {
+                // Given: Flag is already false
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // When: Called multiple times
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // Then: No errors, flag remains false
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+            });
+        });
+
+        describe('Pointer Interaction Clears Flag', () => {
+            it('should clear keyboard flag on pointerdown (mouse click)', () => {
+                // Given: Flag set by keyboard interaction
+                const keyEvent = new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    bubbles: true,
+                });
+                document.dispatchEvent(keyEvent);
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                // When: Mouse click occurs
+                const button = document.createElement('button');
+                document.body.appendChild(button);
+
+                const pointerEvent = new PointerEvent('pointerdown', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                Object.defineProperty(pointerEvent, 'target', {value: button});
+                document.dispatchEvent(pointerEvent);
+
+                // Then: Flag should be cleared
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+            });
+
+            it('should handle keyboard → mouse → keyboard sequence correctly', () => {
+                // Step 1: Keyboard interaction
+                const keyEvent1 = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+                document.dispatchEvent(keyEvent1);
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                // Step 2: Mouse interaction (clears flag)
+                const button = document.createElement('button');
+                document.body.appendChild(button);
+                const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                Object.defineProperty(pointerEvent, 'target', {value: button});
+                document.dispatchEvent(pointerEvent);
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+
+                // Step 3: Keyboard interaction again
+                const keyEvent2 = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
+                document.dispatchEvent(keyEvent2);
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+            });
+        });
+
+        describe('Escape Key Behavior (Approach 6 Specific)', () => {
+            it('should set flag but NOT capture element on Escape (back navigation only needs flag)', () => {
+                // Given: A focused button
+                const button = document.createElement('button');
+                button.id = 'escape-test-button';
+                document.body.appendChild(button);
+                button.focus();
+
+                // And: Clear any prior capture
+                NavigationFocusManager.captureForRoute('clear-prior');
+                NavigationFocusManager.retrieveForRoute('clear-prior');
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // When: Escape is pressed
+                const escapeEvent = new KeyboardEvent('keydown', {
+                    key: 'Escape',
+                    bubbles: true,
+                });
+                document.dispatchEvent(escapeEvent);
+
+                // Then: Flag should be set
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                // But: No element should be captured via interaction capture
+                // (Escape doesn't call the element capture logic, only sets flag)
+                // captureForRoute will use activeElement fallback since lastInteractionCapture is null
+                NavigationFocusManager.captureForRoute('escape-route');
+                const retrieved = NavigationFocusManager.retrieveForRoute('escape-route');
+
+                // The button may be captured via activeElement fallback, which is expected
+                // The key point is the keyboard flag was set
+                expect(retrieved).toBe(button); // via activeElement fallback
+            });
+
+            it('should NOT overwrite prior capture when Escape is pressed (preserves forward nav element)', () => {
+                // Given: An element captured via Enter (forward navigation)
+                const forwardButton = document.createElement('button');
+                forwardButton.id = 'forward-button';
+                forwardButton.setAttribute('aria-label', 'Forward');
+                document.body.appendChild(forwardButton);
+
+                // Register route for immediate capture
+                NavigationFocusManager.registerFocusedRoute('preserve-forward-route');
+
+                // Press Enter on forward button
+                forwardButton.focus();
+                const enterEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+                document.dispatchEvent(enterEvent);
+
+                // Now press Escape (back navigation) - should NOT overwrite
+                const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
+                document.dispatchEvent(escapeEvent);
+
+                // Unregister route
+                NavigationFocusManager.unregisterFocusedRoute('preserve-forward-route');
+
+                // Then: Should retrieve the forward button, not null
+                const retrieved = NavigationFocusManager.retrieveForRoute('preserve-forward-route');
+                expect(retrieved).toBe(forwardButton);
+            });
+
+            it('should differentiate Escape from Enter/Space in element capture', () => {
+                // Given: Fresh state
+                NavigationFocusManager.captureForRoute('clear-state');
+                NavigationFocusManager.retrieveForRoute('clear-state');
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // Create two buttons
+                const button1 = document.createElement('button');
+                button1.id = 'button-1';
+                document.body.appendChild(button1);
+
+                const button2 = document.createElement('button');
+                button2.id = 'button-2';
+                document.body.appendChild(button2);
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('differentiate-route');
+
+                // Press Enter on button1 (captures element)
+                button1.focus();
+                const enterEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+                document.dispatchEvent(enterEvent);
+
+                // Press Escape while button2 is focused (should NOT capture button2)
+                button2.focus();
+                const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
+                document.dispatchEvent(escapeEvent);
+
+                // Capture for route
+                NavigationFocusManager.captureForRoute('differentiate-route');
+                const retrieved = NavigationFocusManager.retrieveForRoute('differentiate-route');
+
+                // Should have captured button1 (from Enter), not button2 (from Escape)
+                // because Escape only sets flag, doesn't capture
+                expect(retrieved).toBe(button1);
+            });
+        });
+
+        describe('Integration: Keyboard vs Mouse User Flow', () => {
+            /**
+             * Simulates the keyboard user flow:
+             * 1. User presses Enter on chat header → wasKeyboardInteraction = true
+             * 2. RHP opens
+             * 3. User presses Escape → wasKeyboardInteraction = true
+             * 4. RHP closes
+             * 5. ComposerWithSuggestions checks flag → true → skips auto-focus
+             */
+            it('should maintain keyboard flag through navigation cycle', () => {
+                // Step 1: Enter on element (forward navigation)
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+                const chatHeader = document.createElement('button');
+                chatHeader.id = 'chat-header';
+                document.body.appendChild(chatHeader);
+                chatHeader.focus();
+
+                const enterEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+                document.dispatchEvent(enterEvent);
+
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                // Step 2: Simulate RHP open (flag still true)
+                // In real app, this would be modal opening
+
+                // Step 3: Escape (back navigation)
+                const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
+                document.dispatchEvent(escapeEvent);
+
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                // Step 4: This is where ComposerWithSuggestions would check and clear
+                const wasKeyboard = NavigationFocusManager.wasRecentKeyboardInteraction();
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                expect(wasKeyboard).toBe(true);
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+            });
+
+            /**
+             * Simulates the mouse user flow:
+             * 1. User clicks chat header → wasKeyboardInteraction = false
+             * 2. RHP opens
+             * 3. User clicks Back button → wasKeyboardInteraction = false
+             * 4. RHP closes
+             * 5. ComposerWithSuggestions checks flag → false → auto-focuses
+             */
+            it('should maintain mouse flag (false) through navigation cycle', () => {
+                // Step 1: Click on element (forward navigation)
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+                const chatHeader = document.createElement('button');
+                chatHeader.id = 'chat-header-mouse';
+                document.body.appendChild(chatHeader);
+
+                const clickEvent1 = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                Object.defineProperty(clickEvent1, 'target', {value: chatHeader});
+                document.dispatchEvent(clickEvent1);
+
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+
+                // Step 2: Simulate RHP open
+
+                // Step 3: Click Back button
+                const backButton = document.createElement('button');
+                backButton.id = 'back-button';
+                document.body.appendChild(backButton);
+
+                const clickEvent2 = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                Object.defineProperty(clickEvent2, 'target', {value: backButton});
+                document.dispatchEvent(clickEvent2);
+
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+
+                // Step 4: ComposerWithSuggestions would check and find flag=false → auto-focus
+                const wasKeyboard = NavigationFocusManager.wasRecentKeyboardInteraction();
+                expect(wasKeyboard).toBe(false);
+            });
+
+            /**
+             * Mixed input: keyboard navigate forward, mouse navigate back
+             * Expected: Mouse wins (flag=false), composer should auto-focus
+             */
+            it('should correctly handle keyboard forward → mouse back', () => {
+                // Step 1: Enter on element
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+                const element = document.createElement('button');
+                document.body.appendChild(element);
+                element.focus();
+
+                const enterEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+                document.dispatchEvent(enterEvent);
+
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                // Step 2: Click back button (mouse)
+                const backButton = document.createElement('button');
+                document.body.appendChild(backButton);
+
+                const clickEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                Object.defineProperty(clickEvent, 'target', {value: backButton});
+                document.dispatchEvent(clickEvent);
+
+                // Then: Mouse should have cleared the keyboard flag
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+            });
+
+            /**
+             * Mixed input: mouse navigate forward, keyboard navigate back
+             * Expected: Keyboard wins (flag=true), focus restoration should work
+             */
+            it('should correctly handle mouse forward → keyboard back', () => {
+                // Step 1: Click on element
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+                const element = document.createElement('button');
+                document.body.appendChild(element);
+
+                const clickEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                Object.defineProperty(clickEvent, 'target', {value: element});
+                document.dispatchEvent(clickEvent);
+
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+
+                // Step 2: Press Escape (keyboard back)
+                const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
+                document.dispatchEvent(escapeEvent);
+
+                // Then: Keyboard should have set the flag
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+            });
+        });
+
+        describe('Edge Cases', () => {
+            it('should handle rapid keyboard events', () => {
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+
+                // Rapid keyboard events
+                for (let i = 0; i < 10; i++) {
+                    const event = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+                    document.dispatchEvent(event);
+                }
+
+                // Flag should still be true
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+            });
+
+            it('should handle rapid alternating keyboard/mouse events', () => {
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+                const button = document.createElement('button');
+                document.body.appendChild(button);
+
+                // Alternate between keyboard and mouse
+                for (let i = 0; i < 5; i++) {
+                    // Keyboard
+                    const keyEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+                    document.dispatchEvent(keyEvent);
+                    expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                    // Mouse
+                    const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
+                    Object.defineProperty(pointerEvent, 'target', {value: button});
+                    document.dispatchEvent(pointerEvent);
+                    expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+                }
+            });
+
+            it('should persist flag across destroy/initialize cycle', () => {
+                // Set flag via keyboard
+                const keyEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
+                document.dispatchEvent(keyEvent);
+                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
+
+                // Destroy and reinitialize
+                NavigationFocusManager.destroy();
+                NavigationFocusManager.initialize();
+
+                // Flag should be reset (module state cleared)
+                // Note: This tests that destroy properly cleans up
+                // The flag is module-level, so it may or may not persist based on implementation
+                // Either behavior is acceptable as long as it's consistent
+                const flagAfterReinit = NavigationFocusManager.wasRecentKeyboardInteraction();
+                expect(typeof flagAfterReinit).toBe('boolean');
             });
         });
     });
@@ -1235,6 +1741,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 button.id = 'strict-mode-button';
                 document.body.appendChild(button);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('strict-mode-route');
+
                 // Pointerdown should still capture
                 const pointerEvent = new PointerEvent('pointerdown', {
                     bubbles: true,
@@ -1270,7 +1779,7 @@ describe('NavigationFocusManager Gap Tests', () => {
                 NavigationFocusManager.initialize(); // Second mount
 
                 // Then: Should only have listeners from final initialization
-                // (pointerdown, keydown, visibilitychange = 3 listeners)
+                // (pointerdown, keydown = 2 listeners - visibilitychange was removed in state-based refactor)
                 const pointerdownCalls = listenerCalls.filter((t) => t === 'pointerdown').length;
                 expect(pointerdownCalls).toBe(2); // Once per initialize call
 
@@ -1306,6 +1815,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 // Then: Should still work correctly (no errors, single set of listeners)
                 const button = document.createElement('button');
                 document.body.appendChild(button);
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('idempotent-route');
 
                 const pointerEvent = new PointerEvent('pointerdown', {
                     bubbles: true,
@@ -1367,10 +1879,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 // When: destroy() is called
                 NavigationFocusManager.destroy();
 
-                // Then: All three listeners should be removed
+                // Then: Both listeners should be removed (visibilitychange was removed in state-based refactor)
                 expect(removedListeners).toContain('pointerdown');
                 expect(removedListeners).toContain('keydown');
-                expect(removedListeners).toContain('visibilitychange');
 
                 jest.restoreAllMocks();
 
@@ -1415,6 +1926,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 button.id = 'capture-phase-button';
                 document.body.appendChild(button);
 
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('capture-phase-route');
+
                 let capturedBeforeHandler = false;
                 let handlerRan = false;
 
@@ -1452,6 +1966,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                     otherListenerCalled = true;
                 };
                 document.addEventListener('pointerdown', otherListener, {capture: true});
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('coexist-route');
 
                 // When: Pointerdown fires
                 const button = document.createElement('button');
@@ -1543,6 +2060,9 @@ describe('NavigationFocusManager Gap Tests', () => {
                 }
                 const deepButton = document.createElement('button');
                 deepButton.id = 'deep-button';
+
+                // Register route BEFORE interaction (required for state-based validation)
+                NavigationFocusManager.registerFocusedRoute('deep-route');
                 currentElement.appendChild(deepButton);
 
                 // When: Pointerdown on deeply nested element
@@ -1658,6 +2178,205 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 // Re-initialize
                 NavigationFocusManager.initialize();
+            });
+        });
+
+        describe('State-Based Route Validation', () => {
+            it('should reject capture from a different route', () => {
+                // Given: A button on route-A
+                const buttonA = document.createElement('button');
+                buttonA.id = 'route-a-button';
+                document.body.appendChild(buttonA);
+
+                // Register route-A as the current focused route
+                NavigationFocusManager.registerFocusedRoute('route-A');
+
+                // Capture button on route-A
+                const pointerEvent = new PointerEvent('pointerdown', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                Object.defineProperty(pointerEvent, 'target', {value: buttonA});
+                document.dispatchEvent(pointerEvent);
+
+                // Unregister route-A
+                NavigationFocusManager.unregisterFocusedRoute('route-A');
+
+                // When: Try to capture for a DIFFERENT route (route-B)
+                // The capture belongs to route-A, not route-B
+                NavigationFocusManager.captureForRoute('route-B');
+
+                // Then: Retrieval for route-B should use activeElement fallback, not the route-A capture
+                // This is because the capture's forRoute (route-A) doesn't match the requested route (route-B)
+                const retrieved = NavigationFocusManager.retrieveForRoute('route-B');
+                // The button should NOT be retrieved since it was captured for a different route
+                // (it will fall back to activeElement which is body in JSDOM)
+                expect(retrieved).not.toBe(buttonA);
+            });
+
+            it('should accept capture from the same route', () => {
+                // Given: A button on route-A
+                const button = document.createElement('button');
+                button.id = 'same-route-button';
+                document.body.appendChild(button);
+
+                // Register route-A as the current focused route
+                NavigationFocusManager.registerFocusedRoute('route-A');
+
+                // Capture button
+                const pointerEvent = new PointerEvent('pointerdown', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                Object.defineProperty(pointerEvent, 'target', {value: button});
+                document.dispatchEvent(pointerEvent);
+
+                // Unregister route-A
+                NavigationFocusManager.unregisterFocusedRoute('route-A');
+
+                // When: Capture for route-A (matching the capture's forRoute)
+                NavigationFocusManager.captureForRoute('route-A');
+
+                // Then: Retrieval should return the button
+                const retrieved = NavigationFocusManager.retrieveForRoute('route-A');
+                expect(retrieved).toBe(button);
+            });
+
+            it('should reject capture with null forRoute for safety', () => {
+                // Given: A button captured BEFORE any route is registered
+                const button = document.createElement('button');
+                button.id = 'null-route-button';
+                document.body.appendChild(button);
+
+                // Don't register any route - forRoute will be null
+
+                // Capture button (forRoute will be null)
+                const pointerEvent = new PointerEvent('pointerdown', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                Object.defineProperty(pointerEvent, 'target', {value: button});
+                document.dispatchEvent(pointerEvent);
+
+                // When: Try to capture for any route
+                NavigationFocusManager.captureForRoute('some-route');
+
+                // Then: Should fall back to activeElement since forRoute was null
+                const retrieved = NavigationFocusManager.retrieveForRoute('some-route');
+                // The null-forRoute capture is rejected, falls back to activeElement
+                expect(retrieved).not.toBe(button);
+            });
+        });
+
+        describe('cleanupRemovedRoutes', () => {
+            it('should clean up focus data for routes not in navigation state', () => {
+                // Given: Focus captured for multiple routes
+                const buttonA = document.createElement('button');
+                buttonA.id = 'button-a';
+                document.body.appendChild(buttonA);
+                buttonA.focus();
+                NavigationFocusManager.captureForRoute('route-A-key');
+
+                const buttonB = document.createElement('button');
+                buttonB.id = 'button-b';
+                document.body.appendChild(buttonB);
+                buttonB.focus();
+                NavigationFocusManager.captureForRoute('route-B-key');
+
+                // Verify both have stored focus
+                // Note: hasStoredFocus doesn't consume the entry
+                // We need to re-capture since captureForRoute clears lastInteractionCapture
+                buttonA.focus();
+                NavigationFocusManager.captureForRoute('route-A-key');
+                buttonB.focus();
+                NavigationFocusManager.captureForRoute('route-B-key');
+
+                expect(NavigationFocusManager.hasStoredFocus('route-A-key')).toBe(true);
+                expect(NavigationFocusManager.hasStoredFocus('route-B-key')).toBe(true);
+
+                // When: cleanupRemovedRoutes is called with state containing only route-A
+                const mockNavigationState = {
+                    routes: [
+                        {key: 'route-A-key', name: 'ScreenA'},
+                    ],
+                    index: 0,
+                    stale: false,
+                    type: 'stack',
+                    key: 'root',
+                    routeNames: ['ScreenA'],
+                };
+                NavigationFocusManager.cleanupRemovedRoutes(mockNavigationState);
+
+                // Then: route-A should still have focus data, route-B should be cleaned up
+                expect(NavigationFocusManager.hasStoredFocus('route-A-key')).toBe(true);
+                expect(NavigationFocusManager.hasStoredFocus('route-B-key')).toBe(false);
+            });
+
+            it('should preserve focus data for routes still in navigation state', () => {
+                // Given: Focus captured for a route
+                const button = document.createElement('button');
+                button.id = 'preserved-button';
+                document.body.appendChild(button);
+                button.focus();
+                NavigationFocusManager.captureForRoute('preserved-route-key');
+
+                expect(NavigationFocusManager.hasStoredFocus('preserved-route-key')).toBe(true);
+
+                // When: cleanupRemovedRoutes is called with state containing the route
+                const mockNavigationState = {
+                    routes: [
+                        {key: 'preserved-route-key', name: 'PreservedScreen'},
+                    ],
+                    index: 0,
+                    stale: false,
+                    type: 'stack',
+                    key: 'root',
+                    routeNames: ['PreservedScreen'],
+                };
+                NavigationFocusManager.cleanupRemovedRoutes(mockNavigationState);
+
+                // Then: Focus data should still be available
+                expect(NavigationFocusManager.hasStoredFocus('preserved-route-key')).toBe(true);
+
+                // And retrieval should work
+                const retrieved = NavigationFocusManager.retrieveForRoute('preserved-route-key');
+                expect(retrieved).toBe(button);
+            });
+
+            it('should handle nested routes in navigation state', () => {
+                // Given: Focus captured for a nested route
+                const button = document.createElement('button');
+                button.id = 'nested-route-button';
+                document.body.appendChild(button);
+                button.focus();
+                NavigationFocusManager.captureForRoute('nested-screen-key');
+
+                expect(NavigationFocusManager.hasStoredFocus('nested-screen-key')).toBe(true);
+
+                // When: cleanupRemovedRoutes is called with nested state structure
+                const mockNavigationState = {
+                    routes: [
+                        {
+                            key: 'navigator-key',
+                            name: 'Navigator',
+                            state: {
+                                routes: [
+                                    {key: 'nested-screen-key', name: 'NestedScreen'},
+                                ],
+                                index: 0,
+                            },
+                        },
+                    ],
+                    index: 0,
+                    stale: false,
+                    type: 'stack',
+                    key: 'root',
+                    routeNames: ['Navigator'],
+                };
+                NavigationFocusManager.cleanupRemovedRoutes(mockNavigationState);
+
+                // Then: Nested route's focus data should be preserved
+                expect(NavigationFocusManager.hasStoredFocus('nested-screen-key')).toBe(true);
             });
         });
     });

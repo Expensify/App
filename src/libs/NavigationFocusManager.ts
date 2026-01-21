@@ -1,26 +1,22 @@
 /**
  * NavigationFocusManager handles focus capture and restoration during screen navigation.
  *
- * The Problem:
- * When navigating between screens, focus moves from the clicked element to body
- * BEFORE the new screen's FocusTrap can capture it. This happens because:
- * 1. User clicks element (focus moves to element)
- * 2. Click handler triggers navigation
- * 3. React processes state change
- * 4. Focus moves to body (during transition)
- * 5. New FocusTrap activates (too late - body is already focused)
+ * Problem: When navigating between screens, focus moves to body BEFORE the new screen's
+ * FocusTrap can capture it (click -> navigation -> focus lost -> FocusTrap activates too late).
  *
- * The Solution:
- * Capture the focused element during user interaction (pointerdown/keydown),
- * BEFORE any navigation or focus changes happen. This is the same pattern
- * used by ComposerFocusManager for modal focus restoration.
+ * Solution: Capture the focused element during pointerdown/keydown BEFORE navigation.
+ * Each capture is tagged with the current route key for state-based validation.
  *
- * API Design Note:
- * Focus restoration uses `initialFocus` (called on trap activation), NOT
- * `setReturnFocus` (called on trap deactivation). This is because we want
- * to restore focus when RETURNING to a screen, not when LEAVING it.
+ * Lifecycle: cleanupRemovedRoutes() is called from NavigationRoot on state change,
+ * removing focus data for routes no longer in the navigation state. Route existence
+ * is the source of truth - no timestamps needed.
+ *
+ * Focus restoration uses `initialFocus` (trap activation), not `setReturnFocus`
+ * (trap deactivation), because we restore focus when RETURNING to a screen.
  */
 
+import extractNavigationKeys from './Navigation/helpers/extractNavigationKeys';
+import type {State} from './Navigation/types';
 import Log from './Log';
 
 /**
@@ -28,6 +24,8 @@ import Log from './Log';
  * Unlike storing DOM element references (which become invalid after unmount),
  * this stores attributes that can be used to find the equivalent element
  * in the new DOM.
+ *
+ * Lifecycle is managed by cleanupRemovedRoutes() - no timestamp needed.
  */
 type ElementIdentifier = {
     tagName: string;
@@ -36,21 +34,13 @@ type ElementIdentifier = {
     /** First 100 chars of textContent for unique identification (e.g., workspace name) */
     textContentPreview: string;
     dataTestId: string | null;
-    timestamp: number;
 };
 
 type CapturedFocus = {
     element: HTMLElement;
-    timestamp: number;
+    /** Route key this capture belongs to, for state-based validation */
+    forRoute: string | null;
 };
-
-// Maximum time (ms) a captured element is considered valid for route storage
-// Set to 1000ms to account for slower devices and heavy DOM operations
-// (Live testing showed ~563ms between click and screen transition)
-const CAPTURE_VALIDITY_MS = 1000;
-
-// Maximum time (ms) to store a route's focus element before cleanup
-const ROUTE_FOCUS_VALIDITY_MS = 60000; // 1 minute
 
 // Module-level state (following ComposerFocusManager pattern)
 let lastInteractionCapture: CapturedFocus | null = null;
@@ -64,9 +54,14 @@ let isInitialized = false;
 // This allows capturing to routeFocusMap during interaction, before screen unmounts
 let currentFocusedRouteKey: string | null = null;
 
+// Track if the most recent user interaction was via keyboard (Enter/Space)
+// Used by modals to determine if they should auto-focus their content on open
+let wasKeyboardInteraction = false;
+
 /**
  * Extract identification info from an element that can be used to find
  * the equivalent element in a new DOM after screen remount.
+ * Lifecycle is managed by cleanupRemovedRoutes() - no timestamp needed.
  */
 function extractElementIdentifier(element: HTMLElement): ElementIdentifier {
     return {
@@ -75,7 +70,6 @@ function extractElementIdentifier(element: HTMLElement): ElementIdentifier {
         role: element.getAttribute('role'),
         textContentPreview: (element.textContent ?? '').slice(0, 100).trim(),
         dataTestId: element.getAttribute('data-testid'),
-        timestamp: Date.now(),
     };
 }
 
@@ -141,6 +135,9 @@ function findMatchingElement(identifier: ElementIdentifier): HTMLElement | null 
  * This runs in capture phase, before any click handlers.
  */
 function handleInteraction(event: PointerEvent): void {
+    // Mouse/touch interaction clears any pending keyboard flag
+    wasKeyboardInteraction = false;
+
     const targetElement = event.target as HTMLElement;
 
     if (targetElement && targetElement !== document.body && targetElement.tagName !== 'HTML') {
@@ -171,7 +168,7 @@ function handleInteraction(event: PointerEvent): void {
 
         lastInteractionCapture = {
             element: elementToCapture,
-            timestamp: Date.now(),
+            forRoute: currentFocusedRouteKey,
         };
 
         // IMMEDIATE CAPTURE: Store element identifier for non-persistent screens
@@ -182,7 +179,7 @@ function handleInteraction(event: PointerEvent): void {
             // Also store element reference for persistent screens (fallback)
             routeFocusMap.set(currentFocusedRouteKey, {
                 element: elementToCapture,
-                timestamp: Date.now(),
+                forRoute: currentFocusedRouteKey,
             });
         }
 
@@ -197,9 +194,21 @@ function handleInteraction(event: PointerEvent): void {
 
 /**
  * For keyboard navigation (Enter/Space key triggers navigation like a click)
+ * Also tracks Escape for back navigation detection.
  */
 function handleKeyDown(event: KeyboardEvent): void {
-    if (event.key !== 'Enter' && event.key !== ' ') {
+    // Track Enter/Space for forward navigation, Escape for back navigation
+    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Escape') {
+        return;
+    }
+
+    // ALWAYS set keyboard interaction flag for modal auto-focus and navigation
+    // This must happen BEFORE any early returns (e.g., menuitem protection)
+    wasKeyboardInteraction = true;
+
+    // For Escape key (back navigation), we only need the flag, not element capture
+    // Element capture is for forward navigation to know where to return focus
+    if (event.key === 'Escape') {
         return;
     }
 
@@ -220,7 +229,7 @@ function handleKeyDown(event: KeyboardEvent): void {
 
         lastInteractionCapture = {
             element: activeElement,
-            timestamp: Date.now(),
+            forRoute: currentFocusedRouteKey,
         };
 
         // IMMEDIATE CAPTURE: Store element identifier for non-persistent screens
@@ -230,7 +239,7 @@ function handleKeyDown(event: KeyboardEvent): void {
             // Also store element reference for persistent screens (fallback)
             routeFocusMap.set(currentFocusedRouteKey, {
                 element: activeElement,
-                timestamp: Date.now(),
+                forRoute: currentFocusedRouteKey,
             });
         }
 
@@ -241,35 +250,6 @@ function handleKeyDown(event: KeyboardEvent): void {
             key: event.key,
         });
     }
-}
-
-/**
- * Remove entries older than ROUTE_FOCUS_VALIDITY_MS to prevent memory leaks.
- */
-function cleanupOldEntries(): void {
-    const now = Date.now();
-
-    for (const [key, value] of routeFocusMap.entries()) {
-        if (now - value.timestamp > ROUTE_FOCUS_VALIDITY_MS) {
-            routeFocusMap.delete(key);
-        }
-    }
-
-    for (const [key, value] of routeElementIdentifierMap.entries()) {
-        if (now - value.timestamp > ROUTE_FOCUS_VALIDITY_MS) {
-            routeElementIdentifierMap.delete(key);
-        }
-    }
-}
-
-/**
- * Cleanup stale entries when tab becomes hidden to prevent memory buildup
- */
-function handleVisibilityChange(): void {
-    if (!document.hidden) {
-        return;
-    }
-    cleanupOldEntries();
 }
 
 /**
@@ -285,7 +265,6 @@ function initialize(): void {
     // This ensures we capture the focused element before any navigation logic
     document.addEventListener('pointerdown', handleInteraction, {capture: true});
     document.addEventListener('keydown', handleKeyDown, {capture: true});
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     isInitialized = true;
 }
@@ -300,7 +279,6 @@ function destroy(): void {
 
     document.removeEventListener('pointerdown', handleInteraction, {capture: true});
     document.removeEventListener('keydown', handleKeyDown, {capture: true});
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
 
     isInitialized = false;
     routeFocusMap.clear();
@@ -312,26 +290,36 @@ function destroy(): void {
  * Called when a screen loses focus (isFocused becomes false).
  * Stores the most recently captured element for this route.
  *
+ * Uses state-based validation: capture is valid if it belongs to this specific route.
+ * This replaces time-based validation which had edge cases on slow devices and
+ * incorrectly accepted captures from wrong routes.
+ *
  * @param routeKey - The route.key from React Navigation
  */
 function captureForRoute(routeKey: string): void {
-    const now = Date.now();
     let elementToStore: HTMLElement | null = null;
     let captureSource: 'interaction' | 'activeElement' | 'none' = 'none';
 
-    // Try to use the element captured during user interaction if it's recent enough
+    // Try to use the element captured during user interaction if it belongs to this route
     if (lastInteractionCapture) {
-        const captureAge = now - lastInteractionCapture.timestamp;
-        const isExpired = captureAge >= CAPTURE_VALIDITY_MS;
-        const capturedElement = lastInteractionCapture.element;
+        const {element: capturedElement, forRoute} = lastInteractionCapture;
         const isInDOM = document.body.contains(capturedElement);
 
-        if (isExpired) {
-            Log.info('[NavigationFocusManager] Capture expired - falling back to activeElement', false, {
-                routeKey,
-                captureAge,
-                validityMs: CAPTURE_VALIDITY_MS,
+        // State-based validity: capture MUST be for THIS specific route
+        // Reject null forRoute - if we don't know the origin, we can't validate it
+        const isValidCapture = forRoute === routeKey;
+
+        if (forRoute === null) {
+            // This should be rare - only happens if interaction occurs before any route is registered
+            // Reject to be safe rather than potentially restoring focus to wrong screen
+            Log.info('[NavigationFocusManager] Capture has no route - rejecting for safety', false, {
+                requestedRoute: routeKey,
                 capturedLabel: capturedElement.getAttribute('aria-label'),
+            });
+        } else if (!isValidCapture) {
+            Log.info('[NavigationFocusManager] Capture is for different route - rejecting', false, {
+                captureRoute: forRoute,
+                requestedRoute: routeKey,
             });
         } else if (!isInDOM) {
             Log.info('[NavigationFocusManager] Captured element no longer in DOM - falling back to activeElement', false, {
@@ -364,7 +352,7 @@ function captureForRoute(routeKey: string): void {
     if (elementToStore) {
         routeFocusMap.set(routeKey, {
             element: elementToStore,
-            timestamp: now,
+            forRoute: routeKey,
         });
         Log.info('[NavigationFocusManager] Stored focus for route', false, {
             routeKey,
@@ -382,15 +370,15 @@ function captureForRoute(routeKey: string): void {
 
     // Clear the interaction capture after use
     lastInteractionCapture = null;
-
-    // Cleanup old entries to prevent memory leaks
-    cleanupOldEntries();
 }
 
 /**
  * Called when a screen regains focus (via initialFocus callback).
  * Returns the stored element if it's still valid, or finds a matching element
  * in the new DOM for non-persistent screens that remounted.
+ *
+ * Lifecycle is managed by cleanupRemovedRoutes() - if data exists, it's valid.
+ * No time-based expiry checks needed.
  *
  * @param routeKey - The route.key from React Navigation
  * @returns The element to focus, or null if none available
@@ -404,39 +392,26 @@ function retrieveForRoute(routeKey: string): HTMLElement | null {
     routeElementIdentifierMap.delete(routeKey);
 
     // Strategy 1: Try element reference (works for persistent screens)
-    if (captured) {
-        const age = Date.now() - captured.timestamp;
-        if (age <= ROUTE_FOCUS_VALIDITY_MS && document.body.contains(captured.element)) {
-            Log.info('[NavigationFocusManager] Retrieved focus for route (element reference)', false, {
-                routeKey,
-                tagName: captured.element.tagName,
-                ariaLabel: captured.element.getAttribute('aria-label'),
-                age,
-            });
-            return captured.element;
-        }
+    // No timestamp check - cleanupRemovedRoutes handles lifecycle
+    if (captured && document.body.contains(captured.element)) {
+        Log.info('[NavigationFocusManager] Retrieved focus for route (element reference)', false, {
+            routeKey,
+            tagName: captured.element.tagName,
+            ariaLabel: captured.element.getAttribute('aria-label'),
+        });
+        return captured.element;
     }
 
     // Strategy 2: Use element identifier to find matching element in new DOM
     // (Critical for non-persistent screens that remounted)
+    // No timestamp check - cleanupRemovedRoutes handles lifecycle
     if (identifier) {
-        const age = Date.now() - identifier.timestamp;
-        if (age > ROUTE_FOCUS_VALIDITY_MS) {
-            Log.info('[NavigationFocusManager] Stored identifier expired for route', false, {
-                routeKey,
-                age,
-                validityMs: ROUTE_FOCUS_VALIDITY_MS,
-            });
-            return null;
-        }
-
         const matchedElement = findMatchingElement(identifier);
         if (matchedElement) {
             Log.info('[NavigationFocusManager] Retrieved focus for route (identifier match)', false, {
                 routeKey,
                 tagName: matchedElement.tagName,
                 ariaLabel: matchedElement.getAttribute('aria-label'),
-                age,
             });
             return matchedElement;
         }
@@ -504,6 +479,88 @@ function unregisterFocusedRoute(routeKey: string): void {
     currentFocusedRouteKey = null;
 }
 
+/**
+ * Check if the most recent user interaction was via keyboard (Enter/Space).
+ * Used by modals to determine if they should auto-focus their content.
+ */
+function wasRecentKeyboardInteraction(): boolean {
+    return wasKeyboardInteraction;
+}
+
+/**
+ * Clear the keyboard interaction flag after it has been consumed.
+ * Call this immediately after reading the flag to prevent stale reads.
+ */
+function clearKeyboardInteractionFlag(): void {
+    wasKeyboardInteraction = false;
+}
+
+/**
+ * Get the last captured element that is NOT a menuitem.
+ * Used for focus restoration when a modal triggered from a menu closes.
+ *
+ * This leverages the menuitem protection logic: when a user clicks a menuitem
+ * (like "Delete workspace"), the original anchor (like "More" button) is preserved.
+ * This method returns that preserved anchor for focus restoration.
+ *
+ * @returns The captured anchor element, or null if:
+ *   - No element was captured
+ *   - The captured element is no longer in DOM
+ *   - The captured element IS a menuitem (not an anchor)
+ */
+function getCapturedAnchorElement(): HTMLElement | null {
+    // Only available on web where document exists
+    if (typeof document === 'undefined' || !lastInteractionCapture) {
+        return null;
+    }
+
+    const element = lastInteractionCapture.element;
+
+    // Verify element is still in DOM
+    if (!document.body.contains(element)) {
+        Log.info('[NavigationFocusManager] getCapturedAnchorElement: element no longer in DOM');
+        return null;
+    }
+
+    // Only return non-menuitem elements (anchors like "More" button)
+    // Menuitems are transient and shouldn't be returned
+    if (element.closest('[role="menuitem"]')) {
+        Log.info('[NavigationFocusManager] getCapturedAnchorElement: element is menuitem, returning null');
+        return null;
+    }
+
+    Log.info('[NavigationFocusManager] getCapturedAnchorElement: returning anchor', false, {
+        tagName: element.tagName,
+        ariaLabel: element.getAttribute('aria-label'),
+    });
+
+    return element;
+}
+
+/**
+ * Removes focus data for routes that are no longer in the navigation state.
+ * Called from handleStateChange in NavigationRoot.tsx.
+ *
+ * This follows the same pattern as cleanPreservedNavigatorStates and
+ * cleanStaleScrollOffsets - lifecycle tied to navigation state changes.
+ */
+function cleanupRemovedRoutes(state: State): void {
+    const activeKeys = extractNavigationKeys(state.routes);
+
+    for (const key of routeFocusMap.keys()) {
+        if (!activeKeys.has(key)) {
+            routeFocusMap.delete(key);
+            Log.info('[NavigationFocusManager] Cleaned up focus data for removed route', false, {routeKey: key});
+        }
+    }
+
+    for (const key of routeElementIdentifierMap.keys()) {
+        if (!activeKeys.has(key)) {
+            routeElementIdentifierMap.delete(key);
+        }
+    }
+}
+
 export default {
     initialize,
     destroy,
@@ -513,4 +570,8 @@ export default {
     hasStoredFocus,
     registerFocusedRoute,
     unregisterFocusedRoute,
+    wasRecentKeyboardInteraction,
+    clearKeyboardInteractionFlag,
+    getCapturedAnchorElement,
+    cleanupRemovedRoutes,
 };
