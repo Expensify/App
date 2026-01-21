@@ -3,6 +3,7 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
@@ -11,7 +12,7 @@ import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
@@ -143,7 +144,7 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {toggleSearch} = useSearchRouterContext();
+    const {toggleSearch} = useSearchRouterActions();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
@@ -229,7 +230,14 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID, isFromOldDot: true})
+                connect({
+                    email: delegatorEmail,
+                    delegatedAccess: account?.delegatedAccess,
+                    credentials,
+                    session,
+                    activePolicyID,
+                    isFromOldDot: true,
+                })
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
@@ -477,6 +485,7 @@ function AuthScreens() {
     return (
         <ComposeProviders
             components={[
+                CurrencyListContextProvider,
                 OptionsListContextProvider,
                 SidebarOrderedReportsContextProvider,
                 SearchContextProvider,
