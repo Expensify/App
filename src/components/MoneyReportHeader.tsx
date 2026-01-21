@@ -50,7 +50,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import {
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
-    buildOptimisticNextStepForDynamicExternalWorkflowError,
+    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
 } from '@libs/NextStepUtils';
@@ -497,7 +497,7 @@ function MoneyReportHeader({
 
         if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
             if (errors?.dewSubmitFailed) {
-                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError(theme.danger);
+                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
             } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
                 optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }

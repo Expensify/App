@@ -332,7 +332,7 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
-function buildOptimisticNextStepForDynamicExternalWorkflowError(iconFill?: string) {
+function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
         icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
@@ -749,7 +749,7 @@ export {
     parseMessage,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
-    buildOptimisticNextStepForDynamicExternalWorkflowError,
+    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDEWOffline,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
