@@ -8,13 +8,14 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, shouldResetLocally: boolean, lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType) {
+function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, bankAccountID?: number, lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType) {
     if (!policyID) {
         throw new Error('Missing policy when attempting to reset');
     }
 
-    if (shouldResetLocally) {
-        const updateData = [
+    // If there's no bankAccountID, we reset locally without making an API call
+    if (!bankAccountID) {
+        const updateData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT>> = [
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
@@ -33,14 +34,16 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                 value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
             },
         ];
-        Onyx.update(updateData as OnyxUpdate[]);
+        Onyx.update(updateData);
         return;
     }
 
     const isLastUsedPaymentMethodVBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodVBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<
+        typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -105,7 +108,7 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
         });
     }
 
-    API.write(WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP, {policyID}, onyxData);
+    API.write(WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP, {policyID, bankAccountID}, onyxData);
 }
 
 export default resetNonUSDBankAccount;

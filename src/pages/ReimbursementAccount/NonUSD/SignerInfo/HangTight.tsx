@@ -28,7 +28,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
-    const icons = useMemoizedLazyExpensifyIcons(['Bell'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Bell']);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
     const secondSignerEmail = reimbursementAccount?.achData?.corpay?.secondSignerEmail;
@@ -95,7 +95,5 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
         </ScrollView>
     );
 }
-
-HangTight.displayName = 'HangTight';
 
 export default HangTight;

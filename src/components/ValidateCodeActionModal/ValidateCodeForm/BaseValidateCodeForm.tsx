@@ -10,6 +10,8 @@ import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicC
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
+import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,8 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidValidateCode} from '@libs/ValidationUtils';
-import ValidateCodeCountdown from '@pages/signin/ValidateCodeCountdown';
-import type {ValidateCodeCountdownHandle} from '@pages/signin/ValidateCodeCountdown/types';
 import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -202,8 +202,8 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        // Delay prevents the input from gaining focus before the RHP slide out animation finishes,
-        // which would cause the wide RHP to flicker in the background.
+        // Delay prevents the input from gaining focus before the RHP slide-out animation finishes,
+        // which would cause issues with the RHP sliding out smoothly and flickering of the wide RHP in the background.
         if ((wideRHPRouteKeys.length > 0 && !isMobileSafari()) || isInPageModal) {
             focusTimeoutRef.current = setTimeout(() => {
                 inputValidateCodeRef.current?.clear();
@@ -378,8 +378,6 @@ function BaseValidateCodeForm({
         </>
     );
 }
-
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 

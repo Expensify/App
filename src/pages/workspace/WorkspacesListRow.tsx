@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -126,9 +127,10 @@ function WorkspacesListRow({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
+    const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass' as const]);
-    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
 
     const workspaceTypeIcon = useCallback(
         (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
@@ -208,6 +210,7 @@ function WorkspacesListRow({
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <ThreeDotsMenu
+                        isContainerFocused={isFocused}
                         shouldSelfPosition
                         menuItems={menuItems}
                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
@@ -300,7 +303,7 @@ function WorkspacesListRow({
                     {!isNarrow && (
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.touchableButtonImage]}>
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={icons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                                 isButtonIcon
@@ -313,7 +316,5 @@ function WorkspacesListRow({
         </View>
     );
 }
-
-WorkspacesListRow.displayName = 'WorkspacesListRow';
 
 export default withCurrentUserPersonalDetails(WorkspacesListRow);

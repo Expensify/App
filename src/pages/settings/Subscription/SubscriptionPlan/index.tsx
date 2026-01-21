@@ -18,7 +18,7 @@ function SubscriptionPlan() {
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const illustrations = useMemoizedLazyIllustrations(['HandCard'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard']);
 
     const renderTitle = () => {
         return (
@@ -59,7 +59,5 @@ function SubscriptionPlan() {
         </Section>
     );
 }
-
-SubscriptionPlan.displayName = 'SubscriptionPlan';
 
 export default SubscriptionPlan;

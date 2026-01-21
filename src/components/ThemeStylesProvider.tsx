@@ -18,6 +18,4 @@ function ThemeStylesProvider({children}: ThemeStylesProviderProps) {
     return <ThemeStylesContext.Provider value={contextValue}>{children}</ThemeStylesContext.Provider>;
 }
 
-ThemeStylesProvider.displayName = 'ThemeStylesProvider';
-
 export default ThemeStylesProvider;

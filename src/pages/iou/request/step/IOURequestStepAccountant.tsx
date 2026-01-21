@@ -62,7 +62,7 @@ function IOURequestStepAccountant({
             headerTitle={translate('iou.whoIsYourAccountant')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepAccountant.displayName}
+            testID="IOURequestStepAccountant"
         >
             <MoneyRequestAccountantSelector
                 onFinish={navigateToNextStep}
@@ -73,7 +73,5 @@ function IOURequestStepAccountant({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepAccountant.displayName = 'IOURequestStepAccountant';
 
 export default withWritableReportOrNotFound(IOURequestStepAccountant);

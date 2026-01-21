@@ -2,9 +2,9 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -52,6 +52,7 @@ function CurrencySelector({
 }: CurrencySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
 
     const currencyTitleDescStyle = currency && !shouldShowCurrencySymbol ? styles.textNormal : null;
 
@@ -69,7 +70,7 @@ function CurrencySelector({
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to currency
         onInputChange(currency);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency]);
 
     return (
@@ -92,7 +93,5 @@ function CurrencySelector({
         />
     );
 }
-
-CurrencySelector.displayName = 'CurrencySelector';
 
 export default CurrencySelector;

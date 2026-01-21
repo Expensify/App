@@ -1,6 +1,8 @@
 import {context} from '@actions/github';
 import {exec as execWithCallback, execSync as originalExecSync} from 'child_process';
 import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
+import fs from 'fs';
+import path from 'path';
 import {promisify} from 'util';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
@@ -106,7 +108,7 @@ class Git {
      * @returns Structured diff result with line numbers and change information
      * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
      */
-    static diff(fromRef: string, toRef?: string, filePaths?: string | string[]): DiffResult {
+    static diff(fromRef: string, toRef?: string, filePaths?: string | string[], shouldIncludeUntrackedFiles = false): DiffResult {
         // Build git diff command (with 0 context lines for easier parsing)
         let command = `git diff -U0 ${fromRef}`;
         if (toRef) {
@@ -114,14 +116,28 @@ class Git {
         }
         if (filePaths) {
             const pathsArray = Array.isArray(filePaths) ? filePaths : [filePaths];
-            const quotedPaths = pathsArray.map((path) => `"${path}"`).join(' ');
+            const quotedPaths = pathsArray.map((filePath) => `"${filePath}"`).join(' ');
             command += ` -- ${quotedPaths}`;
         }
 
         // Execute git diff with unified format - let errors bubble up
         const diffOutput = execSync(command);
 
-        return Git.parseDiff(diffOutput);
+        const diffResult = Git.parseDiff(diffOutput);
+
+        // Include untracked files when diffing against working directory
+        if (!toRef && shouldIncludeUntrackedFiles) {
+            const untrackedFiles = Git.getUntrackedFiles(filePaths);
+            const untrackedFileDiffs = Git.createFileDiffsForUntrackedFiles(untrackedFiles);
+
+            // Merge untracked files into the diff result
+            if (untrackedFileDiffs.length > 0) {
+                diffResult.files.push(...untrackedFileDiffs);
+                diffResult.hasChanges = true;
+            }
+        }
+
+        return diffResult;
     }
 
     /**
@@ -439,7 +455,7 @@ class Git {
         }
     }
 
-    static async getChangedFileNames(fromRef: string, toRef?: string): Promise<string[]> {
+    static async getChangedFileNames(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
                 owner: CONST.GITHUB_OWNER,
@@ -452,9 +468,113 @@ class Git {
         }
 
         // Get the diff output and check status
-        const diffResult = this.diff(fromRef, toRef);
+        const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
         const files = diffResult.files.map((file) => file.filePath);
         return files;
+    }
+
+    /**
+     * Get list of untracked files from git.
+     *
+     * @param filePaths - Optional specific file path(s) to filter by (relative to git repo root)
+     * @returns Array of untracked file paths
+     */
+    static getUntrackedFiles(filePaths?: string | string[]): string[] {
+        try {
+            // Get all untracked files
+            const untrackedOutput = execSync('git ls-files --others --exclude-standard', {
+                stdio: 'pipe',
+            });
+
+            if (!untrackedOutput.trim()) {
+                return [];
+            }
+
+            let untrackedFiles = untrackedOutput
+                .trim()
+                .split('\n')
+                .filter((file) => file.length > 0);
+
+            // Filter by filePaths if provided
+            if (filePaths) {
+                const pathsArray = Array.isArray(filePaths) ? filePaths : [filePaths];
+                const normalizedPaths = pathsArray.map((p) => path.normalize(p));
+                untrackedFiles = untrackedFiles.filter((file) => {
+                    const normalizedFile = path.normalize(file);
+                    return normalizedPaths.some((p) => normalizedFile === p || normalizedFile.startsWith(p + path.sep));
+                });
+            }
+
+            return untrackedFiles;
+        } catch (error) {
+            // If command fails, return empty array (e.g., not a git repo)
+            return [];
+        }
+    }
+
+    /**
+     * Create FileDiff entries for untracked files by reading their content and treating all lines as added.
+     *
+     * @param untrackedFiles - Array of untracked file paths (relative to git repo root)
+     * @returns Array of FileDiff entries for untracked files
+     */
+    private static createFileDiffsForUntrackedFiles(untrackedFiles: string[]): FileDiff[] {
+        const fileDiffs: FileDiff[] = [];
+
+        for (const filePath of untrackedFiles) {
+            const absolutePath = path.join(process.cwd(), filePath);
+
+            // Check if file exists and is readable
+            if (!fs.existsSync(absolutePath) || !fs.statSync(absolutePath).isFile()) {
+                continue;
+            }
+
+            let fileContent: string;
+            try {
+                fileContent = fs.readFileSync(absolutePath, 'utf8');
+            } catch (error) {
+                // Skip files that can't be read
+                continue;
+            }
+
+            // Split content into lines
+            const lines = fileContent.split('\n');
+            const addedLines = new Set<number>();
+
+            // Create a single hunk with all lines as added
+            const diffLines: DiffLine[] = [];
+            for (let i = 0; i < lines.length; i++) {
+                const lineNumber = i + 1;
+                addedLines.add(lineNumber);
+                diffLines.push({
+                    number: lineNumber,
+                    type: 'added',
+                    content: lines.at(i) ?? '',
+                });
+            }
+
+            // Create a single hunk for the entire file
+            const hunk: DiffHunk = {
+                oldStart: 0,
+                oldCount: 0,
+                newStart: 1,
+                newCount: lines.length,
+                lines: diffLines,
+            };
+
+            const fileDiff: FileDiff = {
+                filePath,
+                diffType: 'added',
+                hunks: [hunk],
+                addedLines,
+                removedLines: new Set(),
+                modifiedLines: new Set(),
+            };
+
+            fileDiffs.push(fileDiff);
+        }
+
+        return fileDiffs;
     }
 }
 

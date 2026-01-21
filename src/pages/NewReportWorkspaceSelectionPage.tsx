@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
@@ -13,6 +12,7 @@ import Text from '@components/Text';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -52,6 +52,7 @@ type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWo
 function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
     const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -116,22 +117,30 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     const createReport = useCallback(
         (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
-            const optimisticReport = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID, false, shouldDismissEmptyReportsConfirmation);
+            const optimisticReport = createNewReport(
+                currentUserPersonalDetails,
+                isASAPSubmitBetaEnabled,
+                hasViolations,
+                policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                false,
+                shouldDismissEmptyReportsConfirmation,
+            );
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
             if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
                 const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
                 setNavigationActionToMicrotaskQueue(() => {
-                    changeTransactionsReport(
-                        selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    changeTransactionsReport({
+                        transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
                         isASAPSubmitBetaEnabled,
-                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        currentUserPersonalDetails?.email ?? '',
-                        optimisticReport,
-                        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                        accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        email: currentUserPersonalDetails?.email ?? '',
+                        newReport: optimisticReport,
+                        policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                         reportNextStep,
-                        undefined,
-                    );
+                        policyCategories: undefined,
+                        allTransactions,
+                    });
 
                     // eslint-disable-next-line rulesdir/no-default-id-values
                     setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
@@ -151,18 +160,19 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             navigateToNewReport(optimisticReport.reportID);
         },
         [
-            activePolicyID,
             currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
             hasViolations,
+            policies,
             selectedTransactions,
             isMovingExpenses,
             selectedTransactionIDs,
             navigateToNewReport,
             allReportNextSteps,
-            policies,
-            clearSelectedTransactions,
             backTo,
+            allTransactions,
+            activePolicyID,
+            clearSelectedTransactions,
         ],
     );
 
@@ -263,7 +273,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 icons: [
                     {
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
                         id: policy?.id,
@@ -274,7 +284,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 shouldSyncFocus: true,
             }))
             .sort((a, b) => localeCompare(a.text, b.text));
-    }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions]);
+    }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions, icons.FallbackWorkspaceAvatar]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),
@@ -295,7 +305,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     return (
         <ScreenWrapper
-            testID={NewReportWorkspaceSelectionPage.displayName}
+            testID="NewReportWorkspaceSelectionPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -325,7 +335,5 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         </ScreenWrapper>
     );
 }
-
-NewReportWorkspaceSelectionPage.displayName = 'NewReportWorkspaceSelectionPage';
 
 export default NewReportWorkspaceSelectionPage;

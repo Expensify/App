@@ -27,15 +27,19 @@ import {
     getFilteredCardList,
     getMonthFromExpirationDateString,
     getOriginalCompanyFeeds,
+    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
+    hasOnlyOneCardToAssign,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
+    splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -236,6 +240,13 @@ const combinedCardFeeds: CombinedCardFeeds = {
         customFeedName: 'Custom feed name',
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
     },
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`]: {
+        liabilityType: 'personal',
+        pending: false,
+        domainID: 12345,
+        customFeedName: 'Custom feed name 2',
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    },
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}#11111111`]: {
         pending: true,
         domainID: 11111111,
@@ -249,6 +260,15 @@ const combinedCardFeeds: CombinedCardFeeds = {
         expiration: 1730998958,
         pending: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+    },
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#12345`]: {
+        liabilityType: 'personal',
+        domainID: 12345,
+        accountList: ['CREDIT CARD...6607', 'CREDIT CARD...5501'],
+        credentials: 'xxxxx',
+        expiration: 1730998958,
+        pending: false,
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     },
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE}#11111111`]: {
@@ -711,37 +731,31 @@ describe('CardUtils', () => {
     });
 
     describe('getFilteredCardList', () => {
-        it('Should return filtered custom feed cards list', () => {
+        it('Should return filtered custom feed cards list as UnassignedCard array', () => {
             const cardsList = getFilteredCardList(customFeedCardsList, undefined, undefined);
-            expect(cardsList).toStrictEqual({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER',
-            });
+            expect(cardsList).toStrictEqual([
+                {cardName: '480801XXXXXX2111', cardID: 'ENCRYPTED_CARD_NUMBER'},
+                {cardName: '480801XXXXXX2566', cardID: 'ENCRYPTED_CARD_NUMBER'},
+            ]);
         });
 
-        it('Should return filtered direct feed cards list with a single card', () => {
+        it('Should return filtered direct feed cards list with a single card (cardName equals cardID)', () => {
             const cardsList = getFilteredCardList(directFeedCardsSingleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE].accountList, undefined);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            expect(cardsList).toStrictEqual({'CREDIT CARD...6607': 'CREDIT CARD...6607'});
+            expect(cardsList).toStrictEqual([{cardName: 'CREDIT CARD...6607', cardID: 'CREDIT CARD...6607'}]);
         });
 
-        it('Should return filtered direct feed cards list with multiple cards', () => {
+        it('Should return filtered direct feed cards list with multiple cards (cardName equals cardID)', () => {
             const cardsList = getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE].accountList, undefined);
-            expect(cardsList).toStrictEqual({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'CREDIT CARD...1233': 'CREDIT CARD...1233',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'CREDIT CARD...3333': 'CREDIT CARD...3333',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'CREDIT CARD...7788': 'CREDIT CARD...7788',
-            });
+            expect(cardsList).toStrictEqual([
+                {cardName: 'CREDIT CARD...1233', cardID: 'CREDIT CARD...1233'},
+                {cardName: 'CREDIT CARD...3333', cardID: 'CREDIT CARD...3333'},
+                {cardName: 'CREDIT CARD...7788', cardID: 'CREDIT CARD...7788'},
+            ]);
         });
 
-        it('Should return empty object if no data was provided', () => {
+        it('Should return empty array if no data was provided', () => {
             const cardsList = getFilteredCardList(undefined, undefined, undefined);
-            expect(cardsList).toStrictEqual({});
+            expect(cardsList).toStrictEqual([]);
         });
 
         it('Should handle the case when all cards are already assigned in other workspaces', () => {
@@ -776,7 +790,7 @@ describe('CardUtils', () => {
                 },
             } as unknown as WorkspaceCardsList;
             const filteredCards = getFilteredCardList(customFeedWithAllAssignedCards, undefined, mockAllWorkspaceCards);
-            expect(filteredCards).toStrictEqual({});
+            expect(filteredCards).toStrictEqual([]);
         });
 
         it('Should filter out cards that are already assigned in another workspace (custom feed)', () => {
@@ -814,7 +828,7 @@ describe('CardUtils', () => {
             } as unknown as WorkspaceCardsList;
 
             const filteredCards = getFilteredCardList(customFeedWorkspaceCardsList, undefined, undefined);
-            expect(filteredCards).toStrictEqual({});
+            expect(filteredCards).toStrictEqual([]);
         });
 
         it('Should filter out cards that are already assigned in another workspace (direct feed)', () => {
@@ -844,7 +858,26 @@ describe('CardUtils', () => {
             } as unknown as OnyxCollection<WorkspaceCardsList>;
             const accountList = [assignedCard1, assignedCard2, unassignedCard];
             const filteredCards = getFilteredCardList(undefined, accountList, mockAllWorkspaceCards);
-            expect(filteredCards).toStrictEqual({[`${unassignedCard}`]: unassignedCard});
+            expect(filteredCards).toStrictEqual([{cardName: unassignedCard, cardID: unassignedCard}]);
+        });
+    });
+
+    describe('hasOnlyOneCardToAssign', () => {
+        it('should return true when there is exactly one unassigned card', () => {
+            const cards = [{cardName: 'VISA ****1234', cardID: 'encrypted_123'}];
+            expect(hasOnlyOneCardToAssign(cards)).toBe(true);
+        });
+
+        it('should return false when there are multiple unassigned cards', () => {
+            const cards = [
+                {cardName: 'VISA ****1234', cardID: 'encrypted_123'},
+                {cardName: 'VISA ****5678', cardID: 'encrypted_456'},
+            ];
+            expect(hasOnlyOneCardToAssign(cards)).toBe(false);
+        });
+
+        it('should return false when there are no unassigned cards', () => {
+            expect(hasOnlyOneCardToAssign([])).toBe(false);
         });
     });
 
@@ -1338,6 +1371,136 @@ describe('CardUtils', () => {
             const domainID = 11111111;
             const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
+        });
+    });
+
+    describe('getPlaidInstitutionId', () => {
+        it('should return institution ID from plaid feed name without domain ID', () => {
+            const feedName = 'plaid.ins_123456';
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('ins_123456');
+        });
+
+        it('should return institution ID from plaid feed name with domain ID', () => {
+            const feedName = 'plaid.ins_129663#12345';
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('ins_129663');
+        });
+
+        it('should return empty string for non-plaid feed', () => {
+            const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('');
+        });
+    });
+
+    describe('getPlaidInstitutionIconUrl', () => {
+        it('should return correct icon URL for plaid feed without domain ID', () => {
+            const feedName = 'plaid.ins_123456';
+            const iconUrl = getPlaidInstitutionIconUrl(feedName);
+            expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_123456.png`);
+        });
+
+        it('should return correct icon URL for plaid feed with domain ID', () => {
+            const feedName = 'plaid.ins_129663#12345';
+            const iconUrl = getPlaidInstitutionIconUrl(feedName);
+            expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_129663.png`);
+        });
+    });
+
+    describe('splitMaskedCardNumber', () => {
+        it('should split a masked card number correctly', () => {
+            const result = splitMaskedCardNumber('1234XXXX5678');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('5678');
+        });
+
+        it('should handle card numbers with custom mask character', () => {
+            const result = splitMaskedCardNumber('1234****5678', '*');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('5678');
+        });
+
+        it('should handle undefined card number', () => {
+            const result = splitMaskedCardNumber(undefined);
+            expect(result.firstDigits).toBeUndefined();
+            expect(result.lastDigits).toBeUndefined();
+        });
+
+        it('should handle card number with only first digits', () => {
+            const result = splitMaskedCardNumber('1234XXXX');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('');
+        });
+
+        it('should handle card number with only last digits', () => {
+            const result = splitMaskedCardNumber('XXXX5678');
+            expect(result.firstDigits).toBe('');
+            expect(result.lastDigits).toBe('5678');
+        });
+    });
+
+    describe('UnassignedCard type through getFilteredCardList', () => {
+        describe('Commercial feeds (VCF, MCF, etc.) - cardID is encrypted value', () => {
+            it('should return UnassignedCard with cardID being the encrypted value from cardList', () => {
+                const workspaceCardsList = {
+                    cardList: {
+                        '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
+                        '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED2',
+                    },
+                } as unknown as WorkspaceCardsList;
+
+                const result = getFilteredCardList(workspaceCardsList, undefined, undefined);
+                const firstCard = result.at(0);
+
+                expect(result).toHaveLength(2);
+                expect(firstCard).toEqual({
+                    cardName: '490901XXXXXX1234',
+                    cardID: 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
+                });
+                expect(firstCard?.cardName).not.toBe(firstCard?.cardID);
+            });
+
+            it('should correctly distinguish cardName from cardID for commercial feeds', () => {
+                const workspaceCardsList = {
+                    cardList: {
+                        'VISA ****1234': 'encrypted_abc123xyz',
+                    },
+                } as unknown as WorkspaceCardsList;
+
+                const result = getFilteredCardList(workspaceCardsList, undefined, undefined);
+                const firstCard = result.at(0);
+
+                expect(firstCard?.cardName).toBe('VISA ****1234');
+                expect(firstCard?.cardID).toBe('encrypted_abc123xyz');
+                expect(firstCard?.cardName).not.toBe(firstCard?.cardID);
+            });
+        });
+
+        describe('Direct feeds (Plaid, OAuth) - cardName equals cardID', () => {
+            it('should return UnassignedCard with cardID equal to cardName for direct feeds', () => {
+                const accountList = ['CREDIT CARD...6607', 'CREDIT CARD...1234'];
+
+                const result = getFilteredCardList(undefined, accountList, undefined);
+                const firstCard = result.at(0);
+
+                expect(result).toHaveLength(2);
+                expect(firstCard).toEqual({
+                    cardName: 'CREDIT CARD...6607',
+                    cardID: 'CREDIT CARD...6607',
+                });
+                expect(firstCard?.cardName).toBe(firstCard?.cardID);
+            });
+
+            it('should return cardName equal to cardID for Plaid feeds', () => {
+                const accountList = ['Plaid Checking 0000'];
+
+                const result = getFilteredCardList(undefined, accountList, undefined);
+                const firstCard = result.at(0);
+
+                expect(firstCard?.cardName).toBe('Plaid Checking 0000');
+                expect(firstCard?.cardID).toBe('Plaid Checking 0000');
+            });
         });
     });
 });

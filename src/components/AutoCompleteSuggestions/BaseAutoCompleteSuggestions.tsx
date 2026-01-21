@@ -115,6 +115,4 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     );
 }
 
-BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
-
 export default BaseAutoCompleteSuggestions;

@@ -36,11 +36,11 @@ type WorkspacePlanTypeItem = {
 function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
     const policyID = policy?.id;
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
     useEffect(() => {
         if (!policyID) {
@@ -66,7 +66,9 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
 
     const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const autoRenewalDate = privateSubscription?.endDate ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT) : CardSectionUtils.getNextBillingDate();
+    const autoRenewalDate = privateSubscription?.endDate
+        ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT)
+        : CardSectionUtils.getNextBillingDate(preferredLocale);
 
     /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */
     const isPlanTypeLocked = isControl && isAnnual && !policy.canDowngrade;
@@ -101,7 +103,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                testID={WorkspaceOverviewPlanTypePage.displayName}
+                testID="WorkspaceOverviewPlanTypePage"
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -158,7 +160,5 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOverviewPlanTypePage.displayName = 'WorkspaceOverviewPlanTypePage';
 
 export default withPolicy(WorkspaceOverviewPlanTypePage);

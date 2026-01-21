@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateSelectedFeed} from '@libs/actions/Card';
@@ -47,10 +46,8 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const feedProvider = data?.feedType ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
     const bank = data?.selectedBank;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
-    const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const translationKey = getCardInstructionHeader(feedProvider);
-    const {isBetaEnabled} = usePermissions();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
@@ -73,12 +70,6 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        if (isAmexFeedProvider && !isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
-            setAddNewCompanyCardStepAndData({
-                step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED,
-            });
-            return;
-        }
         if (isStripeFeedProvider) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
@@ -88,7 +79,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     return (
         <ScreenWrapper
-            testID={CardInstructionsStep.displayName}
+            testID="CardInstructionsStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -103,9 +94,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 contentContainerStyle={styles.flexGrow1}
                 addBottomSafeAreaPadding
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: getBankName(feedProvider)})}
-                </Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.enableFeed.title', getBankName(feedProvider))}</Text>
                 <Text style={[styles.ph5, styles.mb3]}>{translate(translationKey)}</Text>
                 <View style={[styles.ph5]}>
                     <RenderHTML html={Parser.replace(feedProvider ? translate(`workspace.companyCards.addNewCard.enableFeed.${feedProvider}`) : '')} />
@@ -124,7 +113,5 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
         </ScreenWrapper>
     );
 }
-
-CardInstructionsStep.displayName = 'CardInstructionsStep';
 
 export default CardInstructionsStep;

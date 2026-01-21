@@ -6,6 +6,4 @@ function RootNavigatorExtraContent({state}: RootNavigatorExtraContentProps) {
     return <TopLevelNavigationTabBar state={state} />;
 }
 
-RootNavigatorExtraContent.displayName = 'RootNavigatorExtraContent';
-
 export default RootNavigatorExtraContent;

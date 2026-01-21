@@ -16,7 +16,7 @@ type FocusModeNotificationProps = {
 function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman']);
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
     const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
@@ -31,7 +31,7 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
             onCancel={onClose}
             prompt={
                 <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('focusModeUpdateModal.prompt', {priorityModePageUrl})} />
+                    <RenderHTML html={translate('focusModeUpdateModal.prompt', priorityModePageUrl)} />
                 </View>
             }
             isVisible
@@ -42,5 +42,4 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     );
 }
 
-FocusModeNotification.displayName = 'FocusModeNotification';
 export default FocusModeNotification;

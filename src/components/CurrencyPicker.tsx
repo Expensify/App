@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 import React, {Fragment, useState} from 'react';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
@@ -41,6 +41,7 @@ type CurrencyPickerProps = {
 
 function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
 
@@ -79,7 +80,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
-                    testID={CurrencyPicker.displayName}
+                    testID="CurrencyPicker"
                     shouldEnableMaxHeight
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
@@ -104,5 +105,4 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
     );
 }
 
-CurrencyPicker.displayName = 'CurrencyPicker';
 export default CurrencyPicker;

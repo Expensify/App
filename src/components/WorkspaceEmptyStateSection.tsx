@@ -62,6 +62,5 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
         </View>
     );
 }
-WorkspaceEmptyStateSection.displayName = 'WorkspaceEmptyStateSection';
 
 export default WorkspaceEmptyStateSection;

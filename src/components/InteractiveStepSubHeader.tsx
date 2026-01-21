@@ -122,8 +122,6 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
     );
 }
 
-InteractiveStepSubHeader.displayName = 'InteractiveStepSubHeader';
-
 export type {InteractiveStepSubHeaderProps, InteractiveStepSubHeaderHandle};
 
 export default InteractiveStepSubHeader;

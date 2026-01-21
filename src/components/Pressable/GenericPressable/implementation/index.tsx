@@ -27,6 +27,4 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
     );
 }
 
-WebGenericPressable.displayName = 'WebGenericPressable';
-
 export default WebGenericPressable;

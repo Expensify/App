@@ -119,6 +119,9 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         iouIsReimbursable: false,
         isReceiptEditable: false,
         isDescriptionRequired: false,
+        iouTimeCount: undefined,
+        iouTimeRate: undefined,
+        isTimeRequest: false,
     };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
@@ -183,7 +186,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const reportItem = screen.getByTestId('menu-item-common.report');
+        const reportItem = screen.getByTestId('menu-item-Report');
         const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
         expect(accessibilityState.disabled).toBe(false);
     });

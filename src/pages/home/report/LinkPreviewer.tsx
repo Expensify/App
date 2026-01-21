@@ -100,6 +100,4 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
     });
 }
 
-LinkPreviewer.displayName = 'ReportLinkPreview';
-
 export default LinkPreviewer;

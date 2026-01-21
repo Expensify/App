@@ -41,7 +41,7 @@ function LanguagePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={LanguagePage.displayName}
+            testID="LanguagePage"
         >
             <HeaderWithBackButton
                 title={translate('languagePage.language')}
@@ -59,7 +59,5 @@ function LanguagePage() {
         </ScreenWrapper>
     );
 }
-
-LanguagePage.displayName = 'LanguagePage';
 
 export default LanguagePage;

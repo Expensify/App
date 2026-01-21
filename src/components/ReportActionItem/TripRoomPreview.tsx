@@ -65,7 +65,7 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage']);
 
     const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
     const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '');
@@ -125,14 +125,14 @@ function TripRoomPreview({
     shouldDisplayContextMenu = true,
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const chatReportID = chatReport?.reportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
     const dateInfo =
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
+            ? DateUtils.getFormattedDateRange(translate, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate), preferredLocale)
             : '';
     const reportCurrency = iouReport?.currency ?? chatReport?.currency;
 
@@ -208,7 +208,5 @@ function TripRoomPreview({
         </OfflineWithFeedback>
     );
 }
-
-TripRoomPreview.displayName = 'TripRoomPreview';
 
 export default TripRoomPreview;

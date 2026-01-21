@@ -213,7 +213,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             setPlaidEvent(null);
         }
         fetchData();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
 
     useEffect(() => {
@@ -304,7 +304,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             const stepToOpen = getRouteForCurrentStep(currentStep);
             navigation.setParams({stepToOpen});
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
     );
 
@@ -319,6 +319,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     const continueNonUSDVBBASetup = () => {
         const isPastSignerStep = () => {
+            if (achData?.state === CONST.NON_USD_BANK_ACCOUNT.STATE.VERIFYING) {
+                return true;
+            }
+
             if (policyCurrency === CONST.CURRENCY.AUD) {
                 return achData?.corpay?.signerFullName && achData?.corpay?.secondSignerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
             }
@@ -326,10 +330,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
         };
         const allAgreementsChecked =
-            reimbursementAccountDraft?.authorizedToBindClientToAgreement === true &&
-            reimbursementAccountDraft?.agreeToTermsAndConditions === true &&
-            reimbursementAccountDraft?.consentToPrivacyNotice === true &&
-            reimbursementAccountDraft?.provideTruthfulInformation === true;
+            !!(reimbursementAccountDraft?.authorizedToBindClientToAgreement ?? achData?.corpay?.authorizedToBindClientToAgreement) &&
+            !!(reimbursementAccountDraft?.agreeToTermsAndConditions ?? achData?.corpay?.agreeToTermsAndConditions) &&
+            !!(reimbursementAccountDraft?.consentToPrivacyNotice ?? achData?.corpay?.consentToPrivacyNotice) &&
+            !!(reimbursementAccountDraft?.provideTruthfulInformation ?? achData?.corpay?.provideTruthfulInformation);
 
         setShouldShowContinueSetupButton(false);
         if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
@@ -357,12 +361,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
-        if (isPastSignerStep() && allAgreementsChecked && !isDocusignStepRequired) {
+        if (isPastSignerStep() && allAgreementsChecked && !isDocusignStepRequired && achData?.state !== CONST.BANK_ACCOUNT.STATE.VERIFYING) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
             return;
         }
 
-        if (isPastSignerStep() && allAgreementsChecked && isDocusignStepRequired) {
+        if (isPastSignerStep() && allAgreementsChecked && isDocusignStepRequired && achData?.state !== CONST.BANK_ACCOUNT.STATE.VERIFYING) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
             return;
         }
@@ -447,14 +451,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
-    // eslint-disable-next-line react-compiler/react-compiler
     if ((!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
     if ((!isLoading && (isEmptyObject(policy) || !isPolicyAdmin(policy))) || isPendingDeletePolicy(policy)) {
         return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+            <ScreenWrapper testID="ReimbursementAccountPage">
                 <FullPageNotFoundView
                     shouldShow
                     onBackButtonPress={goBackFromInvalidPolicy}
@@ -470,7 +473,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />;
+        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', contactMethodRoute)} />;
     } else if (throttledDate) {
         errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
@@ -479,7 +482,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     if (errorText) {
         return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+            <ScreenWrapper testID="ReimbursementAccountPage">
                 <HeaderWithBackButton
                     title={translate('bankAccount.addBankAccount')}
                     subtitle={policyNameToDisplay}
@@ -493,7 +496,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     if (shouldShowConnectedVerifiedBankAccount) {
         if (topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
             return (
-                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                <ScreenWrapper testID="ReimbursementAccountPage">
                     <HeaderWithBackButton
                         title={translate('bankAccount.addBankAccount')}
                         onBackButtonPress={() => Navigation.dismissModal()}
@@ -565,7 +568,5 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         />
     );
 }
-
-ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default withPolicy(ReimbursementAccountPage);

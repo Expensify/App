@@ -5,14 +5,14 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type BaseModalProps from '@components/Modal/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
@@ -66,8 +66,6 @@ function IOURequestStepWaypoint({
     transaction,
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
-    const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
@@ -79,6 +77,8 @@ function IOURequestStepWaypoint({
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
     const [caretHidden, setCaretHidden] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector, canBeMissing: true});
@@ -140,10 +140,10 @@ function IOURequestStepWaypoint({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                address: waypointValue ?? '',
-                name: values.name ?? '',
-                lat: values.lat ?? 0,
-                lng: values.lng ?? 0,
+                address: waypointValue,
+                name: values.name,
+                lat: values.lat,
+                lng: values.lng,
                 keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
             save(waypoint);
@@ -155,17 +155,30 @@ function IOURequestStepWaypoint({
 
     const deleteStopAndHideModal = () => {
         removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
-        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
-        setIsDeleteStopModalOpen(false);
         goBack();
+    };
+
+    const handleDeleteWaypoint = async () => {
+        const result = await showConfirmModal({
+            title: translate('distance.deleteWaypoint'),
+            prompt: translate('distance.deleteWaypointConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldEnableNewFocusManagement: true,
+            danger: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deleteStopAndHideModal();
     };
 
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat ?? 0,
-            lng: values.lng ?? 0,
-            address: values.address ?? '',
-            name: values.name ?? '',
+            lat: values.lat,
+            lng: values.lng,
+            address: values.address,
+            name: values.name,
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
@@ -177,7 +190,6 @@ function IOURequestStepWaypoint({
         if (!isSafari()) {
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
         textInput.current?.measureInWindow((x, y) => {
             if (y < variables.contentHeaderHeight) {
                 setCaretHidden(true);
@@ -196,7 +208,7 @@ function IOURequestStepWaypoint({
             includeSafeAreaPaddingBottom
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
-            testID={IOURequestStepWaypoint.displayName}
+            testID="IOURequestStepWaypoint"
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -207,28 +219,14 @@ function IOURequestStepWaypoint({
                     shouldSetModalVisibility={false}
                     threeDotsMenuItems={[
                         {
-                            icon: Expensicons.Trashcan,
+                            icon: expensifyIcons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
                             onSelected: () => {
-                                setRestoreFocusType(undefined);
-                                setIsDeleteStopModalOpen(true);
+                                handleDeleteWaypoint();
                             },
                             shouldCallAfterModalHide: true,
                         },
                     ]}
-                />
-                <ConfirmModal
-                    title={translate('distance.deleteWaypoint')}
-                    isVisible={isDeleteStopModalOpen}
-                    onConfirm={deleteStopAndHideModal}
-                    onCancel={() => setIsDeleteStopModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('distance.deleteWaypointConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    shouldEnableNewFocusManagement
-                    danger
-                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
@@ -279,7 +277,5 @@ function IOURequestStepWaypoint({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepWaypoint), true);

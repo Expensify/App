@@ -62,6 +62,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                                 });
                             }}
                             shouldUseHapticsOnLongPress
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.THUMBNAIL}
                         >
                             <View style={[styles.videoThumbnailPlayButton]}>
                                 <Icon
@@ -80,7 +81,5 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
         </View>
     );
 }
-
-VideoPlayerThumbnail.displayName = 'VideoPlayerThumbnail';
 
 export default VideoPlayerThumbnail;

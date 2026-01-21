@@ -44,21 +44,21 @@ function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?:
 }
 
 function getPaymentMethods(params?: OpenPaymentsPageParams) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_PAYMENT_METHODS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
             value: true,
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_PAYMENT_METHODS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
             value: false,
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_PAYMENT_METHODS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
@@ -173,7 +173,7 @@ function addPaymentCard(accountID: number, params: PaymentCardParams) {
         isP2PDebitCard: true,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
@@ -181,7 +181,7 @@ function addPaymentCard(accountID: number, params: PaymentCardParams) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
@@ -189,7 +189,7 @@ function addPaymentCard(accountID: number, params: PaymentCardParams) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
@@ -237,7 +237,7 @@ function addSubscriptionPaymentCard(
         shouldClaimEarlyDiscountOffer: true,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
@@ -245,7 +245,7 @@ function addSubscriptionPaymentCard(
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
@@ -253,7 +253,7 @@ function addSubscriptionPaymentCard(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
@@ -282,7 +282,7 @@ function addSubscriptionPaymentCard(
  * Calls the API to add a new SCA (GBP or EUR) card.
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
-function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
+function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {}) {
     API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
 }
 
@@ -344,7 +344,7 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.WALLET_TRANSFER,
@@ -355,7 +355,7 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.WALLET_TRANSFER,
@@ -367,7 +367,7 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.WALLET_TRANSFER,
@@ -472,7 +472,7 @@ function deletePaymentCard(fundID: number) {
         fundID,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FUND_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.FUND_LIST}`,
@@ -495,7 +495,7 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRE
         currency,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
@@ -506,7 +506,7 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRE
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
@@ -516,7 +516,7 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRE
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
@@ -543,7 +543,7 @@ function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string
         policyID,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -557,7 +557,7 @@ function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

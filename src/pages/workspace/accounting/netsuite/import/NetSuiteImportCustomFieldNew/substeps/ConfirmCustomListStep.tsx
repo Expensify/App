@@ -57,5 +57,4 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
     );
 }
 
-ConfirmCustomListStep.displayName = 'ConfirmCustomListStep';
 export default ConfirmCustomListStep;

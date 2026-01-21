@@ -51,7 +51,7 @@ function EditTagPage({route}: EditTagPageProps) {
                 errors.tagName = translate('workspace.tags.existingTagError');
             } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.tagName = translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.API_TRANSACTION_TAG_MAX_LENGTH});
+                errors.tagName = translate('common.error.characterLimitExceedCounter', [...tagName].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH);
             }
 
             return errors;
@@ -85,7 +85,7 @@ function EditTagPage({route}: EditTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditTagPage.displayName}
+                testID="EditTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -122,7 +122,5 @@ function EditTagPage({route}: EditTagPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditTagPage.displayName = 'EditTagPage';
 
 export default EditTagPage;

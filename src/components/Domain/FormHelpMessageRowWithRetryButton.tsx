@@ -39,6 +39,4 @@ function FormHelpMessageRowWithRetryButton({message, isButtonSmall = false, onRe
     );
 }
 
-FormHelpMessageRowWithRetryButton.displayName = 'FormHelpMessageRowWithRetryButton';
-
 export default FormHelpMessageRowWithRetryButton;

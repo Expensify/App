@@ -1,6 +1,7 @@
 import React, {useImperativeHandle, useRef} from 'react';
 import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
 import type {QRShareHandle} from '@components/QRShare/types';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
 import QRShare from '..';
@@ -9,6 +10,7 @@ import type {QRShareWithDownloadProps} from './types';
 function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     const {isOffline} = useNetwork();
     const qrShareRef = useRef<QRShareHandle>(null);
+    const {translate} = useLocalize();
 
     useImperativeHandle(
         ref,
@@ -22,10 +24,10 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
                         return;
                     }
 
-                    svg.toDataURL((dataURL) => resolve(fileDownload(dataURL, getQrCodeFileName(props.title ?? 'QRCode'))));
+                    svg.toDataURL((dataURL) => resolve(fileDownload(translate, dataURL, getQrCodeFileName(props.title ?? 'QRCode'))));
                 }),
         }),
-        [props.title],
+        [props.title, translate],
     );
 
     return (
@@ -37,7 +39,5 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
         />
     );
 }
-
-QRShareWithDownload.displayName = 'QRShareWithDownload';
 
 export default QRShareWithDownload;

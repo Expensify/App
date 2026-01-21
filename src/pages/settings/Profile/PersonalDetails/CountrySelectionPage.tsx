@@ -67,7 +67,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
 
     return (
         <ScreenWrapper
-            testID={CountrySelectionPage.displayName}
+            testID="CountrySelectionPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -92,7 +92,5 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
         </ScreenWrapper>
     );
 }
-
-CountrySelectionPage.displayName = 'CountrySelectionPage';
 
 export default CountrySelectionPage;

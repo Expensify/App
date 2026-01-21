@@ -7,12 +7,10 @@ function SearchFiltersTitlePage() {
         <SearchFiltersTextBase
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE}
             titleKey="common.title"
-            testID={SearchFiltersTitlePage.displayName}
+            testID="SearchFiltersTitlePage"
             characterLimit={CONST.TASK_TITLE_CHARACTER_LIMIT}
         />
     );
 }
-
-SearchFiltersTitlePage.displayName = 'SearchFiltersTitlePage';
 
 export default SearchFiltersTitlePage;
