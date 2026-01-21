@@ -87,7 +87,7 @@ function AmountTextInput({
             submitBehavior="submit"
             selection={selection}
             onSelectionChange={onSelectionChange}
-            accessibilityLabel={translate('iou.amount')}
+            accessibilityLabel={accessibilityLabel ?? translate('iou.amount')}
             accessibilityValue={accessibilityValue}
             onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
