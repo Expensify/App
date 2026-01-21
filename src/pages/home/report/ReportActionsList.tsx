@@ -825,9 +825,7 @@ function ReportActionsList({
                 {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
                 <View style={[styles.overflowScroll, styles.overflowXHidden, styles.pt4]}>
                     {previewItems.map((action) => (
-                        <View key={action.reportActionID}>
-                            {renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}
-                        </View>
+                        <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
                     ))}
                 </View>
             </>
@@ -868,16 +866,16 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                    {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction
-                        ? renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)
-                        : undefined}
-                    {shouldScrollToEndAfterLayout ? renderTopReportActions() : undefined}
+                {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction
+                    ? renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)
+                    : undefined}
+                {shouldScrollToEndAfterLayout ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                        data={visibleReportActionsForInvertedList}
+                    data={visibleReportActionsForInvertedList}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
