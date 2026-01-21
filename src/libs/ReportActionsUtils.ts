@@ -1242,9 +1242,15 @@ function getLastVisibleAction(
             ReportAction | null | undefined
         >;
     } else {
-        reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+        reportActions = Object.values(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
-    const visibleReportActions = reportActions.filter((action): action is ReportAction => isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData));
+    const reportActionsWithReportID = reportActions.map((action) => {
+        if (action && !action.reportID && reportID) {
+            return {...action, reportID};
+        }
+        return action;
+    });
+    const visibleReportActions = reportActionsWithReportID.filter((action): action is ReportAction => isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return undefined;
