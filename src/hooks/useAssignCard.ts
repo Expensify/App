@@ -6,6 +6,7 @@ import {
     filterInactiveCards,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getDefaultCardName,
     getDomainOrWorkspaceAccountID,
     getPlaidCountry,
     getPlaidInstitutionId,
@@ -19,11 +20,11 @@ import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsP
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
+import useCurrencyList from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -72,7 +73,12 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed: feedName});
 
-    const assignCard = (cardID?: string) => {
+    /**
+     * Initiates the card assignment flow.
+     * @param cardName - The masked card number displayed to users (e.g., "XXXX1234")
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    const assignCard = (cardName?: string, cardID?: string) => {
         if (isAssigningCardDisabled) {
             return;
         }
@@ -98,7 +104,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         clearAddNewCardFlow();
         clearAssignCardStepAndData();
 
-        const initialAssignCardStep = getInitialAssignCardStep(cardID);
+        const initialAssignCardStep = getInitialAssignCardStep(cardName, cardID);
 
         if (!initialAssignCardStep) {
             return;
@@ -137,9 +143,9 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {isOffline} = useNetwork();
 
     const policy = usePolicy(policyID);
+    const {currencyList} = useCurrencyList();
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
@@ -149,14 +155,19 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const plaidAccessToken = feedData?.plaidAccessToken;
     const hasImportedPlaidAccounts = useRef(false);
 
-    const getInitialAssignCardStep = (cardID: string | undefined): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
+    /**
+     * Gets the initial step and card data for the assignment flow.
+     * @param cardName - The masked card number displayed to users
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    const getInitialAssignCardStep = (cardName: string | undefined, cardID?: string): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
         if (!selectedFeed) {
             return;
         }
 
         const cardToAssign: Partial<AssignCardData> = {
             bankName,
-            cardNumber: cardID,
+            cardName,
             encryptedCardNumber: cardID,
         };
 
@@ -195,7 +206,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             cardToAssign.email = userEmail;
             const personalDetails = getPersonalDetailByEmail(userEmail);
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
-            cardToAssign.cardName = `${memberName}'s card`;
+            cardToAssign.customCardName = getDefaultCardName(memberName);
 
             return {
                 initialStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
