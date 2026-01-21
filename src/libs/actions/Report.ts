@@ -203,9 +203,9 @@ import type {
     ReportActionReactions,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
+    ReportViolations,
     Transaction,
     TransactionViolations,
-    ReportViolations,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
