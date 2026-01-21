@@ -597,7 +597,6 @@ type BuildOnyxDataForMoneyRequestParams = {
     currentUserEmailParam: string;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -5757,7 +5756,7 @@ function convertBulkTrackedExpensesToIOU(
         return;
     }
 
-    const payerEmail = personalDetailsList?.[payerAccountID]?.login ?? '';
+    const payerEmail = personalDetails?.[payerAccountID]?.login ?? '';
     const selfDMReportID = findSelfDMReportID();
 
     if (!selfDMReportID) {

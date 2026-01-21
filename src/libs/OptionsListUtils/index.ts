@@ -2953,7 +2953,7 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
 }
 
 function getManagerMcTestParticipant(personalDetails?: OnyxEntry<PersonalDetailsList>): Participant | undefined {
-    const managerMcTestPersonalDetails = Object.values(personalDetails ?? allPersonalDetails ?? {}).find((details) => details?.login === CONST.EMAIL.MANAGER_MCTEST);
+    const managerMcTestPersonalDetails = Object.values(personalDetails ?? allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
     return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
