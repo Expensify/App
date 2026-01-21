@@ -514,6 +514,29 @@ function mergeTransactionRequest({
         });
 
         const oldIOUAction = getIOUActionForReportID(mergeTransaction.reportID, mergeTransaction.sourceTransactionID);
+        const oldTransactionThreadID = oldIOUAction?.childReportID;
+
+        if (oldTransactionThreadID) {
+            // Preserve the existing transaction thread on the newly created IOU action so the thread
+            // stays attached while the old action is pending deletion.
+            newIOUAction.childReportID = oldTransactionThreadID;
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oldTransactionThreadID}`,
+                value: {
+                    parentReportID: mergeTransaction.reportID,
+                    parentReportActionID: newIOUAction.reportActionID,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oldTransactionThreadID}`,
+                value: {
+                    parentReportActionID: oldIOUAction.reportActionID,
+                },
+            });
+        }
 
         if (oldIOUAction) {
             optimisticData.push({

@@ -493,6 +493,7 @@ describe('mergeTransactionRequest', () => {
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
             targetTransactionThreadReport: {reportID: 'target-report-456'},
             targetTransactionThreadParentReport: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
         });
 
         await mockFetch?.resume?.();
