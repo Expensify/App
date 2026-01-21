@@ -1,18 +1,19 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type { OnyxUpdate } from 'react-native-onyx';
+import type { ValueOf } from 'type-fest';
 import * as API from '@libs/API';
-import type {AddAdminToDomainParams, DeleteDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import type { AddAdminToDomainParams, DeleteDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams } from '@libs/API/parameters';
+import { READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
+import { getMicroSecondOnyxErrorWithTranslationKey } from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain} from '@src/types/onyx';
-import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Domain } from '@src/types/onyx';
+import type { BaseVacationDelegate } from '@src/types/onyx/VacationDelegate';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
-import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
-import {ScimTokenState} from './ScimToken/ScimTokenUtils';
+import type { ScimTokenWithState } from './ScimToken/ScimTokenUtils';
+import { ScimTokenState } from './ScimToken/ScimTokenUtils';
+
 
 /**
  * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
@@ -791,7 +792,7 @@ function setDomainVacationDelegate(
     creator: string, // who is performing the action
     delegate: string, // who will be set as the vacation delegate
     previousDelegate: string, // who was the previous vacation delegate
-    shouldOverridePolicyDiffWarning: boolean = false, // whether to force setting the vacation delegate despite a warning that they are not in our workspace
+    shouldOverridePolicyDiffWarning= false, // whether to force setting the vacation delegate despite a warning that they are not in our workspace
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
@@ -907,7 +908,7 @@ function deleteDomainVacationDelegate(vacationDelegate: BaseVacationDelegate, do
                     creator: null,
                     previousDelegate: previousDelegate ?? null,
                 },
-            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
+            } as unknown as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
