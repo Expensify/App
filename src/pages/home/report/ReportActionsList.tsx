@@ -201,6 +201,11 @@ function ReportActionsList({
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
+    const shouldRenderTopReportActionOutsideOfInvertedList = isTransactionThreadReport && topReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const visibleReportActionsForInvertedList = useMemo(
+        () => (shouldRenderTopReportActionOutsideOfInvertedList ? sortedVisibleReportActions.slice(0, -1) : sortedVisibleReportActions),
+        [shouldRenderTopReportActionOutsideOfInvertedList, sortedVisibleReportActions],
+    );
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
     const isAnonymousUser = useIsAnonymousUser();
 
@@ -851,13 +856,16 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
+                    {shouldRenderTopReportActionOutsideOfInvertedList && topReportAction
+                        ? renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)
+                        : undefined}
+                    {shouldScrollToEndAfterLayout && topReportAction && !shouldRenderTopReportActionOutsideOfInvertedList ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
+                        data={visibleReportActionsForInvertedList}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
