@@ -1445,9 +1445,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: '日当経費は他のワークスペースのレポートに移動できません。ワークスペース間で日当レートが異なる可能性があるためです。',
         changeApprover: {
             title: '承認者を変更',
-            subtitle: 'このレポートの承認者を変更する方法を選択してください。',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `すべてのレポートの承認者を恒久的に変更するには、<a href="${workflowSettingLink}">ワークフロー設定</a>から行うこともできます。`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `このレポートの承認者を変更するには、オプションを選択してください。（すべてのレポートに対して恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
