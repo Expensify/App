@@ -310,6 +310,7 @@ function IOURequestStepDistanceMap({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            allBetas,
         });
     }, [
         transaction,

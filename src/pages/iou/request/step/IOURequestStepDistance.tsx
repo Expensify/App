@@ -311,6 +311,7 @@ function IOURequestStepDistance({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            allBetas,
         });
     }, [
         transaction,
@@ -341,6 +342,7 @@ function IOURequestStepDistance({
         activePolicyID,
         personalPolicy?.autoReporting,
         reportID,
+        allBetas,
     ]);
 
     const getError = () => {

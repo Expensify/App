@@ -81,6 +81,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            allBetas: [CONST.BETAS.ALL],
         };
 
         afterEach(() => {
@@ -284,6 +285,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
+            allBetas: [CONST.BETAS.ALL],
         };
 
         beforeEach(async () => {
@@ -707,6 +709,7 @@ describe('MoneyRequest', () => {
             setDistanceRequestData: jest.fn(),
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
+            allBetas: [CONST.BETAS.ALL],
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
