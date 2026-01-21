@@ -14137,6 +14137,11 @@ function updateSplitTransactions({
                 comment: currentSplit?.comment?.comment,
             } as TransactionChanges;
 
+            const oldTransactionChanges = {
+                ...existing,
+                quantity: splitTransaction.comment?.customUnit?.quantity ?? existing?.distance,
+            } as TransactionChanges;
+
             if (currentSplit) {
                 currentSplit.reimbursable = splitTransaction.reimbursable;
                 currentSplit.billable = splitTransaction.billable;
@@ -14144,12 +14149,7 @@ function updateSplitTransactions({
 
             for (const key of Object.keys(transactionChanges)) {
                 const newValue = transactionChanges[key as keyof typeof transactionChanges];
-                const oldValue = existing?.[key as keyof typeof existing];
-                // Always include merchant for split expenses to ensure it's updated correctly
-                if (key === 'merchant') {
-                    // Keep merchant in transactionChanges even if it's the same, to ensure it's preserved
-                    continue;
-                }
+                const oldValue = oldTransactionChanges?.[key as keyof typeof oldTransactionChanges];
                 if (newValue === oldValue) {
                     delete transactionChanges[key as keyof typeof transactionChanges];
                     // Ensure we pass the currency to getUpdateMoneyRequestParams as well, so the amount message is created correctly
@@ -14196,16 +14196,18 @@ function updateSplitTransactions({
             currentSplit.splitReportActionID = iouAction.reportActionID;
         }
 
-        // For existing transactions, ensure merchant from splitExpense is preserved in optimisticData
-        if (splitTransaction && onyxData.optimisticData) {
-            const transactionIDFromOptimistic = optimisticTransactionFromGetMoneyRequest?.transactionID;
-            if (transactionIDFromOptimistic) {
-                const transactionUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromOptimistic}`);
-                if (transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null) {
-                    const transactionUpdateValue = transactionUpdate.value as OnyxTypes.Transaction;
-                    const expectedMerchant = optimisticTransactionFromGetMoneyRequest?.merchant;
-                    if (expectedMerchant && transactionUpdateValue.merchant !== expectedMerchant) {
-                        transactionUpdateValue.merchant = expectedMerchant;
+        // Ensure merchant from splitExpense is preserved in optimisticData for new and existing transactions
+        const transactionIDFromOptimistic = optimisticTransactionFromGetMoneyRequest?.transactionID;
+        if (transactionIDFromOptimistic && onyxData.optimisticData) {
+            const transactionUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromOptimistic}`);
+            if (transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null) {
+                const transactionUpdateValue = transactionUpdate.value as OnyxTypes.Transaction;
+                const expectedMerchant = optimisticTransactionFromGetMoneyRequest?.merchant;
+                if (expectedMerchant && transactionUpdateValue.merchant !== expectedMerchant) {
+                    transactionUpdateValue.merchant = expectedMerchant;
+                    // For distance transactions, also update modifiedMerchant to ensure consistency
+                    if (isDistanceRequestTransactionUtils(transactionUpdateValue)) {
+                        transactionUpdateValue.modifiedMerchant = expectedMerchant;
                     }
                 }
             }
