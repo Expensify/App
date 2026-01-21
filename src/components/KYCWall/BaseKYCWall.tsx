@@ -28,7 +28,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import viewRef from '@src/types/utils/viewRef';
 import type {AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
@@ -216,6 +215,7 @@ function KYCWall({
             currentUserEmail,
             employeeEmail,
             reportTransactions,
+            isCustomReportNamesBetaEnabled,
         ],
     );
 
@@ -369,7 +369,7 @@ function KYCWall({
                 }}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
             />
-            {children(continueAction, viewRef(anchorRef))}
+            {children(continueAction, anchorRef)}
         </>
     );
 }
