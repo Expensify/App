@@ -3702,6 +3702,14 @@ function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONS
     return mentionedUsers?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
 }
 
+/**
+ * Checks if an action has AI as its source
+ */
+function isActionFromAISource(action: OnyxInputOrEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(action);
+    return !!originalMessage && typeof originalMessage === 'object' && 'source' in originalMessage && originalMessage.source === CONST.CATEGORY_SOURCE.AI;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3747,6 +3755,7 @@ export {
     getTrackExpenseActionableWhisper,
     getWhisperedTo,
     hasRequestFromCurrentAccount,
+    isActionFromAISource,
     isActionOfType,
     isActionableWhisper,
     isActionableJoinRequest,
