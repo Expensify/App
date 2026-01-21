@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -76,6 +77,7 @@ function IOURequestStepDistanceRate({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
+    const {getCurrencySymbol} = useCurrencyList();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
@@ -97,7 +99,7 @@ function IOURequestStepDistanceRate({
     const options = sortedRates.map((rate) => {
         const unit = currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate) : rate.unit;
         const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
         return {
             text: rate.name ?? rateForDisplay,
             alternateText: rate.name ? rateForDisplay : '',
