@@ -1,10 +1,10 @@
 import React, {useCallback} from 'react';
-import type {KeyboardEvent} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,12 +37,7 @@ function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererPr
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            navigateToAccountManager();
-        }
-    };
+    const handleKeyDown = useEnterKeyHandler(navigateToAccountManager);
 
     return (
         <Text

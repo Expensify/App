@@ -1,10 +1,10 @@
 import React from 'react';
-import type {KeyboardEvent} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat as navigateToConciergeChatAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -34,12 +34,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
         ];
     }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            navigateToConciergeChat();
-        }
-    };
+    const handleKeyDown = useEnterKeyHandler(navigateToConciergeChat);
 
     return (
         <Text
