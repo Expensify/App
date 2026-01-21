@@ -289,9 +289,7 @@ function Expensify() {
         }
 
         return () => {
-            if (appStateChangeListener.current) {
-                appStateChangeListener.current.remove();
-            }
+            appStateChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
@@ -328,9 +326,7 @@ function Expensify() {
         });
 
         return () => {
-            if (linkingChangeListener.current) {
-                linkingChangeListener.current.remove();
-            }
+            linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
     }, [sessionMetadata?.status, conciergeReportID]);
