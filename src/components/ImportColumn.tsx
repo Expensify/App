@@ -178,7 +178,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', {name: columnName});
+    const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', columnName);
 
     return (
         <View style={[styles.importColumnCard, styles.mt4]}>
