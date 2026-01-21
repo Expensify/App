@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -70,9 +70,9 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
         });
     }, [showConfirmModal, translate, displayName, report.reportID, accountID, backTo]);
 
-    const navigateToProfile = useCallback(() => {
+    const navigateToProfile = () => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
-    }, [accountID]);
+    };
 
     if (!member) {
         return <NotFoundPage />;

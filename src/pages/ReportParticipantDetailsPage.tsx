@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -68,13 +68,13 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
         });
     }, [showConfirmModal, translate, displayName, report.reportID, accountID, backTo]);
 
-    const navigateToProfile = useCallback(() => {
+    const navigateToProfile = () => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
-    }, [accountID]);
+    };
 
-    const openRoleSelectionModal = useCallback(() => {
+    const openRoleSelectionModal = () => {
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, route.params.backTo));
-    }, [accountID, report.reportID, route.params.backTo]);
+    };
 
     if (!member) {
         return <NotFoundPage />;
