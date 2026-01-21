@@ -1,30 +1,29 @@
-import React, { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
-import type { ListItem } from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { getLatestError } from '@libs/ErrorUtils';
-import { sortAlphabetically } from '@libs/OptionsListUtils';
-import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
+import {getLatestError} from '@libs/ErrorUtils';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Errors, PendingAction } from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
-
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
     /** Member accountID */

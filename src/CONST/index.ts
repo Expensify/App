@@ -1,20 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { add as dateAdd } from 'date-fns';
-import { sub as dateSubtract } from 'date-fns/sub';
+import {add as dateAdd} from 'date-fns';
+import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
-import type { ValueOf } from 'type-fest';
-import type { SearchFilterKey } from '@components/Search/types';
+import type {ValueOf} from 'type-fest';
+import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import type { MileageRate } from '@libs/DistanceRequestUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type { PolicyTagLists } from '@src/types/onyx';
+import type {PolicyTagLists} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import { LOCALES } from './LOCALES';
-
+import {LOCALES} from './LOCALES';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -8032,8 +8031,7 @@ const CONST = {
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
 
-        PRIMARY_ACTIONS: {
-        },
+        PRIMARY_ACTIONS: {},
 
         MEMBERS_BULK_ACTION_TYPES: {
             CLOSE_ACCOUNT: 'closeAccount',
