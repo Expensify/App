@@ -4940,6 +4940,13 @@ const translations = {
                     subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
                     ctaText: 'Book or manage',
                 },
+                settings: {
+                    title: 'Settings',
+                    autoAddTripName: {
+                        title: 'Auto-add trip names',
+                        subtitle: 'Automatically add trip names to expense descriptions when created during travel',
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',

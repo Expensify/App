@@ -1,10 +1,15 @@
 import React from 'react';
+import {View} from 'react-native';
 import BookTravelButton from '@components/BookTravelButton';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
+import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import colors from '@styles/theme/colors';
 
 type GetStartedTravelProps = {
@@ -16,8 +21,15 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const policy = usePolicy(policyID);
 
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel'] as const);
+
+    const autoAddTripName = policy?.travelSettings?.autoAddTripName ?? true;
+
+    const toggleAutoAddTripName = (enabled: boolean) => {
+        setPolicyTravelSettings(policyID, {autoAddTripName: enabled});
+    };
 
     const tripsFeatures: FeatureListItem[] = [
         {
@@ -30,23 +42,38 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
         },
     ];
     return (
-        <FeatureList
-            menuItems={tripsFeatures}
-            title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
-            subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
-            onCtaPress={handleCtaPress}
-            illustrationBackgroundColor={colors.blue600}
-            illustration={illustrations.EmptyStateTravel}
-            illustrationStyle={styles.travelCardIllustration}
-            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
-            titleStyles={styles.textHeadlineH1}
-            footer={
-                <BookTravelButton
-                    text={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
-                    activePolicyID={policyID}
+        <>
+            <FeatureList
+                menuItems={tripsFeatures}
+                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
+                subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
+                onCtaPress={handleCtaPress}
+                illustrationBackgroundColor={colors.blue600}
+                illustration={illustrations.EmptyStateTravel}
+                illustrationStyle={styles.travelCardIllustration}
+                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+                titleStyles={styles.textHeadlineH1}
+                footer={
+                    <BookTravelButton
+                        text={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
+                        activePolicyID={policyID}
+                    />
+                }
+            />
+
+            <View style={[styles.mt5]}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3, styles.ph5]}>{translate('workspace.travel.settings.title')}</Text>
+
+                <ToggleSettingOptionRow
+                    title={translate('workspace.travel.settings.autoAddTripName.title')}
+                    subtitle={translate('workspace.travel.settings.autoAddTripName.subtitle')}
+                    switchAccessibilityLabel={translate('workspace.travel.settings.autoAddTripName.title')}
+                    isActive={autoAddTripName}
+                    onToggle={toggleAutoAddTripName}
+                    pendingAction={policy?.pendingFields?.travelSettings}
                 />
-            }
-        />
+            </View>
+        </>
     );
 }
 
