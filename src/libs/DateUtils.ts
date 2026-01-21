@@ -30,11 +30,12 @@ import {
     subMilliseconds,
     subMinutes,
 } from 'date-fns';
+import type {Day} from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import throttle from 'lodash/throttle';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -44,7 +45,6 @@ import Log from './Log';
 import memoize from './memoize';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
-type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
@@ -55,17 +55,26 @@ function isDate(arg: unknown): arg is Date {
 /**
  * Get the day of the week that the week starts on
  */
-function getWeekStartsOn(): WeekDay {
+function getWeekStartsOn(preferredLocale: Locale = CONST.LOCALES.DEFAULT): Day {
+    const locale = new Intl.Locale(preferredLocale);
+
+    // `Intl.Locale.prototype.getWeekInfo` is not supported in all browsers (notably unavailable in Firefox and mWeb Chrome),
+    // instead it implements the property `weekInfo`, we support both here
+    const weekInfo = typeof locale.getWeekInfo === 'function' ? locale.getWeekInfo() : locale.weekInfo;
+
+    if (weekInfo) {
+        return weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
+    }
+
     return CONST.WEEK_STARTS_ON;
 }
 
 /**
  * Get the day of the week that the week ends on
  */
-function getWeekEndsOn(): WeekDay {
-    const weekStartsOn = getWeekStartsOn();
-
-    return weekStartsOn === 0 ? 6 : ((weekStartsOn - 1) as WeekDay);
+function getWeekEndsOn(locale: Locale = CONST.LOCALES.DEFAULT): Day {
+    const weekStartsOn = getWeekStartsOn(locale);
+    return weekStartsOn === 0 ? 6 : ((weekStartsOn - 1) as Day);
 }
 
 /**
@@ -164,13 +173,17 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
 function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
+    const preferredLocale = locale ?? CONST.LOCALES.DEFAULT;
+    const timeFormatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
+    const monthDayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_ABBR_FORMAT]);
+    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]);
+    const date = getLocalDateFromDatetime(preferredLocale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
-    let todayAt = translateLocalize(locale, 'common.todayAt');
-    let tomorrowAt = translateLocalize(locale, 'common.tomorrowAt');
-    let yesterdayAt = translateLocalize(locale, 'common.yesterdayAt');
-    const at = translateLocalize(locale, 'common.conjunctionAt');
-    const weekStartsOn = getWeekStartsOn();
+    let todayAt = translateLocalize(preferredLocale, 'common.todayAt');
+    let tomorrowAt = translateLocalize(preferredLocale, 'common.tomorrowAt');
+    let yesterdayAt = translateLocalize(preferredLocale, 'common.yesterdayAt');
+    const at = translateLocalize(preferredLocale, 'common.conjunctionAt');
+    const weekStartsOn = getWeekStartsOn(preferredLocale);
 
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
@@ -182,18 +195,18 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
     }
 
     if (isToday(date, currentSelectedTimezone)) {
-        return `${todayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${todayAt} ${timeFormatter.format(date)}${tz}`;
     }
     if (isTomorrow(date, currentSelectedTimezone)) {
-        return `${tomorrowAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${tomorrowAt} ${timeFormatter.format(date)}${tz}`;
     }
     if (isYesterday(date, currentSelectedTimezone)) {
-        return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${yesterdayAt} ${timeFormatter.format(date)}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${monthDayAbbrFormatter.format(date)} ${at} ${timeFormatter.format(date)}${tz}`;
     }
-    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+    return `${monthDayYearAbbrFormatter.format(date)} ${at} ${timeFormatter.format(date)}${tz}`;
 }
 
 /**
@@ -237,8 +250,9 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  *
  * @returns Sunday, July 9, 2023
  */
-function formatToLongDateWithWeekday(datetime: string | Date): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY);
+function formatToLongDateWithWeekday(datetime: string | Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
+    const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]);
+    return dateFormatter.format(new Date(datetime));
 }
 
 /**
@@ -246,17 +260,19 @@ function formatToLongDateWithWeekday(datetime: string | Date): string {
  *
  * @returns Sunday
  */
-function formatToDayOfWeek(datetime: Date): string {
-    return format(datetime, CONST.DATE.WEEKDAY_TIME_FORMAT);
+function formatToDayOfWeek(datetime: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
+    const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.WEEKDAY_TIME_FORMAT]);
+    return dateFormatter.format(datetime);
 }
 
 /**
- * Format date to a local time
+ * Format date to a local time.
  *
- * @returns 2:30 PM
+ * @returns Localized time string (e.g., "2:30 PM" or "14:30" depending on the locale).
  */
-function formatToLocalTime(datetime: string | Date): string {
-    return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT);
+function formatToLocalTime(datetime: string | Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
+    const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
+    return timeFormatter.format(new Date(datetime));
 }
 
 const THREE_HOURS = 1000 * 60 * 60 * 3;
@@ -290,26 +306,28 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
 /**
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
-function getMonthNames(): string[] {
+function getMonthNames(locale: Locale = CONST.LOCALES.DEFAULT): string[] {
+    const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_FORMAT]);
     const fullYear = new Date().getFullYear();
     const monthsArray = eachMonthOfInterval({
         start: new Date(fullYear, 0, 1), // January 1st of the current year
         end: new Date(fullYear, 11, 31), // December 31st of the current year
     });
 
-    return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+    return monthsArray.map((monthDate) => dateFormatter.format(monthDate));
 }
 
 /**
  * @returns [Monday, Tuesday, Wednesday, ...]
  */
-function getDaysOfWeek(): string[] {
-    const weekStartsOn = getWeekStartsOn();
+function getDaysOfWeek(locale: Locale = CONST.LOCALES.DEFAULT): string[] {
+    const weekdayFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.WEEKDAY_TIME_FORMAT]);
+    const weekStartsOn = getWeekStartsOn(locale);
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
 
-    return daysOfWeek.map((date) => format(date, 'eeee'));
+    return daysOfWeek.map((date) => weekdayFormatter.format(date));
 }
 
 // Used to throttle updates to the timezone when necessary. Initialize outside the throttle window so it's updated the first time.
@@ -484,7 +502,13 @@ function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, data: 
  * param {SelectedTimezone} currentSelectedTimezone - Current user's timezone to display the result in.
  * returns {string} - A localized string such as 'Until 05:34 PM', 'Until tomorrow', or 'Until Jul 01 05:34 PM'.
  */
-function getStatusUntilDate(translate: LocalizedTranslate, inputDate: string, inputDateTimeZone: SelectedTimezone, currentSelectedTimezone: SelectedTimezone): string {
+function getStatusUntilDate(
+    translate: LocalizedTranslate,
+    inputDate: string,
+    inputDateTimeZone: SelectedTimezone,
+    currentSelectedTimezone: SelectedTimezone,
+    locale: Locale = CONST.LOCALES.DEFAULT,
+): string {
     if (!inputDate) {
         return '';
     }
@@ -501,16 +525,19 @@ function getStatusUntilDate(translate: LocalizedTranslate, inputDate: string, in
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
-        return translate('statusPage.untilTime', {time: format(input, CONST.DATE.LOCAL_TIME_FORMAT)});
+        const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
+        return translate('statusPage.untilTime', {time: formatter.format(input)});
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translate('statusPage.untilTime', {time: format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
+        const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS.SHORT_DATE_WITH_LOCAL_TIME_FORMAT);
+        return translate('statusPage.untilTime', {time: formatter.format(input)});
     }
 
     // If it's in another year
-    return translate('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
+    const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS.FNS_DATE_WITH_LOCAL_TIME_FORMAT);
+    return translate('statusPage.untilTime', {time: formatter.format(input)});
 }
 
 /**
@@ -673,11 +700,28 @@ const getTimeValidationErrorKey = (translate: LocalizedTranslate, inputTime: Dat
  * param dateFormat
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
-function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
-    const date = toDate(datetime, {timeZone: 'UTC'});
+function formatWithUTCTimeZone(datetime: string, dateFormat?: string, locale?: Locale) {
+    const dateFormatString = dateFormat ?? CONST.DATE.FNS_FORMAT_STRING;
+    const timeZone = 'UTC';
+    const date = toDate(datetime, {timeZone});
 
     if (isValid(date)) {
-        return tzFormat(toZonedTime(date, 'UTC'), dateFormat);
+        if (locale) {
+            const formatOptions = Object.entries(DATE_TIME_FORMAT_OPTIONS).reduce(
+                (acc, [key, value]) => {
+                    acc[key] = {...value, timeZone};
+                    return acc;
+                },
+                {} as typeof DATE_TIME_FORMAT_OPTIONS,
+            );
+
+            if (dateFormatString in formatOptions) {
+                const options = formatOptions[dateFormatString];
+                const formatter = new Intl.DateTimeFormat(locale, options);
+                return formatter.format(date);
+            }
+        }
+        return tzFormat(toZonedTime(date, timeZone), dateFormatString);
     }
 
     return '';
@@ -726,21 +770,24 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  * 3. When both dates refer to the same year: Feb 28 to Mar 1
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
  */
-function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2: Date): string {
+function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
+    const monthDayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_ABBR_FORMAT]);
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
-        return format(date1, 'MMM d');
+        return monthDayAbbrFormatter.format(date1);
     }
     if (isSameMonth(date1, date2)) {
         // Dates in the same month and year, differ by days
-        return `${format(date1, 'MMM d')}-${format(date2, 'd')}`;
+        return `${monthDayAbbrFormatter.format(date1)}-${format(date2, 'd')}`;
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
-        return `${format(date1, 'MMM d')} ${translate('common.to').toLowerCase()} ${format(date2, 'MMM d')}`;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return `${monthDayAbbrFormatter.format(date1)} ${translate('common.to').toLowerCase()} ${monthDayAbbrFormatter.format(date2)}`;
     }
     // Dates differ by years, months, days
-    return `${format(date1, 'MMM d, yyyy')} ${translate('common.to').toLowerCase()} ${format(date2, 'MMM d, yyyy')}`;
+    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]);
+    return `${monthDayYearAbbrFormatter.format(date1)} ${translate('common.to').toLowerCase()} ${monthDayYearAbbrFormatter.format(date2)}`;
 }
 
 /**
@@ -751,21 +798,23 @@ function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2
  * 3. When both dates refer to the current year: Sunday, Mar 17 to Wednesday, Mar 20
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
-function getFormattedReservationRangeDate(translate: LocalizedTranslate, date1: Date, date2: Date): string {
+function getFormattedReservationRangeDate(translate: LocalizedTranslate, date1: Date, date2: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
-        return format(date1, 'EEEE, MMM d');
+        return monthDayWeekdayAbbrFormatter.format(date1);
     }
     if (isSameDay(date1, date2)) {
         // Dates are from the same day but not this year
-        return format(date1, 'EEEE, MMM d, yyyy');
+        return monthDayWeekdayYearAbbrFormatter.format(date1);
     }
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
-        return `${format(date1, 'EEEE, MMM d')} ${translate('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d')}`;
+        return `${monthDayWeekdayAbbrFormatter.format(date1)} ${translate('common.conjunctionTo')} ${monthDayWeekdayAbbrFormatter.format(date2)}`;
     }
     // Dates differ by years, months, days or only by months but the year is not current
-    return `${format(date1, 'EEEE, MMM d, yyyy')} ${translate('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d, yyyy')}`;
+    return `${monthDayWeekdayYearAbbrFormatter.format(date1)} ${translate('common.conjunctionTo')} ${monthDayWeekdayYearAbbrFormatter.format(date2)}`;
 }
 
 /**
@@ -774,11 +823,14 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, date1: 
  * 1. When the date refers to the current year: Departs on Sunday, Mar 17 at 8:00.
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
-function getFormattedTransportDate(translate: LocalizedTranslate, date: Date): string {
+function getFormattedTransportDate(translate: LocalizedTranslate, date: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
+    const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
     if (isThisYear(date)) {
-        return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translate('common.conjunctionAt')} ${format(date, 'hh:mm a')}`;
+        const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+        return `${translate('travel.departs')} ${monthDayWeekdayAbbrFormatter.format(date)} ${translate('common.conjunctionAt')} ${timeFormatter.format(date)}`;
     }
-    return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translate('common.conjunctionAt')} ${format(date, 'hh:mm a')}`;
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
+    return `${translate('travel.departs')} ${monthDayWeekdayYearAbbrFormatter.format(date)} ${translate('common.conjunctionAt')} ${timeFormatter.format(date)}`;
 }
 
 /**
@@ -787,16 +839,19 @@ function getFormattedTransportDate(translate: LocalizedTranslate, date: Date): s
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
-function getFormattedTransportDateAndHour(date: Date): {date: string; hour: string} {
+function getFormattedTransportDateAndHour(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): {date: string; hour: string} {
+    const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     if (isThisYear(date)) {
         return {
-            date: format(date, 'EEEE, MMM d'),
-            hour: format(date, 'h:mm a'),
+            date: monthDayWeekdayAbbrFormatter.format(date),
+            hour: timeFormatter.format(date),
         };
     }
     return {
-        date: format(date, 'EEEE, MMM d, yyyy'),
-        hour: format(date, 'h:mm a'),
+        date: monthDayWeekdayYearAbbrFormatter.format(date),
+        hour: timeFormatter.format(date),
     };
 }
 
@@ -806,11 +861,14 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
-function getFormattedCancellationDate(date: Date): string {
+function getFormattedCancellationDate(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
+    const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     if (isThisYear(date)) {
-        return format(date, 'EEEE, MMM d h:mm a');
+        return `${monthDayWeekdayAbbrFormatter.format(date)} ${timeFormatter.format(date)}`;
     }
-    return format(date, 'EEEE, MMM d, yyyy h:mm a');
+    return `${monthDayWeekdayYearAbbrFormatter.format(date)} ${timeFormatter.format(date)}`;
 }
 
 /**
@@ -899,11 +957,12 @@ const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean =
 };
 
 /**
- * Converts a date to a string in the format MMMM d, yyyy
+ * Converts a date to a locale-aware string in the `MMMM d, yyyy` format for the given locale.
  */
-const formatToReadableString = (date: string): string => {
+const formatToReadableString = (date: string, locale: Locale = CONST.LOCALES.DEFAULT): string => {
+    const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_FORMAT]);
     const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
-    return format(parsedDate, 'MMMM d, yyyy');
+    return dateFormatter.format(parsedDate);
 };
 
 const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {
