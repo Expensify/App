@@ -31,7 +31,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         if (value === member?.role) {
             return;
         }
-        updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
+        updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
 

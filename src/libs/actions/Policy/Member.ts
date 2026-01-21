@@ -644,8 +644,11 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+    if (!policy?.id) {
+        return {optimisticData: [], successData: [], failureData: [], memberRoles: []};
+    }
+    const policyID = policy?.id;
     const previousEmployeeList = {...policy?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = selectedMemberEmails.map((login: string) => {
         return {
@@ -750,11 +753,14 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMembe
     return {optimisticData, successData, failureData, memberRoles};
 }
 
-function updateWorkspaceMembersRole(policyID: string, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
-    const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policyID, selectedMemberEmails, selectedMemberAccountIDs, newRole);
+function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+    if (!policy?.id) {
+        return;
+    }
+    const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policy, selectedMemberEmails, selectedMemberAccountIDs, newRole);
 
     const params: UpdateWorkspaceMembersRoleParams = {
-        policyID,
+        policyID: policy.id,
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 

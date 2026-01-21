@@ -594,7 +594,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const accountIDsToUpdate = loginsToUpdate.map((login) => policyMemberEmailsToAccountIDs[login]).filter((id) => id !== undefined);
 
         setSelectedEmployees([]);
-        updateWorkspaceMembersRole(route.params.policyID, loginsToUpdate, accountIDsToUpdate, role);
+        updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role);
     };
 
     const getBulkActionsButtonOptions = () => {
