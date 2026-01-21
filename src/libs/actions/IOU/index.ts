@@ -3097,7 +3097,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // We verify that the chatReport participants match the expected participants. If it's a workspace chat or
     // the participants don't match, we'll find/create the correct 1:1 DM chat report.
     // We also check if the chatReport itself is a Policy Expense Chat to avoid incorrectly validating Policy Expense Chats.
-    if (chatReport && !isPolicyExpenseChat && !isPolicyExpenseChatReportUtil(chatReport)) {
+    // We also skip validation for self-DM reports since they use accountID 0 for the participant (representing the report itself).
+    if (chatReport && !isPolicyExpenseChat && !isPolicyExpenseChatReportUtil(chatReport) && !isSelfDM(chatReport)) {
         const parentChatReportParticipants = Object.keys(chatReport.participants ?? {}).map(Number);
         const expectedParticipants = [payerAccountID, payeeAccountID].sort();
         const sortedParentChatReportParticipants = parentChatReportParticipants.sort();
