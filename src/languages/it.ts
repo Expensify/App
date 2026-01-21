@@ -8022,6 +8022,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             button: 'Scarica l’app',
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
+        locationServicesRequiredModal: {
+            title: 'È necessario l’accesso alla posizione',
+            confirm: 'Apri impostazioni',
+            prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza tramite GPS.',
+        },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
     },
 };

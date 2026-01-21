@@ -7983,6 +7983,11 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             button: 'Pobierz aplikację',
         },
         notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby dokończyć'},
+        locationServicesRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji',
+            confirm: 'Otwórz ustawienia',
+            prompt: 'Zezwól na dostęp do lokalizacji w ustawieniach urządzenia, aby rozpocząć śledzenie dystansu za pomocą GPS.',
+        },
         fabGpsTripExplained: 'Przejdź do ekranu GPS (przycisk akcji)',
     },
 };

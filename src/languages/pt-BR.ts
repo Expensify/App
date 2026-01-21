@@ -7993,6 +7993,11 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             button: 'Baixar o app',
         },
         notification: {title: 'Rastreamento por GPS em andamento', body: 'Ir para o app para finalizar'},
+        locationServicesRequiredModal: {
+            title: 'Acesso à localização obrigatório',
+            confirm: 'Abrir configurações',
+            prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+        },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
     },
 };
