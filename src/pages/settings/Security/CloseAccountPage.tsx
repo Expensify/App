@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -89,63 +90,65 @@ function CloseAccountPage() {
             includeSafeAreaPaddingBottom
             testID="CloseAccountPage"
         >
-            <HeaderWithBackButton
-                title={translate('closeAccountPage.closeAccount')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
-                validate={validate}
-                onSubmit={showConfirmModal}
-                submitButtonText={translate('closeAccountPage.closeAccount')}
-                style={[styles.flexGrow1, styles.mh5]}
-                isSubmitActionDangerous
-            >
-                <View
-                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                    style={[styles.flexGrow1]}
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
+                <HeaderWithBackButton
+                    title={translate('closeAccountPage.closeAccount')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
+                    validate={validate}
+                    onSubmit={showConfirmModal}
+                    submitButtonText={translate('closeAccountPage.closeAccount')}
+                    style={[styles.flexGrow1, styles.mh5]}
+                    isSubmitActionDangerous
                 >
-                    <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.REASON_FOR_LEAVING}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        label={translate('closeAccountPage.enterMessageHere')}
-                        aria-label={translate('closeAccountPage.enterMessageHere')}
-                        role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt5]}
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
-                    />
-                    <Text style={[styles.mt5]}>
-                        {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
-                    </Text>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
-                        autoCapitalize="none"
-                        label={translate('closeAccountPage.enterDefaultContact')}
-                        aria-label={translate('closeAccountPage.enterDefaultContact')}
-                        role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt5]}
-                        autoCorrect={false}
-                        inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
-                    />
-                    <ConfirmModal
-                        danger
-                        title={translate('closeAccountPage.closeAccountWarning')}
-                        onConfirm={onConfirm}
-                        onCancel={hideConfirmModal}
-                        isVisible={isConfirmModalVisible}
-                        prompt={translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                        confirmText={translate('common.yesContinue')}
-                        cancelText={translate('common.cancel')}
-                        shouldDisableConfirmButtonWhenOffline
-                        shouldShowCancelButton
-                    />
-                </View>
-            </FormProvider>
+                    <View
+                        fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                        style={[styles.flexGrow1]}
+                    >
+                        <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.REASON_FOR_LEAVING}
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            label={translate('closeAccountPage.enterMessageHere')}
+                            aria-label={translate('closeAccountPage.enterMessageHere')}
+                            role={CONST.ROLE.PRESENTATION}
+                            containerStyles={[styles.mt5]}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+                        />
+                        <Text style={[styles.mt5]}>
+                            {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
+                        </Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                            autoCapitalize="none"
+                            label={translate('closeAccountPage.enterDefaultContact')}
+                            aria-label={translate('closeAccountPage.enterDefaultContact')}
+                            role={CONST.ROLE.PRESENTATION}
+                            containerStyles={[styles.mt5]}
+                            autoCorrect={false}
+                            inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+                        />
+                        <ConfirmModal
+                            danger
+                            title={translate('closeAccountPage.closeAccountWarning')}
+                            onConfirm={onConfirm}
+                            onCancel={hideConfirmModal}
+                            isVisible={isConfirmModalVisible}
+                            prompt={translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                            confirmText={translate('common.yesContinue')}
+                            cancelText={translate('common.cancel')}
+                            shouldDisableConfirmButtonWhenOffline
+                            shouldShowCancelButton
+                        />
+                    </View>
+                </FormProvider>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
