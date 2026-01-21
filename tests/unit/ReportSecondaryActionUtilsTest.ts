@@ -546,6 +546,7 @@ describe('getSecondaryAction', () => {
             violations,
             bankAccountList: {},
             policy,
+            allBetas: [CONST.BETAS.ALL],
         });
 
         // Then APPROVE should be included because DEW approval is not in progress
@@ -590,6 +591,7 @@ describe('getSecondaryAction', () => {
             violations,
             bankAccountList: {},
             policy,
+            allBetas: [CONST.BETAS.ALL],
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
         });
 
