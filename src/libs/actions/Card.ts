@@ -11,8 +11,8 @@ import type {
     ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
     SetPersonalCardReimbursableParams,
-    UnassignCompanyCard,
     StartIssueNewCardFlowParams,
+    UnassignCompanyCard,
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
     UpdateExpensifyCardLimitParams,
@@ -264,7 +264,6 @@ function clearCardNameValuePairsErrorField(cardID: number, fieldName: string) {
 }
 
 function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursable: boolean, previousValue?: boolean) {
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
