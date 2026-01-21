@@ -38,6 +38,7 @@ function DatePicker({
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {preferredLocale} = useLocalize();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -143,7 +144,7 @@ function DatePicker({
         InteractionManager.runAfterInteractions(() => {
             handlePress();
         });
-    }, [handlePress, autoFocus]);
+    }, [handlePress, autoFocus, isSmallScreenWidth]);
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
