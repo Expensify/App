@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: '密码',
         magicCode: '魔法代码',
+        digits: '位数字',
         twoFactorCode: '双重验证代码',
         workspaces: '工作区',
         inbox: '收件箱',
