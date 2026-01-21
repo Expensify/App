@@ -1445,9 +1445,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: '日当経費は他のワークスペースのレポートに移動できません。ワークスペース間で日当レートが異なる可能性があるためです。',
         changeApprover: {
             title: '承認者を変更',
-            subtitle: 'このレポートの承認者を変更する方法を選択してください。',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `すべてのレポートの承認者を恒久的に変更するには、<a href="${workflowSettingLink}">ワークフロー設定</a>から行うこともできます。`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `このレポートの承認者を変更するには、オプションを選択してください。（すべてのレポートに対して恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
@@ -7936,6 +7935,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        locationServicesRequiredModal: {
+            title: '位置情報へのアクセスが必要です',
+            confirm: '設定を開く',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
+        },
+        fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

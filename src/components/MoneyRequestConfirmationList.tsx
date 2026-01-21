@@ -1,12 +1,13 @@
-import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import { deepEqual } from 'fast-equals';
-import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { InteractionManager, View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import { MouseProvider } from '@hooks/useMouseContext';
+import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -14,49 +15,75 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import { adjustRemainingSplitShares, computePerDiemExpenseAmount, isValidPerDiemExpenseAmount, resetSplitShares, setCustomUnitRateID, setIndividualShare, setMoneyRequestAmount, setMoneyRequestCategory, setMoneyRequestMerchant, setMoneyRequestPendingFields, setMoneyRequestTag, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, setSplitShares } from '@libs/actions/IOU';
-import { getIsMissingAttendeesViolation } from '@libs/AttendeeUtils';
-import { isCategoryDescriptionRequired } from '@libs/CategoryUtils';
-import { convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals } from '@libs/CurrencyUtils';
+import {
+    adjustRemainingSplitShares,
+    computePerDiemExpenseAmount,
+    isValidPerDiemExpenseAmount,
+    resetSplitShares,
+    setCustomUnitRateID,
+    setIndividualShare,
+    setMoneyRequestAmount,
+    setMoneyRequestCategory,
+    setMoneyRequestMerchant,
+    setMoneyRequestPendingFields,
+    setMoneyRequestTag,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+    setSplitShares,
+} from '@libs/actions/IOU';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import { calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil } from '@libs/IOUUtils';
+import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import { validateAmount } from '@libs/MoneyRequestUtils';
+import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import { getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions } from '@libs/OptionsListUtils';
-import { getTagLists, isTaxTrackingEnabled } from '@libs/PolicyUtils';
-import { isSelectedManagerMcTest } from '@libs/ReportUtils';
-import type { OptionData } from '@libs/ReportUtils';
-import { hasEnabledTags, hasMatchingTag } from '@libs/TagsOptionsListUtils';
-import { isValidTimeExpenseAmount } from '@libs/TimeTrackingUtils';
-import { areRequiredFieldsEmpty, calculateTaxAmount, getDefaultTaxCode, getDistanceInMeters, getRateID, getTag, getTaxValue, hasMissingSmartscanFields, hasRoute as hasRouteUtil, isMerchantMissing, isScanRequest as isScanRequestUtil } from '@libs/TransactionUtils';
-import { hasInvoicingDetails } from '@userActions/Policy/Policy';
-import type { IOUAction, IOUType } from '@src/CONST';
+import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {isSelectedManagerMcTest} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
+import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
+import {
+    areRequiredFieldsEmpty,
+    calculateTaxAmount,
+    getDefaultTaxCode,
+    getDistanceInMeters,
+    getRateID,
+    getTag,
+    getTaxValue,
+    hasMissingSmartscanFields,
+    hasRoute as hasRouteUtil,
+    isMerchantMissing,
+    isScanRequest as isScanRequestUtil,
+} from '@libs/TransactionUtils';
+import {hasInvoicingDetails} from '@userActions/Policy/Policy';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { Attendee, Participant } from '@src/types/onyx/IOU';
-import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
-import type { SplitShares } from '@src/types/onyx/Transaction';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {SplitShares} from '@src/types/onyx/Transaction';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type { DropdownOption } from './ButtonWithDropdownMenu/types';
-import { DelegateNoAccessContext } from './DelegateNoAccessModalProvider';
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import FormHelpMessage from './FormHelpMessage';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
-import { PressableWithFeedback } from './Pressable';
-import { useProductTrainingContext } from './ProductTrainingContext';
+import {PressableWithFeedback} from './Pressable';
+import {useProductTrainingContext} from './ProductTrainingContext';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
-import type { SectionListDataType } from './SelectionListWithSections/types';
+import type {SectionListDataType} from './SelectionListWithSections/types';
 import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
-
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
@@ -255,7 +282,7 @@ function MoneyRequestConfirmationList({
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const {getCurrencySymbol} = useCurrencyList();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
@@ -662,7 +689,7 @@ function MoneyRequestConfirmationList({
             });
         }
 
-        const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
+        const currencySymbol = getCurrencySymbol(iouCurrencyCode ?? '') ?? iouCurrencyCode;
         const formattedTotalAmount = convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
 
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
@@ -700,7 +727,6 @@ function MoneyRequestConfirmationList({
         isTypeSplit,
         payeePersonalDetails,
         shouldShowReadOnlySplits,
-        currencyList,
         iouCurrencyCode,
         iouAmount,
         selectedParticipants,
@@ -717,6 +743,7 @@ function MoneyRequestConfirmationList({
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
+        getCurrencySymbol,
     ]);
 
     const isSplitModified = useMemo(() => {
@@ -820,7 +847,7 @@ function MoneyRequestConfirmationList({
         */
         setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit, getCurrencySymbol);
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
     }, [
         isDistanceRequestWithPendingRoute,
@@ -838,6 +865,7 @@ function MoneyRequestConfirmationList({
         action,
         isReadOnly,
         isMovingTransactionFromTrackExpense,
+        getCurrencySymbol,
     ]);
 
     // Auto select the category if there is only one enabled category and it is required

@@ -1450,9 +1450,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Sie können Per Diem-Ausgaben nicht in Berichte auf anderen Arbeitsbereichen verschieben, da sich die Tagessätze zwischen Arbeitsbereichen unterscheiden können.',
         changeApprover: {
             title: 'Genehmigenden ändern',
-            subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Sie können den Genehmiger auch dauerhaft für alle Berichte in Ihren <a href="${workflowSettingLink}">Workflow-Einstellungen</a> ändern.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern. (Aktualisieren Sie Ihre <a href="${workflowSettingLink}">Arbeitsbereichseinstellungen</a>, um diese Änderung dauerhaft für alle Berichte zu übernehmen.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
@@ -8033,7 +8032,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
             button: 'App herunterladen',
         },
-        notification: {title: 'GPS-Tracking läuft', body: 'Wechsel zur App, um abzuschließen'},
+        notification: {title: 'GPS-Tracking läuft', body: 'Zur App gehen, um abzuschließen'},
+        locationServicesRequiredModal: {
+            title: 'Standortzugriff erforderlich',
+            confirm: 'Einstellungen öffnen',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
+        },
+        fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
