@@ -13,7 +13,7 @@ import type {TransactionWithOptionalSearchFields} from '@components/TransactionI
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -70,7 +70,6 @@ import type {
     ViolationName,
 } from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
-import type Locale from '@src/types/onyx/Locale';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -668,9 +667,16 @@ function getUpdatedTransaction({
             const distanceInMeters = getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
-                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                distanceInMeters,
+                unit,
+                rate,
+                transaction.currency,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                translateLocal,
+                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                getCurrencySymbol,
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -709,9 +715,16 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
-                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                distanceInMeters,
+                unit,
+                rate,
+                updatedCurrency,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                translateLocal,
+                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                getCurrencySymbol,
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -782,9 +795,16 @@ function getUpdatedTransaction({
         let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
         amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
         const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
-            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+            true,
+            distanceInMeters,
+            unit,
+            rate,
+            updatedCurrency,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal,
+            (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            getCurrencySymbol,
         );
 
         updatedTransaction.modifiedAmount = amount;
@@ -898,13 +918,12 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the formatted posted date from the transaction.
  */
-function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat?: string, locale?: Locale): string {
-    const dateFormatString = dateFormat ?? CONST.DATE.FNS_FORMAT_STRING;
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
-        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormatString, locale);
+        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
     }
     return '';
 }
@@ -1045,9 +1064,16 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
             // If modifiedMerchant is empty but modifiedCurrency exists, recalculate the merchant
             (!transaction?.modifiedMerchant && transaction?.modifiedCurrency)
         ) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, getCurrency(transaction), translateLocal, (digit) =>
-                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            return DistanceRequestUtils.getDistanceMerchant(
+                true,
+                distanceInMeters,
+                unit,
+                rate,
+                getCurrency(transaction),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                translateLocal,
+                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                getCurrencySymbol,
             );
         }
     }
@@ -1250,10 +1276,9 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat?: string, locale?: Locale): string {
-    const dateFormatString = dateFormat ?? CONST.DATE.FNS_FORMAT_STRING;
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormatString, locale);
+    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
 }
 
 /**

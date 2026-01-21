@@ -1440,9 +1440,8 @@ const translations = {
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
             title: 'Change approver',
-            subtitle: 'Choose an option to change the approver for this report.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Add approver',
@@ -3122,6 +3121,7 @@ const translations = {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US, please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} is already a member of ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} is already an admin of ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify Wallet, you confirm that you have read, understand, and accept',
@@ -7118,6 +7118,12 @@ const translations = {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
         },
+        locationServicesRequiredModal: {
+            title: 'Location access required',
+            confirm: 'Open settings',
+            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+        },
+        fabGpsTripExplained: 'Go to GPS screen (Floating action)',
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',
@@ -7893,6 +7899,7 @@ const translations = {
             subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
             enable: 'Enable',
         },
+        domainAdmins: 'Domain admins',
         admins: {
             title: 'Admins',
             findAdmin: 'Find admin',

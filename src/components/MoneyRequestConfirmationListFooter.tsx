@@ -1,4 +1,5 @@
 import {emailSelector} from '@selectors/Session';
+import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useMemo} from 'react';
@@ -7,6 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import WavePatternDark from '@assets/images/waves-pattern-dark.svg';
 import WavePatternLight from '@assets/images/waves-pattern-light.svg';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -302,7 +304,8 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow'] as const);
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const receiptPreviewBackground = theme.colorScheme === CONST.COLOR_SCHEME.DARK ? WavePatternDark : WavePatternLight;
@@ -319,11 +322,6 @@ function MoneyRequestConfirmationListFooter({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
-
-    const formattedCreatedDate = useMemo(() => {
-        const formatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
-        return formatter.format(new Date(iouCreated ?? Date.now()));
-    }, [iouCreated, preferredLocale]);
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
     const isScan = isScanRequest(transaction);
@@ -589,7 +587,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
                     shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
-                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
+                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}

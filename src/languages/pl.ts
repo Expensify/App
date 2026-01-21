@@ -1447,9 +1447,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Nie możesz przenosić wydatków do raportów w innych obszarach roboczych, ponieważ stawki diety mogą się różnić między obszarami roboczymi.',
         changeApprover: {
             title: 'Zmień akceptującego',
-            subtitle: 'Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Możesz także na stałe zmienić osobę zatwierdzającą dla wszystkich raportów w swoich <a href="${workflowSettingLink}">ustawieniach przepływu pracy</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport. (Zaktualizuj swoje <a href="${workflowSettingLink}">ustawienia przestrzeni roboczej</a>, aby na stałe zmienić osobę zatwierdzającą dla wszystkich raportów.)`,
             changedApproverMessage: (managerID: number) => `zmieniono zatwierdzającego na <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Dodaj osobę zatwierdzającą',
@@ -3121,6 +3120,7 @@ ${
         errorMessageInvalidPhone: `Wprowadź prawidłowy numer telefonu bez nawiasów i myślników. Jeśli jesteś poza USA, dołącz kod kraju (np. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Nieprawidłowy adres e-mail',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} jest już członkiem ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} jest już administratorem ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Kontynuując żądanie aktywacji portfela Expensify, potwierdzasz, że przeczytałeś, rozumiesz i akceptujesz',
@@ -7949,6 +7949,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             resetDomainInfo: `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
         members: {title: 'Członkowie', findMember: 'Znajdź członka'},
+        domainAdmins: 'Administratorzy domeny',
     },
     gps: {
         tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',
@@ -7984,7 +7985,13 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',
             button: 'Pobierz aplikację',
         },
-        notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby zakończyć'},
+        notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby dokończyć'},
+        locationServicesRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji',
+            confirm: 'Otwórz ustawienia',
+            prompt: 'Zezwól na dostęp do lokalizacji w ustawieniach urządzenia, aby rozpocząć śledzenie dystansu za pomocą GPS.',
+        },
+        fabGpsTripExplained: 'Przejdź do ekranu GPS (przycisk akcji)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
