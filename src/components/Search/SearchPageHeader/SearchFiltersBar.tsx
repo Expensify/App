@@ -315,7 +315,7 @@ function SearchFiltersBar({
             });
 
             if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
-                queryString = getQueryWithUpdatedValues(queryString) ?? '';
+                queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
             }
             if (!queryString) {
                 return;
