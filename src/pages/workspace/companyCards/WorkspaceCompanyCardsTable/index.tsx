@@ -104,6 +104,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         },
     ];
 
+
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (cardNames?.map((cardName) => {
@@ -294,7 +295,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
             ListHeaderComponent={shouldUseNarrowLayout ? headerButtonsComponent : undefined}
         >
-            {!shouldUseNarrowLayout && headerButtonsComponent}
+            {(!shouldUseNarrowLayout || ((isFeedPending || isLoadingPage) && !showCards)) && headerButtonsComponent}
 
             {(isLoadingPage || isFeedPending || isNoFeed) && (
                 <ScrollView>
