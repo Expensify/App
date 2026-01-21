@@ -640,8 +640,20 @@ function Search({
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
+    const isUnmounted = useRef(false);
+
     useEffect(
         () => () => {
+            isUnmounted.current = true;
+        },
+        [],
+    );
+
+    useEffect(
+        () => () => {
+            if (!isFocused && !isUnmounted.current) {
+                return;
+            }
             if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
                 return;
             }
