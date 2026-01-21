@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -61,26 +61,19 @@ function IOURequestStepUpgrade({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
-    const feature = useMemo(
-        () =>
-            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === upgradePath),
-        [upgradePath],
-    );
+    const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+        .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+        .find((f) => f.alias === upgradePath);
 
-    const navigateWithMicrotask = useCallback(
-        (route: Route) => {
-            if (isWeb) {
-                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
-            } else {
-                Navigation.navigate(route);
-            }
-        },
-        [isWeb],
-    );
+    const navigateWithMicrotask = (route: Route) => {
+        if (isWeb) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
+        } else {
+            Navigation.navigate(route);
+        }
+    };
 
-    const afterUpgradeAcknowledged = useCallback(() => {
+    const afterUpgradeAcknowledged = () => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
         if (shouldSubmitExpense) {
@@ -123,18 +116,12 @@ function IOURequestStepUpgrade({
                 break;
             default:
         }
-    }, [action, backTo, navigateWithMicrotask, reportID, shouldSubmitExpense, transactionID, upgradePath, iouType, isTrack]);
+    };
 
-    const adminParticipant = useMemo(() => {
-        const participant = transaction?.participants?.[0];
-        if (!isDistanceRateUpgrade || !participant?.accountID) {
-            return;
-        }
+    const participant = transaction?.participants?.[0];
+    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails) : undefined;
 
-        return getParticipantsOption(participant, personalDetails);
-    }, [isDistanceRateUpgrade, transaction?.participants, personalDetails]);
-
-    const onUpgrade = useCallback(() => {
+    const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {
             setIsUpgradeWarningModalOpen(true);
             return;
@@ -167,25 +154,13 @@ function IOURequestStepUpgrade({
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    }, [
-        isCategorizing,
-        isReporting,
-        currentUserPersonalDetails?.localCurrencyCode,
-        isDistanceRateUpgrade,
-        adminParticipant,
-        activePolicyID,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
-        introSelected,
-        onboardingPurposeSelected,
-        isRestrictedPolicyCreation,
-    ]);
+    };
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const handleConfirmUpgradeWarning = useCallback(() => {
+    const handleConfirmUpgradeWarning = () => {
         setIsUpgradeWarningModalOpen(false);
-    }, []);
+    };
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
