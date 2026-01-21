@@ -155,6 +155,9 @@ function MagicCodeInput({
     maxLength = CONST.MAGIC_CODE_LENGTH,
     onFulfill = () => {},
     isDisableKeyboard = false,
+    isCursorOn = false,
+    isPastingAllowed = true,
+    isInputMasked = false,
     lastPressedDigit = '',
     autoComplete,
     hasError = false,
@@ -334,7 +337,7 @@ function MagicCodeInput({
         valueRef.current = finalInput;
     };
 
-    useMagicCodePaste(inputRef, onChangeText);
+    useMagicCodePaste(inputRef, onChangeText, isPastingAllowed);
 
     /**
      * Handles logic related to certain key presses.
