@@ -60,6 +60,7 @@ function AmountTextInput({
     shouldApplyPaddingToContainer = false,
     ref,
     disabled,
+    accessibilityLabel,
     ...rest
 }: AmountTextInputProps) {
     const navigation = useNavigation();
