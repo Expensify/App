@@ -186,7 +186,6 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
-                firstCreatedGpsExpenseDateNewDot: undefined,
             });
         } else {
             requestMoney({
@@ -580,7 +579,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     billable: !!policy?.defaultBillable,
                     reimbursable: isManualDistance ? undefined : !!policy?.defaultReimbursable,
                     validWaypoints,
-                    customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}), // here?
+                    customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                     splitShares: transaction?.splitShares,
                     attendees: transaction?.comment?.attendees,
                     gpsCoordinates,

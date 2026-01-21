@@ -645,7 +645,7 @@ type CreateDistanceRequestInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    firstCreatedGpsExpenseDateNewDot: string | undefined;
+    firstCreatedGpsExpenseDateNewDot?: string;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -716,7 +716,7 @@ type CreateTrackExpenseParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    firstCreatedGpsExpenseDateNewDot: string | undefined;
+    firstCreatedGpsExpenseDateNewDot?: string;
 };
 
 type GetTrackExpenseInformationTransactionParams = {

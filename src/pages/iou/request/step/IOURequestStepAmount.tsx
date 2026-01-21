@@ -95,7 +95,6 @@ function IOURequestStepAmount({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [firstCreatedGpsExpenseDateNewDot] = useOnyx(ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
@@ -260,7 +259,6 @@ function IOURequestStepAmount({
                         introSelected,
                         activePolicyID,
                         quickAction,
-                        firstCreatedGpsExpenseDateNewDot,
                     });
                     return;
                 }

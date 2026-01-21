@@ -197,7 +197,6 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
-            firstCreatedGpsExpenseDateNewDot: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();
