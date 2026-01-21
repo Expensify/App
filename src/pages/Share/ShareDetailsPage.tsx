@@ -67,7 +67,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const ancestors = useAncestors(report);
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, policyTags,privateIsArchived, reportAttributesDerived),
+        () => getReportDisplayOption(report, unknownUserDetails, policyTags, privateIsArchived, reportAttributesDerived),
         [report, unknownUserDetails, policyTags, privateIsArchived, reportAttributesDerived],
     );
 

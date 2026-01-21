@@ -166,7 +166,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, allPolicies, {}, nvpDismissedProductTraining, undefined, jest.fn(),loginList, {
+            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, allPolicies, {}, nvpDismissedProductTraining, undefined, jest.fn(), loginList, {
                 betas: mockedBetas,
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,

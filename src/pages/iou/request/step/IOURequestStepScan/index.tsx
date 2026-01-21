@@ -114,7 +114,7 @@ function IOURequestStepScan({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true})
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -351,7 +351,39 @@ function IOURequestStepScan({
                 policyTags,
             });
         },
-        [iouType, policy, report, reportID, reportAttributesDerived, transactions, initialTransactionID, initialTransaction?.reportID, initialTransaction?.currency, initialTransaction?.isFromGlobalCreate, initialTransaction?.participants, transactionTaxCode, transactionTaxAmount, personalDetails, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backTo, backToReport, shouldSkipConfirmation, defaultExpensePolicy, shouldGenerateTransactionThreadReport, isArchived, personalPolicy?.autoReporting, isASAPSubmitBetaEnabled, transactionViolations, quickAction, policyRecentlyUsedCurrencies, introSelected, activePolicyID, reportNameValuePairs?.private_isArchived, policyTags],
+        [
+            iouType,
+            policy,
+            report,
+            reportID,
+            reportAttributesDerived,
+            transactions,
+            initialTransactionID,
+            initialTransaction?.reportID,
+            initialTransaction?.currency,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.participants,
+            transactionTaxCode,
+            transactionTaxAmount,
+            personalDetails,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            backTo,
+            backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            shouldGenerateTransactionThreadReport,
+            isArchived,
+            personalPolicy?.autoReporting,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            introSelected,
+            activePolicyID,
+            reportNameValuePairs?.private_isArchived,
+            policyTags,
+        ],
     );
 
     const updateScanAndNavigate = useCallback(

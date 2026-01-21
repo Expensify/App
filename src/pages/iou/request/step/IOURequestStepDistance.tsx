@@ -312,7 +312,37 @@ function IOURequestStepDistance({
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             policyTags,
         });
-    }, [iouType, report, policy, transaction, reportID, transactionID, reportAttributesDerived, personalDetails, waypoints, customUnitRateID, currentUserEmailParam, currentUserAccountIDParam, backTo, backToReport, shouldSkipConfirmation, defaultExpensePolicy, isArchived, personalPolicy?.autoReporting, isASAPSubmitBetaEnabled, transactionViolations, lastSelectedDistanceRates, setDistanceRequestData, translate, quickAction, policyRecentlyUsedCurrencies, introSelected, activePolicyID, reportNameValuePairs?.private_isArchived, policyTags]);
+    }, [
+        iouType,
+        report,
+        policy,
+        transaction,
+        reportID,
+        transactionID,
+        reportAttributesDerived,
+        personalDetails,
+        waypoints,
+        customUnitRateID,
+        currentUserEmailParam,
+        currentUserAccountIDParam,
+        backTo,
+        backToReport,
+        shouldSkipConfirmation,
+        defaultExpensePolicy,
+        isArchived,
+        personalPolicy?.autoReporting,
+        isASAPSubmitBetaEnabled,
+        transactionViolations,
+        lastSelectedDistanceRates,
+        setDistanceRequestData,
+        translate,
+        quickAction,
+        policyRecentlyUsedCurrencies,
+        introSelected,
+        activePolicyID,
+        reportNameValuePairs?.private_isArchived,
+        policyTags,
+    ]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
@@ -405,7 +435,30 @@ function IOURequestStepDistance({
         }
 
         navigateToNextStep();
-    }, [duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isEditing, isLoading, isCreatingNewRequest, navigateToNextStep, transactionBackup, waypoints, transaction?.routes, transaction?.transactionID, report, navigateBack, parentReport, policy, policyTags, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled, parentReportNextStep]);
+    }, [
+        duplicateWaypointsError,
+        atLeastTwoDifferentWaypointsError,
+        hasRouteError,
+        isLoadingRoute,
+        isEditing,
+        isLoading,
+        isCreatingNewRequest,
+        navigateToNextStep,
+        transactionBackup,
+        waypoints,
+        transaction?.routes,
+        transaction?.transactionID,
+        report,
+        navigateBack,
+        parentReport,
+        policy,
+        policyTags,
+        policyCategories,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
+        parentReportNextStep,
+    ]);
 
     const renderItem = useCallback(
         ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (

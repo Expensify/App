@@ -799,7 +799,28 @@ function IOURequestStepConfirmation({
                 });
             }
         },
-        [transactions, report, isDraftPolicy, action, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyCategories, policyTags, isManualDistanceRequest, receiptFiles, transactionTaxCode, transactionTaxAmount, customUnitRateID, isOdometerDistanceRequest, privateIsArchivedMap, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction],
+        [
+            transactions,
+            report,
+            isDraftPolicy,
+            action,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyCategories,
+            policyTags,
+            isManualDistanceRequest,
+            receiptFiles,
+            transactionTaxCode,
+            transactionTaxAmount,
+            customUnitRateID,
+            isOdometerDistanceRequest,
+            privateIsArchivedMap,
+            isASAPSubmitBetaEnabled,
+            introSelected,
+            activePolicyID,
+            quickAction,
+        ],
     );
 
     const createDistanceRequest = useCallback(

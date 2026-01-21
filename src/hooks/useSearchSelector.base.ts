@@ -203,7 +203,7 @@ function useSearchSelectorBase({
                     policyTags,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts,allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -215,7 +215,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, allPolicies,draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
@@ -249,7 +249,7 @@ function useSearchSelectorBase({
                     countryCode,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, allPolicies,draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -267,7 +267,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, allPolicies,draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,
@@ -285,7 +285,28 @@ function useSearchSelectorBase({
             default:
                 return getEmptyOptions();
         }
-    }, [areOptionsInitialized, searchContext, translate, optionsWithContacts, draftComments, nvpDismissedProductTraining, betas, computedSearchTerm, maxResults, includeUserToInvite, countryCode, loginList, policyTags, allPolicies, excludeLogins, includeRecentReports, maxRecentReportsToShow, getValidOptionsConfig, selectedOptions, includeCurrentUser]);
+    }, [
+        areOptionsInitialized,
+        searchContext,
+        translate,
+        optionsWithContacts,
+        draftComments,
+        nvpDismissedProductTraining,
+        betas,
+        computedSearchTerm,
+        maxResults,
+        includeUserToInvite,
+        countryCode,
+        loginList,
+        policyTags,
+        allPolicies,
+        excludeLogins,
+        includeRecentReports,
+        maxRecentReportsToShow,
+        getValidOptionsConfig,
+        selectedOptions,
+        includeCurrentUser,
+    ]);
 
     const isOptionSelected = useMemo(() => {
         return (option: OptionData) =>

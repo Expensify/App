@@ -37,7 +37,6 @@ import {
     trackExpense,
 } from './index';
 
-
 type CreateTransactionParams = {
     transactions: Transaction[];
     iouType: string;
@@ -299,7 +298,7 @@ function handleMoneyRequestStepScanParticipants({
     // to the confirmation step.
     // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (!initialTransaction?.isFromGlobalCreate && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails,policyTags,privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, policyTags, privateIsArchived, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
             const firstReceiptFile = files.at(0);
@@ -507,7 +506,7 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, policyTags,privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, policyTags, privateIsArchived, reportAttributesDerived);
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {

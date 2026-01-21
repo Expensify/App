@@ -200,7 +200,9 @@ function IOURequestStepAmount({
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant,policyTags, privateIsArchived, policy, reportAttributesDerived);
+                return participantAccountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, policyTags, privateIsArchived, policy, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 

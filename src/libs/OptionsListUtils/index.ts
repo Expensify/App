@@ -479,7 +479,8 @@ function getAlternateText(
     const isExpenseThread = isMoneyRequest(report);
     const formattedLastMessageText =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) || getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, policyTags});
+        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
+        getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, policyTags});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
@@ -2036,7 +2037,12 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, policiesCollection: OnyxCollection<Policy>, config: GetValidReportsConfig, policyTags: OnyxCollection<PolicyTagLists>): Array<SearchOption<Report>> {
+function prepareReportOptionsForDisplay(
+    options: Array<SearchOption<Report>>,
+    policiesCollection: OnyxCollection<Policy>,
+    config: GetValidReportsConfig,
+    policyTags: OnyxCollection<PolicyTagLists>,
+): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -2275,7 +2281,28 @@ function getValidOptions(
         [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
-            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, policiesCollection, {
+            selfDMChat = prepareReportOptionsForDisplay(
+                selfDMChats,
+                policiesCollection,
+                {
+                    ...getValidReportsConfig,
+                    selectedOptions,
+                    shouldBoldTitleByDefault,
+                    shouldSeparateSelfDMChat,
+                    shouldSeparateWorkspaceChat,
+                    shouldShowGBR,
+                },
+                policyTags,
+            ).at(0);
+        }
+
+        if (maxRecentReportElements) {
+            recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
+        }
+        recentReportOptions = prepareReportOptionsForDisplay(
+            recentReportOptions,
+            policiesCollection,
+            {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
@@ -2284,29 +2311,21 @@ function getValidOptions(
                 shouldShowGBR,
             },
             policyTags,
-        ).at(0);
-        }
+        );
 
-        if (maxRecentReportElements) {
-            recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
-        }
-        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policiesCollection, {
-            ...getValidReportsConfig,
-            selectedOptions,
-            shouldBoldTitleByDefault,
-            shouldSeparateSelfDMChat,
-            shouldSeparateWorkspaceChat,
-            shouldShowGBR,
-        }, policyTags);
-
-        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
-            ...getValidReportsConfig,
-            selectedOptions,
-            shouldBoldTitleByDefault,
-            shouldSeparateSelfDMChat,
-            shouldSeparateWorkspaceChat,
-            shouldShowGBR,
-        }, policyTags);
+        workspaceChats = prepareReportOptionsForDisplay(
+            workspaceChats,
+            policiesCollection,
+            {
+                ...getValidReportsConfig,
+                selectedOptions,
+                shouldBoldTitleByDefault,
+                shouldSeparateSelfDMChat,
+                shouldSeparateWorkspaceChat,
+                shouldShowGBR,
+            },
+            policyTags,
+        );
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
