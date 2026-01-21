@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, memberAccountIDsSelector} from '@selectors/Domain';
+import {memberAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
