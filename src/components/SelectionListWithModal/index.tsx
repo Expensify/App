@@ -46,14 +46,11 @@ function SelectionListWithModal<TItem extends ListItem>({
     // This gives FlashList time to properly update its layout cache when searching/filtering
     const [, debouncedData, setDataState] = useDebouncedState<TItem[]>(data, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
-    // Determine if this is changed by filtering (to limit multiple rerenders)
-    const isFiltering = data.length < debouncedData.length;
-
     useEffect(() => {
         setDataState(data);
     }, [data, setDataState]);
 
-    const displayData = isFiltering ? debouncedData : data;
+    const displayData = debouncedData;
 
     const selectedItems = useMemo(
         () =>
