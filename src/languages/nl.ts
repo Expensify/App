@@ -1446,9 +1446,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'U kunt geen dagvergoedingskosten verplaatsen naar rapporten op andere werkruimtes, omdat de dagvergoedingstarieven tussen werkruimtes kunnen verschillen.',
         changeApprover: {
             title: 'Fiatteur wijzigen',
-            subtitle: 'Kies een optie om de fiatteur voor dit rapport te wijzigen.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Je kunt de goedkeurder ook permanent wijzigen voor alle rapporten in je <a href="${workflowSettingLink}">workflowinstellingen</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Kies een optie om de goedkeurder voor dit rapport te wijzigen. (Werk uw <a href="${workflowSettingLink}">werkruimte-instellingen</a> bij om dit permanent voor alle rapporten te wijzigen.)`,
             changedApproverMessage: (managerID: number) => `heeft de goedkeurder gewijzigd naar <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Goedkeurder toevoegen',
@@ -7999,7 +7998,13 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         },
         preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
-        notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om af te ronden'},
+        notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
+        locationServicesRequiredModal: {
+            title: 'Locatietoegang vereist',
+            confirm: 'Instellingen openen',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om het bijhouden van GPS-afstand te starten.',
+        },
+        fabGpsTripExplained: 'Ga naar GPS-scherm (Zwevende actie)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

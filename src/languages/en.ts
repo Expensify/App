@@ -1438,9 +1438,8 @@ const translations = {
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
             title: 'Change approver',
-            subtitle: 'Choose an option to change the approver for this report.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Add approver',
@@ -7116,6 +7115,12 @@ const translations = {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
         },
+        locationServicesRequiredModal: {
+            title: 'Location access required',
+            confirm: 'Open settings',
+            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+        },
+        fabGpsTripExplained: 'Go to GPS screen (Floating action)',
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',
