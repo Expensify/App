@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, hasCircularReferences, parse} from '@libs/Formula';
+import {compute, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -1538,6 +1538,108 @@ describe('CustomFormula', () => {
             expect(compute('{field:MyField}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
             expect(compute('{field:MYFIELD}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
             expect(compute('{field:myfield}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
+        });
+    });
+
+    describe('resolveReportFieldValue', () => {
+        const mockReport = {reportID: '123'} as Report;
+        const mockPolicy = {name: 'Test Policy'} as Policy;
+
+        test('should return field.value when defaultValue has no field references', () => {
+            const field = {
+                fieldID: 'field_simple',
+                name: 'Simple',
+                defaultValue: 'default_text',
+                value: 'current_value',
+            } as unknown as PolicyReportField;
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            expect(result).toBe('current_value');
+        });
+
+        test('should return defaultValue when value is undefined and no field references', () => {
+            const field = {
+                fieldID: 'field_default',
+                name: 'Default',
+                defaultValue: 'fallback_value',
+                value: undefined,
+            } as unknown as PolicyReportField;
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            expect(result).toBe('fallback_value');
+        });
+
+        test('should resolve field references when defaultValue contains {field:X}', () => {
+            const field = {
+                fieldID: 'field_a',
+                name: 'A',
+                defaultValue: '{field:B}',
+                value: '',
+            } as unknown as PolicyReportField;
+
+            const fieldsByName = {
+                b: {
+                    fieldID: 'field_b',
+                    name: 'B',
+                    defaultValue: 'resolved_value',
+                    value: 'resolved_value',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {b: 'resolved_value'};
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, fieldValues, fieldsByName);
+            expect(result).toBe('resolved_value');
+        });
+
+        test('should return fieldValue when report is null', () => {
+            const field = {
+                fieldID: 'field_a',
+                name: 'A',
+                defaultValue: '{field:B}',
+                value: 'stale_value',
+            } as unknown as PolicyReportField;
+
+            // @ts-expect-error - Testing report null
+            const result = resolveReportFieldValue(field, null, mockPolicy, {}, {});
+            expect(result).toBe('stale_value');
+        });
+
+        test('should resolve chained field references', () => {
+            const field = {
+                fieldID: 'field_c',
+                name: 'C',
+                defaultValue: '{field:A}',
+                value: '',
+            } as unknown as PolicyReportField;
+
+            const fieldsByName = {
+                a: {
+                    fieldID: 'field_a',
+                    name: 'A',
+                    defaultValue: '{field:B}',
+                    value: '',
+                } as unknown as PolicyReportField,
+                b: {
+                    fieldID: 'field_b',
+                    name: 'B',
+                    defaultValue: 'final_value',
+                    value: 'final_value',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {a: '', b: 'final_value'};
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, fieldValues, fieldsByName);
+            expect(result).toBe('final_value');
+        });
+
+        test('should return empty string when both value and defaultValue are undefined', () => {
+            const field = {
+                fieldID: 'field_empty',
+                name: 'Empty',
+            } as unknown as PolicyReportField;
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            expect(result).toBe('');
         });
     });
 });

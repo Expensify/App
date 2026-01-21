@@ -431,6 +431,18 @@ function formatStatus(statusNum: number | undefined): string {
 }
 
 /**
+ * Check if a formula string contains field references ({field:X})
+ * Uses quick string check before expensive parsing for performance
+ */
+function hasFieldReferences(formula: string | undefined): boolean {
+    if (!formula?.includes('{field:')) {
+        return false;
+    }
+    const parsed = parse(formula);
+    return parsed.some((part) => part.type === FORMULA_PART_TYPES.FIELD);
+}
+
+/**
  * Compute the value of a field formula part with recursive resolution support
  */
 function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
@@ -449,13 +461,9 @@ function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
     // If we have the full field definitions, we can recursively resolve dependencies
     if (context?.fieldsByName?.[fieldName]) {
         const field = context.fieldsByName[fieldName];
-        if (field.defaultValue?.includes('{field:')) {
-            const parsedModel = parse(field.defaultValue);
-            const hasFieldRefs = parsedModel.some((p) => p.type === FORMULA_PART_TYPES.FIELD);
-            if (hasFieldRefs) {
-                visited.add(fieldName);
-                return compute(field.defaultValue, {...context, visitedFields: visited});
-            }
+        if (hasFieldReferences(field.defaultValue)) {
+            visited.add(fieldName);
+            return compute(field.defaultValue, {...context, visitedFields: visited});
         }
         return field.value ?? field.defaultValue ?? '';
     }
@@ -955,19 +963,11 @@ function resolveReportFieldValue(
 ): string {
     const fieldValue = field.value ?? field.defaultValue ?? '';
 
-    // Quick string check before expensive parsing
-    if (!field.defaultValue?.includes('{field:') || !report) {
+    if (!report || !hasFieldReferences(field.defaultValue)) {
         return fieldValue;
     }
 
-    const parsedModel = parse(field.defaultValue);
-    const hasFieldRefs = parsedModel.some((part) => part.type === FORMULA_PART_TYPES.FIELD);
-
-    if (hasFieldRefs) {
-        return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
-    }
-
-    return fieldValue;
+    return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
 }
 
 export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
