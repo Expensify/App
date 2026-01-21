@@ -54,6 +54,7 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
