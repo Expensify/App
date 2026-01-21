@@ -24,6 +24,7 @@ import {
     setIndividualShare,
     setMoneyRequestAmount,
     setMoneyRequestCategory,
+    setMoneyRequestDistance,
     setMoneyRequestMerchant,
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
@@ -39,6 +40,7 @@ import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransaction
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
@@ -232,7 +234,7 @@ function MoneyRequestConfirmationList({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
-    isGPSDistanceRequest = false,
+    isGPSDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -389,6 +391,17 @@ function MoneyRequestConfirmationList({
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+
+    // Update distance when recipients changed and have different distance unit
+    const shouldUpdateDistance = isGPSDistanceRequest && prevUnit !== unit;
+    useEffect(() => {
+        if (!shouldUpdateDistance || !transactionID || isReadOnly) {
+            return;
+        }
+
+        const distanceWithNewUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distance, unit));
+        setMoneyRequestDistance(transactionID, distanceWithNewUnit, true);
+    });
 
     let amountToBeUsed = iouAmount;
 
