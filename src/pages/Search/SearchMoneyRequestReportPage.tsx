@@ -162,7 +162,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
-    const isTransactionThreadFake = transactionThreadReportID === CONST.FAKE_REPORT_ID;
+    const isTransactionThreadMissing = transactionThreadReportID === CONST.FAKE_REPORT_ID;
 
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
     useEffect(() => {
@@ -170,7 +170,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        if (isTransactionThreadFake && !!oneTransactionID) {
+        if (isTransactionThreadMissing && !!oneTransactionID) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
             createTransactionThreadReport(report, iouAction);
             lastReportIDRef.current = reportIDFromRoute;
@@ -181,7 +181,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportIDFromRoute, isTransactionThreadFake]);
+    }, [reportIDFromRoute, isTransactionThreadMissing]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
