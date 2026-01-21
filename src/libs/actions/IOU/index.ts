@@ -13496,7 +13496,7 @@ function initSplitExpense(
 /**
  * Create a draft transaction to set up split expense details for edit split details
  */
-function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, reportID: string) {
+function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, reportID: string, transactionID?: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
@@ -13506,8 +13506,10 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
 
     const transactionDetails = getTransactionDetails(originalTransaction);
 
+    const editTransactionID = transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+
     const editDraftTransaction = buildOptimisticTransaction({
-        existingTransactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        existingTransactionID: editTransactionID,
         originalTransactionID,
         existingTransaction: originalTransaction,
         transactionParams: {
@@ -13531,9 +13533,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
         },
     });
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, editDraftTransaction);
-
-    Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, splitTransactionData?.transactionID, Navigation.getActiveRoute()));
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${editTransactionID}`, editDraftTransaction);
 }
 
 /**
@@ -13633,7 +13633,6 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
                 // Calculate distance from amount: distance = amount / rate
                 // Both amount and rate are in cents, so the result is in distance units
                 const distanceInUnits = Math.abs(amount) / rate;
-                const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distanceInUnits, unit);
                 const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
 
                 updatedSplitExpense = {
@@ -13706,7 +13705,6 @@ function resetSplitExpensesByDateRange(transaction: OnyxEntry<OnyxTypes.Transact
                 // Calculate distance from amount: distance = amount / rate
                 // Both amount and rate are in cents, so the result is in distance units
                 const distanceInUnits = Math.abs(amount) / rate;
-                const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distanceInUnits, unit);
                 const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
 
                 splitExpense = {
@@ -13775,7 +13773,7 @@ function updateSplitExpenseField(
                 shouldResetDateRange = true;
             }
 
-            let updatedItem: SplitExpense = {
+            const updatedItem: SplitExpense = {
                 ...item,
                 description: transactionDetails?.comment,
                 category: transactionDetails?.category,
@@ -13791,7 +13789,7 @@ function updateSplitExpenseField(
             };
 
             // Recalculate amount for distance transactions when rate or distance changes
-            if (isDistanceRequest && originalTransaction && updatedItem.customUnit) {
+            if (isDistanceRequest && originalTransaction) {
                 const mileageRate = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: policy ?? undefined});
                 const {unit, rate} = mileageRate;
 
@@ -13860,7 +13858,6 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
                     // Calculate distance from amount: distance = amount / rate
                     // Both amount and rate are in cents, so the result is in distance units
                     const distanceInUnits = Math.abs(amount) / rate;
-                    const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distanceInUnits, unit);
                     const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
 
                     updatedSplitExpense = {

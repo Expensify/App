@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -16,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
@@ -46,6 +47,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, preferredLocale, toLocaleDigit} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
     const {currentSearchResults} = useSearchContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
@@ -134,7 +136,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const {unit, rate} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
-    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
+    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate);
 
     const distanceRequestFields = isDistance ? (
@@ -167,11 +169,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         return;
                     }
 
+                    initDraftSplitExpenseDataForEdit(originalTransactionDraft, splitExpenseTransactionID, reportID, CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID);
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
                             CONST.IOU.ACTION.EDIT,
                             CONST.IOU.TYPE.SPLIT_EXPENSE,
-                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                            CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID,
                             reportID,
                             Navigation.getActiveRoute(),
                         ),
@@ -348,7 +351,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, currentPolicy);
+                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, currentPolicy);
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter

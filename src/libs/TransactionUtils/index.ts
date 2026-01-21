@@ -717,6 +717,10 @@ function getUpdatedTransaction({
         }
     }
 
+    if (Object.hasOwn(transactionChanges, 'routes')) {
+        updatedTransaction.routes = transactionChanges.routes;
+    }
+
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
         lodashSet(updatedTransaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID);
         lodashSet(updatedTransaction, 'comment.customUnit.defaultP2PRate', null);

@@ -81,6 +81,7 @@ function IOURequestStepDistance({
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [originalSplitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
@@ -412,9 +413,9 @@ function IOURequestStepDistance({
             transactionWasSaved.current = true;
         }
         if (isEditing) {
-            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-            if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {waypoints, routes: currentTransaction?.routes}, policy);
+            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value in transaction with CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID id
+            if (isEditingSplit && originalSplitTransactionDraft) {
+                setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, originalSplitTransactionDraft, {waypoints, routes: currentTransaction?.routes}, policy);
                 navigateBack();
                 return;
             }
@@ -462,12 +463,13 @@ function IOURequestStepDistance({
         isCreatingNewRequest,
         navigateToNextStep,
         isEditingSplit,
-        transaction,
+        originalSplitTransactionDraft,
         transactionBackup,
         waypoints,
+        transaction?.routes,
+        transaction?.transactionID,
         report,
         navigateBack,
-        splitDraftTransaction,
         currentTransaction?.routes,
         policy,
         parentReport,
