@@ -666,7 +666,7 @@ function containsOnlyCustomEmoji(text?: string): boolean {
 /**
  * Insert ZWNJ (Zero-Width Non-Joiner) between digits/symbols and emojis to prevent Safari's automatic keycap sequence bug.
  * Safari converts digits/symbols (#, *, 0-9) immediately followed by emojis into Unicode keycap sequences (e.g., "*😄" → "*️⃣").
- * Adding a space before * and # when they come after emojis prevents corruption.
+ * Inserting ZWNJ between emoji and symbol, and between symbol and emoji, prevents corruption without breaking markdown formatting.
  */
 function insertZWNJBetweenDigitAndEmoji(input: string): string {
     if (!isSafari()) {
@@ -676,8 +676,8 @@ function insertZWNJBetweenDigitAndEmoji(input: string): string {
     // Fix corrupted key caps that Safari created (key cap followed by emoji indicates corruption)
     // Only fix key caps that are immediately followed by another emoji, preserving legitimate standalone key caps
     let result = input.replaceAll(/([\d#*])\uFE0F?\u20E3([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu, '$1\u200C$2');
-    // Ensure exactly one space before * and # when they come after emojis (normalize multiple spaces to one)
-    result = result.replaceAll(/([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])\s*([#*])/gu, '$1 $2');
+    // Insert ZWNJ between emoji and symbol to prevent Safari from corrupting the symbol
+    result = result.replaceAll(/([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])(\s*)([#*])/gu, '$1$2\u200C$3');
     // Insert ZWNJ between digit/symbol and emoji (the main fix to prevent corruption)
     result = result.replaceAll(CONST.REGEX.DIGIT_OR_SYMBOL_FOLLOWED_BY_EMOJI, '$1\u200C$2');
 
@@ -685,8 +685,8 @@ function insertZWNJBetweenDigitAndEmoji(input: string): string {
 }
 
 /**
- * Calculate the ZWNJ offset for cursor position adjustment.
- * Returns the number of ZWNJ characters inserted before the cursor position.
+ * Calculate the cursor offset for character insertions (ZWNJ) to prevent cursor jumping.
+ * Returns the number of characters inserted before the cursor position.
  */
 function getZWNJCursorOffset(text: string, cursorPosition: number | undefined | null): number {
     if (!isSafari() || cursorPosition === undefined || cursorPosition === null) {
