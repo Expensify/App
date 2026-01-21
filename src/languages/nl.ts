@@ -1446,9 +1446,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'U kunt geen dagvergoedingskosten verplaatsen naar rapporten op andere werkruimtes, omdat de dagvergoedingstarieven tussen werkruimtes kunnen verschillen.',
         changeApprover: {
             title: 'Fiatteur wijzigen',
-            subtitle: 'Kies een optie om de fiatteur voor dit rapport te wijzigen.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Je kunt de goedkeurder ook permanent wijzigen voor alle rapporten in je <a href="${workflowSettingLink}">workflowinstellingen</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Kies een optie om de goedkeurder voor dit rapport te wijzigen. (Werk uw <a href="${workflowSettingLink}">werkruimte-instellingen</a> bij om dit permanent voor alle rapporten te wijzigen.)`,
             changedApproverMessage: (managerID: number) => `heeft de goedkeurder gewijzigd naar <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Goedkeurder toevoegen',
