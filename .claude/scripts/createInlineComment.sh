@@ -47,8 +47,7 @@ readonly LINE_ARG="${3:-}"
 validate_rule "$BODY_ARG"
 echo "Comment approved: $COMMENT_STATUS_REASON"
 
-# Append footer to comment body
-readonly FOOTER="\n\n---\n\nPlease rate this suggestion with 👍 or 👎 to help us improve! Reactions are used to monitor reviewer efficiency."
+readonly FOOTER=$'\n\n---\n\nPlease rate this suggestion with 👍 or 👎 to help us improve! Reactions are used to monitor reviewer efficiency.'
 readonly COMMENT_BODY="${BODY_ARG}${FOOTER}"
 
 COMMIT_ID=$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')
