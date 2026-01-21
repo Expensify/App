@@ -438,6 +438,20 @@ type GPSPoint = {
     long: number;
 };
 
+type TimeSpecificTransactionParams = {
+    /** Transaction type (e.g., 'time' for time tracking expenses) */
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+
+    /** Number of hours for time tracking expenses */
+    count?: number;
+
+    /** Hourly rate in cents. Use convertToBackendAmount() to convert from policy rate (which is stored as a float) */
+    rate?: number;
+
+    /** Unit for time tracking (e.g., 'h' for hours) */
+    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+};
+
 type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     attendees?: Attendee[];
     actionableWhisperReportActionID?: string;
@@ -453,19 +467,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     pendingFields?: PendingFields<string>;
     distance?: number;
     isLinkedTrackedExpenseReportArchived?: boolean;
-
-    /** Transaction type (e.g., 'time' for time tracking expenses) */
-    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
-
-    /** Number of hours for time tracking expenses */
-    count?: number;
-
-    /** Hourly rate in cents. Use convertToBackendAmount() to convert from policy rate (which is stored as a float) */
-    rate?: number;
-
-    /** Unit for time tracking (e.g., 'h' for hours) */
-    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
-};
+} & TimeSpecificTransactionParams;
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
     attendees?: Attendee[];
@@ -5665,7 +5667,7 @@ type ConvertTrackedExpenseToRequestParams = {
         transactionThreadReportID?: string;
         distance?: number;
         isLinkedTrackedExpenseReportArchived: boolean | undefined;
-    };
+    } & TimeSpecificTransactionParams;
     chatParams: {
         reportID: string;
         createdReportActionID: string | undefined;
@@ -5701,6 +5703,10 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         attendees,
         transactionThreadReportID,
         isLinkedTrackedExpenseReportArchived,
+        type: transactionType,
+        count,
+        rate,
+        unit,
     } = transactionParams;
     const optimisticData: Array<OnyxUpdate<OnyxKey>> = [];
     const successData: Array<OnyxUpdate<OnyxKey>> = [];
@@ -5741,6 +5747,14 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             moneyRequestPreviewReportActionID: iouParams.reportActionID,
             modifiedExpenseReportActionID: convertTrackedExpenseInformation.modifiedExpenseReportActionID,
             reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
+            ...(transactionType === CONST.TRANSACTION.TYPE.TIME
+                ? {
+                      type: transactionType,
+                      count,
+                      rate,
+                      unit,
+                  }
+                : {}),
             ...workspaceParams,
         };
 
