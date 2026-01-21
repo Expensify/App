@@ -27,7 +27,7 @@ function ReplaceDeviceVerifyOldPage() {
         if (!account?.twoFactorAuthSecretKey) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_NEW.route);
+        Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_NEW);
     }, [account?.twoFactorAuthSecretKey]);
 
     return (
