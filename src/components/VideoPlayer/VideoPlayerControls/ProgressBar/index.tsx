@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import type {LayoutChangeEvent, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -70,7 +70,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         progressWidth.set(getProgress(position, duration));
     }, [duration, isSliderPressed, position, progressWidth]);
 
-    const progressBarStyle: ViewStyle = useAnimatedStyle(() => ({width: `${progressWidth.get()}%`}));
+    const progressBarStyle = useAnimatedStyle(() => ({width: `${progressWidth.get()}%`}));
 
     return (
         <GestureDetector gesture={pan}>
@@ -80,8 +80,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
                     onLayout={onSliderLayout}
                 >
                     <Animated.View
-                        style={styles.progressBarFill}
-                        animatedProps={progressBarStyle}
+                        style={[styles.progressBarFill, progressBarStyle]}
                     />
                 </Animated.View>
             </Animated.View>
