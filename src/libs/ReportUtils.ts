@@ -1717,6 +1717,49 @@ function doesReportReceiverMatchParticipant(report: OnyxEntry<Report>, receiverP
 }
 
 /**
+ * Checks if the provided report matches the selected expense participant.
+ * This is used to determine if the report from the route should be used or if we need to find/create the correct chat.
+ *
+ * For policy expense chats: The report should match the participant's reportID
+ * For 1:1 DMs: The report should be a 1:1 DM with the participant
+ *
+ * Returns false when the report doesn't match the participant, indicating we should
+ * let getMoneyRequestInformation find/create the correct chat.
+ */
+function doesReportMatchExpenseParticipant(
+    report: OnyxEntry<Report>,
+    participant: {isPolicyExpenseChat?: boolean; reportID?: string; accountID?: string | number},
+    currentUserAccountIDParam: number | undefined,
+): boolean {
+    if (!report || !participant) {
+        return false;
+    }
+
+    // If participant is a policy expense chat, the report should match the participant's reportID
+    if (participant.isPolicyExpenseChat) {
+        return report.reportID === participant.reportID;
+    }
+
+    // If participant is not a policy expense chat (i.e., it's a 1:1 DM user),
+    // the report should NOT be a policy expense chat
+    if (isPolicyExpenseChat(report)) {
+        return false;
+    }
+
+    // For 1:1 DM participants, verify the report is a 1:1 chat with the correct participant
+    if (!isOneOnOneChat(report)) {
+        return false;
+    }
+
+    // Check if the participant is in the report's participants
+    const participantAccountID = Number(participant.accountID);
+    const reportParticipantAccountIDsSet = new Set(Object.keys(report.participants ?? {}).map(Number));
+
+    // The report should have the participant and the current user
+    return reportParticipantAccountIDsSet.has(participantAccountID) && (currentUserAccountIDParam ? reportParticipantAccountIDsSet.has(currentUserAccountIDParam) : true);
+}
+
+/**
  * Whether the provided report belongs to a Control policy and is an expense chat
  */
 function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
@@ -13201,6 +13244,7 @@ export {
     isConciergeChatReport,
     isControlPolicyExpenseChat,
     doesReportReceiverMatchParticipant,
+    doesReportMatchExpenseParticipant,
     isControlPolicyExpenseReport,
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,
