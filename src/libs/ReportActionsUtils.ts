@@ -712,7 +712,7 @@ function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): str
  */
 function findPreviousAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
     // Updated cause now the list is reversed
-    for (let i = actionIndex - 1; i > 0; i--) {
+    for (let i = actionIndex - 1; i > -1; i--) {
         const action = reportActions.at(i);
 
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
