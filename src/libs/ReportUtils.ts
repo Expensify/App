@@ -11981,6 +11981,7 @@ function prepareOnboardingOnyxData({
                 createWorkspace: null,
                 addExpenseApprovals: null,
                 setupCategoriesAndTags: null,
+                setupTags: null,
             },
         },
     );

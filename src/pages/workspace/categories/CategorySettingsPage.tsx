@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getTagLists, getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, hasTags, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -82,10 +82,7 @@ function CategorySettingsPage({
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
-    const policyHasTags = useMemo(() => {
-        const tagLists = getTagLists(policyTags);
-        return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
-    }, [policyTags]);
+    const policyHasTags = hasTags(policyTags);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -137,6 +134,7 @@ function CategorySettingsPage({
             return '';
         }
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
     const requiredFieldsTitle = useMemo(() => {
@@ -179,6 +177,7 @@ function CategorySettingsPage({
             });
         },
         [
+            setIsCannotDeleteOrDisableLastCategoryModalVisible,
             shouldPreventDisableOrDelete,
             policyData,
             policyCategory.name,

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getTagLists} from '@libs/PolicyUtils';
+import {hasTags} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -47,10 +47,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         parentReportAction: setupCategoriesAndTagsParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
-    const policyHasTags = useMemo(() => {
-        const tagLists = getTagLists(policyTags);
-        return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
-    }, [policyTags]);
+    const policyHasTags = hasTags(policyTags);
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {

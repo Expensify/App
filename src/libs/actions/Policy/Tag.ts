@@ -37,6 +37,13 @@ import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
+/**
+ * Checks if a task report is incomplete (not approved)
+ */
+function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
+    return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
+}
+
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
@@ -197,16 +204,11 @@ function createPolicyTag(
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 
-    if (setupTagsTaskReport && (setupTagsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || setupTagsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)) {
+    if (isTaskIncomplete(setupTagsTaskReport)) {
         completeTask(setupTagsTaskReport, false, false, undefined);
     }
 
-    // Complete the combined "Set up categories and tags" task only if categories already exist
-    if (
-        setupCategoriesAndTagsTaskReport &&
-        policyHasCustomCategories &&
-        (setupCategoriesAndTagsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || setupCategoriesAndTagsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
-    ) {
+    if (isTaskIncomplete(setupCategoriesAndTagsTaskReport) && policyHasCustomCategories) {
         completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
     }
 }

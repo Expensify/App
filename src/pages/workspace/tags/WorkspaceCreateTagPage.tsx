@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {escapeTagName, getTagList} from '@libs/PolicyUtils';
+import {escapeTagName, getTagList, hasCustomCategories} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -28,8 +28,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 type WorkspaceCreateTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE>;
-
-const DEFAULT_CATEGORIES_AMOUNT = 19;
 
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const policyID = route.params.policyID;
@@ -45,9 +43,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const backTo = route.params.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE;
 
-    const policyHasCustomCategories = useMemo(() => {
-        return Object.keys(policyCategories ?? {}).length > DEFAULT_CATEGORIES_AMOUNT;
-    }, [policyCategories]);
+    const policyHasCustomCategories = hasCustomCategories(policyCategories);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
