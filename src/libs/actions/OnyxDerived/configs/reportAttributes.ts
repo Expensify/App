@@ -70,13 +70,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
-        ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
+        ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
     compute: (
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- _reportMetadata is not used here but we still need to detruct the reportViolations
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, _reportMetadata, reportViolations],
-        {currentValue, sourceValues, areAllConnectionsSet, }
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, reportViolations],
+        {currentValue, sourceValues, areAllConnectionsSet},
     ) => {
         if (!areAllConnectionsSet) {
             return {
