@@ -127,6 +127,7 @@ jobs:
     steps:
       - name: Check if author specified Expensify/Mobile-Expensify PR
         id: mobileExpensifyPR
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         # v7
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
@@ -156,12 +157,13 @@ jobs:
         MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
       steps:
         - name: Checkout
+          if: ${{ github.event_name == 'workflow_dispatch' }}
           # v4
           uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
         - name: Check if Expensify/Mobile-Expensify pull request number is correct
           id: getHeadRef
-          if: github.event_name == 'workflow_dispatch'
+          if: ${{ github.event_name == 'workflow_dispatch' }}
           run: |
             set -e
             if [[ -z "${{ needs.prep.outputs.MOBILE_PR_NUMBER }}" && -z "${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}" ]]; then
