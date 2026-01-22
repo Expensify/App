@@ -26,7 +26,7 @@ import {
     getPlaidInstitutionIconUrl,
     isExpensifyCard,
     isExpensifyCardPendingAction,
-    isPersonalCardFromOldDot,
+    isUserAssignedPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
@@ -201,23 +201,24 @@ function PaymentMethodList({
             const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-                // Include active Expensify cards, company cards (domain), and personal cards from OldDot (no domain + owned by current user)
+                // Include active Expensify cards, company cards (domain), and user-assigned personal cards
                 .filter(
                     (card) =>
-                        CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) && (isExpensifyCard(card) || !!card.domainName || isPersonalCardFromOldDot(card, currentUserAccountID)),
+                        CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+                        (isExpensifyCard(card) || !!card.domainName || isUserAssignedPersonalCard(card, currentUserAccountID)),
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                const isPersonalOldDotCard = isPersonalCardFromOldDot(card, currentUserAccountID);
+                const isUserPersonalCard = isUserAssignedPersonalCard(card, currentUserAccountID);
                 const isCSVCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
 
                 let icon;
-                if (isPersonalOldDotCard && isCSVCard) {
+                if (isUserPersonalCard && isCSVCard) {
                     icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
-                } else if (isPersonalOldDotCard) {
+                } else if (isUserPersonalCard) {
                     icon = getBankIcon({styles, bankName: card.bank as BankName, isCard: true}).icon;
                 } else {
                     icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
@@ -230,7 +231,7 @@ function PaymentMethodList({
                     const pressHandler = onPress as CardPressHandler;
 
                     let cardDescription;
-                    if (isPersonalOldDotCard) {
+                    if (isUserPersonalCard) {
                         cardDescription = lastFourPAN;
                     } else if (lastFourPAN) {
                         cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`;
@@ -240,7 +241,7 @@ function PaymentMethodList({
 
                     // Personal cards from OldDot navigate to personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
-                    const cardOnPress = isPersonalOldDotCard
+                    const cardOnPress = isUserPersonalCard
                         ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
                         : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                               pressHandler({
@@ -257,14 +258,14 @@ function PaymentMethodList({
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        plaidUrl: isPersonalOldDotCard ? undefined : plaidUrl,
+                        plaidUrl: isUserPersonalCard ? undefined : plaidUrl,
                         title: cardDisplayName,
                         description: cardDescription,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         canDismissError: false,
                         shouldShowRightIcon,
-                        shouldShowThreeDotsMenu: !isPersonalOldDotCard,
+                        shouldShowThreeDotsMenu: !isUserPersonalCard,
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:

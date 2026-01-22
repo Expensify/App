@@ -70,7 +70,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     lastScrape?: string;
 
     /** Whether imported transactions should default to reimbursable (personal OldDot cards only) */
-    markTransactionsAsReimbursable?: boolean;
+    reimbursable?: boolean;
 
     /** Last update result */
     lastScrapeResult?: number;

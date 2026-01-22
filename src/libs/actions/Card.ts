@@ -263,19 +263,19 @@ function clearCardNameValuePairsErrorField(cardID: number, fieldName: string) {
     });
 }
 
-function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursable: boolean, previousValue?: boolean) {
+function setPersonalCardReimbursable(cardID: number, reimbursable: boolean, previousValue?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    markTransactionsAsReimbursable,
+                    reimbursable,
                     pendingFields: {
-                        markTransactionsAsReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        reimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                     errorFields: {
-                        markTransactionsAsReimbursable: null,
+                        reimbursable: null,
                     },
                 },
             },
@@ -289,7 +289,7 @@ function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursa
             value: {
                 [cardID]: {
                     pendingFields: {
-                        markTransactionsAsReimbursable: null,
+                        reimbursable: null,
                     },
                 },
             },
@@ -302,12 +302,12 @@ function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursa
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    ...(previousValue === undefined ? {} : {markTransactionsAsReimbursable: previousValue}),
+                    ...(previousValue === undefined ? {} : {reimbursable: previousValue}),
                     pendingFields: {
-                        markTransactionsAsReimbursable: null,
+                        reimbursable: null,
                     },
                     errorFields: {
-                        markTransactionsAsReimbursable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        reimbursable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
             },
@@ -316,7 +316,7 @@ function setPersonalCardReimbursable(cardID: number, markTransactionsAsReimbursa
 
     const parameters: SetPersonalCardReimbursableParams = {
         cardID,
-        reimbursable: markTransactionsAsReimbursable,
+        reimbursable,
     };
 
     API.write(WRITE_COMMANDS.SET_PERSONAL_CARD_REIMBURSABLE, parameters, {optimisticData, finallyData, failureData});

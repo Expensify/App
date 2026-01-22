@@ -20,7 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getDefaultCardName, isPersonalCardFromOldDot, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getDefaultCardName, isUserAssignedPersonalCard, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -60,8 +60,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = getDisplayNameOrDefault(cardholder);
-    const isPersonalCard = !!(card && isPersonalCardFromOldDot(card, currentUserAccountID));
-    const reimbursableSetting = card?.markTransactionsAsReimbursable ?? true;
+    const isPersonalCard = !!(card && isUserAssignedPersonalCard(card, currentUserAccountID));
+    const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isPersonalCard && card && (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 
     const unassignCard = () => {
@@ -175,8 +175,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     switchAccessibilityLabel={translate('cardPage.markTransactionsAsReimbursable')}
                     isActive={reimbursableSetting}
                     onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
-                    pendingAction={card?.pendingFields?.markTransactionsAsReimbursable}
-                    errors={card?.errorFields?.markTransactionsAsReimbursable ?? undefined}
+                    pendingAction={card?.pendingFields?.reimbursable}
+                    errors={card?.errorFields?.reimbursable ?? undefined}
                     onCloseError={() => card && clearCardErrorField(card.cardID, 'markTransactionsAsReimbursable')}
                     wrapperStyle={[styles.ph5, styles.mb3]}
                 />

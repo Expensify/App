@@ -813,10 +813,10 @@ function isPersonalCard(card?: Card) {
 }
 
 /**
- * Check if the given card is a personal card from OldDot.
+ * Check if the given card is a personal card assigned to the current user.
  * These cards do not have a domainName and are owned by the current user.
  */
-function isPersonalCardFromOldDot(card: Card | undefined, currentUserAccountID: number): boolean {
+function isUserAssignedPersonalCard(card: Card | undefined, currentUserAccountID: number): boolean {
     if (!card) {
         return false;
     }
@@ -828,7 +828,7 @@ function isPersonalCardFromOldDot(card: Card | undefined, currentUserAccountID: 
  * Filter out personal (including cash) cards from the card list.
  */
 function filterPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
+    return filterObject(cards ?? {}, (_key, card) => isPersonalCard(card));
 }
 
 type SplitMaskedCardNumberResult = {
@@ -976,7 +976,7 @@ export {
     getEligibleBankAccountsForUkEuCard,
     filterPersonalCards,
     isPersonalCard,
-    isPersonalCardFromOldDot,
+    isUserAssignedPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     isMaskedCardNumberEqual,
