@@ -51,7 +51,6 @@ function SuggestionEmoji({
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
-    // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
     const isEmojiSuggestionsMenuVisible = suggestionValues.suggestedEmojis.length > 0 && suggestionValues.shouldShowSuggestionMenu;

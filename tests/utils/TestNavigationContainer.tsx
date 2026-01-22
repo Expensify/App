@@ -7,6 +7,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type {
     AuthScreensParamList,
     ReportsSplitNavigatorParamList,
+    RightModalNavigatorParamList,
     SearchFullscreenNavigatorParamList,
     SettingsSplitNavigatorParamList,
     WorkspaceSplitNavigatorParamList,
@@ -21,6 +22,7 @@ const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 const WorkspaceSplit = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
+const RightModalNavigatorStack = createSplitNavigator<RightModalNavigatorParamList>();
 
 const getEmptyComponent = () => jest.fn();
 
@@ -103,6 +105,10 @@ function TestSettingsSplitNavigator() {
                 name={SCREENS.SETTINGS.ABOUT}
                 getComponent={getEmptyComponent}
             />
+            <SettingsSplit.Screen
+                name={SCREENS.SETTINGS.SUBSCRIPTION.ROOT}
+                getComponent={getEmptyComponent}
+            />
         </SettingsSplit.Navigator>
     );
 }
@@ -114,11 +120,21 @@ function TestSearchFullscreenNavigator() {
                 name={SCREENS.SEARCH.ROOT}
                 getComponent={getEmptyComponent()}
             />
-            <SearchStack.Screen
-                name={SCREENS.SEARCH.MONEY_REQUEST_REPORT}
+        </SearchStack.Navigator>
+    );
+}
+
+function TestRightModalNavigator() {
+    return (
+        <RightModalNavigatorStack.Navigator
+            defaultCentralScreen={SCREENS.RIGHT_MODAL.SETTINGS}
+            parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
+        >
+            <RightModalNavigatorStack.Screen
+                name={SCREENS.RIGHT_MODAL.SETTINGS}
                 getComponent={getEmptyComponent()}
             />
-        </SearchStack.Navigator>
+        </RightModalNavigatorStack.Navigator>
     );
 }
 
@@ -148,6 +164,10 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                 <RootStack.Screen
                     name={SCREENS.VALIDATE_LOGIN}
                     component={getEmptyComponent()}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                    component={TestRightModalNavigator}
                 />
             </RootStack.Navigator>
         </NavigationContainer>

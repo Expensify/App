@@ -3,8 +3,8 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -81,7 +81,7 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
             displayName="XeroPurchaseBillStatusSelectorPage"
             title="workspace.xero.invoiceStatus.label"
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectPurchaseBillStatus(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

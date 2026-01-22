@@ -8,13 +8,14 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {isMobileIOS} from '@libs/Browser';
 import CONST from '@src/CONST';
 import SearchRouter from './SearchRouter';
-import {useSearchRouterContext} from './SearchRouterContext';
+import {useSearchRouterActions, useSearchRouterState} from './SearchRouterContext';
 
 const isMobileWebIOS = isMobileIOS();
 
 function SearchRouterModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
+    const {isSearchRouterDisplayed} = useSearchRouterState();
+    const {closeSearchRouter} = useSearchRouterActions();
     const viewportOffsetTop = useViewportOffsetTop();
 
     // On mWeb Safari, the input caret stuck for a moment while the modal is animating. So, we hide the caret until the animation is done.

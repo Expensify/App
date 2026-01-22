@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -102,7 +102,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-    const ownerDetails = useMemo(() => personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails), [personalDetails, policy?.ownerAccountID]);
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.keys(getCompanyFeeds(cardFeeds, false, true)).length > 0;
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
@@ -112,75 +112,56 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [isCannotRemoveUser, setIsCannotRemoveUser] = useState(false);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const {approvalWorkflows} = useMemo(
-        () =>
-            convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails: personalDetails ?? {},
-                localeCompare,
-            }),
-        [personalDetails, policy, localeCompare],
-    );
+    const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+        policy,
+        personalDetails: personalDetails ?? {},
+        localeCompare,
+    });
 
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);
     }, [policyID, accountID]);
 
-    const memberCards = useMemo(() => {
-        if (!workspaceCards) {
-            return [];
-        }
-        return Object.values(workspaceCards ?? {}).filter((card) => card.accountID === accountID);
-    }, [accountID, workspaceCards]);
+    const memberCards = workspaceCards ? Object.values(workspaceCards).filter((card) => card.accountID === accountID) : [];
 
-    const confirmModalPrompt = useMemo(() => {
-        const isApprover = isApproverUserAction(policy, memberLogin);
-        const isTechnicalContact = policy?.technicalContact === details?.login;
-        const exporters = [
-            policy?.connections?.intacct?.config?.export?.exporter,
-            policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
-            policy?.connections?.quickbooksOnline?.config?.export?.exporter,
-            policy?.connections?.xero?.config?.export?.exporter,
-            policy?.connections?.netsuite?.options?.config?.exporter,
-        ];
-        const isUserExporter = exporters.includes(details.login);
+    const isApprover = isApproverUserAction(policy, memberLogin);
+    const isTechnicalContact = policy?.technicalContact === details?.login;
+    const exporters = [
+        policy?.connections?.intacct?.config?.export?.exporter,
+        policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+        policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+        policy?.connections?.xero?.config?.export?.exporter,
+        policy?.connections?.netsuite?.options?.config?.exporter,
+    ];
+    const isUserExporter = exporters.includes(details.login);
 
-        if (isTechnicalContact) {
-            return translate('workspace.people.removeMemberPromptTechContact', {
-                memberName: displayName,
-                workspaceOwner: policyOwnerDisplayName,
-            });
-        }
+    let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', {
+        memberName: displayName,
+        ownerName: policyOwnerDisplayName,
+    });
 
-        if (isReimburser) {
-            return translate('workspace.people.removeMemberPromptReimburser', {
-                memberName: displayName,
-            });
-        }
-
-        if (isUserExporter) {
-            return translate('workspace.people.removeMemberPromptExporter', {
-                memberName: displayName,
-                workspaceOwner: policyOwnerDisplayName,
-            });
-        }
-
-        if (!isApprover) {
-            return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
-        }
-
-        if (isApprover) {
-            return translate('workspace.people.removeMemberPromptApprover', {
-                approver: displayName,
-                workspaceOwner: policyOwnerDisplayName,
-            });
-        }
-
-        return translate('workspace.people.removeMembersWarningPrompt', {
+    if (isTechnicalContact) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptTechContact', {
             memberName: displayName,
-            ownerName: policyOwnerDisplayName,
+            workspaceOwner: policyOwnerDisplayName,
         });
-    }, [policy, memberLogin, details.login, isReimburser, translate, displayName, policyOwnerDisplayName]);
+    } else if (isReimburser) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
+            memberName: displayName,
+        });
+    } else if (isUserExporter) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptExporter', {
+            memberName: displayName,
+            workspaceOwner: policyOwnerDisplayName,
+        });
+    } else if (!isApprover) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPrompt', {memberName: displayName});
+    } else if (isApprover) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', {
+            approver: displayName,
+            workspaceOwner: policyOwnerDisplayName,
+        });
+    }
 
     useEffect(() => {
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -198,7 +179,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     // Function to remove a member and close the modal
-    const removeMemberAndCloseModal = useCallback(() => {
+    const removeMemberAndCloseModal = () => {
         removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         const remainingEmployeeCount = previousEmployeesCount - 1;
@@ -207,9 +188,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             setPolicyPreventSelfApproval(policyID, false);
         }
         setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, memberLogin, policy?.employeeList, policy?.preventSelfApproval, policyID]);
+    };
 
-    const removeUser = useCallback(() => {
+    const removeUser = () => {
         const ownerEmail = ownerDetails?.login;
         const removedApprover = personalDetails?.[accountID];
 
@@ -238,37 +219,34 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
         // Remove the member and close the modal
         removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, removeMemberAndCloseModal, memberLogin]);
+    };
 
-    const navigateToProfile = useCallback(() => {
+    const navigateToProfile = () => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
-    }, [accountID]);
+    };
 
-    const navigateToDetails = useCallback(
-        (card: MemberCard) => {
-            if (card.bank === CONST.EXPENSIFY_CARD.BANK) {
-                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), Navigation.getActiveRoute()));
-                return;
-            }
-            if (!card.fundID) {
-                return;
-            }
-            Navigation.navigate(
-                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                    policyID,
-                    getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
-                    card.cardID.toString(),
-                    Navigation.getActiveRoute(),
-                ),
-            );
-        },
-        [policyID],
-    );
+    const navigateToDetails = (card: MemberCard) => {
+        if (card.bank === CONST.EXPENSIFY_CARD.BANK) {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), Navigation.getActiveRoute()));
+            return;
+        }
+        if (!card.fundID) {
+            return;
+        }
+        Navigation.navigate(
+            ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                policyID,
+                getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
+                card.cardID.toString(),
+                Navigation.getActiveRoute(),
+            ),
+        );
+    };
 
-    const startChangeOwnershipFlow = useCallback(() => {
+    const startChangeOwnershipFlow = () => {
         clearWorkspaceOwnerChangeFlow(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-    }, [accountID, policyID]);
+    };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =

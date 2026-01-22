@@ -232,4 +232,107 @@ describe('useCompanyCards', () => {
             expect(result.current.onyxMetadata.lastSelectedFeedMetadata).toBeDefined();
         });
     });
+
+    describe('cardList data structure', () => {
+        const mockCardsListWithEncryptedNumbers = {
+            cardList: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED2',
+            },
+        };
+
+        it('should return cardList with encrypted card numbers for commercial feeds', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
+            (useCardsList as jest.Mock).mockReturnValue([mockCardsListWithEncryptedNumbers, {status: 'loaded'}]);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // For commercial feeds, cardList contains {cardName: encryptedNumber}
+            expect(result.current.cardList).toEqual(mockCardsListWithEncryptedNumbers.cardList);
+
+            // cardNames should be the keys (display names)
+            expect(result.current.cardNames).toEqual(['490901XXXXXX1234', '490901XXXXXX5678']);
+        });
+
+        it('should have cardList where keys differ from values for commercial feeds', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
+            (useCardsList as jest.Mock).mockReturnValue([mockCardsListWithEncryptedNumbers, {status: 'loaded'}]);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const cardList = result.current.cardList ?? {};
+            const cardNames = Object.keys(cardList);
+            const encryptedNumbers = Object.values(cardList);
+
+            // In commercial feeds, the display name (key) should differ from encrypted value (value)
+            for (const [index, name] of cardNames.entries()) {
+                expect(name).not.toBe(encryptedNumbers.at(index));
+            }
+        });
+
+        it('should not have cardList for direct feeds (accountList is used instead)', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockPlaidFeed);
+            (useCardFeeds as jest.Mock).mockReturnValue([mockPlaidFeedData, {status: 'loaded'}, undefined]);
+            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // Direct feeds use accountList, not cardList
+            expect(result.current.cardList).toBeUndefined();
+            expect(result.current.selectedFeed?.accountList).toBeDefined();
+            expect(result.current.cardNames).toEqual(['Plaid Checking 0000', 'Plaid Credit Card 3333']);
+        });
+    });
+
+    describe('card ID consistency', () => {
+        it('should ensure direct feed cardNames can be used as identifiers', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
+            (useCardFeeds as jest.Mock).mockReturnValue([mockOAuthFeedData, {status: 'loaded'}, undefined]);
+            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // For direct feeds, cardNames ARE the identifiers (no encryption)
+            const cardNames = result.current.cardNames ?? [];
+            expect(cardNames).toEqual(['CREDIT CARD...6607', 'CREDIT CARD...5501']);
+
+            // Each card name is both the display value AND the identifier
+            for (const name of cardNames) {
+                expect(typeof name).toBe('string');
+                expect(name.length).toBeGreaterThan(0);
+            }
+        });
+
+        it('should ensure commercial feed cardList maps display names to encrypted identifiers', async () => {
+            const commercialCardsList = {
+                cardList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'VISA - 1234': 'enc_abc123',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'VISA - 5678': 'enc_def456',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
+            (useCardsList as jest.Mock).mockReturnValue([commercialCardsList, {status: 'loaded'}]);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const cardList = result.current.cardList ?? {};
+
+            // Display names are keys
+            expect(Object.keys(cardList)).toEqual(['VISA - 1234', 'VISA - 5678']);
+
+            // Encrypted identifiers are values
+            expect(Object.values(cardList)).toEqual(['enc_abc123', 'enc_def456']);
+
+            // Lookup: given a display name, get the encrypted identifier
+            expect(cardList['VISA - 1234']).toBe('enc_abc123');
+        });
+    });
 });

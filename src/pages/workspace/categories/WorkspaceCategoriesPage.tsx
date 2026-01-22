@@ -47,7 +47,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -102,6 +102,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`, {canBeMissing: true});
+
+    const policyHasTags = hasTags(policyTags);
+
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
     }, [policyId]);
@@ -110,7 +122,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     useEffect(() => {
         fetchCategories();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -142,7 +153,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return newSelectedCategories;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyCategories]);
 
     useSearchBackPress({
@@ -152,16 +163,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(
+            setWorkspaceCategoryEnabled({
                 policyData,
-                {[categoryName]: {name: categoryName, enabled: value}},
-                isSetupCategoryTaskParentReportArchived,
+                categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
+                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
-                currentUserPersonalDetails.accountID,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
                 parentReportAction,
-            );
+                setupCategoriesAndTagsTaskReport,
+                setupCategoriesAndTagsTaskParentReport,
+                isSetupCategoriesAndTagsTaskParentReportArchived,
+                setupCategoriesAndTagsHasOutstandingChildTask,
+                setupCategoriesAndTagsParentReportAction,
+                policyHasTags,
+            });
         },
         [
             policyData,
@@ -171,6 +188,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            policyHasTags,
         ],
     );
 
@@ -207,7 +230,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             <Switch
                                 isOn={value.enabled}
                                 disabled={isDisabled}
-                                accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                         setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
@@ -223,7 +246,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Switch
                         isOn={value.enabled}
                         disabled={isDisabled}
-                        accessibilityLabel={translate('workspace.categories.enableCategory')}
+                        accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                 setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
@@ -460,16 +483,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(
+                        setWorkspaceCategoryEnabled({
                             policyData,
-                            categoriesToDisable,
-                            isSetupCategoryTaskParentReportArchived,
+                            categoriesToUpdate: categoriesToDisable,
+                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
-                            currentUserPersonalDetails.accountID,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
                             hasOutstandingChildTask,
                             parentReportAction,
-                        );
+                            setupCategoriesAndTagsTaskReport,
+                            setupCategoriesAndTagsTaskParentReport,
+                            isSetupCategoriesAndTagsTaskParentReportArchived,
+                            setupCategoriesAndTagsHasOutstandingChildTask,
+                            setupCategoriesAndTagsParentReportAction,
+                            policyHasTags,
+                        });
                     },
                 });
             }
@@ -491,16 +520,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(
+                        setWorkspaceCategoryEnabled({
                             policyData,
-                            categoriesToEnable,
-                            isSetupCategoryTaskParentReportArchived,
+                            categoriesToUpdate: categoriesToEnable,
+                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
-                            currentUserPersonalDetails.accountID,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
                             hasOutstandingChildTask,
                             parentReportAction,
-                        );
+                            setupCategoriesAndTagsTaskReport,
+                            setupCategoriesAndTagsTaskParentReport,
+                            isSetupCategoriesAndTagsTaskParentReportArchived,
+                            setupCategoriesAndTagsHasOutstandingChildTask,
+                            setupCategoriesAndTagsParentReportAction,
+                            policyHasTags,
+                        });
                     },
                 });
             }

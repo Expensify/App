@@ -51,7 +51,6 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             props.onSetCurrentReportID?.(reportID);
             setCurrentReportID(reportID);
         },
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
         [setCurrentReportID, currentReportID],
     );

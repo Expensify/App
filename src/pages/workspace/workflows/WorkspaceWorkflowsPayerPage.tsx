@@ -152,7 +152,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const headerMessage = useMemo(
         () => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''),
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [translate, sections],
     );
 
@@ -189,6 +189,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFoundPage}
@@ -213,6 +214,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyAuthorizedPayer}
+                        initiallyFocusedOptionKey={formattedAuthorizedPayer.at(0)?.keyForList}
                         shouldSingleExecuteRowSelect
                         showScrollIndicator
                         addBottomSafeAreaPadding

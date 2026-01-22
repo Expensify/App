@@ -52,6 +52,10 @@ const FS: Fullstory = {
     getSessionId: () => {
         return FullStory.getCurrentSession();
     },
+
+    getSessionURL: () => {
+        return FullStory.getCurrentSessionURL();
+    },
 };
 
 export default FS;

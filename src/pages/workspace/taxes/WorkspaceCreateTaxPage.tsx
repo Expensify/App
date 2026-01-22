@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import AmountPicker from '@components/AmountPicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -37,51 +37,40 @@ function WorkspaceCreateTaxPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validateTaxNameCustom = useCallback(
-        (inputID: string) => {
-            return (values: Record<string, string>) => {
-                const errors: Record<string, string> = {};
-                const name = values[inputID];
+    const validateTaxNameCustom = (inputID: string) => {
+        return (values: Record<string, string>) => {
+            const errors: Record<string, string> = {};
+            const name = values[inputID];
 
-                if (name && policy?.taxRates?.taxes && isExistingTaxName(name, policy.taxRates.taxes)) {
-                    errors[inputID] = translate('workspace.taxes.error.taxRateAlreadyExists');
-                }
-
-                return errors;
-            };
-        },
-        // Note: We need the entire taxes object as isExistingTaxName requires it to check for duplicates
-        // This callback will recreate when taxes change, which is necessary for accurate validation
-        [policy?.taxRates?.taxes, translate],
-    );
-
-    const customValidateForName = useMemo(() => validateTaxNameCustom(INPUT_IDS.NAME), [validateTaxNameCustom]);
-
-    const submitForm = useCallback(
-        ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
-            const taxRate = {
-                ...values,
-                value: getTaxValueWithPercentage(value),
-                code: getNextTaxCode(values[INPUT_IDS.NAME], policy?.taxRates?.taxes),
-            } satisfies TaxRate;
-            createPolicyTax(policyID, taxRate);
-            Navigation.goBack();
-        },
-        [policy?.taxRates?.taxes, policyID],
-    );
-
-    const validateForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM> => {
-            if (!policy) {
-                return {};
+            if (name && policy?.taxRates?.taxes && isExistingTaxName(name, policy.taxRates.taxes)) {
+                errors[inputID] = translate('workspace.taxes.error.taxRateAlreadyExists');
             }
-            return {
-                ...validateTaxName(policy, values),
-                ...validateTaxValue(values),
-            };
-        },
-        [policy],
-    );
+
+            return errors;
+        };
+    };
+
+    const customValidateForName = validateTaxNameCustom(INPUT_IDS.NAME);
+
+    const submitForm = ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
+        const taxRate = {
+            ...values,
+            value: getTaxValueWithPercentage(value),
+            code: getNextTaxCode(values[INPUT_IDS.NAME], policy?.taxRates?.taxes),
+        } satisfies TaxRate;
+        createPolicyTax(policyID, taxRate);
+        Navigation.goBack();
+    };
+
+    const validateForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM> => {
+        if (!policy) {
+            return {};
+        }
+        return {
+            ...validateTaxName(policy, values),
+            ...validateTaxValue(values),
+        };
+    };
 
     return (
         <AccessOrNotFoundWrapper

@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -86,7 +86,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
             displayName="QuickbooksDesktopCompanyCardExpenseAccountSelectPage"
             headerTitleAlreadyTranslated={getQBDNonReimbursableExportAccountType(translate, nonReimbursable)}
             headerContent={nonReimbursable ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbd.accounts.${nonReimbursable}AccountDescription`)}</Text> : null}
-            sections={data.length ? [{data}] : []}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={selectExportAccount}
             shouldSingleExecuteRowSelect

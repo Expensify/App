@@ -71,7 +71,7 @@ jobs:
 
       - name: Run generateTranslations for added translations
         if: steps.check-en-changes.outputs.HAS_CHANGES == 'true'
-        run: npx ts-node ./scripts/generateTranslations.ts --verbose --compare-ref=${{ steps.pr-data.outputs.BASE_REF }}
+        run: npx ts-node ./scripts/generateTranslations.ts --verbose --yes --compare-ref=${{ steps.pr-data.outputs.BASE_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}

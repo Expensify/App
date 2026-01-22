@@ -94,6 +94,13 @@ const FS: Fullstory = {
         }
         return FullStory('getSessionAsync', {format: 'id'});
     },
+
+    getSessionURL: async () => {
+        if (!isInitialized()) {
+            return;
+        }
+        return FullStory('getSessionAsync', {format: 'url'});
+    },
 };
 
 export default FS;

@@ -154,7 +154,6 @@ function ReportActionItemParentAction({
                 errorRowStyles={[styles.ml10, styles.mr2]}
                 onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true)}
             >
-                {/* eslint-disable-next-line react-compiler/react-compiler */}
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
                     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);

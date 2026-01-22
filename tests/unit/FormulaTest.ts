@@ -1,13 +1,13 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, hasCircularReferences, parse} from '@libs/Formula';
+import {compute, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetails, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyReportField, Report, ReportActions, Transaction} from '@src/types/onyx';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
@@ -1022,6 +1022,7 @@ describe('CustomFormula', () => {
             } as Report,
             policy: {
                 name: 'Test Policy',
+                glCodes: true,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'john.doe@company.com': {
@@ -1139,6 +1140,7 @@ describe('CustomFormula', () => {
                     report: {reportID: '123'} as Report,
                     policy: {
                         name: 'Test Policy',
+                        glCodes: true,
                         employeeList: {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             'other.user@company.com': {
@@ -1151,6 +1153,28 @@ describe('CustomFormula', () => {
                 };
 
                 expect(compute('{report:submit:from:customfield1}', contextWithDifferentEmployee)).toBe('');
+            });
+
+            test('customfield1/customfield2 - return empty when glCodes disabled', () => {
+                const contextWithGlCodesDisabled: FormulaContext = {
+                    report: {reportID: '123'} as Report,
+                    policy: {
+                        name: 'Test Policy',
+                        glCodes: false,
+                        employeeList: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'john.doe@company.com': {
+                                email: 'john.doe@company.com',
+                                employeeUserID: 'EMP001',
+                                employeePayrollID: 'PAY123',
+                            },
+                        },
+                    } as unknown as Policy,
+                    submitterPersonalDetails: mockSubmitter,
+                };
+
+                expect(compute('{report:submit:from:customfield1}', contextWithGlCodesDisabled)).toBe('');
+                expect(compute('{report:submit:from:customfield2}', contextWithGlCodesDisabled)).toBe('');
             });
         });
 
@@ -1393,6 +1417,253 @@ describe('CustomFormula', () => {
 
         test('should return false when there is no formula field', () => {
             expect(hasCircularReferences('hi test', 'test-example', fieldList)).toBe(false);
+        });
+    });
+
+    describe('Field Reference Resolution', () => {
+        const mockReport = {reportID: '123'} as Report;
+        const mockPolicy = {name: 'Test Policy'} as Policy;
+
+        test('should resolve simple {field:X} reference', () => {
+            const fieldsByName = {
+                b: {
+                    fieldID: 'field_b',
+                    name: 'B',
+                    defaultValue: 'value_from_b',
+                    value: 'value_from_b',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {b: 'value_from_b'};
+
+            const result = compute('{field:B}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            expect(result).toBe('value_from_b');
+        });
+
+        test('should resolve chained field references (A references B)', () => {
+            const fieldsByName = {
+                a: {
+                    fieldID: 'field_a',
+                    name: 'A',
+                    defaultValue: '{field:B}',
+                    value: 'stale_value', // This should be ignored
+                } as unknown as PolicyReportField,
+                b: {
+                    fieldID: 'field_b',
+                    name: 'B',
+                    defaultValue: 'current_value_b',
+                    value: 'current_value_b',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {a: 'stale_value', b: 'current_value_b'};
+
+            // When computing {field:A}, it should recursively resolve {field:B} from A's defaultValue
+            const result = compute('{field:A}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            expect(result).toBe('current_value_b');
+        });
+
+        test('should resolve recursive field references (C -> A -> B)', () => {
+            const fieldsByName = {
+                a: {
+                    fieldID: 'field_a',
+                    name: 'A',
+                    defaultValue: '{field:B}',
+                    value: 'stale_a', // Should be ignored
+                } as unknown as PolicyReportField,
+                b: {
+                    fieldID: 'field_b',
+                    name: 'B',
+                    defaultValue: 'fresh_value_b',
+                    value: 'fresh_value_b',
+                } as unknown as PolicyReportField,
+                c: {
+                    fieldID: 'field_c',
+                    name: 'C',
+                    defaultValue: '{field:A}',
+                    value: 'stale_c', // Should be ignored
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {a: 'stale_a', b: 'fresh_value_b', c: 'stale_c'};
+
+            // C references A, A references B - should get B's current value
+            const result = compute('{field:C}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            expect(result).toBe('fresh_value_b');
+        });
+
+        test('should handle field reference with text prefix and suffix', () => {
+            const fieldsByName = {
+                name: {
+                    fieldID: 'field_name',
+                    name: 'Name',
+                    defaultValue: 'John',
+                    value: 'John',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {name: 'John'};
+
+            const result = compute('Hello {field:Name}!', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            expect(result).toBe('Hello John!');
+        });
+
+        test('should handle multiple field references in same formula', () => {
+            const fieldsByName = {
+                first: {
+                    fieldID: 'field_first',
+                    name: 'First',
+                    defaultValue: 'Hello',
+                    value: 'Hello',
+                } as unknown as PolicyReportField,
+                second: {
+                    fieldID: 'field_second',
+                    name: 'Second',
+                    defaultValue: 'World',
+                    value: 'World',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {first: 'Hello', second: 'World'};
+
+            const result = compute('{field:First} {field:Second}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            expect(result).toBe('Hello World');
+        });
+
+        test('should return definition when field is not found', () => {
+            const fieldsByName = {};
+            const fieldValues = {};
+
+            const result = compute('{field:Unknown}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            expect(result).toBe('{field:Unknown}');
+        });
+
+        test('should use field.value when defaultValue has no field references', () => {
+            const fieldsByName = {
+                simple: {
+                    fieldID: 'field_simple',
+                    name: 'Simple',
+                    defaultValue: 'default_text',
+                    value: 'current_value',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {simple: 'current_value'};
+
+            const result = compute('{field:Simple}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            expect(result).toBe('current_value');
+        });
+
+        test('should be case-insensitive for field names', () => {
+            const fieldsByName = {
+                myfield: {
+                    fieldID: 'field_myfield',
+                    name: 'MyField',
+                    defaultValue: 'test_value',
+                    value: 'test_value',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {myfield: 'test_value'};
+
+            expect(compute('{field:MyField}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
+            expect(compute('{field:MYFIELD}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
+            expect(compute('{field:myfield}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
+        });
+    });
+
+    describe('resolveReportFieldValue', () => {
+        const mockReport = {reportID: '123'} as Report;
+        const mockPolicy = {name: 'Test Policy'} as Policy;
+
+        test('should return field.value when defaultValue has no field references', () => {
+            const field = {
+                fieldID: 'field_simple',
+                name: 'Simple',
+                defaultValue: 'default_text',
+                value: 'current_value',
+            } as unknown as PolicyReportField;
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            expect(result).toBe('current_value');
+        });
+
+        test('should return defaultValue when value is undefined and no field references', () => {
+            const field = {
+                fieldID: 'field_default',
+                name: 'Default',
+                defaultValue: 'fallback_value',
+                value: undefined,
+            } as unknown as PolicyReportField;
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            expect(result).toBe('fallback_value');
+        });
+
+        test('should resolve field references when defaultValue contains {field:X}', () => {
+            const field = {
+                fieldID: 'field_a',
+                name: 'A',
+                defaultValue: '{field:B}',
+                value: '',
+            } as unknown as PolicyReportField;
+
+            const fieldsByName = {
+                b: {
+                    fieldID: 'field_b',
+                    name: 'B',
+                    defaultValue: 'resolved_value',
+                    value: 'resolved_value',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {b: 'resolved_value'};
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, fieldValues, fieldsByName);
+            expect(result).toBe('resolved_value');
+        });
+
+        test('should return fieldValue when report is null', () => {
+            const field = {
+                fieldID: 'field_a',
+                name: 'A',
+                defaultValue: '{field:B}',
+                value: 'stale_value',
+            } as unknown as PolicyReportField;
+
+            // @ts-expect-error - Testing report null
+            const result = resolveReportFieldValue(field, null, mockPolicy, {}, {});
+            expect(result).toBe('stale_value');
+        });
+
+        test('should resolve chained field references', () => {
+            const field = {
+                fieldID: 'field_c',
+                name: 'C',
+                defaultValue: '{field:A}',
+                value: '',
+            } as unknown as PolicyReportField;
+
+            const fieldsByName = {
+                a: {
+                    fieldID: 'field_a',
+                    name: 'A',
+                    defaultValue: '{field:B}',
+                    value: '',
+                } as unknown as PolicyReportField,
+                b: {
+                    fieldID: 'field_b',
+                    name: 'B',
+                    defaultValue: 'final_value',
+                    value: 'final_value',
+                } as unknown as PolicyReportField,
+            };
+            const fieldValues = {a: '', b: 'final_value'};
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, fieldValues, fieldsByName);
+            expect(result).toBe('final_value');
+        });
+
+        test('should return empty string when both value and defaultValue are undefined', () => {
+            const field = {
+                fieldID: 'field_empty',
+                name: 'Empty',
+            } as unknown as PolicyReportField;
+
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            expect(result).toBe('');
         });
     });
 });

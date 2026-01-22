@@ -185,6 +185,8 @@ describe('QuickActionUtils', () => {
                         ABCDEF: perDiemCustomUnit,
                     },
                 } as unknown as Policy;
+                mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, false)).toBe(true);
             });
             it("should not allow per diem action when policy doesn't have per diem rates", () => {

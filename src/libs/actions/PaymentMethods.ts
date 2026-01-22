@@ -278,7 +278,7 @@ function addSubscriptionPaymentCard(
  * Calls the API to add a new SCA (GBP or EUR) card.
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
-function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
+function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {}) {
     API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
 }
 

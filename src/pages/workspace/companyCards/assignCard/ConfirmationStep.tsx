@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -27,9 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CurrencyList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
@@ -46,8 +45,8 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [cardError, setCardError] = useState<Errors>();
     const policy = usePolicy(policyID);
+    const {currencyList} = useCurrencyList();
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
@@ -99,8 +98,10 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        const cardNumberToCheck = cardToAssign?.cardNumber ?? cardToAssign?.encryptedCardNumber;
-        if (cardNumberToCheck && isCardAlreadyAssigned(cardNumberToCheck, workspaceCardFeeds)) {
+        // Check both encryptedCardNumber and cardName since isCardAlreadyAssigned matches on either
+        // This handles cases where workspace card entries only have cardName (masked display name) stored
+        const cardIdentifier = cardToAssign?.encryptedCardNumber ?? cardToAssign?.cardName;
+        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds)) {
             setCardError(getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.cardAlreadyAssignedError'));
             return;
         }
@@ -152,7 +153,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={cardToAssign?.encryptedCardNumber ?? maskCardNumber(cardToAssign?.cardNumber ?? '', cardToAssign?.bankName)}
+                    title={maskCardNumber(cardToAssign?.cardName ?? '', cardToAssign?.bankName)}
                     interactive={false}
                 />
                 <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
@@ -178,7 +179,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.cardName')}
-                    title={cardToAssign?.cardName}
+                    title={cardToAssign?.customCardName}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />

@@ -338,6 +338,10 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
+    if (query.policyID) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(query.policyID) ? query.policyID.join(',') : query.policyID} `;
+    }
+
     const filterSet = new Set<string>(orderedQuery);
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
@@ -376,9 +380,6 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${Array.isArray(query.columns) ? query.columns.join(',') : query.columns}`;
 
-    if (query.policyID) {
-        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(query.policyID) ? query.policyID.join(',') : query.policyID} `;
-    }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
@@ -1203,17 +1204,13 @@ function buildUserReadableQueryString(
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
 ) {
-    const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
+    const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
 
         for (const rawFilter of rawFilterList) {
             if (!rawFilter) {
-                continue;
-            }
-
-            if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
                 continue;
             }
 
@@ -1266,6 +1263,11 @@ function buildUserReadableQueryString(
 
     if (policyID && policyID.length > 0) {
         title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
+    }
+
+    if (columns && columns.length > 0) {
+        const columnValue = Array.isArray(columns) ? columns.map((column) => getUserFriendlyValue(column)).join(',') : getUserFriendlyValue(columns);
+        title += ` columns:${columnValue}`;
     }
 
     for (const filterObject of filters) {
@@ -1329,7 +1331,7 @@ function buildCannedSearchQuery({
  * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    const selectedColumns = queryJSON.columns ?? [];
+    const selectedColumns = [queryJSON.columns ?? []].flat();
     const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
     return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;

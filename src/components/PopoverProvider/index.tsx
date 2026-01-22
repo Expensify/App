@@ -146,7 +146,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
             onOpen,
             setActivePopoverExtraAnchorRef,
             close: closePopover,
-            // eslint-disable-next-line react-compiler/react-compiler
             popover: activePopoverRef.current,
             popoverAnchor: activePopoverAnchor,
             isOpen,

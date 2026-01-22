@@ -1054,6 +1054,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1160,6 +1162,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 units: 'object',
                 splitsStartDate: 'string',
                 splitsEndDate: 'string',
+                odometerStart: 'number',
+                odometerEnd: 'number',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {

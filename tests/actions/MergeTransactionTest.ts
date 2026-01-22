@@ -1,8 +1,9 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
@@ -24,6 +25,23 @@ function createMockViolations(): TransactionViolation[] {
             showInReview: true,
         },
     ];
+}
+
+// Helper function to create allTransactionViolations collection
+function createAllTransactionViolations(
+    targetTransactionID: string,
+    sourceTransactionID: string,
+    targetViolations?: TransactionViolation[],
+    sourceViolations?: TransactionViolation[],
+): OnyxCollection<TransactionViolations> {
+    const allViolations: OnyxCollection<TransactionViolations> = {};
+    if (targetViolations) {
+        allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransactionID}`] = targetViolations;
+    }
+    if (sourceViolations) {
+        allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${sourceTransactionID}`] = sourceViolations;
+    }
+    return allViolations;
 }
 
 describe('mergeTransactionRequest', () => {
@@ -76,6 +94,32 @@ describe('mergeTransactionRequest', () => {
         };
         const mergeTransactionID = 'merge789';
 
+        // Sample violations for testing
+        const targetViolations: TransactionViolation[] = [
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                showInReview: true,
+            },
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                showInReview: true,
+            },
+        ];
+        const sourceViolations: TransactionViolation[] = [
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                showInReview: true,
+            },
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.OVER_LIMIT,
+                showInReview: true,
+            },
+        ];
+
         // Set up initial state in Onyx
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
@@ -91,6 +135,10 @@ describe('mergeTransactionRequest', () => {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
+            targetTransactionThreadReport: {reportID: 'target-report-456'},
+            targetTransactionThreadParentReport: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
@@ -213,6 +261,10 @@ describe('mergeTransactionRequest', () => {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
+            targetTransactionThreadReport: {reportID: 'target-report-456'},
+            targetTransactionThreadParentReport: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
@@ -310,6 +362,10 @@ describe('mergeTransactionRequest', () => {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
+            targetTransactionThreadReport: {reportID: 'target123'},
+            targetTransactionThreadParentReport: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
@@ -374,6 +430,32 @@ describe('mergeTransactionRequest', () => {
             };
             const mergeTransactionID = 'merge789';
 
+            // Sample violations for testing
+            const targetViolations: TransactionViolation[] = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    showInReview: true,
+                },
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.MISSING_COMMENT,
+                    showInReview: true,
+                },
+            ];
+            const sourceViolations: TransactionViolation[] = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    showInReview: true,
+                },
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+                    showInReview: true,
+                },
+            ];
+
             // Set up initial state
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
@@ -389,6 +471,10 @@ describe('mergeTransactionRequest', () => {
                 mergeTransaction,
                 targetTransaction,
                 sourceTransaction,
+                targetTransactionThreadReport: {reportID: 'target-report-456'},
+                targetTransactionThreadParentReport: undefined,
+                targetTransactionThreadParentReportNextStep: undefined,
+                allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
                 policy: undefined,
                 policyTags: undefined,
                 policyCategories: undefined,

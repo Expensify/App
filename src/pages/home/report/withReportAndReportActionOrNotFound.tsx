@@ -67,7 +67,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
                 return;
             }
             openReport(props.route.params.reportID);
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);
 
         // Perform all the loading checks

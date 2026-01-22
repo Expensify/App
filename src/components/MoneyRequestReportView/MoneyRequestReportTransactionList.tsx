@@ -21,6 +21,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -28,6 +29,7 @@ import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -167,7 +169,8 @@ function MoneyRequestReportTransactionList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare', 'ReceiptPlus']);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
@@ -254,7 +257,6 @@ function MoneyRequestReportTransactionList({
     useEffect(() => {
         clearSelectedTransactions(true);
         // We don't want to run the effect on change of clearSelectedTransactions since it can cause an infinite loop.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID]);
 
@@ -276,8 +278,18 @@ function MoneyRequestReportTransactionList({
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const columnsToShow = useMemo(() => {
-        return getColumnsToShow(currentUserDetails?.accountID, transactions, [], true, undefined, undefined, isIOUReport(report));
-    }, [transactions, currentUserDetails?.accountID, report]);
+        return getColumnsToShow(
+            currentUserDetails?.accountID,
+            transactions,
+            [],
+            true,
+            undefined,
+            undefined,
+            isIOUReport(report),
+            isBillableEnabledOnPolicy(policy),
+            hasNonReimbursableTransactions(transactions),
+        );
+    }, [transactions, currentUserDetails?.accountID, report, policy]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
@@ -289,7 +301,7 @@ function MoneyRequestReportTransactionList({
             return groupTransactionsByTag(sortedTransactions, report, localeCompare);
         }
         return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortedTransactions, currentGroupBy, report?.reportID, localeCompare, shouldShowGroupedTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {

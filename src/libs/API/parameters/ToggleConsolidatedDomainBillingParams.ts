@@ -1,5 +1,4 @@
 type ToggleConsolidatedDomainBillingParams = {
-    authToken?: string | null;
     domainAccountID: number;
     domainName: string;
     enabled: boolean;

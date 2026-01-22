@@ -1,5 +1,6 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
+import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
@@ -26,6 +27,11 @@ function AdminTestDriveModal() {
     const skipTestDrive = () => {
         Log.hmmm('[AdminTestDriveModal] Skip test drive function called');
         Navigation.dismissModal();
+
+        if (shouldOpenRHPVariant()) {
+            Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
+            return;
+        }
 
         Log.hmmm('[AdminTestDriveModal] Running after interactions');
         Navigation.setNavigationActionToMicrotaskQueue(() => {

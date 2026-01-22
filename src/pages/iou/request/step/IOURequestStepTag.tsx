@@ -15,6 +15,7 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -52,6 +53,9 @@ function IOURequestStepTag({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -135,7 +139,8 @@ function IOURequestStepTag({
         if (isEditing) {
             updateMoneyRequestTag({
                 transactionID,
-                transactionThreadReportID: report?.reportID,
+                transactionThreadReport: report,
+                parentReport,
                 tag: updatedTag,
                 policy,
                 policyTagList: policyTags,
@@ -145,6 +150,7 @@ function IOURequestStepTag({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 hash: currentSearchHash,
+                parentReportNextStep,
             });
             navigateBack();
             return;

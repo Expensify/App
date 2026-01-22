@@ -12,6 +12,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,6 +52,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetailsList = usePersonalDetails();
+    const {login} = useCurrentUserPersonalDetails();
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(() => privateNoteDraft || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim());
@@ -91,7 +93,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim());
+            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim(), login ?? '', undefined);
             updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 

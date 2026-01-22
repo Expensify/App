@@ -70,11 +70,13 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         }
 
         const details = personalDetails?.[accountID];
-        if (details?.login === technicalContactSettings?.technicalContactEmail) {
+        let isSelected = false;
+        if (!!details?.login && !!technicalContactSettings?.technicalContactEmail && details.login === technicalContactSettings.technicalContactEmail) {
             technicalContactEmailKey = String(accountID);
+            isSelected = true;
         }
         data.push({
-            isSelected: details?.login === technicalContactSettings?.technicalContactEmail,
+            isSelected,
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
@@ -112,7 +114,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                             return;
                         }
                         if (option.login !== technicalContactSettings?.technicalContactEmail) {
-                            setPrimaryContact(domainAccountID, option.accountID, option.login, technicalContactSettings?.technicalContactEmail);
+                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
                         }
                         Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                     }}

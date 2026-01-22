@@ -164,6 +164,12 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
                   }
                 : undefined,
+            policy?.isTravelEnabled
+                ? {
+                      translation: translate('workspace.common.travel'),
+                      value: 'travel',
+                  }
+                : undefined,
         ];
 
         return result.filter((item): item is NonNullable<typeof item> => !!item);
@@ -228,6 +234,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
                 overview: selectedItems.includes('overview'),
+                travel: selectedItems.includes('travel'),
             },
             file: duplicatedWorkspaceAvatar,
             localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -308,13 +315,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             return;
         }
         setSelectedItems(items.map((i) => i.value));
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items.length]);
 
     useEffect(() => {
         fetchWorkspaceRelatedData();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

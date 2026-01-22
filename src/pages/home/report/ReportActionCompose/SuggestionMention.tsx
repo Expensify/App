@@ -73,10 +73,10 @@ function SuggestionMention({
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     const policy = usePolicy(policyID);
-    // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -100,7 +100,7 @@ function SuggestionMention({
     );
     const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList | undefined = useMemo(() => {
         const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
-        if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
+        if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID, conciergeReportID)) {
             return personalDetails;
         }
         return lodashMapValues(personalDetails, (detail) =>
@@ -111,7 +111,7 @@ function SuggestionMention({
                   }
                 : null,
         );
-    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID]);
+    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID, conciergeReportID]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -124,10 +124,8 @@ function SuggestionMention({
 
     // Used to detect if the selection has changed since the last suggestion insertion
     // If so, we reset the suggestionInsertionIndexRef
-    // eslint-disable-next-line react-compiler/react-compiler
     const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
     if (hasSelectionChanged) {
-        // eslint-disable-next-line react-compiler/react-compiler
         suggestionInsertionIndexRef.current = null;
     }
 

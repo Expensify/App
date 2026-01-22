@@ -76,7 +76,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    // eslint-disable-next-line react-compiler/react-compiler
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const areAllOptionsDisabled = options.every((option) => option.disabled);
@@ -276,7 +275,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     }}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     anchorAlignment={anchorAlignment}

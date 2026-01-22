@@ -24,7 +24,6 @@ function DisplayNamesWithToolTip({
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
-    // eslint-disable-next-line react-compiler/react-compiler
     const isEllipsisActive = !!containerRef.current?.offsetWidth && !!containerRef.current?.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth;
 
     /**

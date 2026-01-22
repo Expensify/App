@@ -8,7 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import {clearDomainErrors} from '@src/libs/actions/Domain';
 import ROUTES from '@src/ROUTES';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import DomainsListRow from './DomainsListRow';
 
 type DomainMenuItemProps = {
@@ -37,6 +39,9 @@ type DomainItem = {
 
     /** Whether the row's domain is validated (aka verified) */
     isValidated: boolean;
+
+    /** Current errors for domain */
+    errors?: Errors;
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
@@ -68,12 +73,14 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
         <OfflineWithFeedback
             key={`domain_${item.title}_${index}`}
             pendingAction={item.pendingAction}
-            style={styles.mb2}
+            style={[styles.mb2, styles.mh5]}
+            contentContainerStyle={item.errors ? styles.mb2 : undefined}
+            errors={item?.errors}
+            onClose={() => clearDomainErrors(item.accountID)}
         >
             <PressableWithoutFeedback
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="row"
-                style={styles.mh5}
                 onPress={action}
             >
                 {({hovered}) => (

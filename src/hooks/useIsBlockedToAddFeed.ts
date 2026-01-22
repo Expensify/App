@@ -1,5 +1,5 @@
-import {useMemo} from 'react';
-import {getCompanyFeeds, isCSVFeedOrExpensifyCard} from '@libs/CardUtils';
+import {useEffect, useState} from 'react';
+import {getCompanyFeeds} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
@@ -10,7 +10,6 @@ import usePolicy from './usePolicy';
  *
  * Collect plan workspaces are limited to one company card feed. This hook checks if the workspace already has
  * a feed and returns whether users should be blocked from adding more feeds.
- * CSV uploads from Classic and Expensify Cards should not count toward this limit.
  *
  * @param policyID - The ID of the workspace/policy to check
  * @returns An object containing:
@@ -20,27 +19,24 @@ import usePolicy from './usePolicy';
 function useIsBlockedToAddFeed(policyID?: string) {
     const policy = usePolicy(policyID);
     const [cardFeeds, allFeedsResult, defaultFeed] = useCardFeeds(policyID);
-    // Include pending feeds in the count to prevent users from adding multiple feeds
-    // Pending feeds count toward the limit because the backend checks before adding
-    const companyFeeds = getCompanyFeeds(cardFeeds, true, false);
+    const companyFeeds = getCompanyFeeds(cardFeeds, true);
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
+    const [prevCompanyFeedsLength, setPrevCompanyFeedsLength] = useState(0);
 
     const isLoading = !cardFeeds || !!defaultFeed?.isLoading;
 
-    // Count feeds excluding CSV uploads from Classic and Expensify Cards
-    // Include pending feeds in the count to enforce the limit
-    const connectedFeedsCount = useMemo(() => {
+    useEffect(() => {
         if (isLoading) {
-            return 0;
+            return;
         }
-        const feeds = companyFeeds ?? {};
-        const nonCSVFeeds = Object.keys(feeds).filter((feedKey) => !isCSVFeedOrExpensifyCard(feedKey));
-        return nonCSVFeeds.length;
-    }, [isLoading, companyFeeds]);
+        const connectedFeeds = Object.entries(companyFeeds)?.length;
+        setPrevCompanyFeedsLength(connectedFeeds);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, [isLoading]);
 
     return {
-        isBlockedToAddNewFeeds: isCollect && !isLoading && connectedFeedsCount >= 1,
+        isBlockedToAddNewFeeds: isCollect && !isLoading && prevCompanyFeedsLength >= 1,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
     };
 }

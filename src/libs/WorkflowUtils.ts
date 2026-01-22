@@ -373,6 +373,18 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                     ],
                 };
             }
+
+            const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
+            if (hasOverLimitToRemovedApprover) {
+                const approversWithClearedOverLimit = workflow.approvers.map((item) =>
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                );
+                return {
+                    ...workflow,
+                    approvers: approversWithClearedOverLimit,
+                };
+            }
+
             return workflow;
         }
 

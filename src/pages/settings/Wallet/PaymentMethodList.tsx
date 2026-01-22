@@ -371,6 +371,7 @@ function PaymentMethodList({
                 isMethodActive,
                 iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
+                canDismissError: true,
             };
         });
         return combinedPaymentMethods;

@@ -143,83 +143,6 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ---
 
-### [PERF-4] Memoize objects (including arrays) and functions passed as props
-
-- **Search patterns**: `prop={{`, `prop={[`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
-
-- **Applies ONLY to**: Objects (including arrays)/functions passed directly as JSX props. Does NOT apply to:
-  - Code inside callbacks (`.then()`, event handlers)
-  - Code inside `useEffect`/`useMemo`/`useCallback` bodies
-  - Primitives (strings, numbers, booleans)
-  - Already memoized values (`useMemo`/`useCallback`)
-
-- **Reasoning**: New object/function references break memoization of child components. Only matters when child IS memoized AND parent is NOT optimized by React Compiler.
-
-#### Before flagging: Run optimization check
-
-**YOU MUST call `checkReactCompilerOptimization.ts` (available in PATH from `.claude/scripts/`) on EVERY .tsx file from the diff.**
-
-**Call the script ONCE per file, separately. DO NOT use loops or batch processing.**
-
-Example usage:
-```bash
-checkReactCompilerOptimization.ts src/components/File1.tsx
-checkReactCompilerOptimization.ts src/components/File2.tsx
-```
-
-**NEVER use absolute or relative paths for this script. Call it by name only:**
-- ✅ `checkReactCompilerOptimization.ts src/components/Example.tsx`
-- ❌ `/home/runner/work/App/App/.claude/scripts/checkReactCompilerOptimization.ts ...`
-- ❌ `./.claude/scripts/checkReactCompilerOptimization.ts ...`
-
-**"File not found"** → Assume parent is optimized and skip PERF-4.
-
-#### Decision flow
-
-1. **Parent in `parentOptimized`?** → YES = **Skip** (compiler auto-memoizes)
-
-2. **Child has custom memo comparator that PREVENTS re-render for this prop?**
-   → Use `sourcePath` from script output to read child's source file
-   → Grep for `React.memo` or `memo(`
-   → If custom comparator prevents re-render despite new reference for this prop → **Skip**
-
-3. **Child is memoized?** (`optimized: true` OR `React.memo`)
-   - NO → **Skip** (child re-renders anyway)
-   - YES → **Flag PERF-4**
-
-#### Examples
-
-**Flag** (parent NOT optimized, child IS memoized, no custom comparator):
-```tsx
-// Script output: parentOptimized: [], child MemoizedList optimized: true
-// No custom comparator found
-return <MemoizedList options={{ showHeader: true }} />;
-```
-
-**Skip - custom comparator** (comparator prevents re-render for this prop):
-```tsx
-// Script output: sourcePath: "src/components/PopoverMenu.tsx"
-// PopoverMenu.tsx has custom memo comparator that handles anchorPosition
-return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
-```
-
-**Skip - parent optimized**:
-```tsx
-// Script output: parentOptimized: ["MyComponent"]
-// React Compiler auto-memoizes - no manual memoization needed
-return <MemoizedList options={{ showHeader: true }} />;
-```
-
-**Skip - spread props with stable inner values**:
-```tsx
-// Spread is OK when inner values come from memoized sources
-// illustration from useMemoizedLazyIllustrations, illustrationStyle from useThemeStyles
-const illustration = useAboutSectionIllustration();
-return <Section {...illustration} />;
-```
-
----
-
 ### [PERF-5] Use shallow comparisons instead of deep comparisons
 
 - **Search patterns**: `React.memo`, `deepEqual`
@@ -447,6 +370,456 @@ function Child({ onValueChange }) {
   }, [value, onValueChange]);
   
   return <input value={value} onChange={e => setValue(e.target.value)} />;
+}
+```
+
+---
+
+### [PERF-11] Optimize data selection and handling
+
+- **Search patterns**: `useOnyx`, `selector`, `.filter(`, `.map(`
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A component uses a broad data structure (e.g., entire object) without selecting specific fields
+  - This causes unnecessary re-renders when unrelated fields change
+  - OR unnecessary data filtering/fetching is performed (excluding necessary data, fetching already available data)
+
+  **DO NOT flag if:**
+
+  - Specific fields are already being selected or the data structure is static
+  - The filtering is necessary for correct functionality
+  - The fetched data is required and cannot be derived from existing data
+  - The function requires the entire object for valid operations
+
+- **Reasoning**: Using broad data structures or performing unnecessary data operations causes excessive re-renders and degrades performance. Selecting specific fields and avoiding redundant operations reduces render cycles and improves efficiency.
+
+Good:
+
+```tsx
+function UserProfile({ userId }) {
+  const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`, {
+    selector: (user) => ({
+      name: user?.name,
+      avatar: user?.avatar,
+    }),
+  });
+  return <Text>{user?.name}</Text>;
+}
+```
+
+Bad:
+
+```tsx
+function UserProfile({ userId }) {
+  const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`);
+  // Component re-renders when any user field changes, even unused ones
+  return <Text>{user?.name}</Text>;
+}
+```
+
+---
+
+### [PERFORMANCE-12] Prevent memory leaks in components and plugins
+
+- **Search patterns**: `setInterval`, `setTimeout`, `addEventListener`, `subscribe`, `useEffect` with missing cleanup
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A resource (timeout, interval, event listener, subscription, etc.) is created in a component
+  - The resource is not cleared upon component unmount
+  - Asynchronous operations are initiated without a corresponding cleanup mechanism
+
+  **DO NOT flag if:**
+
+  - The resource is cleared properly in a cleanup function (e.g., inside `useEffect` return)
+  - The resource is not expected to persist beyond the component's lifecycle
+  - The resource is managed by a library that handles cleanup automatically
+  - The operation is guaranteed to complete before the component unmounts
+
+- **Reasoning**: Failing to clear resources causes memory leaks, leading to increased memory consumption and potential crashes, especially in long-lived components or components that mount/unmount frequently.
+
+Good:
+
+```tsx
+function TimerComponent() {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      updateTimer();
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  return <Text>Timer</Text>;
+}
+```
+
+Bad:
+
+```tsx
+function TimerComponent() {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      updateTimer();
+    }, 1000);
+    // Missing cleanup - interval will continue after unmount
+  }, []);
+
+  return <Text>Timer</Text>;
+}
+```
+
+---
+
+### [PERF-13] Avoid iterator-independent function calls in array methods
+
+- **Search patterns**: `.map(`, `.reduce(`, `.filter(`, `.some(`, `.every(`, `.find(`, `.findIndex(`, `.flatMap(`, `.forEach(`
+
+- **Condition**: Flag when ALL of these are true:
+
+  **For side-effect-free methods** (`.map`, `.reduce`, `.filter`, `.some`, `.every`, `.find`, `.findIndex`, `.flatMap`):
+  - A function call exists inside the callback
+  - The function call does NOT receive:
+    - The iterator variable directly (e.g., `transform(item)`)
+    - A property/value derived from the iterator (e.g., `format(item.name)`)
+    - The index parameter when used meaningfully (e.g., `generateId(index)`)
+  - The function is not a method called ON the iterator or iterator-derived value (e.g., `item.getValue()`)
+
+  **For `.forEach`**:
+  - Same conditions as above, BUT also verify the side effect doesn't depend on iteration context
+  - If the function call would produce the same effect regardless of which iteration it runs in, flag it
+
+  **DO NOT flag if:**
+
+  - Function uses iterator, its parts or derived value based on iterator (e.g. `func(item.process())`)
+  - Function call depends on iterator (e.g. `item.value ?? getDefault()`)
+  - Function is used when mapping to new entities (e.g. `const thing = { id: createID() }`)
+  - Above but applied to index instead of iterator
+
+- **Reasoning**: Function calls inside iteration callbacks that don't use the iterator variable execute redundantly - producing the same result. This creates O(n) overhead that scales with data size. Hoisting these calls outside the loop eliminates redundant computation and improves performance, especially on large datasets like transaction lists or report collections.
+
+Good:
+
+```ts
+// Hoist iterator-independent calls outside the loop
+const config = getConfig();
+
+const results = items.map((item) => item.value * config.multiplier);
+```
+
+```ts
+// Function receives iterator or iterator-derived value
+const formatted = items.map((item) => formatCurrency(item.amount));
+```
+
+```ts
+// Index used meaningfully
+const indexed = items.map((item, index) => ({ ...item, id: generateId(index) }));
+```
+
+Bad:
+
+```ts
+// getConfig() called on every iteration but doesn't use item
+const results = items.map((item) => {
+  const config = getConfig();
+  return item.value * config.multiplier;
+});
+```
+
+---
+
+### [CONSISTENCY-1] Avoid platform-specific checks within components
+
+- **Search patterns**: `Platform.OS`, `isAndroid`, `isIOS`, `Platform\.select`
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - Platform detection checks (e.g., `Platform.OS`, `isAndroid`, `isIOS`) are present within a component
+  - The checks lead to hardcoded values or styles specific to a platform
+  - The component is not structured to handle platform-specific logic through file extensions or separate components
+
+  **DO NOT flag if:**
+
+  - The logic is handled through platform-specific file extensions (e.g., `index.web.tsx`, `index.native.tsx`)
+
+- **Reasoning**: Mixing platform-specific logic within components increases maintenance overhead, complexity, and bug risk. Separating concerns through dedicated files or components improves maintainability and reduces platform-specific bugs.
+
+Good:
+
+```tsx
+// Platform-specific file: Button.desktop.tsx
+function Button() {
+  return <button style={desktopStyles} />;
+}
+
+// Platform-specific file: Button.mobile.tsx
+function Button() {
+  return <TouchableOpacity style={mobileStyles} />;
+}
+```
+
+Bad:
+
+```tsx
+function Button() {
+  const isAndroid = Platform.OS === 'android';
+  return isAndroid ? (
+    <TouchableOpacity style={androidStyles} />
+  ) : (
+    <button style={iosStyles} />
+  );
+}
+```
+
+---
+
+### [CONSISTENCY-2] Avoid magic numbers and strings
+
+- **Search patterns**: Hardcoded numbers/strings (context-dependent, look for numeric literals > 1, string literals that aren't obvious)
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - Hardcoded strings or numbers are used without documentation or comments
+  - The value is not defined as a constant elsewhere in the codebase
+  - The value is not self-explanatory (e.g., `0`, `1`, `Math.PI`)
+
+  **DO NOT flag if:**
+
+  - The value is self-explanatory (e.g., `Math.PI`, `0`, `1`, `true`, `false`)
+  - The value is part of configuration or environment variables
+  - The value is documented with clear comments explaining its purpose
+  - The value is defined as a named constant in the same file or imported module
+
+- **Reasoning**: Magic numbers and strings reduce code readability and maintainability. Replacing them with named constants or documented values improves clarity and makes future changes easier.
+
+Good:
+
+```tsx
+const MAX_RETRY_ATTEMPTS = 3;
+const API_TIMEOUT_MS = 5000;
+
+function fetchData() {
+  if (attempts < MAX_RETRY_ATTEMPTS) {
+    return apiCall({ timeout: API_TIMEOUT_MS });
+  }
+}
+```
+
+Bad:
+
+```tsx
+function fetchData() {
+  if (attempts < 3) {
+    return apiCall({ timeout: 5000 });
+  }
+}
+```
+
+---
+
+### [CONSISTENCY-3] Eliminate code duplication
+
+- **Search patterns**: Similar code patterns, repeated logic (context-dependent analysis)
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - Code contains duplicated logic, constants, or components in multiple locations
+  - The duplicated code performs similar operations or serves the same purpose
+  - The duplicated code is not abstracted into a reusable function or component
+  - There is no justification for the duplication
+
+  **DO NOT flag if:**
+
+  - The duplicated code serves distinct purposes or has different requirements
+  - The code is intentionally duplicated for performance reasons or due to external constraints
+  - The duplication is in test or mock code
+  - The duplication is a temporary measure with a plan for refactoring
+
+- **Reasoning**: Code duplication increases maintenance overhead, raises bug risk, and complicates the codebase. Consolidating similar logic into reusable functions or components adheres to the DRY principle, making code easier to maintain and understand.
+
+Good:
+
+```tsx
+function formatCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+  }).format(amount);
+}
+
+function TransactionList({ transactions }) {
+  return transactions.map(t => formatCurrency(t.amount, t.currency));
+}
+
+function SummaryCard({ total }) {
+  return <Text>{formatCurrency(total, 'USD')}</Text>;
+}
+```
+
+Bad:
+
+```tsx
+function TransactionList({ transactions }) {
+  return transactions.map(t => 
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: t.currency,
+    }).format(t.amount)
+  );
+}
+
+function SummaryCard({ total }) {
+  return (
+    <Text>
+      {new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(total)}
+    </Text>
+  );
+}
+```
+
+---
+
+### [CONSISTENCY-4] Eliminate unused and redundant props
+
+- **Search patterns**: Component prop definitions, unused props in destructuring
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A component defines props that are not referenced in its implementation
+  - The prop is not conditionally used or part of a larger interface
+  - The prop is not prepared for future use or part of an ongoing refactor
+
+  **DO NOT flag if:**
+
+  - Props are conditionally used or part of a larger interface
+  - Props are prepared for future use or part of an ongoing refactor
+  - The prop is necessary for functionality or future extensibility
+  - The prop is redundant but serves a distinct purpose (e.g., backward compatibility)
+
+- **Reasoning**: Unused props increase component complexity and maintenance overhead. Simplifying component interfaces improves code clarity and makes the component API easier to understand.
+
+Good:
+
+```tsx
+type ButtonProps = {
+  title: string;
+  onPress: () => void;
+  disabled?: boolean;
+};
+
+function Button({ title, onPress, disabled = false }: ButtonProps) {
+  return (
+    <TouchableOpacity onPress={onPress} disabled={disabled}>
+      <Text>{title}</Text>
+    </TouchableOpacity>
+  );
+}
+```
+
+Bad:
+
+```tsx
+type ButtonProps = {
+  title: string;
+  onPress: () => void;
+  unusedProp: string; // Never used in component
+  anotherUnused: number; // Never used in component
+};
+
+function Button({ title, onPress }: ButtonProps) {
+  return (
+    <TouchableOpacity onPress={onPress}>
+      <Text>{title}</Text>
+    </TouchableOpacity>
+  );
+}
+```
+
+---
+
+### [CONSISTENCY-5] Justify ESLint rule disables
+
+- **Search patterns**: `eslint-disable`, `eslint-disable-next-line`, `eslint-disable-line`
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - An ESLint rule is disabled (via `eslint-disable`, `eslint-disable-next-line`, etc.)
+  - The disable statement lacks an accompanying comment explaining the reason
+
+  **DO NOT flag if:**
+
+  - The disablement is justified with a clear comment explaining why the rule is disabled
+
+- **Reasoning**: ESLint rule disables without justification can mask underlying issues and reduce code quality. Clear documentation ensures team members understand exceptions, promoting better maintainability.
+
+Good:
+
+```tsx
+// eslint-disable-next-line react-hooks/exhaustive-deps
+// Dependencies are intentionally omitted - this effect should only run on mount
+useEffect(() => {
+  initializeComponent();
+}, []);
+```
+
+Bad:
+
+```tsx
+// eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
+  initializeComponent();
+}, []);
+```
+
+---
+
+### [CONSISTENCY-5] Ensure proper error handling
+
+- **Search patterns**: `try`, `catch`, `async`, `await`, `Promise`, `.then(`, `.catch(`
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - Error handling logic exists but errors are not logged or handled appropriately
+  - OR error states are not communicated to the user or developer clearly
+  - OR a critical function (e.g., API call, authentication, data mutation) lacks error handling
+
+  **DO NOT flag if:**
+
+  - Errors are logged and handled properly with user feedback
+  - Errors are intentionally suppressed with clear justification
+  - Error handling is managed by a higher-level function or middleware
+  - The operation is non-critical and errors are acceptable to ignore
+
+- **Reasoning**: Proper error handling prevents silent failures, enhances debuggability, and improves user experience. Failing to handle errors can lead to crashes, data loss, and confusion for both developers and users.
+
+Good:
+
+```tsx
+async function submitForm(data: FormData) {
+  try {
+    await API.submit(data);
+    showSuccessMessage('Form submitted successfully');
+  } catch (error) {
+    Log.error('Form submission failed', error);
+    showErrorMessage('Failed to submit form. Please try again.');
+  }
+}
+```
+
+Bad:
+
+```tsx
+async function submitForm(data: FormData) {
+  await API.submit(data);
+  // No error handling - failures are silent
+  showSuccessMessage('Form submitted successfully');
 }
 ```
 

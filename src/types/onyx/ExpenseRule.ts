@@ -18,6 +18,9 @@ type ExpenseRule = {
     /** The description set by the rule */
     comment?: string;
 
+    /** Whether to create report if necessary */
+    createReport?: boolean;
+
     /** The merchant set by the rule */
     merchant?: string;
 
@@ -37,4 +40,5 @@ type ExpenseRule = {
     tax?: Record<string, TaxRate>;
 };
 
+export type {TaxRate};
 export default ExpenseRule;

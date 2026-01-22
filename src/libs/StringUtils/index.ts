@@ -106,7 +106,7 @@ function normalizeAccents(text: string) {
 function normalize(text: string): string {
     return removeInvisibleCharacters(text)
         .replaceAll(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // space-like -> ' '
-        .replaceAll(/\s+/g, ' ') // collapse spaces
+        .replaceAll(CONST.REGEX.WHITESPACE, ' ') // collapse spaces
         .trim();
 }
 
@@ -182,6 +182,10 @@ function startsWithVowel(str: string): boolean {
     return /^[aeiouAEIOU]/.test(str);
 }
 
+function camelToHyphenCase(str: string) {
+    return str.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -200,4 +204,5 @@ export default {
     decodeUnicode,
     countWhiteSpaces,
     startsWithVowel,
+    camelToHyphenCase,
 };

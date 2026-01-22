@@ -38,7 +38,7 @@ function SearchFiltersWorkspacePage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<WorkspaceListItem>>(null);
 
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
 

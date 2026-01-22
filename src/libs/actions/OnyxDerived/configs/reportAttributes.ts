@@ -68,11 +68,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
+        ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies],
         {currentValue, sourceValues, areAllConnectionsSet},
     ) => {
         if (!areAllConnectionsSet) {
@@ -219,7 +220,9 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: report ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions) : '',
+                reportName: report
+                    ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)
+                    : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,

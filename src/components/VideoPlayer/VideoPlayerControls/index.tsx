@@ -77,7 +77,6 @@ function VideoPlayerControls({
     };
 
     const enterFullScreenMode = useCallback(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
         isFullScreenRef.current = true;
         updateCurrentURLAndReportID(url, reportID);
         videoPlayerRef.current?.presentFullscreenPlayer();

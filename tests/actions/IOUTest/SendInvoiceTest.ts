@@ -511,6 +511,124 @@ describe('actions/SendInvoice', () => {
             expect(result.receiver).toBeDefined();
             expect(result.onyxData).toBeDefined();
         });
+
+        it('should use provided invoiceChatReportID when creating new invoice chat', () => {
+            const preGeneratedReportID = 'pre_generated_invoice_chat_123';
+            const mockTransaction = {
+                transactionID: 'transaction_with_report_id',
+                reportID: 'report_with_id',
+                amount: 500,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Invoice with pre-generated report ID',
+                },
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_test',
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                invoiceChatReportID: preGeneratedReportID,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+            });
+
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.reportID).toBe(preGeneratedReportID);
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
+        });
+
+        it('should ignore invoiceChatReportID when existing invoiceChatReport matches receiver', () => {
+            const preGeneratedReportID = 'should_be_ignored';
+            const existingReportID = 'existing_invoice_chat';
+            const receiverAccountID = 456;
+
+            const existingInvoiceChatReport = {
+                reportID: existingReportID,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '123': {
+                        accountID: 123,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '456': {
+                        accountID: receiverAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                    accountID: receiverAccountID,
+                },
+            };
+
+            const mockTransaction = {
+                transactionID: 'transaction_existing_chat',
+                reportID: 'report_existing',
+                amount: 300,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Existing Chat Test',
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_existing',
+                    },
+                    {
+                        accountID: receiverAccountID,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                invoiceChatReportID: preGeneratedReportID,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+            });
+
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.reportID).toBe(existingReportID);
+            expect(result.invoiceRoom.reportID).not.toBe(preGeneratedReportID);
+        });
     });
     describe('sendInvoice', () => {
         it('creates a new invoice chat when one has been converted from individual to business', async () => {
@@ -654,6 +772,44 @@ describe('actions/SendInvoice', () => {
             });
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
+        });
+
+        it('should use invoiceChatReportID when creating new invoice chat via sendInvoice', () => {
+            const preGeneratedReportID = 'pre_generated_report_id_456';
+            const transaction = {
+                ...createRandomTransaction(1),
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_test',
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            } as unknown as OnyxEntry<Transaction>;
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            sendInvoice({
+                currentUserAccountID: 123,
+                transaction,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReportID: preGeneratedReportID,
+            });
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SEND_INVOICE,
+                expect.objectContaining({
+                    invoiceRoomReportID: preGeneratedReportID,
+                }),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
         });
     });
     describe('Invoice recipient change while offline', () => {

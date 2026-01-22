@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -43,7 +45,7 @@ function IOURequestStepDistanceRate({
     report,
     reportDraft,
     route: {
-        params: {action, reportID, backTo, transactionID, iouType, reportActionID},
+        params: {action, backTo, transactionID, iouType, reportActionID},
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
@@ -52,12 +54,16 @@ function IOURequestStepDistanceRate({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
@@ -81,7 +87,7 @@ function IOURequestStepDistanceRate({
     const options = sortedRates.map((rate) => {
         const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
         const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
         return {
             text: rate.name ?? rateForDisplay,
             alternateText: rate.name ? rateForDisplay : '',
@@ -118,7 +124,9 @@ function IOURequestStepDistanceRate({
             if (isEditing && transaction?.transactionID) {
                 updateMoneyRequestDistanceRate({
                     transactionID: transaction.transactionID,
-                    transactionThreadReportID: reportID,
+                    transactionThreadReport: report,
+                    parentReport,
+                    parentReportNextStep,
                     rateID: customUnitRateID,
                     policy,
                     policyTagList: policyTags,

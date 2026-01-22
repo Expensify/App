@@ -38,7 +38,7 @@ function SpacerView({shouldShow, style}: SpacerViewProps) {
         marginVertical.set(values.marginVertical);
         borderBottomWidth.set(values.borderBottomWidth);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only need to trigger when shouldShow prop is changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only need to trigger when shouldShow prop is changed
     }, [shouldShow, prevShouldShow]);
 
     return <Animated.View style={[animatedStyles, style]} />;

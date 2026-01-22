@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
@@ -67,20 +67,17 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb, isFocused]);
 
-    const sendValidateCode = useCallback(() => {
+    const sendValidateCode = () => {
         if (!credentials?.login) {
             return;
         }
         resendValidateCode(credentials.login);
-    }, [credentials?.login]);
+    };
 
-    const validateAccountAndMerge = useCallback(
-        (validateCode: string) => {
-            setOnboardingErrorMessage(null);
-            MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
-        },
-        [workEmail, session?.accountID],
-    );
+    const validateAccountAndMerge = (validateCode: string) => {
+        setOnboardingErrorMessage(null);
+        MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
+    };
 
     return (
         <ScreenWrapper

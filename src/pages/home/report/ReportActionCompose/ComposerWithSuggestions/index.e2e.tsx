@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import React, {useCallback, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {Keyboard} from 'react-native';

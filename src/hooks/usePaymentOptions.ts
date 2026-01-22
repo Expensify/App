@@ -68,10 +68,11 @@ function usePaymentOptions({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
-    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
+    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const lastPaymentMethodSelector = useCallback(
         (paymentMethod: OnyxEntry<LastPaymentMethod>) => {
@@ -105,7 +106,7 @@ function usePaymentOptions({
             return;
         }
         lastPaymentMethodRef.current = lastPaymentMethod;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingLastPaymentMethod]);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
@@ -230,7 +231,7 @@ function usePaymentOptions({
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible except for component initialization when the last payment method is not initialized yet.
         // We need to be sure that onPress should be wrapped in an useCallback to prevent unnecessary updates.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         isLoadingLastPaymentMethod,
         iouReport,
