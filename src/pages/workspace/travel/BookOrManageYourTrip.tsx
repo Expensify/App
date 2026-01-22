@@ -46,9 +46,9 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
 
             <View style={styles.mt5}>
                 <ToggleSettingOptionRow
-                    title={translate('workspace.moreFeatures.travel.settings.title')}
-                    subtitle={translate('workspace.moreFeatures.travel.settings.subtitle')}
-                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.title')}
+                    title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                    subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
+                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     isActive={autoAddTripName}
                     onToggle={toggleAutoAddTripName}
                     pendingAction={policy?.pendingFields?.travelSettings}

@@ -4946,8 +4946,10 @@ const translations = {
                     manageTravel: 'Manage travel',
                 },
                 settings: {
-                    title: 'Add trip details to expenses',
-                    subtitle: 'Automatically add travel info if expenses occur during a trip',
+                    autoAddTripName: {
+                        title: 'Add trip details to expenses',
+                        subtitle: 'Automatically add travel info if expenses occur during a trip',
+                    },
                 },
             },
             expensifyCard: {
