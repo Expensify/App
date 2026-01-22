@@ -5070,7 +5070,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             settlementAccountLabel: 'Conto di regolamento',
                             settlementFrequencyLabel: 'Frequenza di regolamento',
                         },
->>>>>>> c5efdfab0fceaf889ab493d080b627acdf46c3ee
                     },
                 },
             },
