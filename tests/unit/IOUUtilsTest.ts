@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
@@ -10,6 +11,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
@@ -30,6 +32,11 @@ function initCurrencyList() {
     });
     return waitForBatchedUpdates();
 }
+
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+}));
 
 describe('IOUUtils', () => {
     describe('isIOUReportPendingCurrencyConversion', () => {
@@ -604,7 +611,7 @@ describe('Check valid amount for IOU/Expense request', () => {
     });
 
     test('Expense amount should be negative', () => {
-        const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+        const expenseReport = ReportUtils.buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', allBetas: [CONST.BETAS.ALL]});
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,
@@ -626,5 +633,56 @@ describe('Check valid amount for IOU/Expense request', () => {
         });
         const unreportedAmount = TransactionUtils.getAmount(unreportedTransaction, true, false);
         expect(unreportedAmount).toBeLessThan(0);
+    });
+});
+
+describe('navigateToConfirmationPage', () => {
+    const transactionID = '123';
+    const reportID = '444';
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should navigate to confirmation step with SUBMIT iouType when iouType is REQUEST', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+    });
+
+    it('should navigate to confirmation step with SEND iouType when iouType is SEND and from ManualDistanceRequest', () => {
+        const backToReport = '111';
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.SEND, transactionID, reportID, backToReport, false, undefined, true);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SEND, transactionID, reportID, backToReport),
+        );
+    });
+
+    it('should navigate to confirmation step with PAY iouType when iouType is SEND and not from ManualDistanceRequest', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.SEND, transactionID, reportID, undefined, false, undefined, false);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+    });
+
+    it('should navigate to confirmation step with reportIDParam if provided in default case', () => {
+        const reportIDParam = '555';
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined, false, reportIDParam);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, reportIDParam, undefined),
+        );
+    });
+
+    it('should navigate to confirmation step with SUBMIT iouType when shouldNavigateToSubmit = true in default case', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.CREATE, transactionID, reportID, undefined, true);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+    });
+
+    it('should navigate to confirmation step with provided iouType directly when shouldNavigateToSubmit = false in default case', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined, false);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined));
     });
 });
