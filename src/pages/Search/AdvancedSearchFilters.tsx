@@ -289,12 +289,12 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 }
 
 function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
-    return accountIDs
-        .map((id) => {
-            const personalDetail = personalDetails?.[id];
+    const selectedPersonalDetails = accountIDs.map((id) => personalDetails?.[id]);
+
+    return selectedPersonalDetails
+        .map((personalDetail) => {
             if (!personalDetail) {
-                // Name-only attendees are stored by displayName, not accountID
-                return id;
+                return '';
             }
 
             return createDisplayName(personalDetail.login ?? '', personalDetail, formatPhoneNumber);
