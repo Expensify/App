@@ -82,6 +82,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
+                role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON}
             >
                 {({hovered, pressed}) => (
