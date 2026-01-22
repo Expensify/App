@@ -197,7 +197,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             onButtonPress();
             return;
         }
-        if (isBankAccountPartiallySetup(policy?.achAccount?.state)) {
+        if (isBankAccountPartiallySetup(bankAccountInfo?.accountData?.state)) {
             setShowValidationModal(true);
             return;
         }
