@@ -3296,9 +3296,7 @@ function getColumnsToShow(
         return result;
     }
 
-    const {moneyRequestReportActionsByTransactionID} = Array.isArray(data)
-        ? {moneyRequestReportActionsByTransactionID: new Map<string, OnyxTypes.ReportAction>()}
-        : createReportActionsLookupMaps(data);
+    const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
     const updateColumns = (transaction: OnyxTypes.Transaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
         if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) || isScanning(transaction)) {
