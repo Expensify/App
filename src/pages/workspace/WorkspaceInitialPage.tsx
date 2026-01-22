@@ -504,7 +504,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 !shouldDisplayLHB && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }
