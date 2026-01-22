@@ -1,10 +1,10 @@
-import HoldOrRejectEducationalModalWrapper from '@components/Modal/Global/HoldOrRejectEducationalModalWrapper';
-import HoldSubmitterEducationalModalWrapper from '@components/Modal/Global/HoldSubmitterEducationalModalWrapper';
+import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
+import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import {useModal} from '@components/Modal/Global/ModalContext';
+import useOnyx from '@hooks/useOnyx';
 import {dismissRejectUseExplanation} from '@libs/actions/IOU';
 import {setNameValuePair} from '@libs/actions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from './useOnyx';
 
 const useHoldEducationalModal = () => {
     const context = useModal();
@@ -22,7 +22,7 @@ const useHoldEducationalModal = () => {
         }
 
         await context.showModal({
-            component: HoldSubmitterEducationalModalWrapper,
+            component: HoldSubmitterEducationalModal,
             props: {},
         });
 
@@ -41,7 +41,7 @@ const useHoldEducationalModal = () => {
         }
 
         await context.showModal({
-            component: HoldOrRejectEducationalModalWrapper,
+            component: HoldOrRejectEducationalModal,
             props: {},
         });
 

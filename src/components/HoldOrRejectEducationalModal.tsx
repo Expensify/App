@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ModalProps} from '@components/Modal/Global/ModalContext';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,20 +21,18 @@ type SectionMenuItem = {
     titleTranslationKey: TranslationPaths;
 };
 
-type HoldOrRejectEducationalModalProps = {
-    /** Method to trigger when pressing outside of the popover menu to close it */
-    onClose: () => void;
+type HoldOrRejectEducationalModalProps = ModalProps;
 
-    /** Method to trigger when pressing confirm button */
-    onConfirm: () => void;
-};
-
-function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
+function HoldOrRejectEducationalModal({closeModal}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject']);
 
-    useBeforeRemove(onClose);
+    const handleClose = () => {
+        closeModal({action: 'CONFIRMED'});
+    };
+
+    useBeforeRemove(handleClose);
 
     const menuSections: SectionMenuItem[] = [
         {
@@ -67,8 +66,8 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}
             shouldCloseOnConfirm={false}
-            onClose={onClose}
-            onConfirm={onConfirm}
+            onClose={handleClose}
+            onConfirm={handleClose}
             shouldGoBack={false}
             shouldUseScrollView
         >

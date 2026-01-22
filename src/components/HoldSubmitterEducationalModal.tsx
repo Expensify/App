@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ModalProps} from '@components/Modal/Global/ModalContext';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,20 +9,18 @@ import CONST from '@src/CONST';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
 
-type HoldSubmitterEducationalModalProps = {
-    /** Method to trigger when pressing outside of the popover menu to close it */
-    onClose: () => void;
+type HoldSubmitterEducationalModalProps = ModalProps;
 
-    /** Method to trigger when pressing confirm button */
-    onConfirm: () => void;
-};
-
-function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducationalModalProps) {
+function HoldSubmitterEducationalModal({closeModal}: HoldSubmitterEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
 
-    useBeforeRemove(onClose);
+    const handleClose = () => {
+        closeModal({action: 'CONFIRMED'});
+    };
+
+    useBeforeRemove(handleClose);
 
     return (
         <FeatureTrainingModal
@@ -35,8 +34,8 @@ function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducat
             contentInnerContainerStyles={styles.mb5}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}
-            onClose={onClose}
-            onConfirm={onConfirm}
+            onClose={handleClose}
+            onConfirm={handleClose}
             shouldCloseOnConfirm={false}
             shouldGoBack={false}
             shouldUseScrollView
