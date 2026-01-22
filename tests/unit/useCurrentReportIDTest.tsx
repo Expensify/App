@@ -2,7 +2,7 @@ import type {NavigationState} from '@react-navigation/native';
 import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {CurrentReportIDContextProvider, useCurrentReportIDState, useCurrentReportIDActions} from '@hooks/useCurrentReportID';
+import {CurrentReportIDContextProvider, useCurrentReportIDActions, useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

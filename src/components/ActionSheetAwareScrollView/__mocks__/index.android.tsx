@@ -8,12 +8,4 @@ export default ActionSheetAwareScrollView;
 
 const renderScrollComponent = undefined;
 
-export {
-    renderScrollComponent,
-    ActionSheetAwareScrollViewProvider,
-    Actions,
-    ActionSheetAwareScrollViewStateContext,
-    ActionSheetAwareScrollViewActionsContext,
-    useActionSheetAwareScrollViewState,
-    useActionSheetAwareScrollViewActions,
-};
+export {renderScrollComponent, ActionSheetAwareScrollViewProvider, Actions, useActionSheetAwareScrollViewState, useActionSheetAwareScrollViewActions};
