@@ -62,7 +62,8 @@ jest.mock('@libs/ReportUtils', () => {
         ...originalModule,
         generateReportID: mockGenerateReportID,
         buildOptimisticChatReport: jest.fn().mockImplementation((params: Record<string, unknown>) => {
-            const mockReportID = (params.optimisticReportID as string | undefined) ?? mockGenerateReportID();
+            const optimisticReportID = typeof params.optimisticReportID === 'string' ? params.optimisticReportID : undefined;
+            const mockReportID = optimisticReportID ?? mockGenerateReportID();
             return {
                 reportID: mockReportID,
                 type: 'chat',

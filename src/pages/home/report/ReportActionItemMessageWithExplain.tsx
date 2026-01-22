@@ -18,7 +18,7 @@ type ReportActionItemMessageWithExplainProps = {
     /** All the data of the action item */
     action: OnyxEntry<ReportAction>;
 
-    /** The report ID of linked report*/
+    /** The report ID of linked report */
     reportID: string | undefined;
 };
 
@@ -45,19 +45,15 @@ function ReportActionItemMessageWithExplain({message, action, reportID}: ReportA
         [action, reportID, translate, personalDetail?.timezone],
     );
 
-    if (actionHasReasoning) {
-        return (
-            <ReportActionItemBasicMessage>
-                <RenderHTML
-                    html={`<comment><muted-text>${computedMessage}</muted-text></comment>`}
-                    isSelectable={false}
-                    onLinkPress={handleExplainLinkPress}
-                />
-            </ReportActionItemBasicMessage>
-        );
-    }
-
-    return <ReportActionItemBasicMessage message={message} />;
+    return (
+        <ReportActionItemBasicMessage>
+            <RenderHTML
+                html={`<comment><muted-text>${computedMessage}</muted-text></comment>`}
+                isSelectable={false}
+                onLinkPress={handleExplainLinkPress}
+            />
+        </ReportActionItemBasicMessage>
+    );
 }
 
 ReportActionItemMessageWithExplain.displayName = 'ReportActionItemMessageWithExplain';
