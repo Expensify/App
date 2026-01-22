@@ -34,7 +34,6 @@ function SearchTransactionsChangeReport() {
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const {reports: allReports, transactions: allTransactions, transactionViolations} = getCollectionsFromSearchResults(currentSearchResults);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
