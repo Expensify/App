@@ -37,7 +37,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearShareBankAccount, clearShareBankAccountErrors, shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccount, clearShareBankAccountErrors, getBankAccountFromID, shareBankAccount} from '@userActions/BankAccounts';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import {navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -63,6 +63,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {environmentURL} = useEnvironment();
     const policyName = policy?.name ?? '';
     const bankAccountID = policy?.achAccount?.bankAccountID;
+    const bankAccountInfo = getBankAccountFromID(bankAccountID);
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -209,7 +210,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
         const isSelectedPayerOwner = policy?.owner === selectedPayer;
-        const isAccountAlreadyShared = policy?.achAccount?.sharees ? policy.achAccount.sharees.includes(selectedPayer) : false;
+        const isAccountAlreadyShared = bankAccountInfo?.accountData?.sharees ? bankAccountInfo?.accountData.sharees.includes(selectedPayer) : false;
         if (isAccountAlreadyShared || isSelectedPayerOwner) {
             onButtonPress();
             return;
@@ -219,7 +220,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
         const isAccountAlreadySharedWithCurrentUser =
-            policy?.achAccount?.sharees && currentUserPersonalDetails?.login ? policy.achAccount.sharees.includes(currentUserPersonalDetails?.login) : false;
+            bankAccountInfo?.accountData?.sharees && currentUserPersonalDetails?.login ? bankAccountInfo?.accountData?.sharees.includes(currentUserPersonalDetails?.login) : false;
         const isOwner = policy?.owner === currentUserPersonalDetails?.login;
         if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
