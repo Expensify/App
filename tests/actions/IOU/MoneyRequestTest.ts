@@ -634,7 +634,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should set participants and navigate to confirmation page when from global create menu', async () => {
+        it('should track expense when coming from global create menu and auto reporting is disabled', async () => {
             const defaultExpensePolicy = {
                 ...fakePolicy,
                 autoReporting: false,
@@ -655,15 +655,15 @@ describe('MoneyRequest', () => {
                 participants: [
                     {
                         accountID: 0,
-                        isPolicyExpenseChat: true,
-                        reportID: fakeReport.reportID,
+                        isPolicyExpenseChat: false,
+                        reportID: selfDMReport.reportID,
                         selected: true,
                     },
                 ],
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.initialTransaction.transactionID, '1'),
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, baseParams.initialTransaction.transactionID, selfDMReport.reportID),
             );
         });
 
