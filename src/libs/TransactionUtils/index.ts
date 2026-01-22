@@ -170,6 +170,25 @@ function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
+/**
+ * todo: Currently there is no way to tell server map transaction object from
+ * server GPS transaction object, this will be discussed and updated later.
+ * To fix this temporarily we set keyForList of GPS waypoints to 'gps_start' and 'gps_end'
+ * and use that to determine if it's a GPS or Map transaction. This should be changed before
+ * the first GPS release.
+ */
+function hasGPSWaypoints(transaction: OnyxEntry<Transaction>) {
+    const waypoints = transaction?.comment?.waypoints;
+
+    if (!waypoints) {
+        return false;
+    }
+
+    const waypoint = Object.values(waypoints).at(0);
+
+    return !!waypoint?.keyForList?.startsWith('gps');
+}
+
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -177,7 +196,7 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
+    return hasDistanceCustomUnit(transaction) && !hasGPSWaypoints(transaction);
 }
 
 function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -186,10 +205,8 @@ function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
     }
 
-    // todo: currently there is no way to tell server map transaction object from
-    // server gps transaction object, this will be discussed and updated later
     // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
+    return hasGPSWaypoints(transaction);
 }
 
 function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
