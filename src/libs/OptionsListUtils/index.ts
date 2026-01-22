@@ -2626,8 +2626,6 @@ function shouldOptionShowTooltip(option: SearchOptionData): boolean {
 
 /**
  * Handles the logic for displaying selected participants from the search term
- *
- * @param shouldAddCurrentUserPostfix - Whether to add the current user postfix (e.g., "(You)") when the participant is the current user
  */
 function formatSectionsFromSearchTerm(
     searchTerm: string,
@@ -2646,7 +2644,8 @@ function formatSectionsFromSearchTerm(
         const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
         const isIOUInvoiceRoom = participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === 'invoice';
         if (participant.isSelfDM || isIOUInvoiceRoom) {
-            return getReportOption(participant, undefined, reportAttributesDerived);
+            const privateIsArchived = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
+            return getReportOption(participant, privateIsArchived, undefined, reportAttributesDerived);
         }
         return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
     };

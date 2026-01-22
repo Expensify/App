@@ -334,7 +334,9 @@ function IOURequestStepAmount({
             } else {
                 resetToDefaultWorkspace();
             }
-        } else if (iouType === CONST.IOU.TYPE.CREATE && isP2PChat && isNegativeAmount && isReturningFromConfirmationPage) {
+        }
+        // P2P chats don't support negative amounts, so in cases where there is no default workspace when the amount is negative, we will remove the selected transaction participants.
+        else if (iouType === CONST.IOU.TYPE.CREATE && isP2PChat && isNegativeAmount && isReturningFromConfirmationPage) {
             setTransactionReport(transactionID, {reportID: undefined}, true);
             setMoneyRequestParticipants(transactionID, [], true).then(() => {
                 navigateToParticipantPage(iouType, transactionID, reportID);
