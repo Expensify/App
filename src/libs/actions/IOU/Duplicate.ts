@@ -37,6 +37,15 @@ import {
     trackExpense,
 } from '.';
 
+// TODO: remove `recentWaypoints` from this file [YET TO CREATE ISSUE]
+// `recentWaypoints` was moved here temporarily from `src/libs/actions/IOU/index.ts` during the `Deprecate Onyx.connect` refactor.
+// All uses of this variable should be replaced with `useOnyx`.
+let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
+Onyx.connect({
+    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+    callback: (val) => (recentWaypoints = val ?? []),
+});
+
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();
     return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {})?.filter(
@@ -549,6 +558,7 @@ function duplicateExpenseTransaction({
             introSelected,
             activePolicyID,
             quickAction,
+            recentWaypointsCollection: recentWaypoints,
         };
         return trackExpense(trackExpenseParams);
     }

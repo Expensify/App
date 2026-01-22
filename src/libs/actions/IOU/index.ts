@@ -719,6 +719,7 @@ type CreateTrackExpenseParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     allBetas: OnyxEntry<OnyxTypes.Beta[]>;
+    recentWaypointsCollection: OnyxTypes.RecentWaypoint[] | undefined;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -6527,6 +6528,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicyID,
         quickAction,
         allBetas,
+        recentWaypointsCollection = [],
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6662,7 +6664,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 
-    const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
+    const recentServerValidatedWaypoints = recentWaypointsCollection.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,

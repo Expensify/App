@@ -310,6 +310,8 @@ function IOURequestStepDistanceOdometer({
         Navigation.goBack();
     };
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
         const start = parseFloat(startReading);
@@ -418,6 +420,7 @@ function IOURequestStepDistanceOdometer({
                         activePolicyID,
                         quickAction,
                         allBetas,
+                        recentWaypointsCollection: recentWaypoints,
                     });
                     return;
                 }

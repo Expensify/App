@@ -9,7 +9,7 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {QuickAction} from '@src/types/onyx';
+import type {QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
@@ -17,6 +17,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -88,7 +89,7 @@ describe('MoneyRequest', () => {
             jest.clearAllMocks();
         });
 
-        it('should call trackExpense for TRACK iouType', () => {
+        it('should call trackExpense for TRACK iouType', async () => {
             createTransaction({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
@@ -489,6 +490,12 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
+
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
@@ -517,6 +524,7 @@ describe('MoneyRequest', () => {
                 quickAction: baseParams.quickAction,
                 shouldHandleNavigation: true,
                 allBetas: baseParams.allBetas,
+                recentWaypointsCollection: recentWaypoints,
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
@@ -774,6 +782,12 @@ describe('MoneyRequest', () => {
 
             expect(IOU.resetSplitShares).not.toHaveBeenCalled();
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
+
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
@@ -810,6 +824,7 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 allBetas: baseParams.allBetas,
+                recentWaypointsCollection: recentWaypoints,
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -834,6 +849,12 @@ describe('MoneyRequest', () => {
             expect(updatedTransaction?.merchant).toBe('Pending...');
             expect(updatedDraftTransaction?.pendingFields).toMatchObject({
                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
             });
 
             expect(IOU.trackExpense).toHaveBeenCalledWith({
@@ -872,6 +893,7 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 allBetas: baseParams.allBetas,
+                recentWaypointsCollection: recentWaypoints,
             });
         });
 

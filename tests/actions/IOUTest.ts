@@ -76,7 +76,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
@@ -491,6 +491,12 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeTransaction.transactionID}`, fakeTransaction);
             mockFetch?.pause?.();
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
+
             // When the user submits the transaction to the selfDM report
             trackExpense({
                 report: selfDMReport,
@@ -520,6 +526,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -621,6 +628,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -681,6 +689,12 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
+
             // Create a tracked expense
             trackExpense({
                 report: selfDMReport,
@@ -705,6 +719,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -758,6 +773,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -813,6 +829,11 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant});
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
             // Create a tracked expense
             trackExpense({
                 report: selfDMReport,
@@ -837,6 +858,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -890,6 +912,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -2166,6 +2189,12 @@ describe('actions/IOU', () => {
             ]);
             await waitForBatchedUpdates();
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
+
             // First create a tracked expense in self DM
             trackExpense({
                 report: selfDMReport,
@@ -2191,6 +2220,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
 
             mockFetch?.resume?.();
@@ -2257,6 +2287,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -7601,6 +7632,11 @@ describe('actions/IOU', () => {
             [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, CONST.IOU.ACTION.CATEGORIZE],
             [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
             // When a track expense is created
             trackExpense({
                 report: {reportID: '123', policyID: 'A'},
@@ -7633,6 +7669,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
 
             await waitForBatchedUpdates();
@@ -9265,6 +9302,12 @@ describe('actions/IOU', () => {
 
             const amount = 100;
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
+
             trackExpense({
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -9289,6 +9332,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 allBetas: [CONST.BETAS.ALL],
+                recentWaypointsCollection: recentWaypoints,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

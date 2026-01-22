@@ -119,6 +119,7 @@ function SubmitDetailsPage({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
 
     const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction) {
@@ -157,6 +158,7 @@ function SubmitDetailsPage({
                 introSelected,
                 quickAction,
                 allBetas,
+                recentWaypointsCollection: recentWaypoints,
             });
         } else {
             requestMoney({
