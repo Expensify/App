@@ -570,14 +570,19 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
-function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number | undefined): string {
+function getLastActorDisplayNameFromLastVisibleActions(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    currentUserAccountIDParam: number,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 
     if (lastReportAction) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
-        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (allPersonalDetails?.[lastActorAccountID] ?? null) : null;
+        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
 
         if (!actorDetails && lastReportAction.person?.at(0)?.text) {
             actorDetails = {
@@ -587,11 +592,11 @@ function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>
         }
 
         if (actorDetails) {
-            return getLastActorDisplayName(actorDetails, currentUserAccountID);
+            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam);
         }
     }
 
-    return getLastActorDisplayName(lastActorDetails, currentUserAccountID);
+    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
 }
 
 /**
@@ -1058,6 +1063,7 @@ function getReportDisplayOption(
     report: OnyxEntry<Report>,
     unknownUserDetails: OnyxEntry<Participant>,
     currentUserAccountID: number | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): OptionData {
@@ -1065,7 +1071,7 @@ function getReportDisplayOption(
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
+        personalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
         currentUserAccountID,
         {
@@ -1081,7 +1087,7 @@ function getReportDisplayOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, currentUserAccountID, privateIsArchived);
+        option.text = computeReportName(report, undefined, undefined, undefined, undefined, personalDetails, undefined, currentUserAccountID, privateIsArchived);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
@@ -1493,7 +1499,7 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
             }
-            if (comparator(option) > comparator(peekedValue)) {
+            if (reversed ? comparator(option) < comparator(peekedValue) : comparator(option) > comparator(peekedValue)) {
                 heap.pop();
                 heap.push(option);
             }
