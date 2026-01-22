@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -312,17 +312,24 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </View>
     );
 
-    const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
-    const warningMessage = shouldShowWarningMessage
-        ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
-        : '';
+    const warningMessage = useMemo(() => {
+        const difference = sumOfSplitExpenses - transactionDetailsAmount;
+        let warning = '';
+        if (difference < 0) {
+            warning = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
+        } else if (difference > 0) {
+            warning = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+        }
+        return warning;
+    }, [sumOfSplitExpenses, transactionDetailsAmount]);
+
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
             {(!!errorMessage || !!warningMessage) && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
                     isError={!!errorMessage}
-                    isInfo={!errorMessage && shouldShowWarningMessage}
+                    isInfo={!errorMessage && !!warningMessage}
                     message={errorMessage || warningMessage}
                 />
             )}
