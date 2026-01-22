@@ -334,15 +334,19 @@ describe('actions/PolicyMember', () => {
                     [ownerAccountID]: {notificationPreference: 'always'},
                 },
             });
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [auditorAccountID]: {login: auditorEmail},
+            });
 
             // When adding a new admin, auditor, and user members
+            mockFetch?.pause?.();
             Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber);
             Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber);
             Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
-            // Then only the admin and auditor should be added to the #admins room
+            // Then only the admin and auditor should be added to the #admins room optimistically
             const adminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
@@ -355,6 +359,20 @@ describe('actions/PolicyMember', () => {
             expect(adminRoom?.participants?.[adminAccountID]).toBeTruthy();
             expect(adminRoom?.participants?.[auditorAccountID]).toBeTruthy();
             expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
+
+            // and removed if the account is optimistic
+            await mockFetch?.resume?.();
+            const adminRoomSuccess = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(adminRoomSuccess?.participants?.[adminAccountID]).toBeUndefined();
+            expect(adminRoomSuccess?.participants?.[auditorAccountID]).toBeTruthy();
         });
 
         it('should unarchive existing workspace expense chat and expense report when adding back a member', async () => {
