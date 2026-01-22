@@ -370,7 +370,7 @@ function CategorySettingsPage({
 
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
-                            icon={Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {
