@@ -666,13 +666,19 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false, isTimeRequest = false): boolean {
+function isTaxTrackingEnabled(
+    isPolicyExpenseChatOrUnreportedExpense: boolean,
+    policy: OnyxEntry<Policy>,
+    isDistanceRequest: boolean,
+    isPerDiemRequest = false,
+    isTimeRequest = false,
+): boolean {
     if (isPerDiemRequest || isTimeRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
+    const isPolicyTaxTrackingEnabled = isPolicyExpenseChatOrUnreportedExpense && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && !!customUnitID && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
     return !!(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);
@@ -785,7 +791,7 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
             continue;
         }
 
-        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes)) {
+        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes ?? {})) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
                 continue;
@@ -794,6 +800,25 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
                 continue;
             }
             allTaxRates[taxRate.name].push(taxRateKey);
+        }
+    }
+
+    return allTaxRates;
+}
+
+/** Get a tax rate object built like Record<TaxID, TaxRate> */
+function getAllTaxRatesNamesAndValues(policies: OnyxCollection<Policy>): Record<string, TaxRate> {
+    const allTaxRates: Record<string, TaxRate> = {};
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.taxRates?.taxes) {
+            continue;
+        }
+
+        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes ?? {})) {
+            if (!allTaxRates[taxRateKey]) {
+                allTaxRates[taxRateKey] = taxRate;
+            }
         }
     }
 
@@ -856,7 +881,8 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    return [...categoryApprovers, ...tagApprovers];
+    // Return the unique approvers list
+    return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
 function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
@@ -884,7 +910,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
-    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin && policy?.preventSelfApproval) {
+    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin) {
         ruleApprovers.shift();
     }
     if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
@@ -1809,6 +1835,7 @@ export {
     getForwardsToAccount,
     getSubmitToAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
+    getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,
     getTagApproverRule,
     getDomainNameForPolicy,
