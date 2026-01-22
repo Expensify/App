@@ -41,7 +41,6 @@ function DatePicker({
     const {windowHeight, windowWidth} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {preferredLocale} = useLocalize();
     const {translate} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
