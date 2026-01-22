@@ -308,7 +308,6 @@ describe('split expense', () => {
                         transactionViolations: {},
                         quickAction: undefined,
                         policyRecentlyUsedCurrencies: [],
-                        allBetas: [CONST.BETAS.ALL],
                         policyRecentlyUsedTags: undefined,
                     },
                 );
@@ -350,7 +349,8 @@ describe('split expense', () => {
                                 // 5. The chat report with Rory + Vit (new)
                                 vitChatReport = Object.values(allReports ?? {}).find(
                                     (report) =>
-                                        report?.type === CONST.REPORT.TYPE.CHAT && deepEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
+                                        report?.type === CONST.REPORT.TYPE.CHAT &&
+                                        deepEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
                                 );
                                 expect(isEmptyObject(vitChatReport)).toBe(false);
                                 expect(vitChatReport?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -645,7 +645,6 @@ describe('split expense', () => {
             transactionViolations: {},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             policyRecentlyUsedTags: undefined,
         });
 
@@ -693,7 +692,6 @@ describe('split expense', () => {
             transactionViolations: {},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             policyRecentlyUsedTags: undefined,
         });
 
@@ -715,7 +713,6 @@ describe('split expense', () => {
             transactionViolations: {},
             quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             policyRecentlyUsedTags: undefined,
         });
         await waitForBatchedUpdates();
@@ -744,7 +741,6 @@ describe('split expense', () => {
             transactionViolations: {},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: initialCurrencies,
-            allBetas: [CONST.BETAS.ALL],
             policyRecentlyUsedTags: undefined,
         });
 
@@ -778,7 +774,6 @@ describe('split expense', () => {
             transactionViolations: {},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             policyRecentlyUsedTags: undefined,
         });
 
@@ -798,7 +793,6 @@ describe('split expense', () => {
             transactionViolations: {},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             policyRecentlyUsedTags: undefined,
         });
 
@@ -857,7 +851,6 @@ describe('split expense', () => {
             transactionViolations: {},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             policyRecentlyUsedTags: undefined,
         });
 
@@ -906,7 +899,6 @@ describe('split expense', () => {
             transactionViolations: {},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             policyRecentlyUsedTags: undefined,
         });
 
@@ -967,7 +959,6 @@ describe('split expense', () => {
             policyRecentlyUsedTags,
             quickAction: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
         });
 
         waitForBatchedUpdates();
@@ -1036,7 +1027,7 @@ describe('split expense', () => {
         expect(iouAction).toBeTruthy();
 
         // Complete this split bill without changing the description
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], RORY_EMAIL);
+        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, RORY_EMAIL);
 
         await waitForBatchedUpdates();
 
@@ -1168,7 +1159,6 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
-            allBetas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdates();
@@ -1183,7 +1173,9 @@ describe('split expense', () => {
                 waitForCollectionCallback: true,
                 callback: (transactions) => {
                     Onyx.disconnect(connection);
-                    const splits = Object.values(transactions ?? {}).filter((t) => t?.transactionID !== originalTransactionID && t?.comment?.originalTransactionID === originalTransactionID);
+                    const splits = Object.values(transactions ?? {}).filter(
+                        (t) => t?.transactionID !== originalTransactionID && t?.comment?.originalTransactionID === originalTransactionID,
+                    );
                     resolve(splits as Transaction[]);
                 },
             });
@@ -1335,7 +1327,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserPersonalDetails,
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
             iouReportNextStep: undefined,
         });
@@ -1445,7 +1436,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserPersonalDetails,
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
             iouReportNextStep: undefined,
         });
@@ -1568,7 +1558,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserPersonalDetails,
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
             iouReportNextStep: undefined,
         });
@@ -1639,7 +1628,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: 'existing@example.com',
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
         });
         await waitForBatchedUpdates();
@@ -1739,7 +1727,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserPersonalDetails,
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
             iouReportNextStep: undefined,
         });
@@ -1799,7 +1786,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: 'existing@example.com',
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
         });
         await waitForBatchedUpdates();
@@ -1899,7 +1885,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserPersonalDetails,
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
             iouReportNextStep: undefined,
         });
@@ -1964,7 +1949,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: 'existing@example.com',
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
         });
         await waitForBatchedUpdates();
@@ -2073,7 +2057,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserPersonalDetails,
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
-            allBetas: [CONST.BETAS.ALL],
             quickAction: undefined,
             iouReportNextStep: undefined,
         });
@@ -2140,7 +2123,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            allBetas: [CONST.BETAS.ALL],
         });
         await waitForBatchedUpdates();
 
@@ -2271,7 +2253,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            allBetas: [CONST.BETAS.ALL],
             iouReportNextStep: undefined,
         });
 
