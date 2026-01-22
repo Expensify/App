@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
