@@ -969,7 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Znajdź coś...',
         buttonMySettings: 'Moje ustawienia',
         fabNewChat: 'Rozpocznij czat',
-        fabNewChatExplained: 'Rozpocznij czat (Akcja pływająca)',
+        fabNewChatExplained: 'Rozpocznij czat (Przycisk akcji unoszący się)',
         fabScanReceiptExplained: 'Zeskanuj paragon (Akcja pływająca)',
         chatPinned: 'Czat przypięty',
         draftedMessage: 'Wiadomość robocza',
@@ -1445,9 +1445,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Nie możesz przenosić wydatków do raportów w innych obszarach roboczych, ponieważ stawki diety mogą się różnić między obszarami roboczymi.',
         changeApprover: {
             title: 'Zmień akceptującego',
-            subtitle: 'Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport.',
+            subtitle: 'Wybierz opcję, aby zmienić osobę zatwierdzającą dla tego raportu.',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Możesz także na stałe zmienić osobę zatwierdzającą dla wszystkich raportów w swoich <a href="${workflowSettingLink}">ustawieniach przepływu pracy</a>.`,
+                `Możesz również na stałe zmienić osobę zatwierdzającą dla wszystkich raportów w swoich <a href="${workflowSettingLink}">ustawieniach procesu zatwierdzania</a>.`,
             changedApproverMessage: (managerID: number) => `zmieniono zatwierdzającego na <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Dodaj osobę zatwierdzającą',
@@ -1950,10 +1950,10 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     passwordPage: {
         changePassword: 'Zmień hasło',
-        changingYourPasswordPrompt: 'Zmiana hasła zaktualizuje je zarówno dla Twojego konta na Expensify.com, jak i konta w New Expensify.',
-        currentPassword: 'Aktualne hasło',
+        changingYourPasswordPrompt: 'Zmiana hasła spowoduje aktualizację hasła zarówno dla konta Expensify.com, jak i konta New Expensify.',
+        currentPassword: 'Obecne hasło',
         newPassword: 'Nowe hasło',
-        newPasswordPrompt: 'Twoje nowe hasło musi się różnić od starego hasła i zawierać co najmniej 8 znaków, 1 wielką literę, 1 małą literę i 1 cyfrę.',
+        newPasswordPrompt: 'Twoje nowe hasło musi różnić się od starego i zawierać co najmniej 8 znaków, 1 wielką literę, 1 małą literę oraz 1 cyfrę.',
     },
     twoFactorAuth: {
         headerTitle: 'Uwierzytelnianie dwuskładnikowe',
@@ -2159,8 +2159,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Podejrzana transakcja',
         suspiciousBannerDescription: 'Zauważyliśmy podejrzane transakcje na Twojej karcie. Stuknij poniżej, aby je sprawdzić.',
         cardLocked: 'Twoja karta jest tymczasowo zablokowana, podczas gdy nasz zespół sprawdza konto Twojej firmy.',
-        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
-        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
+        markTransactionsAsReimbursable: 'Oznacz transakcje jako podlegające zwrotowi',
+        markTransactionsDescription: 'Gdy ta opcja jest włączona, transakcje zaimportowane z tej karty są domyślnie oznaczane jako podlegające zwrotowi.',
         cardDetails: {
             cardNumber: 'Numer wirtualnej karty',
             expiration: 'Wygaśnięcie',
@@ -2991,7 +2991,7 @@ ${
         enterPassword: 'Wprowadź hasło',
         setPassword: 'Ustaw hasło',
         newPasswordPrompt: 'Twoje hasło musi mieć co najmniej 8 znaków, 1 wielką literę, 1 małą literę i 1 cyfrę.',
-        passwordFormTitle: 'Witamy ponownie w Nowym Expensify! Ustaw swoje hasło.',
+        passwordFormTitle: 'Witamy ponownie w nowym Expensify! Ustaw swoje hasło.',
         passwordNotSet: 'Nie udało się ustawić nowego hasła. Wysłaliśmy nowy link do ustawienia hasła, aby spróbować ponownie.',
         setPasswordLinkInvalid: 'Ten link do ustawienia hasła jest nieprawidłowy lub wygasł. Nowy czeka już w Twojej skrzynce e-mail!',
         validateAccount: 'Zweryfikuj konto',
@@ -5078,7 +5078,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data początkowa transakcji',
                 changeTransactionStartDateWarning:
-                    'Zmiana daty rozpoczęcia spowoduje usunięcie wszystkich nieraportowanych lub transakcji w wersji roboczej i ponowne zaimportowanie wszystkich transakcji od nowej daty rozpoczęcia. Może to spowodować duplikaty transakcji.',
+                    'Zmiana daty początkowej usunie wszystkie nierozliczone/transakcje w raportach roboczych i ponownie zaimportuje wszystkie transakcje od nowej daty początkowej. Może to spowodować zduplikowane transakcje.',
                 updateCard: 'Zaktualizuj kartę',
                 unassignCard: 'Cofnij przypisanie karty',
                 unassign: 'Cofnij przypisanie',

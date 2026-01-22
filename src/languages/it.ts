@@ -970,7 +970,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonMySettings: 'Le mie impostazioni',
         fabNewChat: 'Avvia chat',
         fabNewChatExplained: 'Avvia chat (Azione flottante)',
-        fabScanReceiptExplained: 'Scansiona ricevuta (Azione flottante)',
+        fabScanReceiptExplained: 'Scansiona ricevuta (Azione rapida)',
         chatPinned: 'Chat fissata',
         draftedMessage: 'Messaggio in bozza',
         listOfChatMessages: 'Elenco dei messaggi della chat',
@@ -1449,7 +1449,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Cambia approvatore',
             subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Puoi anche modificare in modo permanente l'approvatore per tutti i report nelle tue <a href="${workflowSettingLink}">impostazioni del flusso di lavoro</a>.`,
+                `Puoi anche modificare in modo permanente l’approvatore per tutti i report nelle tue <a href="${workflowSettingLink}">impostazioni del flusso di lavoro</a>.`,
             changedApproverMessage: (managerID: number) => `ha cambiato l'approvatore in <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Aggiungi approvatore',
@@ -1954,7 +1954,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     passwordPage: {
         changePassword: 'Cambia password',
-        changingYourPasswordPrompt: 'La modifica della password aggiornerà la password sia per il tuo account Expensify.com sia per il tuo account New Expensify.',
+        changingYourPasswordPrompt: 'La modifica della password aggiornerà la password sia per il tuo account Expensify.com che per il tuo account New Expensify.',
         currentPassword: 'Password attuale',
         newPassword: 'Nuova password',
         newPasswordPrompt: 'La nuova password deve essere diversa dalla vecchia password e contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
@@ -2108,7 +2108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Aggiungi un conto bancario per effettuare o ricevere pagamenti.',
         addDebitOrCreditCard: 'Aggiungi carta di debito o di credito',
         assignedCards: 'Carte assegnate',
-        assignedCardsDescription: 'Le transazioni di queste carte si sincronizzano automaticamente.',
+        assignedCardsDescription: 'Le transazioni da queste carte si sincronizzano automaticamente.',
         expensifyCard: 'Carta Expensify',
         walletActivationPending: 'Stiamo esaminando le tue informazioni. Ricontrolla tra qualche minuto!',
         walletActivationFailed: 'Purtroppo il tuo portafoglio non può essere attivato in questo momento. Chatta con Concierge per ulteriore assistenza.',
@@ -2164,8 +2164,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Transazione sospetta',
         suspiciousBannerDescription: 'Abbiamo notato transazioni sospette sulla tua carta. Tocca qui sotto per controllarle.',
         cardLocked: 'La tua carta è temporaneamente bloccata mentre il nostro team esamina l’account della tua azienda.',
-        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
-        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
+        markTransactionsAsReimbursable: 'Contrassegna le transazioni come rimborsabili',
+        markTransactionsDescription: 'Quando è abilitata, le transazioni importate da questa carta sono contrassegnate come rimborsabili per impostazione predefinita.',
         cardDetails: {
             cardNumber: 'Numero carta virtuale',
             expiration: 'Scadenza',
@@ -2998,10 +2998,10 @@ ${
     setPasswordPage: {
         enterPassword: 'Inserisci una password',
         setPassword: 'Imposta password',
-        newPasswordPrompt: 'La tua password deve contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
+        newPasswordPrompt: 'La password deve contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
         passwordFormTitle: 'Bentornato nella nuova Expensify! Imposta la tua password.',
-        passwordNotSet: 'Non è stato possibile impostare la tua nuova password. Ti abbiamo inviato un nuovo link per la password per riprovare.',
-        setPasswordLinkInvalid: 'Questo link per impostare la password non è valido o è scaduto. Un nuovo link ti sta aspettando nella tua casella di posta!',
+        passwordNotSet: 'Non siamo riusciti a impostare la tua nuova password. Ti abbiamo inviato un nuovo link per la password per riprovare.',
+        setPasswordLinkInvalid: 'Questo link per impostare la password non è valido o è scaduto. Un nuovo link ti aspetta nella tua casella di posta elettronica!',
         validateAccount: 'Verifica account',
     },
     statusPage: {
@@ -5096,7 +5096,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
                 changeTransactionStartDateWarning:
-                    'Modificando la data di inizio verranno eliminate tutte le transazioni non segnalate/bozze di segnalazione e verranno reimportate tutte le transazioni dalla nuova data di inizio. Ciò può causare transazioni duplicate.',
+                    'La modifica della data di inizio rimuoverà tutte le transazioni non dichiarate/in bozza e reimporterà tutte le transazioni a partire dalla nuova data di inizio. Questo può causare transazioni duplicate.',
                 updateCard: 'Aggiorna carta',
                 unassignCard: 'Rimuovi assegnazione carta',
                 unassign: 'Rimuovi assegnazione',
@@ -5504,7 +5504,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 giveItNameInstruction: 'Rendila abbastanza unica da poterla distinguere dalle altre carte. Casi d’uso specifici sono ancora meglio!',
                 cardName: 'Nome carta',
                 letsDoubleCheck: 'Controlliamo ancora una volta che tutto sia corretto.',
-                willBeReady: "Questa carta sarà subito pronta all'uso.",
+                willBeReady: 'Questa carta sarà subito pronta per l’uso.',
                 cardholder: 'Titolare della carta',
                 cardType: 'Tipo di carta',
                 limit: 'Limite',

@@ -971,7 +971,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonMySettings: 'Meine Einstellungen',
         fabNewChat: 'Chat starten',
         fabNewChatExplained: 'Chat starten (Schwebende Aktion)',
-        fabScanReceiptExplained: 'Beleg scannen (Schwebende Aktion)',
+        fabScanReceiptExplained: 'Beleg scannen',
         chatPinned: 'Chat angeheftet',
         draftedMessage: 'Entwurfsnachricht',
         listOfChatMessages: 'Liste der Chatnachrichten',
@@ -1452,7 +1452,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Genehmigenden ändern',
             subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Sie können den Genehmiger auch dauerhaft für alle Berichte in Ihren <a href="${workflowSettingLink}">Workflow-Einstellungen</a> ändern.`,
+                `Sie können den Genehmigenden für alle Berichte auch dauerhaft in Ihren <a href="${workflowSettingLink}">Workflow-Einstellungen</a> ändern.`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
@@ -1957,7 +1957,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     passwordPage: {
         changePassword: 'Passwort ändern',
-        changingYourPasswordPrompt: 'Wenn Sie Ihr Passwort ändern, wird es sowohl für Ihr Expensify.com-Konto als auch für Ihr New-Expensify-Konto aktualisiert.',
+        changingYourPasswordPrompt: 'Wenn Sie Ihr Passwort ändern, wird es sowohl für Ihr Expensify.com-Konto als auch für Ihr New Expensify-Konto aktualisiert.',
         currentPassword: 'Aktuelles Passwort',
         newPassword: 'Neues Passwort',
         newPasswordPrompt: 'Ihr neues Passwort muss sich von Ihrem alten Passwort unterscheiden und mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
@@ -2167,8 +2167,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Verdächtige Transaktion',
         suspiciousBannerDescription: 'Wir haben verdächtige Transaktionen auf Ihrer Karte festgestellt. Tippen Sie unten, um sie zu überprüfen.',
         cardLocked: 'Ihre Karte ist vorübergehend gesperrt, während unser Team das Konto Ihres Unternehmens überprüft.',
-        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
-        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
+        markTransactionsAsReimbursable: 'Transaktionen als erstattungsfähig markieren',
+        markTransactionsDescription: 'Wenn aktiviert, werden von dieser Karte importierte Transaktionen standardmäßig als erstattungsfähig markiert.',
         cardDetails: {
             cardNumber: 'Virtuelle Kartennummer',
             expiration: 'Ablauf',
@@ -5109,7 +5109,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsanfangsdatum',
                 changeTransactionStartDateWarning:
-                    'Durch das Ändern des Startdatums werden alle nicht gemeldeten/entworfenen Berichtstransaktionen entfernt und alle Transaktionen ab dem neuen Startdatum erneut importiert. Dies kann zu doppelten Transaktionen führen.',
+                    'Wenn Sie das Startdatum ändern, werden alle nicht gemeldeten/Entwurfs-Berichtstransaktionen entfernt und alle Transaktionen ab dem neuen Startdatum erneut importiert. Dies kann zu doppelten Transaktionen führen.',
                 updateCard: 'Karte aktualisieren',
                 unassignCard: 'Karte zuweisen aufheben',
                 unassign: 'Zuweisung aufheben',

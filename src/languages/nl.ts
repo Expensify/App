@@ -970,7 +970,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonMySettings: 'Mijn instellingen',
         fabNewChat: 'Chat starten',
         fabNewChatExplained: 'Chat starten (zwevende actie)',
-        fabScanReceiptExplained: 'Bon scannen (Zwevende actie)',
+        fabScanReceiptExplained: 'Bon scannen',
         chatPinned: 'Chat vastgezet',
         draftedMessage: 'Conceptbericht',
         listOfChatMessages: 'Lijst met chatberichten',
@@ -1446,9 +1446,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'U kunt geen dagvergoedingskosten verplaatsen naar rapporten op andere werkruimtes, omdat de dagvergoedingstarieven tussen werkruimtes kunnen verschillen.',
         changeApprover: {
             title: 'Fiatteur wijzigen',
-            subtitle: 'Kies een optie om de fiatteur voor dit rapport te wijzigen.',
+            subtitle: 'Kies een optie om de goedkeurder voor dit rapport te wijzigen.',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Je kunt de goedkeurder ook permanent wijzigen voor alle rapporten in je <a href="${workflowSettingLink}">workflowinstellingen</a>.`,
+                `Je kunt de fiatteur ook permanent wijzigen voor alle rapporten in je <a href="${workflowSettingLink}">workflowinstellingen</a>.`,
             changedApproverMessage: (managerID: number) => `heeft de goedkeurder gewijzigd naar <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Goedkeurder toevoegen',
@@ -1952,10 +1952,10 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     passwordPage: {
         changePassword: 'Wachtwoord wijzigen',
-        changingYourPasswordPrompt: 'Je wachtwoord wijzigen zal je wachtwoord bijwerken voor zowel je Expensify.com- als je New Expensify-account.',
+        changingYourPasswordPrompt: 'Als je je wachtwoord wijzigt, wordt dit wachtwoord bijgewerkt voor zowel je Expensify.com-account als je New Expensify-account.',
         currentPassword: 'Huidig wachtwoord',
         newPassword: 'Nieuw wachtwoord',
-        newPasswordPrompt: 'Je nieuwe wachtwoord moet verschillen van je oude wachtwoord en minstens 8 tekens, 1 hoofdletter, 1 kleine letter en 1 cijfer bevatten.',
+        newPasswordPrompt: 'Je nieuwe wachtwoord moet anders zijn dan je oude wachtwoord en minimaal 8 tekens, 1 hoofdletter, 1 kleine letter en 1 cijfer bevatten.',
     },
     twoFactorAuth: {
         headerTitle: 'Twee-factor-authenticatie',
@@ -2163,8 +2163,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Verdachte transactie',
         suspiciousBannerDescription: 'We hebben verdachte transacties op uw kaart opgemerkt. Tik hieronder om ze te bekijken.',
         cardLocked: 'Je kaart is tijdelijk geblokkeerd terwijl ons team het account van je bedrijf controleert.',
-        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
-        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
+        markTransactionsAsReimbursable: 'Transacties markeren als vergoedbaar',
+        markTransactionsDescription: 'Indien ingeschakeld, worden transacties die van deze kaart zijn geïmporteerd standaard als terugbetaalbaar gemarkeerd.',
         cardDetails: {
             cardNumber: 'Virtueel kaartnummer',
             expiration: 'Vervaldatum',
@@ -2393,7 +2393,7 @@ ${amount} voor ${merchant} - ${date}`,
             comment: (value: string) => `Beschrijving wijzigen in "${value}"`,
             merchant: (value: string) => `Handelaar bijwerken naar "${value}"`,
             reimbursable: (value: boolean) => `Uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`,
-            report: (value: string) => `Een rapport met de naam "${value}" toevoegen`,
+            report: (value: string) => `Voeg een rapport met de naam "${value}" toe`,
             tag: (value: string) => `Tag bijwerken naar "${value}"`,
             tax: (value: string) => `Belastingtarief bijwerken naar ${value}`,
         },
@@ -2996,10 +2996,10 @@ ${
     setPasswordPage: {
         enterPassword: 'Voer een wachtwoord in',
         setPassword: 'Wachtwoord instellen',
-        newPasswordPrompt: 'Je wachtwoord moet minimaal 8 tekens bevatten, waarvan 1 hoofdletter, 1 kleine letter en 1 cijfer.',
-        passwordFormTitle: 'Welkom terug bij de nieuwe Expensify! Stel je wachtwoord in.',
+        newPasswordPrompt: 'Je wachtwoord moet minstens 8 tekens, 1 hoofdletter, 1 kleine letter en 1 cijfer bevatten.',
+        passwordFormTitle: 'Welkom terug bij de nieuwe Expensify! Stel uw wachtwoord in.',
         passwordNotSet: 'We konden je nieuwe wachtwoord niet instellen. We hebben je een nieuwe wachtwoordlink gestuurd om het opnieuw te proberen.',
-        setPasswordLinkInvalid: 'Deze link om een wachtwoord in te stellen is ongeldig of verlopen. Er wacht een nieuwe op je in je e‑mailinbox!',
+        setPasswordLinkInvalid: 'Deze link om je wachtwoord in te stellen is ongeldig of verlopen. Er wacht een nieuwe op je in je e-mailinbox!',
         validateAccount: 'Account verifiëren',
     },
     statusPage: {
@@ -5090,7 +5090,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Startdatum transactie',
                 changeTransactionStartDateWarning:
-                    'Als u de startdatum wijzigt, worden alle niet-gerapporteerde/conceptrapporttransacties verwijderd en worden alle transacties vanaf de nieuwe startdatum opnieuw geïmporteerd. Dit kan dubbele transacties veroorzaken.',
+                    'Als u de startdatum wijzigt, worden alle niet-gerapporteerde/concepttransacties verwijderd en worden alle transacties vanaf de nieuwe startdatum opnieuw geïmporteerd. Dit kan dubbele transacties veroorzaken.',
                 updateCard: 'Kaart bijwerken',
                 unassignCard: 'Kaart ontkoppelen',
                 unassign: 'Toewijzen verwijderen',

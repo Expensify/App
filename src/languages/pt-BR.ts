@@ -1445,7 +1445,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Alterar aprovador',
             subtitle: 'Escolha uma opção para alterar o aprovador deste relatório.',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Você também pode alterar permanentemente o aprovador para todos os relatórios nas suas <a href="${workflowSettingLink}">configurações de fluxo de trabalho</a>.`,
+                `Você também pode alterar o aprovador permanentemente para todos os relatórios nas suas <a href="${workflowSettingLink}">configurações de fluxo de trabalho</a>.`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Adicionar aprovador',
@@ -1949,7 +1949,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     passwordPage: {
         changePassword: 'Alterar senha',
-        changingYourPasswordPrompt: 'Alterar sua senha atualizará a senha das suas contas do Expensify.com e do New Expensify.',
+        changingYourPasswordPrompt: 'Alterar sua senha atualizará a senha tanto da sua conta Expensify.com quanto da sua conta New Expensify.',
         currentPassword: 'Senha atual',
         newPassword: 'Nova senha',
         newPasswordPrompt: 'Sua nova senha deve ser diferente da antiga e conter pelo menos 8 caracteres, 1 letra maiúscula, 1 letra minúscula e 1 número.',
@@ -2103,7 +2103,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Adicione uma conta bancária para fazer ou receber pagamentos.',
         addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
-        assignedCardsDescription: 'As transações desses cartões sincronizam automaticamente.',
+        assignedCardsDescription: 'As transações desses cartões são sincronizadas automaticamente.',
         expensifyCard: 'Cartão Expensify',
         walletActivationPending: 'Estamos analisando suas informações. Volte daqui a alguns minutos!',
         walletActivationFailed: 'Infelizmente, sua carteira não pode ser ativada neste momento. Converse com o Concierge para obter mais assistência.',
@@ -2158,8 +2158,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Transação suspeita',
         suspiciousBannerDescription: 'Notamos transações suspeitas no seu cartão. Toque abaixo para revisar.',
         cardLocked: 'Seu cartão está temporariamente bloqueado enquanto nossa equipe analisa a conta da sua empresa.',
-        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
-        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
+        markTransactionsAsReimbursable: 'Marcar transações como reembolsáveis',
+        markTransactionsDescription: 'Quando ativado, as transações importadas deste cartão são marcadas como reembolsáveis por padrão.',
         cardDetails: {
             cardNumber: 'Número do cartão virtual',
             expiration: 'Vencimento',
@@ -2386,7 +2386,7 @@ ${amount} para ${merchant} - ${date}`,
             comment: (value: string) => `Alterar descrição para "${value}"`,
             merchant: (value: string) => `Atualizar comerciante para "${value}"`,
             reimbursable: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
-            report: (value: string) => `Adicione um relatório chamado "${value}"`,
+            report: (value: string) => `Adicionar um relatório chamado "${value}"`,
             tag: (value: string) => `Atualizar etiqueta para "${value}"`,
             tax: (value: string) => `Atualizar taxa de imposto para ${value}`,
         },
@@ -2987,12 +2987,12 @@ ${
         wrongTypeSubtitle: 'Essa pesquisa não é válida. Tente ajustar seus critérios de pesquisa.',
     },
     setPasswordPage: {
-        enterPassword: 'Digite uma senha',
+        enterPassword: 'Insira uma senha',
         setPassword: 'Definir senha',
         newPasswordPrompt: 'Sua senha deve ter pelo menos 8 caracteres, 1 letra maiúscula, 1 letra minúscula e 1 número.',
-        passwordFormTitle: 'Bem-vindo de volta ao New Expensify! Defina sua senha, por favor.',
+        passwordFormTitle: 'Bem-vindo de volta ao novo Expensify! Defina sua senha.',
         passwordNotSet: 'Não foi possível definir sua nova senha. Enviamos um novo link de redefinição de senha para você tentar novamente.',
-        setPasswordLinkInvalid: 'Este link para definir senha é inválido ou expirou. Um novo está esperando por você na sua caixa de entrada!',
+        setPasswordLinkInvalid: 'Este link para definir a senha é inválido ou expirou. Um novo está esperando por você na sua caixa de entrada de e-mail!', //_/\__/_/  \_,_/\__/\__/\_,_/
         validateAccount: 'Verificar conta',
     },
     statusPage: {
@@ -5079,7 +5079,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 lastUpdated: 'Última atualização',
                 transactionStartDate: 'Data de início da transação',
                 changeTransactionStartDateWarning:
-                    'Alterar a data de início removerá todas as transações não reportadas ou em rascunho e reimportará todas as transações a partir da nova data de início. Isso pode causar transações duplicadas.',
+                    'Alterar a data de início removerá todas as transações de relatórios não enviados/rascunho e reimportará todas as transações a partir da nova data de início. Isso pode causar transações duplicadas.',
                 updateCard: 'Atualizar cartão',
                 unassignCard: 'Desatribuir cartão',
                 unassign: 'Desatribuir',
