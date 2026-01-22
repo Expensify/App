@@ -267,6 +267,7 @@ function IOURequestEditReportCommon({
             <SelectionList
                 data={reportOptions}
                 onSelectRow={handleSelectReport}
+                isRowMultilineSupported
                 shouldShowTextInput={outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
                     value: searchValue,

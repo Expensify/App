@@ -223,6 +223,47 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_CATEGORY]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_TAG]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_TAX]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_DESCRIPTION]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_REIMBURSABLE]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_BILLABLE]: undefined;
+    [SCREENS.SETTINGS.RULES.ADD_REPORT]: undefined;
+    [SCREENS.SETTINGS.RULES.EDIT]: {
+        hash: string;
+        field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_MERCHANT]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_RENAME_MERCHANT]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_CATEGORY]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_TAG]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_TAX]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_DESCRIPTION]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_REIMBURSABLE]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_BILLABLE]: {
+        hash: string;
+    };
+    [SCREENS.SETTINGS.RULES.EDIT_REPORT]: {
+        hash: string;
+    };
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
@@ -1944,6 +1985,20 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.SET_DEFAULT_WORKSPACE]: {
         navigateTo?: Routes;
     };
+    [SCREENS.MONEY_REQUEST.STEP_TIME_RATE]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        reportActionID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_HOURS]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        reportActionID: string;
+    };
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
@@ -2275,6 +2330,7 @@ type RightModalNavigatorParamList = {
     };
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
+    [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: NavigatorScreenParams<MultifactorAuthenticationParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2925,6 +2981,17 @@ type TestToolsModalModalNavigatorParamList = {
     };
 };
 
+type MultifactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: {
+        notificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE>;
+    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
+        promptType: string;
+    };
+};
+
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
@@ -3037,4 +3104,5 @@ export type {
     DomainSplitNavigatorParamList,
     DomainScreenName,
     SearchColumnsParamList,
+    MultifactorAuthenticationParamList,
 };

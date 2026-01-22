@@ -150,6 +150,26 @@ const SCREENS = {
 
         RULES: {
             ROOT: 'Settings_Rules',
+            ADD: 'Settings_Rules_Add',
+            ADD_MERCHANT: 'Settings_Rules_Add_Merchant',
+            ADD_RENAME_MERCHANT: 'Settings_Rules_Add_Rename_Merchant',
+            ADD_CATEGORY: 'Settings_Rules_Add_Category',
+            ADD_TAG: 'Settings_Rules_Add_Tag',
+            ADD_TAX: 'Settings_Rules_Add_Tax',
+            ADD_DESCRIPTION: 'Settings_Rules_Add_Description',
+            ADD_REIMBURSABLE: 'Settings_Rules_Add_Reimbursable',
+            ADD_BILLABLE: 'Settings_Rules_Add_Billable',
+            ADD_REPORT: 'Settings_Rules_Add_Report',
+            EDIT: 'Settings_Rules_Edit',
+            EDIT_MERCHANT: 'Settings_Rules_Edit_Merchant',
+            EDIT_RENAME_MERCHANT: 'Settings_Rules_Edit_Rename_Merchant',
+            EDIT_CATEGORY: 'Settings_Rules_Edit_Category',
+            EDIT_TAG: 'Settings_Rules_Edit_Tag',
+            EDIT_TAX: 'Settings_Rules_Edit_Tax',
+            EDIT_DESCRIPTION: 'Settings_Rules_Edit_Description',
+            EDIT_REIMBURSABLE: 'Settings_Rules_Edit_Reimbursable',
+            EDIT_BILLABLE: 'Settings_Rules_Edit_Billable',
+            EDIT_REPORT: 'Settings_Rules_Edit_Report',
         },
 
         WALLET: {
@@ -276,6 +296,7 @@ const SCREENS = {
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
         EXPENSE_REPORT: 'ExpenseReport',
+        MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -332,6 +353,8 @@ const SCREENS = {
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
+        STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
+        STEP_HOURS: 'Money_Request_Step_Hours',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -880,6 +903,13 @@ const SCREENS = {
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
         RESET_DOMAIN: 'Domain_Reset',
+    },
+    MULTIFACTOR_AUTHENTICATION: {
+        MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
+        BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
+        NOTIFICATION: 'Multifactor_Authentication_Notification',
+        PROMPT: 'Multifactor_Authentication_Prompt',
+        NOT_FOUND: 'Multifactor_Authentication_Not_Found',
     },
 } as const;
 

@@ -6,6 +6,7 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -104,6 +105,12 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The merchant of the IOU */
     iouMerchant: string | undefined;
 
+    /** The hours count of the time request */
+    iouTimeCount: number | undefined;
+
+    /** The hourly rate of the time request */
+    iouTimeRate: number | undefined;
+
     /** The type of the IOU */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
@@ -121,6 +128,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
+
+    /** Flag indicating if it is a time request */
+    isTimeRequest: boolean;
 
     /** Flag indicating if the merchant is empty */
     isMerchantEmpty: boolean;
@@ -233,11 +243,14 @@ function MoneyRequestConfirmationListFooter({
     iouIsBillable,
     iouMerchant,
     iouType,
+    iouTimeCount,
+    iouTimeRate,
     isCategoryRequired,
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
     isPerDiemRequest,
+    isTimeRequest,
     isMerchantEmpty,
     isMerchantRequired,
     isPolicyExpenseChat,
@@ -273,6 +286,7 @@ function MoneyRequestConfirmationListFooter({
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -281,7 +295,7 @@ function MoneyRequestConfirmationListFooter({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
         canBeMissing: true,
     });
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -355,7 +369,9 @@ function MoneyRequestConfirmationListFooter({
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
-    const taxRates = policy?.taxRates ?? null;
+
+    const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
+    const taxRates = policy?.taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses?.taxRates : null);
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     // Determines whether the tax fields can be modified.
@@ -370,11 +386,19 @@ function MoneyRequestConfirmationListFooter({
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
-    const taxRateTitle = getTaxName(policy, transaction);
+    let taxRateTitle;
+    if (getTaxName(policy, transaction)) {
+        taxRateTitle = getTaxName(policy, transaction);
+    } else if (isMovingCurrentTransactionFromTrackExpense) {
+        taxRateTitle = getTaxName(policyForMovingExpenses, transaction);
+    } else {
+        taxRateTitle = '';
+    }
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
+    const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
@@ -427,12 +451,12 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
+                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !isTimeRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && !isTimeRequest}
                     onPress={() => {
-                        if (isDistanceRequest || !transactionID) {
+                        if (isDistanceRequest || isTimeRequest || !transactionID) {
                             return;
                         }
 
@@ -519,7 +543,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
                     shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
-                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
+                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -576,6 +600,48 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowMerchant,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('iou.timeTracking.hours')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={`${iouTimeCount}`}
+                    description={translate('iou.timeTracking.hours')}
+                    style={styles.moneyRequestMenuItem}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isTimeRequest,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={`time_${translate('common.rate')}`}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode))}
+                    description={translate('common.rate')}
+                    style={styles.moneyRequestMenuItem}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isTimeRequest,
         },
         {
             item: (
@@ -699,6 +765,8 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
+                    brickRoadIndicator={shouldDisplayTaxRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayTaxRateError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -1100,5 +1168,8 @@ export default memo(
         prevProps.shouldShowTax === nextProps.shouldShowTax &&
         prevProps.transaction === nextProps.transaction &&
         prevProps.transactionID === nextProps.transactionID &&
-        prevProps.unit === nextProps.unit,
+        prevProps.unit === nextProps.unit &&
+        prevProps.isTimeRequest === nextProps.isTimeRequest &&
+        prevProps.iouTimeCount === nextProps.iouTimeCount &&
+        prevProps.iouTimeRate === nextProps.iouTimeRate,
 );
