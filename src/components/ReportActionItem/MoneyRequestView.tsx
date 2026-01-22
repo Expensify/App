@@ -311,8 +311,11 @@ function MoneyRequestView({
 
     const taxRatesDescription = taxRates?.name;
 
-    const taxRateTitle = transaction?.taxCode ? getTaxName(policy, updatedTransaction ?? transaction, isExpenseUnreported) : '';
-    const hasTaxValueChanged = transaction?.taxCode ? getTaxValue(policy, updatedTransaction ?? transaction, transaction.taxCode) !== (updatedTransaction ?? transaction).taxValue : false;
+    const baseTransaction = updatedTransaction ?? transaction;
+    const {taxCode, taxValue} = transaction ?? {};
+
+    const taxRateTitle = taxCode ? getTaxName(policy, baseTransaction, isExpenseUnreported) : '';
+    const hasTaxValueChanged = taxCode ? getTaxValue(policy, baseTransaction, taxCode) !== baseTransaction?.taxValue : false;
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
@@ -588,7 +591,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = hasTaxValueChanged ? transaction?.taxValue : (taxRateTitle ?? fallbackTaxRateTitle ?? '');
+    const taxRateValue = hasTaxValueChanged ? taxValue : (taxRateTitle ?? fallbackTaxRateTitle ?? '');
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
