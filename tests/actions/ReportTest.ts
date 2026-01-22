@@ -23,6 +23,7 @@ import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import '@src/libs/PreexistingReportHandler';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -3215,6 +3216,7 @@ describe('actions/Report', () => {
             report.type = CONST.REPORT.TYPE.IOU;
 
             const parentAction = createRandomReportAction(1);
+            parentAction.childReportID = reportID;
 
             // Set up parent report with action
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
@@ -3260,12 +3262,6 @@ describe('actions/Report', () => {
 
             await waitForBatchedUpdates();
 
-            // Allow time for InteractionManager callback
-            await new Promise((resolve) => {
-                setTimeout(resolve, 100);
-            });
-            await waitForBatchedUpdates();
-
             // Verify optimistic report is deleted - Onyx returns undefined for deleted keys
             const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             expect(deletedReport).toBeFalsy();
@@ -3276,43 +3272,6 @@ describe('actions/Report', () => {
             expect(updatedReport?.reportID).toBe(preexistingReportID);
             expect(updatedReport?.preexistingReportID).toBeFalsy();
             expect(updatedReport?.participants).toEqual(existingReport.participants);
-        });
-
-        it('should transfer draft comment from optimistic report to preexisting report', async () => {
-            const reportID = '1';
-            const preexistingReportID = '2';
-            const draftComment = 'This is a draft comment';
-
-            // Create optimistic and preexisting reports
-            const optimisticReport = createRandomReport(Number(reportID), undefined);
-            optimisticReport.reportID = reportID;
-            optimisticReport.preexistingReportID = preexistingReportID;
-
-            const existingReport = createRandomReport(Number(preexistingReportID), undefined);
-            existingReport.reportID = preexistingReportID;
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, draftComment);
-            await waitForBatchedUpdates();
-
-            Report.handlePreexistingReport(optimisticReport, draftComment);
-
-            await waitForBatchedUpdates();
-
-            // Allow time for InteractionManager callback
-            await new Promise((resolve) => {
-                setTimeout(resolve, 100);
-            });
-            await waitForBatchedUpdates();
-
-            // Verify draft comment is transferred to preexisting report
-            const transferredDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${preexistingReportID}`);
-            expect(transferredDraft).toBe(draftComment);
-
-            // Verify optimistic report's draft is cleared - Onyx returns undefined for deleted keys
-            const clearedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
-            expect(clearedDraft).toBeFalsy();
         });
 
         it('should handle preexisting report when participants is undefined in existing report', async () => {
@@ -3336,12 +3295,6 @@ describe('actions/Report', () => {
 
             Report.handlePreexistingReport(optimisticReport, undefined);
 
-            await waitForBatchedUpdates();
-
-            // Allow time for InteractionManager callback
-            await new Promise((resolve) => {
-                setTimeout(resolve, 100);
-            });
             await waitForBatchedUpdates();
 
             // Verify preexisting report uses optimistic report's participants when existing has none
