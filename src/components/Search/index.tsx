@@ -357,6 +357,7 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        shouldUseLiveData,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded

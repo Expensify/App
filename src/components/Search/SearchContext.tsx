@@ -88,9 +88,9 @@ function SearchContextProvider({children}: ChildrenProps) {
             const liveData = todoSearchResultsData[currentSearchKey as keyof typeof todoSearchResultsData];
             const searchInfo: SearchResultsInfo = {
                 ...(snapshotSearchResults?.search ?? defaultSearchInfo),
-                count: snapshotSearchResults?.search.count ?? liveData.metadata.count,
-                total: snapshotSearchResults?.search.total ?? liveData.metadata.total,
-                currency: snapshotSearchResults?.search.currency ?? liveData.metadata.currency,
+                count: liveData.metadata.count,
+                total: liveData.metadata.total,
+                currency: liveData.metadata.currency,
             };
             const hasResults = Object.keys(liveData.data).length > 0;
             // For to-do searches, always return a valid SearchResults object (even with empty data)
