@@ -69,12 +69,12 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const isTaxDeleted = !!transaction?.taxCode && transaction?.taxValue !== undefined && !taxRates?.taxes?.[transaction.taxCode];
-
-    const isTaxValueChanged = !!transaction?.taxCode && transaction?.taxValue !== undefined && taxRates?.taxes?.[transaction.taxCode]?.value !== transaction?.taxValue;
+    const {taxCode, taxValue} = transaction ?? {};
+    const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[taxCode];
+    const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[taxCode]?.value !== taxValue;
 
     const selectedOptions = useMemo<Tax[]>(() => {
-        if (!selectedTaxRate || isTaxValueChanged) {
+        if (!selectedTaxRate || hasTaxValueChanged) {
             return [];
         }
 
@@ -85,23 +85,22 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
                 accountID: null,
             },
         ];
-    }, [selectedTaxRate, isTaxValueChanged]);
+    }, [selectedTaxRate, hasTaxValueChanged]);
 
     const deletedTaxOption = useMemo(() => {
-        if (!isTaxDeleted && !isTaxValueChanged) {
+        if (!hasTaxBeenDeleted && !hasTaxValueChanged) {
             return null;
         }
         return {
             code: undefined,
-            text: transaction?.taxValue ?? '',
-            keyForList: transaction?.taxCode ?? '',
-            searchText: transaction?.taxValue ?? '',
-            tooltipText: transaction?.taxValue ?? '',
+            text: taxValue ?? '',
+            keyForList: taxCode ?? '',
+            searchText: taxValue ?? '',
+            tooltipText: taxValue ?? '',
             isDisabled: true,
             isSelected: true,
         };
-    }, [isTaxDeleted, isTaxValueChanged, transaction?.taxCode, transaction?.taxValue]);
-
+    }, [hasTaxBeenDeleted, hasTaxValueChanged, taxCode, taxValue]);
     const sections = useMemo(() => {
         const baseSections = getTaxRatesSection({
             policy,
@@ -127,7 +126,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const handleSelectRow = useCallback(
         (newSelectedOption: TaxRatesOption) => {
-            if (isTaxValueChanged) {
+            if (hasTaxValueChanged) {
                 onSubmit(newSelectedOption, !newSelectedOption.code);
                 return;
             }
@@ -136,9 +135,9 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
                 return;
             }
 
-            onSubmit(newSelectedOption, isTaxDeleted);
+            onSubmit(newSelectedOption, hasTaxBeenDeleted);
         },
-        [isTaxValueChanged, selectedOptionKey, onSubmit, isTaxDeleted, onDismiss],
+        [hasTaxValueChanged, selectedOptionKey, onSubmit, hasTaxBeenDeleted, onDismiss],
     );
 
     return (
