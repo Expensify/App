@@ -156,6 +156,9 @@ type OptionRowLHNDataProps = {
     lastAction: ReportAction | undefined;
 
     lastActionReport: OnyxEntry<Report> | undefined;
+
+    /** The current user's account ID */
+    currentUserAccountID: number;
 };
 
 type OptionRowLHNProps = {
