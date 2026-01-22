@@ -1,5 +1,6 @@
 import {getReportPolicyID} from '@selectors/Report';
 import React, {useCallback, useContext, useEffect} from 'react';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
@@ -30,10 +31,17 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {removeTransaction} = useSearchContext();
     const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false, selector: getReportPolicyID});
     const policy = usePolicy(reportPolicyID);
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const {superWideRHPRouteKeys} = useContext(WideRHPContext);
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy);
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, allBetas);
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {
