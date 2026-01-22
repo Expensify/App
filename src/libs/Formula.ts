@@ -2,7 +2,7 @@ import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMon
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
@@ -35,9 +35,6 @@ type FormulaContext = {
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
     allTransactions?: Record<string, Transaction>;
-    fieldValues?: Record<string, string>;
-    fieldsByName?: Record<string, PolicyReportField>;
-    visitedFields?: Set<string>;
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -299,7 +296,7 @@ function compute(formula?: string, context?: FormulaContext): string {
                 }
                 break;
             case FORMULA_PART_TYPES.FIELD:
-                value = computeFieldPart(part, context);
+                value = computeFieldPart(part);
                 break;
             case FORMULA_PART_TYPES.USER:
                 value = computeUserPart(part);
@@ -431,48 +428,10 @@ function formatStatus(statusNum: number | undefined): string {
 }
 
 /**
- * Check if a formula string contains field references ({field:X})
- * Uses quick string check before expensive parsing for performance
+ * Compute the value of a field formula part
  */
-function hasFieldReferences(formula: string | undefined): boolean {
-    if (!formula?.includes('{field:')) {
-        return false;
-    }
-    const parsed = parse(formula);
-    return parsed.some((part) => part.type === FORMULA_PART_TYPES.FIELD);
-}
-
-/**
- * Compute the value of a field formula part with recursive resolution support
- */
-function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
-    const fieldName = part.fieldPath.at(0)?.toLowerCase();
-
-    if (!fieldName) {
-        return part.definition;
-    }
-
-    // Prevent circular references by tracking visited fields
-    const visited = context?.visitedFields ?? new Set<string>();
-    if (visited.has(fieldName)) {
-        return part.definition;
-    }
-
-    // If we have the full field definitions, we can recursively resolve dependencies
-    if (context?.fieldsByName?.[fieldName]) {
-        const field = context.fieldsByName[fieldName];
-        if (hasFieldReferences(field.defaultValue)) {
-            visited.add(fieldName);
-            return compute(field.defaultValue, {...context, visitedFields: visited});
-        }
-        return field.value ?? field.defaultValue ?? '';
-    }
-
-    // Fallback to flat value map
-    if (context?.fieldValues?.[fieldName]) {
-        return context.fieldValues[fieldName];
-    }
-
+function computeFieldPart(part: FormulaPart): string {
+    // Field computation will be implemented later
     return part.definition;
 }
 
@@ -951,25 +910,6 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
     }
 }
 
-/**
- * Resolve the display value for a report field, handling {field:X} references
- */
-function resolveReportFieldValue(
-    field: PolicyReportField,
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    fieldValues: Record<string, string>,
-    fieldsByName: Record<string, PolicyReportField>,
-): string {
-    const fieldValue = field.value ?? field.defaultValue ?? '';
-
-    if (!report || !hasFieldReferences(field.defaultValue)) {
-        return fieldValue;
-    }
-
-    return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
-}
-
-export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
+export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences};
 
 export type {FormulaContext, FieldList, MinimalTransaction};

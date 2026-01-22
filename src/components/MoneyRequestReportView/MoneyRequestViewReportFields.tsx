@@ -6,13 +6,12 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
-import {resolveReportFieldValue} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    getAvailableReportFields,
     getFieldViolation,
     getFieldViolationTranslation,
     getReportFieldKey,
-    getReportFieldMaps,
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
@@ -84,15 +83,13 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
-        const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
-        const fields = Object.values(fieldsByName);
-
+        const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields
             .filter((field) => field.target === report?.type)
             .filter((reportField) => !shouldHideSingleReportField(reportField))
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
-                const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName);
+                const fieldValue = field.value ?? field.defaultValue;
                 const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);

@@ -18,14 +18,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {resolveReportFieldValue} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    getAvailableReportFields,
     getFieldViolation,
     getFieldViolationTranslation,
     getMoneyRequestSpendBreakdown,
     getReportFieldKey,
-    getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
@@ -42,7 +41,7 @@ import CONST from '@src/CONST';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyReportViewProps = {
@@ -90,12 +89,9 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
 
-    const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
-        const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
-        const sorted = Object.values(byName)
-            .filter((field) => field.target === report?.type)
-            .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
-        return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
+    const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
+        const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
+        return fields.filter((field) => field.target === report?.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy?.fieldList, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
@@ -142,7 +138,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     return null;
                                 }
 
-                                const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName);
+                                const fieldValue = reportField.value ?? reportField.defaultValue;
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
