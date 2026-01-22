@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
-import {useInputBlurState, useInputBlurActions} from '@components/InputBlurContext';
+import {useInputBlurActions, useInputBlurState} from '@components/InputBlurContext';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
