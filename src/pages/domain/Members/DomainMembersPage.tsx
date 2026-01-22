@@ -1,4 +1,4 @@
-import {memberAccountIDsSelector} from '@selectors/Domain';
+import {defaultSecurityGroupIDSelector, memberAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -28,6 +28,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
+    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: defaultSecurityGroupIDSelector});
 
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -60,7 +61,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerIcon={illustrations.Profile}
             headerContent={renderHeaderButtons}
             getCustomRowProps={getCustomRowProps}
-            onDismissError={(item) => clearAddMemberError(domainAccountID, item.accountID, item.login)}
+            onDismissError={(item) => clearAddMemberError(domainAccountID, item.accountID, item.login, defaultSecurityGroupID ?? '')}
         />
     );
 }

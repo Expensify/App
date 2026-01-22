@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {domainNameSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
+import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type DomainAddMemberProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_MEMBER>;
@@ -35,6 +35,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     });
     const personalDetails = getPersonalDetailsByIDs({accountIDs: memberIDs});
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
+    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: defaultSecurityGroupIDSelector});
 
     const [email, setEmail] = useState<string>('');
     const fullEmail = `${email}@${domainName}`;
@@ -49,7 +50,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
         }
 
         setEmail('');
-        addMemberToDomain(domainAccountID, fullEmail);
+        addMemberToDomain(domainAccountID, fullEmail, defaultSecurityGroupID ?? '');
         Navigation.dismissModal();
     };
 

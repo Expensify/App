@@ -791,9 +791,8 @@ function clearDomainErrors(domainAccountID: number) {
     });
 }
 
-function addMemberToDomain(domainAccountID: number, email: string) {
-    /* eslint-disable rulesdir/no-default-id-values */
-    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
+function addMemberToDomain(domainAccountID: number, email: string, defaultSecurityGroupID: string) {
+    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
     const optimisticAccountID = generateAccountID(email);
 
     const optimisticData: OnyxUpdate[] = [
@@ -921,9 +920,8 @@ function addMemberToDomain(domainAccountID: number, email: string) {
 /**
  * Removes an error and pending actions after trying to add member. It clears errors for both email and accountID
  */
-function clearAddMemberError(domainAccountID: number, accountID: number, email: string) {
-    /* eslint-disable rulesdir/no-default-id-values */
-    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
+function clearAddMemberError(domainAccountID: number, accountID: number, email: string, defaultSecurityGroupID: string) {
+    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         memberErrors: {
