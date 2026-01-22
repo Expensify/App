@@ -124,6 +124,7 @@ function SettlementButton({
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
     const personalPolicy = usePolicy(personalPolicyID);
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const lastPaymentPolicy = usePolicy(lastPaymentMethod);
@@ -424,7 +425,7 @@ function SettlementButton({
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                approveMoneyRequest(iouReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, false);
+                approveMoneyRequest(iouReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, allBetas, false);
             }
             return;
         }
