@@ -206,7 +206,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             <Switch
                                 isOn={value.enabled}
                                 disabled={isDisabled}
-                                accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                         setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
@@ -222,7 +222,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Switch
                         isOn={value.enabled}
                         disabled={isDisabled}
-                        accessibilityLabel={translate('workspace.categories.enableCategory')}
+                        accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                 setIsCannotDeleteOrDisableLastCategoryModalVisible(true);

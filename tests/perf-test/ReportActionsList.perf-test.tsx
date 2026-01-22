@@ -8,7 +8,6 @@ import type Navigation from '@libs/Navigation/Navigation';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsList from '@src/pages/home/report/ReportActionsList';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
@@ -61,14 +60,12 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-beforeAll(() => {
+beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
         evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-    });
-    IntlStore.load('en');
-    return waitForBatchedUpdates();
-});
+    }),
+);
 
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();

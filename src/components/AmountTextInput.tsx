@@ -83,7 +83,6 @@ function AmountTextInput({
             submitBehavior="submit"
             selection={selection}
             onSelectionChange={onSelectionChange}
-            role={CONST.ROLE.PRESENTATION}
             onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.

@@ -20,7 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoom, inviteToRoomAction, searchInServer} from '@libs/actions/Report';
+import {inviteToRoomAction, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -38,7 +38,7 @@ import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportName, isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getReportName, isHiddenForCurrentUser} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,7 +60,7 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -206,7 +206,7 @@ function RoomInvitePage({
 
     const ancestors = useAncestors(report);
 
-    const inviteUsers = () => {
+    const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         if (!validate()) {
@@ -222,11 +222,7 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
         if (report?.reportID) {
-            if (isPolicyExpenseChat(report)) {
-                inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
-            } else {
-                inviteToRoom(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
-            }
+            inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
             clearUserSearchPhrase();
             if (backTo) {
                 Navigation.goBack(backTo);
@@ -234,7 +230,7 @@ function RoomInvitePage({
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             }
         }
-    };
+    }, [validate, selectedOptions, ancestors, report, currentUserPersonalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);

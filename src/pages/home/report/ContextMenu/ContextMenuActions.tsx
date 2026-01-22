@@ -245,6 +245,8 @@ type ContextMenuActionPayload = {
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
+    isDelegateAccessRestricted?: boolean;
+    showDelegateNoAccessModal?: () => void;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -465,7 +467,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canUnholdRequest;
         },
-        onPress: (closePopover, {moneyRequestAction}) => {
+        onPress: (closePopover, {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal}) => {
+            if (isDelegateAccessRestricted) {
+                hideContextMenu(false, showDelegateNoAccessModal);
+                return;
+            }
+
             if (closePopover) {
                 hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction));
                 return;
@@ -488,7 +495,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canHoldRequest;
         },
-        onPress: (closePopover, {moneyRequestAction}) => {
+        onPress: (closePopover, {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal}) => {
+            if (isDelegateAccessRestricted) {
+                hideContextMenu(false, showDelegateNoAccessModal);
+                return;
+            }
+
             if (closePopover) {
                 hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction));
                 return;
@@ -1097,8 +1109,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
+            const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));

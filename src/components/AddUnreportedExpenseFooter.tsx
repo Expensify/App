@@ -45,6 +45,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -63,6 +64,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     session?.email ?? '',
                     transactionViolations,
                     policyRecentlyUsedCurrencies ?? [],
+                    allBetas,
                     quickAction,
                 );
             } else {

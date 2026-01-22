@@ -94,7 +94,6 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
                             />
                             {children}
                             <MenuItem
-                                style={styles.mb5}
                                 title={translate('common.profile')}
                                 icon={icons.Info}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}

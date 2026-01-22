@@ -39,6 +39,7 @@ function GenericPressable({
     ref,
     dataSet,
     forwardedFSClass,
+    accessibilityState,
     ...rest
 }: PressableProps) {
     const styles = useThemeStyles();
@@ -173,9 +174,10 @@ function GenericPressable({
             // accessibility props
             accessibilityState={{
                 disabled: isDisabled,
-                ...rest.accessibilityState,
+                ...accessibilityState,
             }}
             aria-disabled={isDisabled}
+            aria-selected={accessibilityState?.selected}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
