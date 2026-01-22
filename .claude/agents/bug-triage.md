@@ -126,14 +126,19 @@ https://github.com/Expensify/App/blob/3779ccf1f226c1ee125b1f0b9d3bf6eb30ec27b8/s
 
 If eligible (Exploratory OR High Confidence):
 
-1. Update title to add [$75] prefix:
-```bash
-gh issue edit "$ISSUE_URL" --title "[\$75] Original Title"
-```
-
-2. Add External label:
+1. Add External label first:
 ```bash
 gh issue edit "$ISSUE_URL" --add-label "External"
+```
+
+2. Wait 5 seconds:
+```bash
+sleep 5
+```
+
+3. Update title to add [$75] prefix:
+```bash
+gh issue edit "$ISSUE_URL" --title "[\$75] Original Title"
 ```
 
 ---

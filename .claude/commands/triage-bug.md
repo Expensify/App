@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(curl:*https://github.com/user-attachments/assets/*),Bash(rm screenshot*),Glob,Grep,Read
+allowed-tools: Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(curl:*https://github.com/user-attachments/assets/*),Bash(rm screenshot*),Bash(sleep:*),Glob,Grep,Read
 description: Investigate a bug issue and post an investigation summary
 ---
 
