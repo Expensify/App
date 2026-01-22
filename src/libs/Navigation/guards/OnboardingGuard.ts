@@ -153,25 +153,17 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        // 4. ALLOW: Navigating to onboarding screens (user is in onboarding flow)
-        if (targetRoute && isOnboardingFlowName(targetRoute)) {
+        // 4. ALLOW: In onboarding flow (navigating to or currently on onboarding screen)
+        const isNavigatingToOnboarding = targetRoute && isOnboardingFlowName(targetRoute);
+        const isCurrentlyOnOnboarding = state.routes && state.routes.length > 0 && isOnboardingFlowName(findFocusedRoute(state)?.name);
+        if (isNavigatingToOnboarding ?? isCurrentlyOnOnboarding) {
             return {type: 'ALLOW'};
         }
 
-        // 5. ALLOW: Currently on onboarding screen
-        // Only check focused route if state has routes (not on initial empty state)
-        if (state.routes && state.routes.length > 0) {
-            const focusedRoute = findFocusedRoute(state);
-            const isCurrentlyOnOnboarding = focusedRoute && isOnboardingFlowName(focusedRoute.name);
-            if (isCurrentlyOnOnboarding) {
-                return {type: 'ALLOW'};
-            }
-        }
-
-        // 6. CHECK IF USER HAS COMPLETED ONBOARDING
+        // 5. CHECK IF USER HAS COMPLETED ONBOARDING
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
 
-        // 7. SKIP ONBOARDING FOR SPECIAL CASES
+        // 6. SKIP ONBOARDING FOR SPECIAL CASES
         const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
         // Skip onboarding for migrated users (they'll see migrated user modal instead)
@@ -179,7 +171,7 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        // 8. HYBRID APP ONBOARDING
+        // 7. HYBRID APP ONBOARDING
         if (CONFIG.IS_HYBRID_APP) {
             const isSingleNewDotEntry = hybridApp?.isSingleNewDotEntry;
             const {isHybridAppOnboardingCompleted} = tryNewDot ?? {};
@@ -215,7 +207,7 @@ const OnboardingGuard: NavigationGuard = {
             }
         }
 
-        // 9. STANDALONE (NON-HYBRID) ONBOARDING
+        // 8. STANDALONE (NON-HYBRID) ONBOARDING
         if (!CONFIG.IS_HYBRID_APP && !isOnboardingCompleted) {
             // Skip onboarding if user is part of a group workspace or was invited
             const shouldSkipOnboarding =
@@ -243,7 +235,7 @@ const OnboardingGuard: NavigationGuard = {
             };
         }
 
-        // 10. ALLOW: Onboarding is complete or not required
+        // 9. ALLOW: Onboarding is complete or not required
         return {type: 'ALLOW'};
     },
 };
