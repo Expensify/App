@@ -579,6 +579,8 @@ function duplicateExpenseTransaction({
 
     params.policyParams = {
         policy: targetPolicy,
+        // // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80049
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
         policyCategories: targetPolicyCategories ?? {},
     };
