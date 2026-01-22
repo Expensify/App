@@ -36,7 +36,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const personalDetails = getPersonalDetailsByIDs({accountIDs: memberIDs});
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
 
-    const [email, setEmail] = useState<string | undefined>();
+    const [email, setEmail] = useState<string>('');
     const fullEmail = `${email}@${domainName}`;
 
     const isUserAlreadyAMember = !!email && personalDetails.some(({login}) => login?.toLowerCase() === fullEmail.toLowerCase());
