@@ -4219,7 +4219,6 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    // Check for DEW approve failures on SUBMITTED status reports (GBR)
     if (optionOrReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         const reportActionsArray = Object.values(reportActions ?? {});
         const mostRecentActiveDEWApproveAction = getMostRecentActiveDEWApproveFailedAction(reportActionsArray);
