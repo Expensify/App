@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect} from 'react';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -51,11 +52,22 @@ function WorkspaceTravelPage({
         openPolicyTravelPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
-    useNetwork({onReconnect: fetchTravelData});
+    const isFocused = useIsFocused();
 
-    useEffect(() => {
-        fetchTravelData();
-    }, [fetchTravelData]);
+    useNetwork({
+        onReconnect: () => {
+            if (!isFocused) {
+                return;
+            }
+            fetchTravelData();
+        },
+    });
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchTravelData();
+        }, [fetchTravelData]),
+    );
 
     const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
 

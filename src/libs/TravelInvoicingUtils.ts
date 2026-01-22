@@ -5,12 +5,6 @@ import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
 
 /**
- * The Travel Invoicing feed type constant for PROGRAM_TRAVEL_US.
- * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
- */
-const PROGRAM_TRAVEL_US = 'TRAVEL_US';
-
-/**
  * Checks whether Travel Invoicing is enabled based on the card settings.
  * Travel Invoicing is considered enabled if the PROGRAM_TRAVEL_US feed has a valid paymentBankAccountID.
  */
@@ -92,6 +86,6 @@ function getTravelSettlementFrequency(cardSettings: OnyxEntry<ExpensifyCardSetti
     return cardSettings.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
 }
 
-export {PROGRAM_TRAVEL_US, getIsTravelInvoicingEnabled, hasTravelInvoicingSettlementAccount, getTravelLimit, getTravelSpend, getTravelSettlementAccount, getTravelSettlementFrequency};
+export {getIsTravelInvoicingEnabled, hasTravelInvoicingSettlementAccount, getTravelLimit, getTravelSpend, getTravelSettlementAccount, getTravelSettlementFrequency};
 
 export type {TravelSettlementAccountInfo};
