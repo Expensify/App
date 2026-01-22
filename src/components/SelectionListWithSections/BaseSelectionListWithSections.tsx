@@ -104,6 +104,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     includeSafeAreaPaddingBottom = true,
     shouldTextInputInterceptSwipe = false,
     listHeaderContent,
+    showSectionTitleWithListHeaderContent = false,
     onEndReached,
     onEndReachedThreshold,
     windowSize = 5,
@@ -593,7 +594,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return <section.CustomSectionHeader section={section} />;
         }
 
-        if (!section.title || isEmptyObject(section.data) || listHeaderContent) {
+        if (!section.title || isEmptyObject(section.data) || (!showSectionTitleWithListHeaderContent && listHeaderContent)) {
             return null;
         }
 
