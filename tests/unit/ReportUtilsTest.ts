@@ -11500,5 +11500,34 @@ describe('ReportUtils', () => {
             const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation);
             expect(optimisticReport.reportName).toBe('New Report');
         });
+
+        it('should set reportName to empty string when policy field list is empty and beta is not enabled', async () => {
+            // Given a policy with an empty field list
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(201),
+                id: '201',
+                type: CONST.POLICY.TYPE.TEAM,
+                fieldList: {},
+            };
+
+            // And the CUSTOM_REPORT_NAMES beta is NOT enabled
+            await Onyx.set(ONYXKEYS.BETAS, []);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyWithEmptyFieldList.id}`, policyWithEmptyFieldList);
+            await waitForBatchedUpdates();
+
+            // When we create an empty expense report
+            const reportID = 'test-report-id-456';
+            const accountID = currentUserAccountID;
+            const parentReport = {
+                ...createPolicyExpenseChat(accountID),
+                policyID: policyWithEmptyFieldList.id,
+            };
+            const parentReportActionID = 'parent-report-action-id-789';
+            const timeOfCreation = DateUtils.getDBTime();
+
+            // Then the report name should be empty string (beta not enabled, so no name computation)
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation);
+            expect(optimisticReport.reportName).toBe('');
+        });
     });
 });
