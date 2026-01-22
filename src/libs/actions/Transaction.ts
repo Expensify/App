@@ -963,9 +963,11 @@ function changeTransactionsReport({
             value: {
                 reportID,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                comment: {
-                    hold: null,
-                },
+                ...(isUnreported && {
+                    comment: {
+                        hold: null,
+                    },
+                }),
                 ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
             },
@@ -1322,8 +1324,8 @@ function changeTransactionsReport({
             transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
         }
 
-        // Build unhold report action
-        if (isOnHold(transaction)) {
+        // Build unhold report action only when moving to unreported (self DM) report
+        if (isUnreported && isOnHold(transaction)) {
             const unHoldAction = buildOptimisticUnHoldReportAction();
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
