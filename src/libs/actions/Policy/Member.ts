@@ -866,6 +866,7 @@ function buildAddMembersToWorkspaceOnyxData(
     policyExpenseChatNotificationPreference?: NotificationPreference,
 ) {
     if (!policy?.id) {
+        Log.warn('buildAddMembersToWorkspaceOnyxData: Policy ID is undefined');
         return {
             optimisticData: [],
             successData: [],
@@ -992,6 +993,7 @@ function addMembersToWorkspace(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (!policy?.id) {
+        Log.warn('addMembersToWorkspace: Policy ID is undefined');
         return;
     }
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
