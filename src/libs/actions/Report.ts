@@ -1117,7 +1117,7 @@ function openReport(
     // created before we started requiring them. When users open the report, we build
     // the missing pieces here so the UI works. Backend also creates them via moneyRequestPreviewReportActionID.
     // We log at the end of this block to track how often this path gets hit.
-    // https://github.com/Expensify/App/issues/74343 - remove once all old transactions are migrated
+    // https://github.com/Expensify/App/issues/80180 - remove once all old transactions are migrated
     if (transaction && !parentReportActionID) {
         const transactionParentReportID = parentReportID ?? transaction?.reportID;
         const iouReportActionID = rand64();
