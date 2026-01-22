@@ -13,11 +13,9 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import Search from '@components/Search';
-import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageFooter from '@components/Search/SearchPageFooter';
-import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchComponent from '@components/Search';
+// Using composition pattern - import from SearchComposition for dot notation components
+import Search from '@components/Search/SearchComposition';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
@@ -77,7 +75,10 @@ function SearchPageNarrow({
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
+    // Using composition pattern - access state and actions separately
+    const {state, actions} = Search.useSearch();
+    const {selectedTransactions} = state;
+    const {clearSelectedTransactions} = actions;
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     // Controls the visibility of the educational tooltip based on user scrolling.
@@ -210,7 +211,8 @@ function SearchPageNarrow({
                                 ]}
                             >
                                 <View style={[styles.flex1, styles.pt2, styles.appBG]}>
-                                    <SearchPageHeader
+                                    {/* Using composition pattern - Search.Header component */}
+                                    <Search.Header
                                         queryJSON={queryJSON}
                                         searchRouterListVisible={searchRouterListVisible}
                                         hideSearchRouterList={() => {
@@ -227,7 +229,8 @@ function SearchPageNarrow({
                                 </View>
                                 <View style={[styles.appBG]}>
                                     {!searchRouterListVisible && (
-                                        <SearchFiltersBar
+                                        // Using composition pattern - Search.FiltersBar component
+                                        <Search.FiltersBar
                                             queryJSON={queryJSON}
                                             headerButtonsOptions={headerButtonsOptions}
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -247,7 +250,8 @@ function SearchPageNarrow({
                                 turnOffMobileSelectionMode();
                             }}
                         />
-                        <SearchPageHeader
+                        {/* Using composition pattern - Search.Header component */}
+                        <Search.Header
                             queryJSON={queryJSON}
                             headerButtonsOptions={headerButtonsOptions}
                             handleSearch={handleSearchAction}
@@ -261,7 +265,8 @@ function SearchPageNarrow({
                 )}
                 {!searchRouterListVisible && (
                     <View style={[styles.flex1]}>
-                        <Search
+                        {/* Using SearchComponent (the main Search list) - not part of dot notation to avoid confusion */}
+                        <SearchComponent
                             searchResults={searchResults}
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
@@ -274,7 +279,8 @@ function SearchPageNarrow({
                     </View>
                 )}
                 {shouldShowFooter && !searchRouterListVisible && (
-                    <SearchPageFooter
+                    // Using composition pattern - Search.Footer component
+                    <Search.Footer
                         count={footerData.count}
                         total={footerData.total}
                         currency={footerData.currency}
