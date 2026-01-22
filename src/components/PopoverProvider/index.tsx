@@ -1,17 +1,34 @@
 import type {RefObject} from 'react';
-import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text, View} from 'react-native';
 import type {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
 
-const PopoverContext = createContext<PopoverContextValue>({
+type PopoverStateContextType = {
+    isOpen: boolean;
+    popover: AnchorRef | null;
+    popoverAnchor: AnchorRef['anchorRef']['current'] | null;
+};
+
+type PopoverActionsContextType = {
+    onOpen: (popoverParams: AnchorRef) => void;
+    close: (anchorRef?: RefObject<View | HTMLElement | Text | null>) => void;
+    setActivePopoverExtraAnchorRef: (ref?: RefObject<View | HTMLDivElement | Text | null>) => void;
+};
+
+const defaultPopoverActionsContext: PopoverActionsContextType = {
     onOpen: () => {},
+    close: () => {},
+    setActivePopoverExtraAnchorRef: () => {},
+};
+
+const PopoverStateContext = createContext<PopoverStateContextType>({
+    isOpen: false,
     popover: null,
     popoverAnchor: null,
-    close: () => {},
-    isOpen: false,
-    setActivePopoverExtraAnchorRef: () => {},
 });
+
+const PopoverActionsContext = createContext<PopoverActionsContextType>(defaultPopoverActionsContext);
 
 function elementContains(ref: RefObject<View | HTMLElement | Text | null> | undefined, target: EventTarget | null) {
     if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as Node)) {
@@ -141,21 +158,39 @@ function PopoverContextProvider(props: PopoverContextProps) {
         });
     }, []);
 
-    const contextValue = useMemo(
+    const actionsContextValue = useMemo<PopoverActionsContextType>(
         () => ({
             onOpen,
-            setActivePopoverExtraAnchorRef,
             close: closePopover,
-            popover: activePopoverRef.current,
-            popoverAnchor: activePopoverAnchor,
-            isOpen,
+            setActivePopoverExtraAnchorRef,
         }),
-        [onOpen, closePopover, isOpen, activePopoverAnchor, setActivePopoverExtraAnchorRef],
+        [onOpen, closePopover, setActivePopoverExtraAnchorRef],
     );
 
-    return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
+    const stateContextValue = useMemo<PopoverStateContextType>(
+        () => ({
+            isOpen,
+            popover: activePopoverRef.current,
+            popoverAnchor: activePopoverAnchor,
+        }),
+        [isOpen, activePopoverAnchor],
+    );
+
+    return (
+        <PopoverStateContext.Provider value={stateContextValue}>
+            <PopoverActionsContext.Provider value={actionsContextValue}>{props.children}</PopoverActionsContext.Provider>
+        </PopoverStateContext.Provider>
+    );
+}
+
+function usePopoverState() {
+    return useContext(PopoverStateContext);
+}
+
+function usePopoverActions() {
+    return useContext(PopoverActionsContext);
 }
 
 export default PopoverContextProvider;
 
-export {PopoverContext};
+export {usePopoverState, usePopoverActions};

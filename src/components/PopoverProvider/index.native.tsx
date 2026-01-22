@@ -1,29 +1,60 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import type {PopoverContextProps, PopoverContextValue} from './types';
 
-const PopoverContext = React.createContext<PopoverContextValue>({
+type PopoverStateContextType = {
+    isOpen: boolean;
+    popover: null;
+    popoverAnchor: null;
+};
+
+type PopoverActionsContextType = {
+    onOpen: () => void;
+    close: () => void;
+    setActivePopoverExtraAnchorRef: () => void;
+};
+
+const defaultPopoverActionsContext: PopoverActionsContextType = {
     onOpen: () => {},
-    popover: null,
     close: () => {},
-    isOpen: false,
     setActivePopoverExtraAnchorRef: () => {},
+};
+
+const PopoverStateContext = React.createContext<PopoverStateContextType>({
+    isOpen: false,
+    popover: null,
+    popoverAnchor: null,
 });
 
-function PopoverContextProvider(props: PopoverContextProps) {
-    const contextValue = React.useMemo(
-        () => ({
-            onOpen: () => {},
-            close: () => {},
-            popover: null,
-            isOpen: false,
-            setActivePopoverExtraAnchorRef: () => {},
-        }),
-        [],
-    );
+const PopoverActionsContext = React.createContext<PopoverActionsContextType>(defaultPopoverActionsContext);
 
-    return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
+function PopoverContextProvider(props: PopoverContextProps) {
+    const actionsContextValue: PopoverActionsContextType = {
+        onOpen: () => {},
+        close: () => {},
+        setActivePopoverExtraAnchorRef: () => {},
+    };
+
+    const stateContextValue: PopoverStateContextType = {
+        isOpen: false,
+        popover: null,
+        popoverAnchor: null,
+    };
+
+    return (
+        <PopoverStateContext.Provider value={stateContextValue}>
+            <PopoverActionsContext.Provider value={actionsContextValue}>{props.children}</PopoverActionsContext.Provider>
+        </PopoverStateContext.Provider>
+    );
+}
+
+function usePopoverState() {
+    return useContext(PopoverStateContext);
+}
+
+function usePopoverActions() {
+    return useContext(PopoverActionsContext);
 }
 
 export default PopoverContextProvider;
 
-export {PopoverContext};
+export {usePopoverState, usePopoverActions};
