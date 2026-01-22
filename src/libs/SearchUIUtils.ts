@@ -51,6 +51,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
     ListItemType,
+    PolicyCollectionRecord,
     ReportCollectionRecord,
     SearchCardGroup,
     SearchDataTypes,
@@ -781,6 +782,7 @@ function getTransactionItemCommonFormattedProperties(
 }
 
 function getCollectionsFromSearchResults(currentSearch?: SearchResults) {
+    const policies: PolicyCollectionRecord = {};
     const reports: ReportCollectionRecord = {};
     const transactions: TransactionCollectionRecord = {};
     const transactionViolations: TransactionViolationsCollectionRecord = {};
@@ -790,10 +792,15 @@ function getCollectionsFromSearchResults(currentSearch?: SearchResults) {
             reports,
             transactions,
             transactionViolations,
+            policies,
         };
     }
 
     for (const key of Object.keys(currentSearch.data)) {
+        if (isPolicyEntry(key)) {
+            policies[key] = currentSearch.data[key];
+        }
+
         if (isTransactionEntry(key)) {
             transactions[key] = currentSearch.data[key];
         }
@@ -811,6 +818,7 @@ function getCollectionsFromSearchResults(currentSearch?: SearchResults) {
         reports,
         transactions,
         transactionViolations,
+        policies,
     };
 }
 

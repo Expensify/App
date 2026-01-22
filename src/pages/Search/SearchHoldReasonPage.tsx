@@ -10,6 +10,7 @@ import {putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getCollectionsFromSearchResults} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportActionsParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
@@ -25,8 +26,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
     const context = useSearchContext();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const {reports: allReports, transactions: allTransactions} = getCollectionsFromSearchResults(context.currentSearchResults);
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const ancestors = useAncestors(report);
 
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});

@@ -2,11 +2,11 @@ import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
-import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getCollectionsFromSearchResults} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportActionsParamList} from '@navigation/types';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
@@ -22,8 +22,7 @@ type SearchRejectReasonPageProps =
 function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const context = useSearchContext();
     const {reportID} = route.params ?? {};
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const {reports: allReports, policies: allPolicies} = getCollectionsFromSearchResults(context.currentSearchResults);
 
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
     const selectedTransactionsForReject = useMemo(() => {
