@@ -156,10 +156,11 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            reportAttributesDerived,
             currentUserAccountID,
             personalDetails,
             true,
+            undefined,
+            reportAttributesDerived,
         );
         newSections.push(formatResults.section);
 

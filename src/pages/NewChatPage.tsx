@@ -261,7 +261,17 @@ function NewChatPage({ref}: NewChatPageProps) {
     const sections: Section[] = [];
     let firstKeyForList = '';
 
-    const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions as OptionData[], recentReports, personalDetails, reportAttributesDerived, currentUserAccountID);
+    const formatResults = formatSectionsFromSearchTerm(
+        debouncedSearchTerm,
+        selectedOptions as OptionData[],
+        recentReports,
+        personalDetails,
+        currentUserAccountID,
+        undefined,
+        undefined,
+        undefined,
+        reportAttributesDerived,
+    );
     sections.push(formatResults.section);
 
     if (!firstKeyForList) {

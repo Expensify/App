@@ -111,10 +111,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            reportAttributesDerived,
             currentUserAccountID,
             personalDetails,
             false,
+            undefined,
+            reportAttributesDerived,
         );
 
         newSections.push(formattedResults.section);

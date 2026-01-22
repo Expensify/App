@@ -198,10 +198,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            reportAttributesDerived,
             currentUserAccountID,
             personalDetails,
             true,
+            undefined,
+            reportAttributesDerived,
         );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);

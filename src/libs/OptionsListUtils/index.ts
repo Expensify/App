@@ -2677,11 +2677,11 @@ function formatSectionsFromSearchTerm(
     selectedOptions: SearchOptionData[],
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
