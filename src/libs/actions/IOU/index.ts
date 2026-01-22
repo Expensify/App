@@ -13779,7 +13779,7 @@ function updateSplitExpenseField(
                 category: transactionDetails?.category,
                 tags: splitExpenseDraftTransaction?.tag ? [splitExpenseDraftTransaction?.tag] : [],
                 created: transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
-                waypoints: splitExpenseDraftTransaction?.comment?.waypoints ?? undefined,
+                waypoints: splitExpenseDraftTransaction?.modifiedWaypoints ?? splitExpenseDraftTransaction?.comment?.waypoints ?? undefined,
                 customUnit: splitExpenseDraftTransaction?.comment?.customUnit ?? undefined,
                 odometerStart: splitExpenseDraftTransaction?.comment?.odometerStart ?? undefined,
                 odometerEnd: splitExpenseDraftTransaction?.comment?.odometerEnd ?? undefined,

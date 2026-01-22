@@ -413,9 +413,14 @@ function IOURequestStepDistance({
             transactionWasSaved.current = true;
         }
         if (isEditing) {
-            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value in transaction with CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID id
+            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value in transaction with CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID
             if (isEditingSplit && originalSplitTransactionDraft) {
-                setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, originalSplitTransactionDraft, {waypoints, routes: currentTransaction?.routes}, policy);
+                setDraftSplitTransaction(
+                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                    originalSplitTransactionDraft,
+                    {waypoints: currentTransaction?.comment?.waypoints, routes: currentTransaction?.routes},
+                    policy,
+                );
                 navigateBack();
                 return;
             }
