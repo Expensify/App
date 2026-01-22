@@ -20,27 +20,27 @@ const socialList: Social[] = [
     {
         iconURL: 'Podcast',
         link: CONST.SOCIALS.PODCAST,
-        accessibilityLabel: 'Podcast',
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.PODCAST,
     },
     {
         iconURL: 'Twitter',
         link: CONST.SOCIALS.TWITTER,
-        accessibilityLabel: 'Twitter',
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.TWITTER,
     },
     {
         iconURL: 'Instagram',
         link: CONST.SOCIALS.INSTAGRAM,
-        accessibilityLabel: 'Instagram',
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.INSTAGRAM,
     },
     {
         iconURL: 'Facebook',
         link: CONST.SOCIALS.FACEBOOK,
-        accessibilityLabel: 'Facebook',
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.FACEBOOK,
     },
     {
         iconURL: 'Linkedin',
         link: CONST.SOCIALS.LINKEDIN,
-        accessibilityLabel: 'Linkedin',
+        accessibilityLabel: CONST.ACCESSIBILITY_LABELS.LINKEDIN,
     },
 ];
 
