@@ -182,6 +182,7 @@ function AttachmentPickerWithMenuItems({
         () => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID) && hasDismissedEmptyReportsConfirmation !== true,
         [accountID, hasDismissedEmptyReportsConfirmation, report?.policyID, reportSummaries],
     );
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -199,7 +200,7 @@ function AttachmentPickerWithMenuItems({
         policyID: report?.policyID,
         policyName: policy?.name ?? '',
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
-            selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, true, shouldDismissEmptyReportsConfirmation), true),
+            selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, allBetas, true, shouldDismissEmptyReportsConfirmation), true),
     });
 
     const openCreateReportConfirmationRef = useRef(openCreateReportConfirmation);
@@ -209,9 +210,9 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmationRef.current();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, true, false);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, allBetas, true, false);
         }
-    }, [currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, shouldShowEmptyReportConfirmation]);
+    }, [currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, shouldShowEmptyReportConfirmation, allBetas]);
 
     const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
@@ -314,7 +315,7 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], isReportArchived, isRestrictedToPreferredPolicy).map(
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], allBetas, isReportArchived, isRestrictedToPreferredPolicy).map(
             (option) => options[option],
         );
 
@@ -332,6 +333,7 @@ function AttachmentPickerWithMenuItems({
         showDelegateNoAccessModal,
         translate,
         icons,
+        allBetas,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

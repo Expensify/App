@@ -177,7 +177,7 @@ function MoneyRequestReportPreviewContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, shouldShowOnlyPayElsewhere),
         [iouReport, chatReport, policy, bankAccountList, transactions],
@@ -268,9 +268,10 @@ function MoneyRequestReportPreviewContent({
                         methodID,
                         paymentMethod,
                         activePolicy,
+                        allBetas,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, undefined, true, activePolicy, policy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, allBetas, undefined, true, activePolicy, policy);
                 }
             }
         },
@@ -287,6 +288,7 @@ function MoneyRequestReportPreviewContent({
             existingB2BInvoiceReport,
             activePolicy,
             policy,
+            allBetas,
         ],
     );
 
@@ -302,7 +304,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, allBetas, true);
         }
     };
 
@@ -384,6 +386,8 @@ function MoneyRequestReportPreviewContent({
             }),
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
     );
+
+    const shouldShowReportStatus = !!reportStatus && !!expenseCount;
 
     const reportStatusColorStyle = useMemo(
         () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
@@ -644,7 +648,7 @@ function MoneyRequestReportPreviewContent({
         ) : null,
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
-                text={shouldShowAccessPlaceHolder ? translate('common.viewReport') : translate('common.view')}
+                text={translate('common.view')}
                 onPress={() => {
                     openReportFromPreview();
                 }}
@@ -745,9 +749,10 @@ function MoneyRequestReportPreviewContent({
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
-                                                    (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) && (
+                                                    (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) &&
+                                                    (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {!!reportStatus && !!expenseCount && (
+                                                            {shouldShowReportStatus && (
                                                                 <View
                                                                     style={[
                                                                         styles.reportStatusContainer,
