@@ -191,6 +191,7 @@ type GetOptionsConfig = {
     excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
     searchString?: string;
+    searchInputValue?: string;
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
@@ -200,6 +201,7 @@ type GetOptionsConfig = {
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
     translate: LocalizedTranslate;
+    searchInputValue?: string;
     loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
     firstName?: string;
@@ -248,7 +250,7 @@ type PreviewConfig = {
     isSelected?: boolean;
 };
 
-type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
+type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };

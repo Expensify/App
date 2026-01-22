@@ -144,6 +144,7 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const iouRequestType = getRequestType(transaction);
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -311,38 +312,9 @@ function IOURequestStepDistance({
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             policyTags,
+            allBetas,
         });
-    }, [
-        iouType,
-        report,
-        policy,
-        transaction,
-        reportID,
-        transactionID,
-        reportAttributesDerived,
-        personalDetails,
-        waypoints,
-        customUnitRateID,
-        currentUserEmailParam,
-        currentUserAccountIDParam,
-        backTo,
-        backToReport,
-        shouldSkipConfirmation,
-        defaultExpensePolicy,
-        isArchived,
-        personalPolicy?.autoReporting,
-        isASAPSubmitBetaEnabled,
-        transactionViolations,
-        lastSelectedDistanceRates,
-        setDistanceRequestData,
-        translate,
-        quickAction,
-        policyRecentlyUsedCurrencies,
-        introSelected,
-        activePolicyID,
-        reportNameValuePairs?.private_isArchived,
-        policyTags,
-    ]);
+    }, [iouType, report, policy, transaction, reportID, transactionID, reportAttributesDerived, personalDetails, waypoints, customUnitRateID, currentUserEmailParam, currentUserAccountIDParam, backTo, backToReport, shouldSkipConfirmation, defaultExpensePolicy, isArchived, personalPolicy?.autoReporting, isASAPSubmitBetaEnabled, transactionViolations, lastSelectedDistanceRates, setDistanceRequestData, translate, quickAction, allBetas, policyRecentlyUsedCurrencies, introSelected, activePolicyID, reportNameValuePairs?.private_isArchived, policyTags]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.

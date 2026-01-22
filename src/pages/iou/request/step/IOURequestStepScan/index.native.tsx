@@ -96,6 +96,7 @@ function IOURequestStepScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const isArchived = isArchivedReport(reportNameValuePairs);
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
@@ -296,6 +297,7 @@ function IOURequestStepScan({
                 isTestTransaction,
                 locationPermissionGranted,
                 policyTags,
+                allBetas,
             });
         },
         [
@@ -330,6 +332,7 @@ function IOURequestStepScan({
             activePolicyID,
             reportNameValuePairs?.private_isArchived,
             policyTags,
+            allBetas,
         ],
     );
 
