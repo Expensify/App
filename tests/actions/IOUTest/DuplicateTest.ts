@@ -788,10 +788,23 @@ describe('actions/Duplicate', () => {
         it('should create a duplicate distance expense with all fields duplicated', async () => {
             const randomDistanceTransaction = createRandomDistanceRequestTransaction(1, true);
 
+            const DISTANCE_MI = 11.23;
+
             const mockDistanceTransaction = {
                 ...randomDistanceTransaction,
                 amount: randomDistanceTransaction.amount * -1,
+                comment: {
+                    ...randomDistanceTransaction.comment,
+                    customUnit: {
+                        ...randomDistanceTransaction.comment.customUnit,
+                        quantity: DISTANCE_MI,
+                    },
+                },
             };
+
+            await Onyx.clear();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTIONS}${mockDistanceTransaction.transactionID}`, mockDistanceTransaction);
 
             duplicateExpenseTransaction({
                 transaction: mockDistanceTransaction,
@@ -827,6 +840,7 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.transactionID).not.toBe(mockDistanceTransaction.transactionID);
             expect(duplicatedTransaction?.comment?.customUnit?.name).toEqual(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(duplicatedTransaction?.comment?.customUnit?.distanceUnit).toEqual(mockDistanceTransaction.comment?.customUnit?.distanceUnit);
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toEqual(DISTANCE_MI);
         });
     });
 
