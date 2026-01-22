@@ -672,6 +672,18 @@ describe('SearchQueryUtils', () => {
                 expect(queryJSON?.limit).toBeUndefined();
                 expect(queryJSON?.hash).toBeDefined();
             });
+
+            it('should return same primaryHash for invalid limit as no limit (normalization before hashing)', () => {
+                const withoutLimit = buildSearchQueryJSON('type:expense');
+                const withZeroLimit = buildSearchQueryJSON('type:expense limit:0');
+                const withNegativeLimit = buildSearchQueryJSON('type:expense limit:-5');
+                const withDecimalLimit = buildSearchQueryJSON('type:expense limit:10.5');
+
+                // All invalid limits should normalize to undefined and produce same hash as no limit
+                expect(withZeroLimit?.hash).toEqual(withoutLimit?.hash);
+                expect(withNegativeLimit?.hash).toEqual(withoutLimit?.hash);
+                expect(withDecimalLimit?.hash).toEqual(withoutLimit?.hash);
+            });
         });
     });
 

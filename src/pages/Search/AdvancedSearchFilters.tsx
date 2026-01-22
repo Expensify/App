@@ -29,7 +29,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, isSearchDatePreset, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {
+    buildCannedSearchQuery,
+    buildQueryStringFromFilterFormValues,
+    buildSearchQueryJSON,
+    getCurrentSearchQueryJSON,
+    isCannedSearchQuery,
+    isSearchDatePreset,
+    sortOptionsWithEmptyValue,
+} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -562,7 +570,16 @@ function AdvancedSearchFilters() {
 
     const {currentType, typeFiltersKeys} = useAdvancedSearchFilters();
 
-    const queryString = useMemo(() => buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const currentQueryJSON = getCurrentSearchQueryJSON();
+    const queryString = useMemo(
+        () =>
+            buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
+                sortBy: currentQueryJSON?.sortBy,
+                sortOrder: currentQueryJSON?.sortOrder,
+                limit: currentQueryJSON?.limit,
+            }),
+        [searchAdvancedFilters, currentQueryJSON?.sortBy, currentQueryJSON?.sortOrder, currentQueryJSON?.limit],
+    );
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {

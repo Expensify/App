@@ -433,6 +433,18 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+
+        if (result.policyID && typeof result.policyID === 'string') {
+            // Ensure policyID is always an array for consistency
+            result.policyID = [result.policyID];
+        }
+
+        // Normalize limit before computing hashes to ensure invalid values don't affect hash
+        if (result.limit !== undefined) {
+            const num = Number(result.limit);
+            result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
+        }
+
         const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
@@ -441,16 +453,6 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
         delete result.rawFilterList;
         if (rawQuery) {
             result.rawFilterList = getRawFilterListFromQuery(rawQuery);
-        }
-
-        if (result.policyID && typeof result.policyID === 'string') {
-            // Ensure policyID is always an array for consistency
-            result.policyID = [result.policyID];
-        }
-
-        if (result.limit !== undefined) {
-            const num = Number(result.limit);
-            result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
         }
 
         return result;
