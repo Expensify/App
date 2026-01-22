@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -22,35 +21,32 @@ const useDuplicateExpenseAction = (accountID: number) => {
 
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
 
-    const duplicateTransaction = useCallback(
-        (transactions: Transaction[]) => {
-            if (!transactions.length) {
-                return;
-            }
+    const duplicateTransaction = (transactions: Transaction[]) => {
+        if (!transactions.length) {
+            return;
+        }
 
-            const optimisticChatReportID = generateReportID();
-            const optimisticIOUReportID = generateReportID();
+        const optimisticChatReportID = generateReportID();
+        const optimisticIOUReportID = generateReportID();
 
-            const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
+        const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
-            for (const item of transactions) {
-                duplicateTransactionAction({
-                    transaction: item,
-                    optimisticChatReportID,
-                    optimisticIOUReportID,
-                    isASAPSubmitBetaEnabled,
-                    introSelected,
-                    activePolicyID,
-                    quickAction,
-                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    targetPolicy: defaultExpensePolicy ?? undefined,
-                    targetPolicyCategories: activePolicyCategories,
-                    targetReport: activePolicyExpenseChat,
-                });
-            }
-        },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies],
-    );
+        for (const item of transactions) {
+            duplicateTransactionAction({
+                transaction: item,
+                optimisticChatReportID,
+                optimisticIOUReportID,
+                isASAPSubmitBetaEnabled,
+                introSelected,
+                activePolicyID,
+                quickAction,
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                targetPolicy: defaultExpensePolicy ?? undefined,
+                targetPolicyCategories: activePolicyCategories,
+                targetReport: activePolicyExpenseChat,
+            });
+        }
+    };
 
     return {
         isDuplicateActive,
