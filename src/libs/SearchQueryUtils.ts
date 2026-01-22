@@ -809,10 +809,13 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
         ) {
             filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
+            // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
+            filtersForm[key as typeof filterKey] = filterValues;
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
@@ -1203,17 +1206,13 @@ function buildUserReadableQueryString(
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
 ) {
-    const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
+    const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
 
         for (const rawFilter of rawFilterList) {
             if (!rawFilter) {
-                continue;
-            }
-
-            if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
                 continue;
             }
 
@@ -1266,6 +1265,11 @@ function buildUserReadableQueryString(
 
     if (policyID && policyID.length > 0) {
         title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
+    }
+
+    if (columns && columns.length > 0) {
+        const columnValue = Array.isArray(columns) ? columns.map((column) => getUserFriendlyValue(column)).join(',') : getUserFriendlyValue(columns);
+        title += ` columns:${columnValue}`;
     }
 
     for (const filterObject of filters) {
@@ -1329,7 +1333,7 @@ function buildCannedSearchQuery({
  * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    const selectedColumns = queryJSON.columns ?? [];
+    const selectedColumns = [queryJSON.columns ?? []].flat();
     const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
     return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;

@@ -47,49 +47,58 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
 
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
 
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
             return;
         }
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
 
         setNavigationActionToMicrotaskQueue(() => {
-            changeTransactionsReport(
-                selectedTransactionIDs,
+            changeTransactionsReport({
+                transactionIDs: selectedTransactionIDs,
                 isASAPSubmitBetaEnabled,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                session?.email ?? '',
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
                 newReport,
-                allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
-                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-            );
+                policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                allTransactions,
+            });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
         });
 
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     };
 
     const removeFromReport = () => {
         if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport({
+            transactionIDs: selectedTransactionIDs,
+            isASAPSubmitBetaEnabled,
+            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            allTransactions,
+        });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
         clearSelectedTransactions(true);
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     };
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -98,7 +107,15 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            currentUserPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForNewReport,
+            allBetas,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
