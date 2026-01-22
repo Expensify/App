@@ -19,14 +19,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {resolveReportFieldValue} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {
-    getAvailableReportFields,
     getBillableAndTaxTotal,
     getFieldViolation,
     getFieldViolationTranslation,
     getMoneyRequestSpendBreakdown,
     getReportFieldKey,
+    getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
@@ -40,10 +41,11 @@ import {
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyReportViewProps = {
@@ -95,9 +97,12 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
 
-    const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
-        const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
-        return fields.filter((field) => field.target === report?.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+    const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
+        const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
+        const sorted = Object.values(byName)
+            .filter((field) => field.target === report?.type)
+            .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
+        return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
     }, [policy?.fieldList, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
@@ -144,7 +149,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     return null;
                                 }
 
-                                const fieldValue = reportField.value ?? reportField.defaultValue;
+                                const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName);
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
@@ -220,15 +225,24 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
                         {!!shouldShowBreakdown && (
                             <>
-                                {!!nonReimbursableSpend && !!reimbursableSpend && (
-                                    <>
-                                        <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
+                                {[
+                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: !!nonReimbursableSpend && !!reimbursableSpend},
+                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: !!nonReimbursableSpend && !!reimbursableSpend},
+                                    {label: 'common.billable', value: formattedBillableAmount, show: !!billableTotal},
+                                    {label: 'common.tax', value: formattedTaxAmount, show: !!taxTotal},
+                                ]
+                                    .filter(({show}) => show)
+                                    .map(({label, value}) => (
+                                        <View
+                                            key={label}
+                                            style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}
+                                        >
                                             <View style={[styles.flex1, styles.justifyContentCenter]}>
                                                 <Text
                                                     style={[styles.textLabelSupporting]}
                                                     numberOfLines={1}
                                                 >
-                                                    {translate('cardTransactions.outOfPocket')}
+                                                    {translate(label as TranslationPaths)}
                                                 </Text>
                                             </View>
                                             <View style={[styles.flexRow, styles.justifyContentCenter]}>
@@ -236,70 +250,11 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                                     numberOfLines={1}
                                                     style={subAmountTextStyles}
                                                 >
-                                                    {formattedOutOfPocketAmount}
+                                                    {value}
                                                 </Text>
                                             </View>
                                         </View>
-                                        <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
-                                            <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                                <Text
-                                                    style={[styles.textLabelSupporting]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {translate('cardTransactions.companySpend')}
-                                                </Text>
-                                            </View>
-                                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                                                <Text
-                                                    numberOfLines={1}
-                                                    style={subAmountTextStyles}
-                                                >
-                                                    {formattedCompanySpendAmount}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </>
-                                )}
-                                {!!billableTotal && (
-                                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
-                                        <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                            <Text
-                                                style={[styles.textLabelSupporting]}
-                                                numberOfLines={1}
-                                            >
-                                                {translate('common.billable')}
-                                            </Text>
-                                        </View>
-                                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                                            <Text
-                                                numberOfLines={1}
-                                                style={subAmountTextStyles}
-                                            >
-                                                {formattedBillableAmount}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                )}
-                                {!!taxTotal && (
-                                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
-                                        <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                            <Text
-                                                style={[styles.textLabelSupporting]}
-                                                numberOfLines={1}
-                                            >
-                                                {translate('common.tax')}
-                                            </Text>
-                                        </View>
-                                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                                            <Text
-                                                numberOfLines={1}
-                                                style={subAmountTextStyles}
-                                            >
-                                                {formattedTaxAmount}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                )}
+                                    ))}
                             </>
                         )}
                     </>
