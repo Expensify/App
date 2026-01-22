@@ -78,15 +78,17 @@ function CardSection() {
     }, []);
 
     const {showConfirmModal} = useConfirmModal();
+    const refundPrompt = useMemo(() => <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />, [translate]);
+
     const showRequestRefundModal = useCallback(() => {
         return showConfirmModal({
             title: translate('subscription.cardSection.requestRefund'),
-            prompt: <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />,
+            prompt: refundPrompt,
             confirmText: translate('subscription.cardSection.requestRefundModal.confirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
         });
-    }, [showConfirmModal, translate]);
+    }, [showConfirmModal, translate, refundPrompt]);
 
     const viewPurchases = useCallback(() => {
         const query = buildQueryStringFromFilterFormValues({
