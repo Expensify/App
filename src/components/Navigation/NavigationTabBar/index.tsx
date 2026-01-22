@@ -1,4 +1,5 @@
-import {findFocusedRoute, NavigationState, StackActions, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
