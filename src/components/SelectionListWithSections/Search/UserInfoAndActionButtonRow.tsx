@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,13 +28,12 @@ function UserInfoAndActionButtonRow({
 }) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {translate} = useLocalize();
     const transactionItem = item as unknown as TransactionListItemType;
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
-    const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
-    const participantToDisplayName = item?.to?.displayName ?? item?.to?.login ?? translate('common.hidden');
+    const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
+    const participantToDisplayName = item.formattedTo ?? item?.to?.displayName ?? '';
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
     return (
         <View
