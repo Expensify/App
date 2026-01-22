@@ -1,23 +1,23 @@
-import {memberAccountIDsSelector} from '@selectors/Domain';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import { memberAccountIDsSelector } from '@selectors/Domain';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DomainMemberBulkActionType, DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import {Plus} from '@components/Icon/Expensicons';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import type { DomainMemberBulkActionType, DropdownOption } from '@components/ButtonWithDropdownMenu/types';
+import useConfirmModal from '@hooks/useConfirmModal';
+import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
+import type { DomainSplitNavigatorParamList } from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
@@ -27,8 +27,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Profile']);
     const [controlledSelectedMembers, controlledSetSelectedMembers] = useState<string[]>([]);
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers']);
+    const {showConfirmModal} = useConfirmModal();
+
 
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -38,10 +40,18 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<DomainMemberBulkActionType>> = [
             {
-                text: translate('domain.members.closeAccount', {count: controlledSetSelectedMembers.length}),
+                text: translate('domain.members.closeAccount', {count: controlledSelectedMembers.length}),
                 value: CONST.DOMAIN.MEMBERS_BULK_ACTION_TYPES.CLOSE_ACCOUNT,
                 icon: icons.RemoveMembers,
-                onSelected: () => {},
+                onSelected: () => {
+                    showConfirmModal({
+                        title: translate('export.exportInProgress'),
+                        prompt: translate('export.conciergeWillSend'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: true,
+                        danger,
+                    });
+                },
             },
         ];
 
