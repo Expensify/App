@@ -47,6 +47,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
 
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
 
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
@@ -57,7 +58,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
             return;
         }
 
@@ -73,13 +74,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                allTransactionsCollection: allTransactions,
+                allTransactions,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
         });
 
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     };
 
     const removeFromReport = () => {
@@ -91,13 +92,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
-            allTransactionsCollection: allTransactions,
+            allTransactions,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
         clearSelectedTransactions(true);
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     };
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -106,7 +107,15 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            currentUserPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForNewReport,
+            allBetas,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
