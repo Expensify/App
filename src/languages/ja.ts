@@ -1473,7 +1473,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / 時間`,
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
-        AskToExplain: '. <a href="/concierge/explain"><strong>説明する</strong></a> &#x2728;',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明する</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {

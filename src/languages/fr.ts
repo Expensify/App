@@ -1481,7 +1481,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / heure`,
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le tarif.',
         },
-        AskToExplain: '. <a href="/concierge/explain"><strong>Expliquer</strong></a> &#x2728;',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {

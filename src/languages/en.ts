@@ -1462,7 +1462,7 @@ const translations = {
             ratePreview: (rate: string) => `${rate} / hour`,
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
-        AskToExplain: '. <a href="/concierge/explain"><strong>Explain</strong></a> &#x2728;',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
