@@ -449,7 +449,7 @@ function WorkspacesListPage() {
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
                     pendingAction={item.pendingAction}
-                    errorRowStyles={styles.ph5}
+                    errorRowStyles={[styles.ph5, styles.mt3]}
                     onClose={item.dismissError}
                     errors={item.errors}
                     style={styles.mb2}
