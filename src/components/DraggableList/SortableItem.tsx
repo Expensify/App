@@ -14,10 +14,11 @@ function SortableItem({id, children, disabled = false}: SortableItemProps) {
 
     // Prevent Enter key from reaching MenuItem when dragging to avoid navigation conflicts
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (isDragging && e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
+        if (!isDragging || e.key !== 'Enter') {
+            return;
         }
+        e.preventDefault();
+        e.stopPropagation();
     };
 
     return (

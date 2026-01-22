@@ -2,7 +2,7 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment, useEffect, useState} from 'react';
+import React, {Fragment, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -31,10 +31,13 @@ function DraggableList<T>({
     // Generate a unique ID per mount to ensure DndContext state resets when component remounts
     const [instanceId] = useState(() => `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
+    // Track if a drag is currently active to avoid dispatching global Escape when not needed
+    const isDraggingRef = useRef(false);
+
     // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
     useEffect(() => {
         return () => {
-            if (typeof document === 'undefined') {
+            if (typeof document === 'undefined' || !isDraggingRef.current) {
                 return;
             }
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', code: 'Escape', bubbles: true, cancelable: true}));
@@ -45,12 +48,17 @@ function DraggableList<T>({
         return keyExtractor(item, index);
     });
 
+    const onDragStart = () => {
+        isDraggingRef.current = true;
+    };
+
     /**
      * Function to be called when the user finishes dragging an item
      * It will reorder the list and call the callback function
      * to notify the parent component about the change
      */
     const onDragEnd = (event: DragEndEvent) => {
+        isDraggingRef.current = false;
         const {active, over} = event;
 
         if (over !== null && active.id !== over.id) {
@@ -60,6 +68,10 @@ function DraggableList<T>({
             const reorderedItems = arrayMove(data, oldIndex, newIndex);
             onDragEndCallback?.({data: reorderedItems});
         }
+    };
+
+    const onDragCancel = () => {
+        isDraggingRef.current = false;
     };
 
     const sortableItems = data.map((item, index) => {
@@ -109,7 +121,9 @@ function DraggableList<T>({
             <div>
                 <DndContext
                     key={instanceId}
+                    onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
+                    onDragCancel={onDragCancel}
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     modifiers={[restrictToParentElement, restrictToVerticalAxis]}
