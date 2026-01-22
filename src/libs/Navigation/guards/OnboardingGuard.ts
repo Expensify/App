@@ -107,7 +107,7 @@ const OnboardingGuard: NavigationGuard = {
 
     evaluate: (state: NavigationState | undefined, action: NavigationAction, context: GuardContext): GuardResult => {
         // Handle case where state is not yet initialized
-        if (!state || !state.routes || state.routes.length === 0) {
+        if (!state?.routes?.length) {
             return {type: 'ALLOW'};
         }
 
@@ -142,11 +142,11 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         // Calculate all skip conditions
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
-        const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration;
-        const isSingleEntry = hybridApp?.isSingleNewDotEntry;
-        const needsExplanationModal = CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true;
-        const isInvitedOrGroupMember = !CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy ?? wasInvitedToNewDot);
+        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+        const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
+        const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
+        const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
+        const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy ?? wasInvitedToNewDot)) ?? false;
 
         const shouldSkipOnboarding = isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
 
