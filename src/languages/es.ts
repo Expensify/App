@@ -4786,8 +4786,6 @@ ${amount} para ${merchant} - ${date}`,
                     `Seleccione la cuenta ${integration} donde se deben exportar las transacciones. Seleccione una cuenta diferente <a href="${exportPageLink}">opción de exportación</a> para cambiar las cuentas disponibles.`,
                 lastUpdated: 'Última actualización',
                 transactionStartDate: 'Fecha de inicio de transacciones',
-                changeTransactionStartDateWarning:
-                    'Cambiar la fecha de inicio eliminará todas las transacciones no informadas o en borrador y volverá a importar todas las transacciones desde la nueva fecha de inicio. Esto puede causar transacciones duplicadas.',
                 updateCard: 'Actualizar tarjeta',
                 unassignCard: 'Desasignar tarjeta',
                 unassign: 'Desasignar',

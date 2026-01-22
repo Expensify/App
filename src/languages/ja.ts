@@ -5083,8 +5083,6 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     `取引をエクスポートする${integration}アカウントを選択してください。利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。`,
                 lastUpdated: '最終更新',
                 transactionStartDate: '取引開始日',
-                changeTransactionStartDateWarning:
-                    '開始日を変更すると、未報告/下書きのレポート取引がすべて削除され、新しい開始日以降の取引がすべて再インポートされます。これにより取引の重複が発生する可能性があります。',
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
                 unassign: '割り当て解除',

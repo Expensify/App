@@ -4996,7 +4996,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     `选择要导出交易记录的 ${integration} 账户。请选择不同的<a href="${exportPageLink}">导出选项</a>以更改可用账户。`,
                 lastUpdated: '最近更新',
                 transactionStartDate: '交易开始日期',
-                changeTransactionStartDateWarning: '更改开始日期将删除所有未报告/草稿报表的交易，并从新开始日期重新导入所有交易。这可能导致重复交易。',
                 updateCard: '更新卡片',
                 unassignCard: '取消分配卡片',
                 unassign: '取消分配',
