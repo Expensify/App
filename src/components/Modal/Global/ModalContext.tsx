@@ -3,17 +3,10 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
-const ModalActions = {
-    CONFIRM: 'CONFIRM',
-    CLOSE: 'CLOSE',
-} as const;
+type ModalStateChangePayload<A extends string = string> = {action: A};
 
-type ModalAction = (typeof ModalActions)[keyof typeof ModalActions];
-
-type ModalStateChangePayload<A extends ModalAction = ModalAction> = {action: A};
-
-type ModalProps = {
-    closeModal: (param?: ModalStateChangePayload) => void;
+type ModalProps<A extends string = string> = {
+    closeModal: (param?: ModalStateChangePayload<A>) => void;
 };
 
 type ModalContextType = {
@@ -103,5 +96,5 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     );
 }
 
-export type {ModalProps};
-export {ModalProvider, useModal, ModalActions};
+export type {ModalProps, ModalStateChangePayload};
+export {ModalProvider, useModal};

@@ -5,15 +5,12 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmModal, {ConfirmModalActions} from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDecisionModal from '@hooks/useDecisionModal';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
-import useDuplicateExpenseAction from '@hooks/useDuplicateExpenseAction';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
-import useHoldEducationalModal from '@hooks/useHoldEducationalModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -33,8 +30,10 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -144,7 +143,6 @@ import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
-import {ModalActions} from './Modal/Global/ModalContext';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
@@ -425,7 +423,8 @@ function MoneyReportHeader({
             }
 
             showExportProgressModal().then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 clearSelectedTransactions(undefined, true);
@@ -597,7 +596,9 @@ function MoneyReportHeader({
             shouldShowCancelButton: false,
         });
 
-        if (result.action === ModalActions.CONFIRM) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    if (result.action === ConfirmModalActions.CONFIRM) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         }
     };
@@ -1215,7 +1216,8 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
@@ -1239,7 +1241,7 @@ function MoneyReportHeader({
                     danger: true,
                 });
 
-                if (result.action !== ModalActions.CONFIRM || !chatReport) {
+                if (result.action !== ConfirmModalActions.CONFIRM || !chatReport) {
                     return;
                 }
                 cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
@@ -1384,7 +1386,8 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     if (transactionThreadReportID) {
@@ -1420,7 +1423,7 @@ function MoneyReportHeader({
                     cancelText: translate('common.cancel'),
                     danger: true,
                 });
-                if (result.action !== ModalActions.CONFIRM) {
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
@@ -1458,7 +1461,8 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
@@ -1555,7 +1559,7 @@ function MoneyReportHeader({
             cancelText: translate('common.cancel'),
             danger: true,
         }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
@@ -1581,7 +1585,7 @@ function MoneyReportHeader({
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 setExportModalStatus(null);
                 return;
             }
@@ -1777,7 +1781,6 @@ function MoneyReportHeader({
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={downloadErrorModalVisible}
@@ -1786,7 +1789,6 @@ function MoneyReportHeader({
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
@@ -1807,7 +1809,6 @@ function MoneyReportHeader({
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setOfflineModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={offlineModalVisible}

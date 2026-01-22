@@ -1,31 +1,27 @@
-import DecisionModalWrapper from '@components/Modal/Global/DecisionModalWrapper';
-import type {ModalProps} from '@components/Modal/Global/ModalContext';
+import DecisionModalWrapper, {DecisionModalActions} from '@components/Modal/Global/DecisionModalWrapper';
+import type {ModalStateChangePayload} from '@components/Modal/Global/ModalContext';
 import {useModal} from '@components/Modal/Global/ModalContext';
 
-type DecisionModalOptions = Omit<React.ComponentProps<typeof DecisionModalWrapper>, keyof ModalProps>;
+type DecisionModalAction = typeof DecisionModalActions.FIRST_OPTION | typeof DecisionModalActions.SECOND_OPTION | typeof DecisionModalActions.CLOSE;
 
-const DecisionModalActions = {
-    FIRST_OPTION: 'FIRST_OPTION',
-    SECOND_OPTION: 'SECOND_OPTION',
-    CLOSE: 'CLOSE',
-} as const;
+type DecisionModalOptions = Omit<React.ComponentProps<typeof DecisionModalWrapper>, 'closeModal'>;
 
 const useDecisionModal = () => {
     const context = useModal();
 
-    const showDecisionModal = (options: DecisionModalOptions) => {
+    const showDecisionModal = (options: DecisionModalOptions): Promise<ModalStateChangePayload<DecisionModalAction>> => {
         return context.showModal({
             component: DecisionModalWrapper,
             props: options,
-        });
+        }) as Promise<ModalStateChangePayload<DecisionModalAction>>;
     };
 
     return {
         ...context,
         showDecisionModal,
-        DecisionModalActions,
     };
 };
 
 export default useDecisionModal;
 export {DecisionModalActions};
+export type {DecisionModalAction};

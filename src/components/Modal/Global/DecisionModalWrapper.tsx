@@ -1,28 +1,33 @@
 import React, {useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {ModalActions} from './ModalContext';
 import type {ModalProps} from './ModalContext';
 
-type DecisionModalWrapperProps = ModalProps & Omit<React.ComponentProps<typeof DecisionModal>, 'isVisible' | 'onClose' | 'isSmallScreenWidth' | 'onModalHide'>;
+const DecisionModalActions = {
+    FIRST_OPTION: 'FIRST_OPTION',
+    SECOND_OPTION: 'SECOND_OPTION',
+    CLOSE: 'CLOSE',
+} as const;
+
+type DecisionModalAction = typeof DecisionModalActions.FIRST_OPTION | typeof DecisionModalActions.SECOND_OPTION | typeof DecisionModalActions.CLOSE;
+
+type DecisionModalWrapperProps = ModalProps<DecisionModalAction> & Omit<React.ComponentProps<typeof DecisionModal>, 'isVisible' | 'onClose' | 'onModalHide'>;
 
 function DecisionModalWrapper({closeModal, ...props}: DecisionModalWrapperProps) {
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const [isVisible, setIsVisible] = useState(true);
-    const [closeAction, setCloseAction] = useState<string>(ModalActions.CLOSE);
+    const [closeAction, setCloseAction] = useState<DecisionModalAction>(DecisionModalActions.CLOSE);
 
     const handleFirstOption = () => {
-        setCloseAction('FIRST_OPTION');
+        setCloseAction(DecisionModalActions.FIRST_OPTION);
         setIsVisible(false);
     };
 
     const handleSecondOption = () => {
-        setCloseAction('SECOND_OPTION');
+        setCloseAction(DecisionModalActions.SECOND_OPTION);
         setIsVisible(false);
     };
 
     const handleClose = () => {
-        setCloseAction(ModalActions.CLOSE);
+        setCloseAction(DecisionModalActions.CLOSE);
         setIsVisible(false);
     };
 
@@ -38,7 +43,6 @@ function DecisionModalWrapper({closeModal, ...props}: DecisionModalWrapperProps)
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isVisible={isVisible}
-            isSmallScreenWidth={isSmallScreenWidth}
             onFirstOptionSubmit={props.firstOptionText ? handleFirstOption : undefined}
             onSecondOptionSubmit={handleSecondOption}
             onClose={handleClose}
@@ -48,3 +52,4 @@ function DecisionModalWrapper({closeModal, ...props}: DecisionModalWrapperProps)
 }
 
 export default DecisionModalWrapper;
+export {DecisionModalActions};

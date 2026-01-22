@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -26,9 +27,6 @@ type DecisionModalProps = {
     /** onSubmit callback fired after clicking on second button */
     onSecondOptionSubmit: () => void;
 
-    /** Is the window width narrow, like on a mobile device? */
-    isSmallScreenWidth: boolean;
-
     /** Callback for closing modal */
     onClose: () => void;
 
@@ -39,8 +37,9 @@ type DecisionModalProps = {
     onModalHide?: () => void;
 };
 
-function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible, onModalHide}: DecisionModalProps) {
+function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, onClose, isVisible, onModalHide}: DecisionModalProps) {
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     return (
         <Modal

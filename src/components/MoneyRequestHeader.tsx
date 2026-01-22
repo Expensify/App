@@ -1,11 +1,10 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmModal, {ConfirmModalActions} from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDecisionModal from '@hooks/useDecisionModal';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateExpenseAction from '@hooks/useDuplicateExpenseAction';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -35,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
@@ -44,7 +43,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
-import {ModalActions} from './Modal/Global/ModalContext';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {useSearchContext} from './Search/SearchContext';
@@ -67,7 +65,7 @@ type MoneyRequestHeaderProps = {
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
     const route = useRoute<
         PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT> | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
     >();
@@ -99,7 +97,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     // New hooks
     const {showConfirmModal} = useConfirmModal();
-    const {showDecisionModal} = useDecisionModal();
     const {showEducationalModalIfNeeded} = useHoldEducationalModal();
     const {isDuplicateActive, temporarilyDisableDuplicateAction, duplicateTransaction} = useDuplicateExpenseAction(accountID);
 
@@ -304,7 +301,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     shouldEnableNewFocusManagement: true,
                 });
 
-                if (result.action === ModalActions.CONFIRM) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                if (result.action === ConfirmModalActions.CONFIRM) {
                     if (!parentReportAction || !transaction) {
                         throw new Error('Data missing');
                     }
