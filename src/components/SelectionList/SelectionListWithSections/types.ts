@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {BaseSelectionListProps} from '@components/SelectionList/types';
+import type CONST from '@src/CONST';
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -33,13 +34,13 @@ type SelectionWithSectionsListHandle = {
 };
 
 type SectionHeader = {
-    type: 'header';
+    type: CONST.SECTION_LIST_ITEM_TYPE.HEADER;
     title: string;
     keyForList: string;
     isDisabled: boolean;
 };
 
-type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number; type: 'row'};
+type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number; type: CONST.SECTION_LIST_ITEM_TYPE.ROW};
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
