@@ -150,7 +150,7 @@ describe('OptionsListUtils', () => {
             currentUserEmail: MOCK_CURRENT_USER_EMAIL,
         });
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, {currentUserEmail: MOCK_CURRENT_USER_EMAIL, currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID});
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -161,7 +161,7 @@ describe('OptionsListUtils', () => {
             currentUserEmail: MOCK_CURRENT_USER_EMAIL,
         });
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, {currentUserEmail: MOCK_CURRENT_USER_EMAIL, currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID});
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
         });
     });
 
