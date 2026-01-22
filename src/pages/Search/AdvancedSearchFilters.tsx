@@ -586,7 +586,7 @@ function AdvancedSearchFilters() {
             queryJSON,
         });
 
-        applyFiltersAndNavigate();
+        Navigation.setNavigationActionToMicrotaskQueue(() => applyFiltersAndNavigate());
     };
 
     const filters = typeFiltersKeys.map((section) => {
