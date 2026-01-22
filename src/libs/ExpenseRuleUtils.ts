@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
+import {getDecodedCategoryName} from './CategoryUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import StringUtils from './StringUtils';
 
@@ -11,7 +12,7 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
         changes.push(translate('expenseRulesPage.changes.billable', rule.billable === 'true'));
     }
     if (rule.category) {
-        changes.push(translate('expenseRulesPage.changes.category', rule.category));
+        changes.push(translate('expenseRulesPage.changes.category', getDecodedCategoryName(rule.category)));
     }
     if (rule.comment) {
         changes.push(translate('expenseRulesPage.changes.comment', rule.comment));

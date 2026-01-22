@@ -14,10 +14,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftRule, setNameValuePair, updateDraftRule} from '@libs/actions/User';
-import {getAvailableNonPersonalPolicyCategories} from '@libs/CategoryUtils';
+import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRatesNamesAndValues, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -163,14 +163,14 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 hasPolicyCategories
                     ? {
                           descriptionTranslationKey: 'common.category',
-                          title: form?.category,
+                          title: form?.category ? getDecodedCategoryName(form.category) : undefined,
                           onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.CATEGORY, hash),
                       }
                     : undefined,
                 hasPolicyTags
                     ? {
                           descriptionTranslationKey: 'common.tag',
-                          title: form?.tag,
+                          title: form?.tag ? getCleanedTagName(form.tag) : undefined,
                           onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.TAG, hash),
                       }
                     : undefined,

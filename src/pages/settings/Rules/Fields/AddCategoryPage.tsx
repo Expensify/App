@@ -36,7 +36,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
         selector: availableNonPersonalPolicyCategoriesSelector,
     });
 
-    const selectedCategoryItem = form?.category ? {name: form.category, value: form.category} : undefined;
+    const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
 
     const categoryItems = useMemo(() => {
         const uniqueCategoryNames = new Set<string>();
