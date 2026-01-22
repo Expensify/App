@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy} from '@libs/actions/ReportLayout';
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -319,6 +319,9 @@ function MoneyRequestReportTransactionList({
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDsDeepCompare ?? []);
+        return () => {
+            clearActiveTransactionIDs();
+        };
     }, [visualOrderTransactionIDsDeepCompare]);
 
     const sortedTransactionsMap = useMemo(() => {
