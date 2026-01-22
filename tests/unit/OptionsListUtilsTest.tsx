@@ -23,6 +23,7 @@ import {
     getCurrentUserSearchTerms,
     getFilteredRecentAttendees,
     getLastActorDisplayName,
+    getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getMemberInviteOptions,
     getPersonalDetailSearchTerms,
@@ -2520,6 +2521,23 @@ describe('OptionsListUtils', () => {
             const result = optionsOrderBy(options, comparator, 0);
             expect(result).toEqual([]);
         });
+
+        it('returns the older options up to the specified limit', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z'} as OptionData,
+                {reportID: '4', lastVisibleActionCreated: '2022-01-01T13:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            // We will pass reversed === true to sort the list in ascending order
+            const result = optionsOrderBy(options, comparator, 2, undefined, true);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('3');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('1');
+        });
     });
 
     describe('sortAlphabetically', () => {
@@ -3038,6 +3056,339 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('getLastActorDisplayNameFromLastVisibleActions', () => {
+        beforeEach(() => {
+            renderLocaleContextProvider();
+        });
+
+        it('should return display name from lastActorDetails when no last visible action exists', () => {
+            // Given a report with no last visible action and lastActorDetails
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'test-report-1',
+            };
+            const lastActorDetails: Partial<PersonalDetails> = {
+                accountID: 3,
+                displayName: 'Spider-Man',
+                login: 'peterparker@expensify.com',
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            // When we call getLastActorDisplayNameFromLastVisibleActions
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
+
+            // Then it should return the display name from lastActorDetails
+            expect(result).toBe('Spider-Man');
+        });
+
+        it('should return display name from personalDetails when last visible action exists and actor is found in personalDetails', async () => {
+            // Given a report with a last visible action
+            const reportID = 'test-report-2';
+            const actorAccountID = 3;
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+                lastActorAccountID: actorAccountID,
+            };
+            const lastActorDetails: Partial<PersonalDetails> = {
+                accountID: 1,
+                displayName: 'Mister Fantastic',
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(actorAccountID),
+                reportActionID: 'action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', text: 'Test message', html: 'Test message', isEdited: false, isDeletedParentAction: false, whisperedTo: []}],
+                shouldShow: true,
+                pendingAction: null,
+            };
+
+            // Set up the report and report action in Onyx so it gets picked up by lastVisibleReportActions
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When we call getLastActorDisplayNameFromLastVisibleActions
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
+
+            // Then it should return the display name from personalDetails for the actor
+            expect(result).toBe('Spider-Man');
+        });
+
+        it('should return display name from reportAction.person when actor is not found in personalDetails', async () => {
+            // Given a report with a last visible action where actor is not in personalDetails
+            const reportID = 'test-report-3';
+            const actorAccountID = 999;
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+                lastActorAccountID: actorAccountID,
+            };
+            const lastActorDetails: Partial<PersonalDetails> = {
+                accountID: 1,
+                displayName: 'Mister Fantastic',
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(actorAccountID),
+                reportActionID: 'action-2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', text: 'Test message', html: 'Test message', isEdited: false, isDeletedParentAction: false, whisperedTo: []}],
+                shouldShow: true,
+                pendingAction: null,
+                person: [{text: 'Unknown User', type: 'TEXT'}],
+            };
+
+            // Set up the report and report action in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When we call getLastActorDisplayNameFromLastVisibleActions
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
+
+            // Then it should return the display name from reportAction.person
+            // Note: formatPhoneNumberPhoneUtils replaces spaces with non-breaking spaces
+            expect(result).toBe('Unknown User'.replaceAll(' ', '\u00A0'));
+        });
+
+        it('should return "You" when the last actor is the current user', async () => {
+            // Given a report with current user as the last actor
+            const reportID = 'test-report-4';
+            const currentUserAccountID = 2; // Iron Man
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+                lastActorAccountID: currentUserAccountID,
+            };
+            const lastActorDetails: Partial<PersonalDetails> = {
+                accountID: 1,
+                displayName: 'Mister Fantastic',
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(currentUserAccountID),
+                reportActionID: 'action-3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: currentUserAccountID,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', text: 'Test message', html: 'Test message', isEdited: false, isDeletedParentAction: false, whisperedTo: []}],
+                shouldShow: true,
+                pendingAction: null,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When we call getLastActorDisplayNameFromLastVisibleActions
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails);
+
+            // Then it should return "You" for the current user
+            expect(result).toBe('You');
+        });
+
+        it('should fall back to lastActorDetails when last visible action exists but actor cannot be determined', async () => {
+            // Given a report with a last visible action but no actor account ID
+            const reportID = 'test-report-5';
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+            };
+            const lastActorDetails: Partial<PersonalDetails> = {
+                accountID: 3,
+                displayName: 'Spider-Man',
+                firstName: 'Spider',
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                reportActionID: 'action-4',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: undefined,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', text: 'Test message', html: 'Test message', isEdited: false, isDeletedParentAction: false, whisperedTo: []}],
+                shouldShow: true,
+                pendingAction: null,
+                person: [], // Ensure person array is empty so it doesn't create actorDetails from person
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When we call getLastActorDisplayNameFromLastVisibleActions
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
+
+            // Then it should fall back to lastActorDetails
+            // getLastActorDisplayName returns firstName if available, otherwise formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(...))
+            expect(result).toBe('Spider');
+        });
+    });
+
+    describe('getReportDisplayOption', () => {
+        beforeEach(() => {
+            renderLocaleContextProvider();
+        });
+
+        it('should return option with isSelfDM alternateText when report is a self DM', () => {
+            // Given a self DM report
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'self-dm-1',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            // When we call getReportDisplayOption
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
+
+            // Then it should return an option with isSelfDM and alternateText set
+            expect(result.isSelfDM).toBe(true);
+            expect(result.alternateText).toBe(translateLocal('reportActionsView.yourSpace'));
+            expect(result.isDisabled).toBe(true);
+            expect(result.isSelected).toBe(false);
+        });
+
+        it('should return option with invoice room text and alternateText when report is an invoice room', () => {
+            // Given an invoice room report
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'invoice-room-1',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            // When we call getReportDisplayOption
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
+
+            // Then it should return an option with invoice room text and alternateText
+            expect(result.isInvoiceRoom).toBe(true);
+            expect(result.alternateText).toBe(translateLocal('workspace.common.invoices'));
+            expect(result.isDisabled).toBe(true);
+        });
+
+        it('should return option with unknownUserDetails when provided', () => {
+            // Given a report with unknown user details
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'unknown-user-1',
+            };
+            const unknownUserDetails = {
+                accountID: 999,
+                login: 'unknown@expensify.com',
+                text: 'Unknown User',
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            // When we call getReportDisplayOption
+            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, undefined);
+
+            // Then it should return an option with unknownUserDetails data
+            expect(result.text).toBe('Unknown User');
+            expect(result.alternateText).toBe('unknown@expensify.com');
+            expect(result.participantsList).toBeDefined();
+            expect(result.participantsList?.at(0)?.accountID).toBe(999);
+            expect(result.isDisabled).toBe(true);
+        });
+
+        it('should return option with workspace name when report has ownerAccountID', () => {
+            // Given a workspace report
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'workspace-1',
+                ownerAccountID: 1,
+                policyID,
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            // When we call getReportDisplayOption
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
+
+            // Then it should return an option with workspace name
+            expect(result.text).toBe(POLICY.name);
+            expect(result.alternateText).toBe(translateLocal('workspace.common.workspace'));
+            expect(result.isDisabled).toBe(true);
+        });
+
+        it('should use personalDetails parameter instead of Onyx.connect data', () => {
+            // Given a report with participants
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'test-personal-details-1',
+                participants: {
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            // Use a modified personalDetails that differs from what's in Onyx
+            const customPersonalDetails: PersonalDetailsList = {
+                ...PERSONAL_DETAILS,
+                3: {
+                    ...PERSONAL_DETAILS['3'],
+                    displayName: 'Custom Spider-Man Name',
+                },
+            };
+
+            // When we call getReportDisplayOption with custom personalDetails
+            const result = getReportDisplayOption(report, undefined, customPersonalDetails, undefined);
+
+            // Then it should use the custom personalDetails parameter
+            expect(result).toBeDefined();
+            expect(result.isDisabled).toBe(true);
+            expect(result.isSelected).toBe(false);
+        });
+
+        it('should handle empty personalDetails gracefully', () => {
+            // Given a report with empty personalDetails
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'test-empty-details-1',
+            };
+            const emptyPersonalDetails: PersonalDetailsList = {};
+
+            // When we call getReportDisplayOption
+            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, undefined);
+
+            // Then it should not throw and return a valid option
+            expect(result).toBeDefined();
+            expect(result.isDisabled).toBe(true);
+        });
+
+        it('should handle undefined report gracefully', () => {
+            // Given an undefined report
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            // When we call getReportDisplayOption with undefined report
+            const result = getReportDisplayOption(undefined, undefined, personalDetails, undefined);
+
+            // Then it should return a valid option (createOption handles undefined)
+            expect(result).toBeDefined();
+            expect(result.isDisabled).toBe(true);
+        });
+    });
+
     describe('getValidOptions with policies parameter', () => {
         it('should accept policies collection as second parameter', () => {
             const policy: Policy = {
@@ -3397,7 +3748,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3420,7 +3771,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3440,7 +3791,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, undefined);
+            const option = getReportDisplayOption(report, undefined, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3464,7 +3815,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3488,7 +3839,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);

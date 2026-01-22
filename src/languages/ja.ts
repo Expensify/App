@@ -4996,6 +4996,25 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
                     ctaText: '予約または管理',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: '出張予約',
+                        subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。',
+                        manageTravelLabel: '出張を管理',
+                    },
+                    centralInvoicingSection: {
+                        title: '中央請求書管理',
+                        subtitle: 'すべての出張費を購入時に都度支払うのではなく、月次請求書にまとめて管理しましょう。',
+                        learnHow: '詳しく見る。',
+                        subsections: {
+                            currentTravelSpendLabel: '現在の出張費用',
+                            currentTravelSpendCta: '残高を支払う',
+                            currentTravelLimitLabel: '現在の出張上限',
+                            settlementAccountLabel: '決済口座',
+                            settlementFrequencyLabel: '清算頻度',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',
