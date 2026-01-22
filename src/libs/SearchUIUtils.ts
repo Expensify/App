@@ -83,9 +83,9 @@ import {
     isDeletedAction,
     isHoldAction,
     isMoneyRequestAction,
+    isReportActionVisible,
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
-    shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
@@ -368,6 +368,7 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
 };
 
 /**
@@ -1648,7 +1649,7 @@ function createAndOpenSearchTransactionThread(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [ReportActionListItemType[], number] {
+function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
@@ -1678,8 +1679,10 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
+                const reportID = reportAction.reportID;
                 if (
-                    !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
+                    !reportID ||
+                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -2101,9 +2104,10 @@ function getSections({
     isActionLoadingSet,
     cardFeeds,
     allTransactionViolations,
+    visibleReportActionsData,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data);
+        return getReportActionsSections(data, visibleReportActionsData);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
