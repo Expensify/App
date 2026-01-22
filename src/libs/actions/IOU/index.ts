@@ -14079,6 +14079,29 @@ function updateSplitTransactions({
                 errors: null,
             },
         });
+        const splitExpensesInSameReport = transactionData.splitExpenses.filter((itemTransaction) => itemTransaction.reportID === transactionData.reportID) 
+        if (splitExpensesInSameReport.length === 0) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: {
+                    reportID: null,
+                    pendingFields: {
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: null,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
+                value: transactionReport,
+            });
+        };
     }
 
     if (isReverseSplitOperation) {
