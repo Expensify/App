@@ -98,6 +98,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
+    const isSingleTransactionMode = draftTransaction?.comment?.isSingleTransactionMode ?? false;
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
@@ -332,6 +333,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isInitialSplit = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
 
     const listFooterContent = useMemo(() => {
+        // In single transaction mode (split moved between workspaces), hide add/split options
+        if (isSingleTransactionMode) {
+            return null;
+        }
+
         return (
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
                 <MenuItem
@@ -363,6 +369,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         icons.ArrowsLeftRight,
         isInitialSplit,
         onMakeSplitsEven,
+        isSingleTransactionMode,
     ]);
 
     const footerContent = useMemo(() => {
@@ -461,7 +468,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction)}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}

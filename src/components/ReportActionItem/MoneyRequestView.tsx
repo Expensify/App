@@ -327,7 +327,7 @@ function MoneyRequestView({
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
-        isEditable && (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (isExpenseSplit && isSplitAvailable));
+        isEditable && (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || isExpenseSplit);
     const canEditMerchant = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
 
     const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
@@ -550,8 +550,8 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
+                        if (isExpenseSplit) {
+                            initSplitExpense(allTransactions, allReports, transaction, !isSplitAvailable);
                             return;
                         }
 
@@ -594,8 +594,8 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
+                        if (isExpenseSplit) {
+                            initSplitExpense(allTransactions, allReports, transaction, !isSplitAvailable);
                             return;
                         }
 
@@ -784,8 +784,8 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit && isSplitAvailable) {
-                                initSplitExpense(allTransactions, allReports, transaction);
+                            if (isExpenseSplit) {
+                                initSplitExpense(allTransactions, allReports, transaction, !isSplitAvailable);
                                 return;
                             }
 
