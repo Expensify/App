@@ -1,7 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -229,9 +231,9 @@ function StatusPage() {
                 style={[styles.flexGrow1, styles.flex1]}
                 ref={formRef}
                 submitButtonText={translate('statusPage.save')}
-                submitButtonStyles={[styles.mh5, styles.flexGrow1]}
                 onSubmit={updateStatus}
                 validate={validateForm}
+                isSubmitButtonVisible={false}
                 enabledWhenOffline
             >
                 <View style={[styles.mh5, styles.mv1]}>
@@ -331,6 +333,18 @@ function StatusPage() {
                     )}
                 </View>
             </FormProvider>
+
+            <FixedFooter style={[styles.mtAuto]}>
+                <Button
+                    success
+                    large
+                    style={styles.w100}
+                    text={translate('statusPage.save')}
+                    onPress={() => formRef.current?.submit()}
+                    pressOnEnter
+                    enterKeyEventListenerPriority={1}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
