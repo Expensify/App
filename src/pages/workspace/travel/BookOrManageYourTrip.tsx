@@ -39,7 +39,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.manageTravel')}
                 onPress={handleManageTravel}
                 shouldShowRightIcon
-                iconRight={Expensicons.Link}
+                iconRight={Expensicons.NewWindow}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
             />
 
