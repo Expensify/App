@@ -7,6 +7,7 @@ import {
     getGroupChatName,
     getInvoicePayerName,
     getInvoicesChatName,
+    getMoneyRequestReportName,
     getPolicyExpenseChatName,
     getReportName as getSimpleReportName,
 } from '@libs/ReportNameUtils';
@@ -14,7 +15,8 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
-import {createAdminRoom, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
+import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
+import createRandomPolicy from '../utils/collections/policies';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -637,6 +639,34 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
+        });
+    });
+
+    describe('getMoneyRequestReportName', () => {
+        it('should return "New Report" when reportName is empty string, report is expense report, and policy has empty fieldList', () => {
+            // Given an expense report with empty reportName
+            const expenseReport: Report = {
+                ...createExpenseReport(200),
+                reportID: '200',
+                reportName: '',
+                policyID: '200',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with empty fieldList
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(200, CONST.POLICY.TYPE.TEAM),
+                id: '200',
+                fieldList: {},
+            };
+
+            // When we get the money request report name
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithEmptyFieldList});
+
+            // Then it should return "New Report"
+            expect(reportName).toBe('New Report');
         });
     });
 });
