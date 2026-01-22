@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
+import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
 import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
@@ -1226,6 +1227,7 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
 function processReport(
     report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    privateIsArchived: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
@@ -1250,12 +1252,17 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived, privateIsArchived),
         },
     };
 }
 
-function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+function createOptionList(
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    privateIsArchivedMap: PrivateIsArchivedMap,
+    reports?: OnyxCollection<Report>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+) {
     const span = Sentry.startInactiveSpan({name: 'createOptionList'});
 
     const reportMapForAccountIDs: Record<number, Report> = {};
@@ -1263,7 +1270,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     if (reports) {
         for (const report of Object.values(reports)) {
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
+            const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, reportAttributesDerived);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
@@ -1316,6 +1324,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
  */
 function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    privateIsArchivedMap: PrivateIsArchivedMap,
     reports: OnyxCollection<Report>,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     options: {
@@ -1373,7 +1382,8 @@ function createFilteredOptionList(
     // Step 5: Process the limited set of reports (performance optimization)
     const reportOptions: Array<SearchOption<Report>> = [];
     for (const report of limitedReports) {
-        const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
+        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+        const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, reportAttributesDerived);
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;

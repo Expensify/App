@@ -6,6 +6,7 @@ import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
 import useOnyx from './useOnyx';
+import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
 
 type UseFilteredOptionsConfig = {
     /** Maximum number of recent reports to pre-filter and process (default: 500). */
@@ -76,12 +77,13 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         canBeMissing: true,
         selector: reportsSelector,
     });
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
     const options: OptionList | null =
         enabled && allReports && allPersonalDetails
-            ? createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
+            ? createFilteredOptionList(allPersonalDetails, privateIsArchivedMap, allReports, reportAttributesDerived, {
                   maxRecentReports: reportsLimit,
                   includeP2P,
                   searchTerm,

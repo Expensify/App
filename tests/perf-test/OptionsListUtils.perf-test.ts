@@ -90,7 +90,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = createOptionList(personalDetails, reports);
+const options = createOptionList(personalDetails, {}, reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,

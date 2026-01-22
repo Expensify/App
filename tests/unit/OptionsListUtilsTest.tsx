@@ -638,12 +638,12 @@ describe('OptionsListUtils', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
 
-        OPTIONS = createOptionList(PERSONAL_DETAILS, REPORTS);
-        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
-        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
-        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST);
+        OPTIONS = createOptionList(PERSONAL_DETAILS, {}, REPORTS);
+        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, {}, REPORTS_WITH_CONCIERGE);
+        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, {}, REPORTS_WITH_CHRONOS);
+        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, {}, REPORTS_WITH_RECEIPTS);
+        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, {}, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, {});
     });
 
     describe('getSearchOptions()', () => {
@@ -1640,7 +1640,7 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
-            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, {}, REPORTS);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({options: OPTIONS_WITH_PERIODS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
@@ -1682,7 +1682,7 @@ describe('OptionsListUtils', () => {
         it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
-            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, {}, REPORTS_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({options: OPTIONS_WITH_CHAT_ROOMS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value
@@ -2111,7 +2111,7 @@ describe('OptionsListUtils', () => {
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
                 .then(() => {
                     // Given a set of options with periods
-                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, {}, REPORTS);
                     // When we call getSearchOptions
                     const results = getSearchOptions({options: OPTIONS_WITH_PERIODS, draftComments: {}, nvpDismissedProductTraining, loginList});
                     // When we pass the returned options to filterAndOrderOptions with a search value
@@ -2144,7 +2144,7 @@ describe('OptionsListUtils', () => {
 
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
-            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
+            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, {}, REPORTS_WITH_SELF_DM);
 
             // Given a set of options with self dm and all betas
             const options = getSearchOptions({options: OPTIONS_WITH_SELF_DM, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
@@ -2196,7 +2196,7 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
-            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, {}, REPORTS).reports;
 
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
@@ -2207,7 +2207,7 @@ describe('OptionsListUtils', () => {
                     .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
                     .then(() => {
                         // When we call createOptionList again
-                        const newReports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                        const newReports = createOptionList(PERSONAL_DETAILS, {}, REPORTS).reports;
                         // Then the returned reports should change to Spanish
                         // cspell:disable-next-line
                         expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
@@ -2287,7 +2287,7 @@ describe('OptionsListUtils', () => {
                 },
             });
             // When we call createOptionList
-            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, {}, REPORTS).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
 
             // Then the returned report should contain default archived reason
