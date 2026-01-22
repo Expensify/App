@@ -113,8 +113,8 @@ const FS: Fullstory = {
         if (!isInitialized()) {
             return;
         }
-        // Browser SDK log method doesn't support level parameter in the same way as native
-        // The level parameter is accepted but we use default level for consistency
+        // Browser SDK doesn't support log levels the same way as native SDK
+        // The level parameter is kept for API consistency across platforms
         FullStory('log', {msg: message});
     },
 

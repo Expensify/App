@@ -68,7 +68,7 @@ const FS: Fullstory = {
             warn: FullStory.LogLevel.Warn,
             error: FullStory.LogLevel.Error,
         };
-        FullStory.log(logLevelMap[level], message);
+        FullStory.log(logLevelMap[level] ?? FullStory.LogLevel.Log, message);
     },
 
     setUserVars: (userVars) => {
