@@ -124,8 +124,9 @@ describe('actions/Domain', () => {
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const email = 'test@example.com';
+        const defaultSecurityGroupID = '1';
 
-        addMemberToDomain(domainAccountID, email);
+        addMemberToDomain(domainAccountID, email, defaultSecurityGroupID);
 
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.ADD_DOMAIN_MEMBER,
@@ -178,8 +179,8 @@ describe('actions/Domain', () => {
         const domainAccountID = 123;
         const email = 'test@example.com';
         const optimisticAccountID = generateAccountID(email);
-        // eslint-disable-next-line rulesdir/no-default-id-values
-        const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
+        const defaultSecurityGroupID = '1';
+        const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
         const timestamp = 456;
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
@@ -201,7 +202,7 @@ describe('actions/Domain', () => {
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         );
 
-        clearAddMemberError(domainAccountID, optimisticAccountID, email);
+        clearAddMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
