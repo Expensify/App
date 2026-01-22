@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import getBankIcon from '@components/Icon/BankIcons';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -36,7 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {BankName} from '@src/types/onyx/Bank';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS>;
@@ -90,10 +89,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
     const getCardIconSource = () => {
-        if (isCSVImportedPersonalCard) {
-            return getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
-        }
-        return getBankIcon({styles, bankName: cardBank as BankName, isCard: true}).icon;
+        return getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons);
     };
 
     // Don't show NotFoundPage if data is still loading
