@@ -69,7 +69,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const ancestors = useAncestors(report);
     const displayReport = useMemo(
         () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived],
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID],
     );
 
     const shouldShowAttachment = !isTextShared;
