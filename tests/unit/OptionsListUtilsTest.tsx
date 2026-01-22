@@ -3973,6 +3973,7 @@ describe('OptionsListUtils', () => {
 
             // Test that the function works without crashing when chatReport is passed
             const result = getLastMessageTextForReport({
+                translate: translateLocal,
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
@@ -3990,6 +3991,7 @@ describe('OptionsListUtils', () => {
             };
 
             const result = getLastMessageTextForReport({
+                translate: translateLocal,
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
