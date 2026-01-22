@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {addMemberToDomain, clearDomainErrors, clearMemberError, createDomain, resetCreateDomainForm, resetDomain} from '@libs/actions/Domain';
+import {addMemberToDomain, clearAddMemberError, clearDomainErrors, createDomain, resetCreateDomainForm, resetDomain} from '@libs/actions/Domain';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -174,7 +174,7 @@ describe('actions/Domain', () => {
         apiWriteSpy.mockRestore();
     });
 
-    it('clearMemberError - clears member errors and optimistic data', async () => {
+    it('clearAddMemberError - clears member errors and optimistic data', async () => {
         const domainAccountID = 123;
         const email = 'test@example.com';
         const optimisticAccountID = generateAccountID(email);
@@ -201,7 +201,7 @@ describe('actions/Domain', () => {
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         );
 
-        clearMemberError(domainAccountID, optimisticAccountID, email);
+        clearAddMemberError(domainAccountID, optimisticAccountID, email);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
