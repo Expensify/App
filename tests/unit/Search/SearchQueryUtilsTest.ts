@@ -743,7 +743,6 @@ describe('SearchQueryUtils', () => {
 
             expect(queryJSON?.limit).toBeUndefined();
         });
-
     });
 
     describe('getFilterDisplayValue', () => {
