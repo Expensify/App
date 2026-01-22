@@ -4447,7 +4447,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: lodashUnionBy(
                 transactionChanges.attendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, email})),
                 recentAttendees,
-                (attendee) => attendee.email || attendee.displayName,
+                'email',
             ).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW),
         });
     }
