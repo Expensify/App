@@ -34,7 +34,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: ROUTES.REQUIRE_TWO_FACTOR_AUTH,
         [SCREENS.WORKSPACES_LIST]: {
             path: ROUTES.WORKSPACES_LIST.route,
             exact: true,
@@ -1902,6 +1901,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.route,
                             exact: true,
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: {
+                    screens: {
+                        [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: ROUTES.MULTIFACTOR_AUTHENTICATION_MAGIC_CODE,
+                        [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST,
+                        [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: ROUTES.MULTIFACTOR_AUTHENTICATION_NOTIFICATION.route,
+                        [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.route,
+                        [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND,
                     },
                 },
             },

@@ -149,6 +149,7 @@ function IOURequestStepHours({
                 style={styles.iouAmountTextInput}
                 containerStyle={styles.iouAmountTextInputContainer}
                 errorText={formError}
+                touchableInputWrapperStyle={styles.heightUndefined}
                 onInputChange={() => {
                     if (!formError) {
                         return;

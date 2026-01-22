@@ -80,6 +80,8 @@ import {
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
@@ -103,6 +105,7 @@ import {
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -241,6 +244,9 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
+    /** All transaction drafts */
+    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -365,6 +371,7 @@ type PureReportActionItemProps = {
         actionName: IOUAction,
         reportActionID: string,
         introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+        allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>,
         activePolicy: OnyxEntry<OnyxTypes.Policy>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
@@ -457,6 +464,7 @@ function PureReportActionItem({
     policies,
     personalPolicyID,
     introSelected,
+    allTransactionDrafts,
     action,
     report,
     policy,
@@ -887,6 +895,7 @@ function PureReportActionItem({
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
                             introSelected,
+                            allTransactionDrafts,
                             activePolicy,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
@@ -907,6 +916,7 @@ function PureReportActionItem({
                                 CONST.IOU.ACTION.CATEGORIZE,
                                 action.reportActionID,
                                 introSelected,
+                                allTransactionDrafts,
                                 activePolicy,
                             );
                         },
@@ -921,6 +931,7 @@ function PureReportActionItem({
                                 CONST.IOU.ACTION.SHARE,
                                 action.reportActionID,
                                 introSelected,
+                                allTransactionDrafts,
                                 activePolicy,
                             );
                         },
@@ -1061,6 +1072,7 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
+        allTransactionDrafts,
         activePolicy,
         report,
         originalReport,
@@ -1481,10 +1493,16 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getSubmitsToUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
             children = <ReportActionItemBasicMessage message={getForwardsToUpdateMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
+            children = <ReportActionItemBasicMessage message={getInvoiceCompanyNameUpdateMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE)) {
+            children = <ReportActionItemBasicMessage message={getInvoiceCompanyWebsiteUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER)) {
             children = <ReportActionItemBasicMessage message={getReimburserUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT)) {
+            children = <ReportActionItemBasicMessage message={getUpdateACHAccountMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS)) {
             children = <ReportActionItemBasicMessage message={getCompanyAddressUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
