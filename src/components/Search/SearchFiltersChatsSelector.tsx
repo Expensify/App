@@ -9,6 +9,7 @@ import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
@@ -60,6 +61,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
@@ -95,6 +97,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${selectedOptions.at(0)?.reportID}`],
             personalDetails,
             false,
             undefined,
@@ -131,6 +134,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         selectedOptions,
         selectedReportIDs,
         translate,
+        privateIsArchivedMap,
     ]);
 
     useEffect(() => {

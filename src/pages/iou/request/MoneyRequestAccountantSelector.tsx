@@ -12,6 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
@@ -67,6 +68,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -148,6 +150,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatOptions.recentReports.at(0)?.reportID}`],
             personalDetails,
             true,
             undefined,
@@ -178,7 +181,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant?.reportID}`];
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, privateIsArchived, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -205,6 +209,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         translate,
         loginList,
         countryCode,
+        privateIsArchivedMap,
     ]);
 
     const selectAccountant = useCallback(

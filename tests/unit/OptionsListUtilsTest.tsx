@@ -20,13 +20,16 @@ import {
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
+    formatSectionsFromSearchTerm,
     getCurrentUserSearchTerms,
     getFilteredRecentAttendees,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getMemberInviteOptions,
+    getParticipantsOption,
     getPersonalDetailSearchTerms,
+    getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,
     getSearchOptions,
@@ -3976,6 +3979,117 @@ describe('OptionsListUtils', () => {
             // Name-only attendee should have displayName as login
             const johnSmith = result.find((r) => r.login === 'John Smith');
             expect(johnSmith).toBeDefined();
+        });
+    });
+
+    describe('formatSectionsFromSearchTerm()', () => {
+        it('should return selected options when search term is empty', () => {
+            const selectedOptions = [
+                {
+                    accountID: 1,
+                    login: 'user1@example.com',
+                    reportID: 'report1',
+                    isPolicyExpenseChat: false,
+                } as OptionData,
+            ];
+
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], undefined, {}, false, [], undefined);
+
+            expect(result.section.shouldShow).toBe(true);
+            expect(result.section.data).toHaveLength(1);
+            expect(result.section.data[0]).toEqual(selectedOptions[0]);
+        });
+
+        it('should filter selected options based on search term', () => {
+            const selectedOptions = [
+                {
+                    accountID: 1,
+                    login: 'user1@example.com',
+                    displayName: 'User One',
+                    reportID: 'report1',
+                    isPolicyExpenseChat: false,
+                    participantsList: [{displayName: 'User One'}],
+                } as OptionData,
+                {
+                    accountID: 2,
+                    login: 'user2@example.com',
+                    displayName: 'User Two',
+                    reportID: 'report2',
+                    isPolicyExpenseChat: false,
+                    participantsList: [{displayName: 'User Two'}],
+                } as OptionData,
+            ];
+
+            const result = formatSectionsFromSearchTerm('user one', selectedOptions, [], [], undefined, {}, false, [], undefined);
+
+            expect(result.section.data).toHaveLength(1);
+            expect((result.section.data[0] as OptionData).accountID).toBe(1);
+        });
+
+        it('should pass privateIsArchived correctly', () => {
+            const selectedOptions = [
+                {
+                    accountID: 1,
+                    login: 'user1@example.com',
+                    reportID: 'report1',
+                    isPolicyExpenseChat: true,
+                } as OptionData,
+            ];
+            const privateIsArchived = '2024-01-01';
+
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchived, {}, true, [], undefined);
+
+            expect(result.section.shouldShow).toBe(true);
+        });
+
+        it('should not show section when no selected options', () => {
+            const result = formatSectionsFromSearchTerm('', [], [], [], undefined, {}, false, [], undefined);
+
+            expect(result.section.shouldShow).toBe(false);
+            expect(result.section.data).toHaveLength(0);
+        });
+    });
+
+    describe('getPolicyExpenseReportOption()', () => {
+        it('should return an option with correct properties', () => {
+            const participant = {
+                reportID: 'report123',
+                isPolicyExpenseChat: true,
+                selected: true,
+            } as Participant;
+
+            const result = getPolicyExpenseReportOption(participant, undefined, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.isSelected).toBe(true);
+            expect(result.selected).toBe(true);
+        });
+
+        it('should handle archived reports with privateIsArchived', () => {
+            const participant = {
+                reportID: 'report123',
+                isPolicyExpenseChat: true,
+                selected: false,
+            } as Participant;
+            const privateIsArchived = '2024-01-01';
+
+            const result = getPolicyExpenseReportOption(participant, privateIsArchived, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.isSelected).toBe(false);
+        });
+
+        it('should handle undefined privateIsArchived', () => {
+            const participant = {
+                reportID: 'report456',
+                isPolicyExpenseChat: true,
+                selected: true,
+            } as Participant;
+
+            const result = getPolicyExpenseReportOption(participant, undefined, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.isSelected).toBe(true);
         });
     });
 });

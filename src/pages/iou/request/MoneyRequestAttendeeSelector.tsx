@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,6 +70,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
 
@@ -209,6 +211,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             initialSelectedOptions,
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
+            privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${initialSelectedOptions.at(0)?.reportID}`],
             personalDetails,
             true,
             undefined,
@@ -249,7 +252,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [orderedAvailableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant?.reportID}`];
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, privateIsArchived, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 shouldShow: true,
             });
@@ -278,6 +282,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         loginList,
         countryCode,
         translate,
+        privateIsArchivedMap,
     ]);
 
     const optionLength = useMemo(() => {

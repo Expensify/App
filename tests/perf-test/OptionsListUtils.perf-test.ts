@@ -227,6 +227,7 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
+                undefined,
                 mockedPersonalDetails,
                 true,
             ),
@@ -239,6 +240,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], undefined, mockedPersonalDetails, true));
     });
 });

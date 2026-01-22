@@ -1102,7 +1102,11 @@ function getReportDisplayOption(
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(participant: Participant | SearchOptionData, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): SearchOptionData {
+function getPolicyExpenseReportOption(
+    participant: Participant | SearchOptionData,
+    privateIsArchived: string | undefined,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+): SearchOptionData {
     const expenseReport = reportUtilsIsPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
@@ -1118,6 +1122,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
+        privateIsArchived,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -2628,6 +2633,7 @@ function formatSectionsFromSearchTerm(
     selectedOptions: SearchOptionData[],
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
+    privateIsArchived: string | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
@@ -2643,7 +2649,9 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                          return isReportPolicyExpenseChat
+                              ? getPolicyExpenseReportOption(participant, privateIsArchived, reportAttributesDerived)
+                              : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2669,7 +2677,9 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                      return isReportPolicyExpenseChat
+                          ? getPolicyExpenseReportOption(participant, privateIsArchived, reportAttributesDerived)
+                          : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,

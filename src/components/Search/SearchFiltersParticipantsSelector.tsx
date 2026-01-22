@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
@@ -90,6 +91,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
     const recentAttendeeLists = useMemo(
@@ -190,6 +192,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${selectedOptions.at(0)?.reportID}`],
             personalDetails,
             true,
             undefined,
@@ -249,7 +252,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, privateIsArchivedMap]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
