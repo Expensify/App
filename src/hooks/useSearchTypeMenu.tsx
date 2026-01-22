@@ -10,13 +10,20 @@ import {setSearchContext} from '@libs/actions/Search';
 import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
+import {
+    buildQueryStringFromFilterFormValues,
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    buildUserReadableQueryString,
+    shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery,
+} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
@@ -68,6 +75,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
+    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     useSuggestedSearchDefaultNavigation({
         shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
@@ -150,14 +158,32 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         };
     }, [savedSearches, hash, getOverflowMenu, expensifyIcons.Bookmark, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID]);
 
-    const activeItemIndex = useMemo(() => {
+    const [activeItemIndex, isExploreSection] = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
         if (isSavedSearchActive) {
-            return -1;
+            return [-1, false];
         }
 
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+        let isMatchedIndex = flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+        if (isMatchedIndex === -1) {
+            isMatchedIndex = flattenedMenuItems.findIndex((item) => {
+                if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                    return item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+                }
+                if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+                    return item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS;
+                }
+                if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
+                    return item.key === CONST.SEARCH.SEARCH_KEYS.CHATS;
+                }
+                return false;
+            });
+        }
+        const matchedItemKey = isMatchedIndex !== -1 ? flattenedMenuItems.at(isMatchedIndex)?.key : undefined;
+        const isExploreSection1 =
+            !!matchedItemKey && ([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.CHATS] as string[]).includes(matchedItemKey);
+        return [isMatchedIndex, isExploreSection1];
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
@@ -194,7 +220,30 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             shouldCallAfterModalHide: true,
                             onSelected: singleExecution(() => {
                                 setSearchContext(false);
-                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
+                                let queryString = item.searchQuery;
+
+                                if (isExploreSection && section.translationPath === 'common.explore') {
+                                    const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
+                                        ...searchAdvancedFiltersForm,
+                                        ...{type: item.type},
+                                    };
+
+                                    // If the type has changed, reset the columns
+                                    if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
+                                        updatedFilterFormValues.columns = [];
+                                    }
+
+                                    // Preserve the current sortBy and sortOrder from queryJSON when updating filters
+                                    const updatedQueryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
+                                        sortBy: queryJSON?.sortBy,
+                                        sortOrder: queryJSON?.sortOrder,
+                                    });
+
+                                    // We need to normalize the updatedQueryString using buildSearchQueryString.
+                                    const updatedQueryJSON = buildSearchQueryJSON(updatedQueryString);
+                                    queryString = buildSearchQueryString(updatedQueryJSON);
+                                }
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
                             }),
                         });
                     }
@@ -203,7 +252,21 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.iconSuccessFill, theme.border, expensifyIcons, singleExecution]);
+    }, [
+        typeMenuSections,
+        translate,
+        styles.textSupporting,
+        savedSearchesMenuItems,
+        activeItemIndex,
+        expensifyIcons,
+        theme.iconSuccessFill,
+        theme.border,
+        singleExecution,
+        isExploreSection,
+        searchAdvancedFiltersForm,
+        queryJSON?.sortBy,
+        queryJSON?.sortOrder,
+    ]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);
