@@ -8,10 +8,9 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Search from '@components/Search';
-import SearchPageFooter from '@components/Search/SearchPageFooter';
-import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchComponent from '@components/Search';
+// Using composition pattern - import from SearchComposition for dot notation components
+import Search from '@components/Search/SearchComposition';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -101,13 +100,15 @@ function SearchPageWide({
                     {!!queryJSON && (
                         <DragAndDropProvider>
                             {PDFValidationComponent}
-                            <SearchPageHeader
+                            {/* Using composition pattern - Search.Header component */}
+                            <Search.Header
                                 queryJSON={queryJSON}
                                 headerButtonsOptions={headerButtonsOptions}
                                 handleSearch={handleSearchAction}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
-                            <SearchFiltersBar
+                            {/* Using composition pattern - Search.FiltersBar component */}
+                            <Search.FiltersBar
                                 queryJSON={queryJSON}
                                 headerButtonsOptions={headerButtonsOptions}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -116,7 +117,8 @@ function SearchPageWide({
                                 confirmPayment={onBulkPaySelected}
                                 latestBankItems={latestBankItems}
                             />
-                            <Search
+                            {/* Using SearchComponent (the main Search list) */}
+                            <SearchComponent
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
                                 searchResults={searchResults}
@@ -127,7 +129,8 @@ function SearchPageWide({
                                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                             />
                             {shouldShowFooter && (
-                                <SearchPageFooter
+                                // Using composition pattern - Search.Footer component
+                                <Search.Footer
                                     count={footerData.count}
                                     total={footerData.total}
                                     currency={footerData.currency}
