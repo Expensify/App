@@ -290,7 +290,7 @@ function Expensify() {
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
             if (url) {
-                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+                openReportFromDeepLink(url, allReports, isAuthenticated);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -299,7 +299,7 @@ function Expensify() {
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();

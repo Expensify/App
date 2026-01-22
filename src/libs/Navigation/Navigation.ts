@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {SidePanel} from '@src/types/onyx';
+import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
@@ -48,6 +48,25 @@ import type {
     State,
 } from './types';
 
+// Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
+const SET_UP_2FA_SCREENS = new Set<string>([
+    SCREENS.TWO_FACTOR_AUTH.ROOT,
+    SCREENS.TWO_FACTOR_AUTH.VERIFY,
+    SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.SUCCESS,
+    SCREENS.TWO_FACTOR_AUTH.DISABLED,
+    SCREENS.TWO_FACTOR_AUTH.DISABLE,
+]);
+
+let account: OnyxEntry<Account>;
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
+    },
+});
+
 let sidePanelNVP: OnyxEntry<SidePanel>;
 // `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
 // Also it is not directly connected to any UI
@@ -57,6 +76,14 @@ Onyx.connectWithoutView({
         sidePanelNVP = value;
     },
 });
+
+function isTwoFactorSetupScreen(screen: string | undefined): boolean {
+    return screen ? SET_UP_2FA_SCREENS.has(screen) : false;
+}
+
+function shouldShowRequire2FAPage() {
+    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
+}
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {

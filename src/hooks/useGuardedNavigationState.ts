@@ -4,8 +4,6 @@ import {useMemo} from 'react';
 import Log from '@libs/Log';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from './useOnyx';
 
 /**
  * Hook that generates navigation state from a path while checking navigation guards.
@@ -15,10 +13,6 @@ function useGuardedNavigationState(
     options: Parameters<typeof getAdaptedStateFromPath>[1],
     shouldReplacePathInNestedState?: boolean,
 ): ReturnType<typeof getAdaptedStateFromPath> {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-
     return useMemo(() => {
         if (!path) {
             return undefined;
@@ -56,12 +50,8 @@ function useGuardedNavigationState(
             },
         };
 
-        // Create guard context with current Onyx data from hooks
-        const guardContext = createGuardContext({
-            account,
-            onboarding,
-            session,
-        });
+        // Create guard context - guards use their own module-level Onyx subscriptions
+        const guardContext = createGuardContext();
 
         // Evaluate guards: "If we navigate from empty state to adaptedState, would guards block it?"
         const result = evaluateGuards(emptyState, navigationAction, guardContext);
@@ -88,7 +78,7 @@ function useGuardedNavigationState(
 
         // No guards triggered, return the original adapted state
         return adaptedState;
-    }, [path, options, shouldReplacePathInNestedState, account, onboarding, session]);
+    }, [path, options, shouldReplacePathInNestedState]);
 }
 
 export default useGuardedNavigationState;

@@ -1,8 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
-import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {useOnboardingValues} from '@components/OnyxListItemProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useGuardedNavigationState from '@hooks/useGuardedNavigationState';
@@ -18,8 +17,6 @@ import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
-import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -28,7 +25,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -102,15 +98,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         selector: hasCompletedGuidedSetupFlowSelector,
         canBeMissing: true,
     });
-    const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: wasInvitedToNewDotSelector,
-        canBeMissing: true,
-    });
-    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY, {canBeMissing: true});
-    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const onboardingValues = useOnboardingValues();
+
     const previousAuthenticated = usePrevious(authenticated);
 
     const guardedLastVisitedState = useGuardedNavigationState(lastVisitedPath, linkingConfig.config);
@@ -137,21 +125,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return undefined;
         }
 
-        // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
-        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(
-                getOnboardingInitialPath({
-                    isUserFromPublicDomain: !!account.isFromPublicDomain,
-                    hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
-                    currentOnboardingPurposeSelected,
-                    currentOnboardingCompanySize,
-                    onboardingInitialPath,
-                    onboardingValues,
-                }),
-                linkingConfig.config,
-            );
-        }
+        // NOTE: Core onboarding flow redirects are handled by OnboardingGuard in the navigation guard system
+        // The guardedLastVisitedState already applies guard evaluation, so no additional onboarding checks needed here
 
         if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
             // Only skip restoration if there's a specific deep link that's not the root
