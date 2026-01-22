@@ -1,5 +1,8 @@
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
+// We need direct access to useOnyx to fetch live policy data at render time
+// without triggering the wrapper's additional logic, ensuring violations
+// sync immediately when category settings change
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
@@ -20,6 +23,7 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isInvoiceReport, isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +60,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`, {canBeMissing: true});
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`, {canBeMissing: true});
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`, {canBeMissing: true});
 
     const searchData = currentSearchResults?.data;
@@ -78,29 +83,41 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
 
+    // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
+    // like isAttendeeTrackingEnabled is not missing
+    // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
+    // newly created reports aren't in the search snapshot yet
+    const policyForViolations = parentPolicy ?? snapshotPolicy;
+    const reportForViolations = parentReport ?? snapshotReport;
+
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
     const hasSyncedMissingAttendeesViolation = useMemo(() => {
-        const policy = parentPolicy ?? snapshotPolicy;
-        if (!policy?.isAttendeeTrackingEnabled || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+        if (!policyForViolations?.isAttendeeTrackingEnabled || policyForViolations?.type !== CONST.POLICY.TYPE.CORPORATE) {
             return false;
         }
 
         const isInvoice = isInvoiceReport(reportItem) || reportItem.type === CONST.REPORT.TYPE.INVOICE;
         return reportItem?.transactions?.some((transaction) => {
+            const relevantViolations = (transaction.violations ?? []).filter(
+                (violation) =>
+                    !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
+                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transaction),
+            );
+
             const violations = syncMissingAttendeesViolation(
-                transaction.violations ?? [],
+                relevantViolations,
                 policyCategories,
                 transaction.category ?? '',
                 transaction.attendees,
                 currentUserDetails,
-                policy.isAttendeeTrackingEnabled ?? false,
-                policy.type === CONST.POLICY.TYPE.CORPORATE,
+                policyForViolations.isAttendeeTrackingEnabled ?? false,
+                policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );
             return violations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         });
-    }, [reportItem, policyCategories, parentPolicy, snapshotPolicy, currentUserDetails]);
+    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 

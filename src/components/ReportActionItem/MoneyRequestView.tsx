@@ -468,17 +468,6 @@ function MoneyRequestView({
         });
     };
 
-    // eslint-disable-next-line no-console
-    console.log('Debug Logs:', {
-        policy,
-        policyID: policy?.id,
-        policyType: policy?.type,
-        policyIsAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
-        iouType,
-        shouldShowAttendeesResult: shouldShowAttendees,
-        actualAttendees,
-    });
-
     const saveReimbursable = (newReimbursable: boolean) => {
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
