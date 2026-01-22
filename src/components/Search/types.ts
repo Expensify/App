@@ -162,6 +162,86 @@ type SearchContextProps = SearchContextData & {
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
 
+/**
+ * Composition Pattern Types - Organized by state/actions/meta
+ * Based on Fernando Rojo's composition pattern principles
+ */
+
+/** State: The reactive data of the search context */
+type SearchState = {
+    /** Current search hash for the active query */
+    currentSearchHash: number;
+    /** Current search key identifier */
+    currentSearchKey: SearchKey | undefined;
+    /** Parsed query JSON for the current search */
+    currentSearchQueryJSON: SearchQueryJSON | undefined;
+    /** Search results data from the API */
+    currentSearchResults: SearchResults | undefined;
+    /** Map of selected transactions by ID */
+    selectedTransactions: SelectedTransactions;
+    /** Array of selected transaction IDs */
+    selectedTransactionIDs: string[];
+    /** Array of selected reports */
+    selectedReports: SelectedReports[];
+    /** Whether to turn off selection mode */
+    shouldTurnOffSelectionMode: boolean;
+    /** Whether to reset the search query */
+    shouldResetSearchQuery: boolean;
+    /** Whether the filters bar is loading */
+    shouldShowFiltersBarLoading: boolean;
+    /** Last search type performed */
+    lastSearchType: string | undefined;
+    /** Whether to show select all matching items option */
+    showSelectAllMatchingItems: boolean;
+    /** Whether all matching items are selected */
+    areAllMatchingItemsSelected: boolean;
+    /** Whether we're using live Onyx data instead of snapshots */
+    shouldUseLiveData: boolean;
+};
+
+/** Actions: Functions to modify state */
+type SearchActions = {
+    /** Set the current search hash and key */
+    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
+    /** Set the current search query JSON */
+    setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
+    /** Set selected transactions - pass array for IDs only, object for full transaction info */
+    setSelectedTransactions: {
+        (selectedTransactionIDs: string[], unused?: undefined): void;
+        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+    };
+    /** Clear selected transactions */
+    clearSelectedTransactions: {
+        (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
+        (clearIDs: true, unused?: undefined): void;
+    };
+    /** Remove a specific transaction from selection */
+    removeTransaction: (transactionID: string | undefined) => void;
+    /** Set whether the filters bar should show loading state */
+    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
+    /** Set the last search type */
+    setLastSearchType: (type: string | undefined) => void;
+    /** Set whether to show select all matching items option */
+    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
+    /** Select or deselect all matching items */
+    selectAllMatchingItems: (on: boolean) => void;
+    /** Set whether to reset the search query */
+    setShouldResetSearchQuery: (shouldReset: boolean) => void;
+};
+
+/** Meta: Static configuration and refs */
+type SearchMeta = {
+    /** Whether we're on the search screen */
+    isOnSearch: boolean;
+};
+
+/** Composed context value following state/actions/meta pattern */
+type SearchComposedContextValue = {
+    state: SearchState;
+    actions: SearchActions;
+    meta: SearchMeta;
+};
+
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
@@ -330,4 +410,9 @@ export type {
     SearchTextFilterKeys,
     BankAccountMenuItem,
     SearchCustomColumnIds,
+    // Composition pattern types
+    SearchState,
+    SearchActions,
+    SearchMeta,
+    SearchComposedContextValue,
 };
