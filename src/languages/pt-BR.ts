@@ -2530,8 +2530,6 @@ ${amount} para ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Bem-vindo!',
-        welcomeSignOffTitleManageTeam: '',
-        welcomeSignOffTitle: '',
         explanationModal: {
             title: 'Bem-vindo ao Expensify',
             description: 'Um app para gerenciar seus gastos empresariais e pessoais na velocidade de um chat. Experimente e nos conte o que você achou. Muito mais vem por aí!',
@@ -2864,7 +2862,6 @@ ${
                 '# Vamos configurar tudo para você\n👋 Olá, sou o seu especialista de configuração da Expensify. Já criei um workspace para ajudar a gerenciar seus recibos e despesas. Para aproveitar ao máximo seu teste grátis de 30 dias, basta seguir as etapas de configuração restantes abaixo!',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
             onboardingAdminMessage: 'Aprenda a gerenciar o espaço de trabalho da sua equipe como administrador e a enviar suas próprias despesas.',
-            onboardingLookingAroundMessage: '',
             onboardingTestDriveReceiverMessage: '*Você ganhou 3 meses grátis! Comece abaixo.*',
         },
         workspace: {

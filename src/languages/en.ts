@@ -2521,8 +2521,6 @@ const translations = {
     },
     onboarding: {
         welcome: 'Welcome!',
-        welcomeSignOffTitleManageTeam: '',
-        welcomeSignOffTitle: '',
         explanationModal: {
             title: 'Welcome to Expensify',
             description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
@@ -2868,7 +2866,6 @@ const translations = {
                 "# Let’s get you set up\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
-            onboardingLookingAroundMessage: '',
             onboardingTestDriveReceiverMessage: "*You've got 3 months free! Get started below.*",
         },
         workspace: {

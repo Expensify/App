@@ -2528,8 +2528,6 @@ ${merchant} への ${amount}（${date}）`,
     },
     onboarding: {
         welcome: 'ようこそ！',
-        welcomeSignOffTitleManageTeam: '',
-        welcomeSignOffTitle: '',
         explanationModal: {
             title: 'Expensify へようこそ',
             description:
@@ -2863,7 +2861,6 @@ ${
                 '# セットアップを始めましょう\n👋 こんにちは、私はあなたの Expensify セットアップ担当です。すでに領収書や経費を管理するためのワークスペースを作成してあります。30日間の無料トライアルを最大限に活用するには、以下の残りのセットアップ手順に従ってください！',
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方は次のとおりです。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を申請する方法を学びましょう。',
-            onboardingLookingAroundMessage: '',
             onboardingTestDriveReceiverMessage: '3か月間無料です！以下から始めましょう。',
         },
         workspace: {

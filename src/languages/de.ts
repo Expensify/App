@@ -2542,8 +2542,6 @@ ${amount} für ${merchant} – ${date}`,
     },
     onboarding: {
         welcome: 'Willkommen!',
-        welcomeSignOffTitleManageTeam: '',
-        welcomeSignOffTitle: '',
         explanationModal: {
             title: 'Willkommen bei Expensify',
             description:
@@ -2877,7 +2875,6 @@ ${
                 '# Richten wir dich ein\n👋 Hallo, ich bin dein Expensify-Einrichtungsspezialist. Ich habe bereits einen Workspace erstellt, um dir beim Verwalten deiner Belege und Ausgaben zu helfen. Um deine 30-tägige kostenlose Testphase optimal zu nutzen, folge einfach den verbleibenden Einrichtungsschritten unten!',
             onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
             onboardingAdminMessage: 'Erfahren Sie, wie Sie als Admin den Workspace Ihres Teams verwalten und Ihre eigenen Ausgaben einreichen.',
-            onboardingLookingAroundMessage: '',
             onboardingTestDriveReceiverMessage: '*Du erhältst 3 Monate gratis! Leg unten los.*',
         },
         workspace: {

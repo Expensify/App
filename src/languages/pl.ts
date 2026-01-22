@@ -2530,8 +2530,6 @@ ${amount} dla ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Witamy!',
-        welcomeSignOffTitleManageTeam: '',
-        welcomeSignOffTitle: '',
         explanationModal: {
             title: 'Witamy w Expensify',
             description: 'Jedna aplikacja do obsługi wydatków firmowych i osobistych z prędkością czatu. Wypróbuj ją i daj nam znać, co o niej sądzisz. To dopiero początek!',
@@ -2865,7 +2863,6 @@ ${
                 '# Skonfigurujmy wszystko\n\n👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już miejsce pracy, które pomoże Ci zarządzać paragonami i wydatkami. Aby jak najlepiej wykorzystać 30-dniowy bezpłatny okres próbny, po prostu wykonaj pozostałe kroki konfiguracji poniżej!',
             onboardingChatSplitMessage: 'Dzieleniem rachunków ze znajomymi jest tak proste jak wysłanie wiadomości. Oto jak to działa.',
             onboardingAdminMessage: 'Dowiedz się, jak zarządzać przestrzenią roboczą swojego zespołu jako administrator oraz jak składać własne rozliczenia wydatków.',
-            onboardingLookingAroundMessage: '',
             onboardingTestDriveReceiverMessage: '*Masz 3 miesiące za darmo! Zacznij poniżej.*',
         },
         workspace: {

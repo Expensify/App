@@ -2537,8 +2537,6 @@ ${amount} voor ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Welkom!',
-        welcomeSignOffTitleManageTeam: '',
-        welcomeSignOffTitle: '',
         explanationModal: {
             title: 'Welkom bij Expensify',
             description:
@@ -2870,7 +2868,6 @@ ${
                 '# Laten we je instellen\n👋 Hoi, ik ben je Expensify-installatiespecialist. Ik heb al een workspace aangemaakt om je bonnetjes en uitgaven te beheren. Volg gewoon de resterende installatiestappen hieronder om het meeste uit je gratis proefperiode van 30 dagen te halen!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als het versturen van een bericht. Zo werkt het.',
             onboardingAdminMessage: 'Leer hoe je als beheerder de werkruimte van je team beheert en je eigen declaraties indient.',
-            onboardingLookingAroundMessage: '',
             onboardingTestDriveReceiverMessage: '*Je krijgt 3 maanden gratis! Ga hieronder aan de slag.*',
         },
         workspace: {

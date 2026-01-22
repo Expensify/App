@@ -2546,8 +2546,6 @@ ${amount} pour ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Bienvenue !',
-        welcomeSignOffTitleManageTeam: '',
-        welcomeSignOffTitle: '',
         explanationModal: {
             title: 'Bienvenue sur Expensify',
             description:
@@ -2882,7 +2880,6 @@ ${
                 '# Mettons tout en place\n\n👋 Salut, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer vos reçus et vos dépenses. Pour profiter au maximum de votre essai gratuit de 30 jours, il vous suffit de suivre les étapes de configuration restantes ci-dessous !',
             onboardingChatSplitMessage: 'Partager des notes avec des amis est aussi simple que d’envoyer un message. Voici comment.',
             onboardingAdminMessage: 'Découvrez comment gérer l’espace de travail de votre équipe en tant qu’administrateur et soumettre vos propres notes de frais.',
-            onboardingLookingAroundMessage: '',
             onboardingTestDriveReceiverMessage: '*Vous avez 3 mois gratuits ! Commencez ci-dessous.*',
         },
         workspace: {
