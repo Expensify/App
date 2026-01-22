@@ -62,6 +62,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                 const itemData = {
                     ...item,
                     type: CONST.SECTION_LIST_ITEM_TYPE.ROW,
+                    isDisabled: section.isDisabled === true || item.isDisabled === true ,
                 } as SectionListItem<TItem>;
                 data.push(itemData);
 
