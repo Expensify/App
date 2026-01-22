@@ -1105,6 +1105,8 @@ const translations = {
         removeSplit: 'Remove split',
         splitExpenseCannotBeEditedModalTitle: "This expense can't be edited",
         splitExpenseCannotBeEditedModalDescription: 'Approved or paid expenses cannot be edited',
+        splitExpenseDistanceErrorModalTitle: 'Split expense',
+        splitExpenseDistanceErrorModalDescription: 'Fix the distance rate error and try again.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
         categorize: 'Categorize',
