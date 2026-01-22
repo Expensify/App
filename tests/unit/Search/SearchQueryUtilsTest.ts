@@ -387,6 +387,43 @@ describe('SearchQueryUtils', () => {
 
             expect(merchantFilter?.value).toBe('Lyft');
         });
+
+        test('includes limit in readable query string when present', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:25');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+
+            expect(result).toContain('limit:25');
+        });
+
+        test('does not include limit in readable query string when not specified', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:Test');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+
+            expect(result).not.toContain('limit:');
+        });
+
+        test('includes limit with other root parameters in readable query string', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category limit:50');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+
+            expect(result).toContain('limit:50');
+            expect(result).toContain('group-by:category');
+        });
     });
 
     describe('buildFilterFormValuesFromQuery', () => {
@@ -607,6 +644,34 @@ describe('SearchQueryUtils', () => {
 
                 expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
             });
+
+            it('should return same primaryHash for queries without limit (hash stability)', () => {
+                const queryJSONa = buildSearchQueryJSON('type:expense');
+                const queryJSONb = buildSearchQueryJSON('type:expense');
+
+                expect(queryJSONa?.hash).toEqual(queryJSONb?.hash);
+            });
+
+            it('should return different primaryHash for query with valid limit vs without limit', () => {
+                const withoutLimit = buildSearchQueryJSON('type:expense');
+                const withLimit = buildSearchQueryJSON('type:expense limit:10');
+
+                expect(withoutLimit?.hash).not.toEqual(withLimit?.hash);
+            });
+
+            it('should return same primaryHash for same limit value queried twice', () => {
+                const queryJSONa = buildSearchQueryJSON('type:expense limit:25');
+                const queryJSONb = buildSearchQueryJSON('type:expense limit:25');
+
+                expect(queryJSONa?.hash).toEqual(queryJSONb?.hash);
+            });
+
+            it('should not include limit in hash when limit is not in query string', () => {
+                const queryJSON = buildSearchQueryJSON('type:expense merchant:test');
+
+                expect(queryJSON?.limit).toBeUndefined();
+                expect(queryJSON?.hash).toBeDefined();
+            });
         });
     });
 
@@ -636,6 +701,49 @@ describe('SearchQueryUtils', () => {
 
             expect(queryJSON?.limit).toBe(9999);
         });
+
+        it('converts limit:0 to undefined', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:0');
+
+            expect(queryJSON?.limit).toBeUndefined();
+        });
+
+        it('converts negative limit to undefined', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:-10');
+
+            expect(queryJSON?.limit).toBeUndefined();
+        });
+
+        it('converts decimal limit to undefined', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:10.5');
+
+            expect(queryJSON?.limit).toBeUndefined();
+        });
+
+        it('converts non-numeric limit to undefined', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:abc');
+
+            expect(queryJSON?.limit).toBeUndefined();
+        });
+
+        it('uses last limit value when multiple limits specified', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:10 limit:20');
+
+            expect(queryJSON?.limit).toBe(20);
+        });
+
+        it('treats empty limit as keyword, not limit filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:');
+
+            expect(queryJSON?.limit).toBeUndefined();
+        });
+
+        it('treats negated limit as keyword since limit is non-negatable', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -limit:10');
+
+            expect(queryJSON?.limit).toBeUndefined();
+        });
+
     });
 
     describe('getFilterDisplayValue', () => {

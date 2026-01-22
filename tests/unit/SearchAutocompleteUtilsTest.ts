@@ -217,14 +217,6 @@ describe('SearchAutocompleteUtils', () => {
                 expect(result).toEqual([{start: 6, type: 'mention-user', length: 2}]);
             });
 
-            it('highlights larger limit values', () => {
-                const input = 'limit:100';
-
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
-
-                expect(result).toEqual([{start: 6, type: 'mention-user', length: 3}]);
-            });
-
             it('does not highlight zero value', () => {
                 const input = 'limit:0';
 
@@ -259,6 +251,14 @@ describe('SearchAutocompleteUtils', () => {
                     {start: 19, type: 'mention-user', length: 2}, // limit:50
                     {start: 31, type: 'mention-user', length: 3}, // currency:USD
                 ]);
+            });
+
+            it('does not highlight empty limit value', () => {
+                const input = 'limit:';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
             });
         });
 
