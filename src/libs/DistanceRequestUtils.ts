@@ -360,7 +360,7 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
     const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
     const rateUnit = mileageRate?.unit;
 
-    if (transactionUnit && rateUnit && transactionUnit === rateUnit) {
+    if (transactionUnit && transactionUnit === rateUnit) {
         return transactionUnit;
     }
 
