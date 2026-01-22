@@ -51,12 +51,15 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
     ListItemType,
+    ReportCollectionRecord,
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWithdrawalIDGroup,
+    TransactionCollectionRecord,
+    TransactionViolationsCollectionRecord,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -774,6 +777,40 @@ function getTransactionItemCommonFormattedProperties(
         posted,
         formattedTotal,
         formattedMerchant,
+    };
+}
+
+function getCollectionsFromSearchResults(currentSearch?: SearchResults) {
+    const reports: ReportCollectionRecord = {};
+    const transactions: TransactionCollectionRecord = {};
+    const transactionViolations: TransactionViolationsCollectionRecord = {};
+
+    if (!currentSearch?.data) {
+        return {
+            reports,
+            transactions,
+            transactionViolations,
+        };
+    }
+
+    for (const key of Object.keys(currentSearch.data)) {
+        if (isTransactionEntry(key)) {
+            transactions[key] = currentSearch.data[key];
+        }
+
+        if (isReportEntry(key)) {
+            reports[key] = currentSearch.data[key];
+        }
+
+        if (isViolationEntry(key)) {
+            transactionViolations[key] = currentSearch.data[key];
+        }
+    }
+
+    return {
+        reports,
+        transactions,
+        transactionViolations,
     };
 }
 
@@ -3540,5 +3577,6 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    getCollectionsFromSearchResults,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

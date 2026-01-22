@@ -172,6 +172,30 @@ type SearchWithdrawalIDGroup = {
     state: number;
 };
 
+/** Collection type for transactions */
+type TransactionCollectionRecord = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction>;
+
+/** Collection type for personal details */
+type PersonalDetailsRecord = Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>;
+
+/** Collection type for report actions */
+type ReportActionsCollectionRecord = PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>>;
+
+/** Collection type for reports */
+type ReportCollectionRecord = PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report>;
+
+/** Collection type for policies */
+type PolicyCollectionRecord = PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy>;
+
+/** Collection type for transaction violations */
+type TransactionViolationsCollectionRecord = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]>;
+
+/** Collection type for report name value pairs */
+type ReportNameValuePairsCollectionRecord = PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+
+/** Collection type for search groups */
+type SearchGroupCollectionRecord = PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
+
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
@@ -179,14 +203,14 @@ type SearchResults = {
 
     /** Search results data */
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
+    data: TransactionCollectionRecord &
+        PersonalDetailsRecord &
+        ReportActionsCollectionRecord &
+        ReportCollectionRecord &
+        PolicyCollectionRecord &
+        TransactionViolationsCollectionRecord &
+        ReportNameValuePairsCollectionRecord &
+        SearchGroupCollectionRecord;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -197,4 +221,22 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {ListItemType, ListItemDataType, SearchTask, SearchTransactionAction, SearchDataTypes, SearchResultsInfo, SearchMemberGroup, SearchCardGroup, SearchWithdrawalIDGroup};
+export type {
+    ListItemType,
+    ListItemDataType,
+    SearchTask,
+    SearchTransactionAction,
+    SearchDataTypes,
+    SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
+    TransactionCollectionRecord,
+    PersonalDetailsRecord,
+    ReportActionsCollectionRecord,
+    ReportCollectionRecord,
+    PolicyCollectionRecord,
+    TransactionViolationsCollectionRecord,
+    ReportNameValuePairsCollectionRecord,
+    SearchGroupCollectionRecord,
+};
