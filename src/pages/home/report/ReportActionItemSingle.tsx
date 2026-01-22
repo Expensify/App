@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -125,7 +125,7 @@ function ReportActionItemSingle({
           ]
         : action?.person;
 
-    const showActorDetails = useCallback(() => {
+    const showActorDetails = () => {
         if (details.isWorkspaceActor) {
             showWorkspaceDetails(reportID);
         } else {
@@ -136,14 +136,11 @@ function ReportActionItemSingle({
             }
             showUserDetails(Number(primaryAvatar.id));
         }
-    }, [details.isWorkspaceActor, reportID, iouReportID, details.shouldDisplayAllActors, primaryAvatar.id]);
+    };
 
-    const shouldDisableDetailPage = useMemo(
-        () =>
-            CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID))),
-        [action?.delegateAccountID, details.isWorkspaceActor, details.accountID],
-    );
+    const shouldDisableDetailPage =
+        CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
+        (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID)));
 
     const getBackgroundColor = () => {
         if (isActive) {

@@ -9,6 +9,7 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -354,7 +355,7 @@ function openReportFromDeepLink(
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute);
+                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
                                     navigateToConciergeChat(false, () => true);
@@ -377,7 +378,7 @@ function openReportFromDeepLink(
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        if (report?.errorFields?.notFound || report?.reportID) {
+                                        if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);
                                         }
@@ -394,7 +395,8 @@ function openReportFromDeepLink(
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () =>
+                            onNotCompleted: () => {
+                                Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from deep link');
                                 startOnboardingFlow({
                                     onboardingValuesParam: val,
                                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
@@ -403,7 +405,8 @@ function openReportFromDeepLink(
                                     currentOnboardingCompanySize,
                                     onboardingInitialPath,
                                     onboardingValues: val,
-                                }),
+                                });
+                            },
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });

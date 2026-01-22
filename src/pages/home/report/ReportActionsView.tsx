@@ -269,8 +269,8 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        markOpenReportEnd(reportID);
-    }, [reportID]);
+        markOpenReportEnd(report);
+    }, [report]);
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;

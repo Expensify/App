@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -65,7 +65,7 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteProvincialTaxPostingAccountSelectPage"
-            sections={netsuiteTaxAccountOptions.length ? [{data: netsuiteTaxAccountOptions}] : []}
+            data={netsuiteTaxAccountOptions}
             listItem={RadioListItem}
             onSelectRow={updateTaxAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
