@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -57,7 +57,6 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
-    allBetas: OnyxEntry<Beta[]>;
 };
 
 type InitialTransactionParams = {
@@ -98,7 +97,6 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
-    allBetas: OnyxEntry<Beta[]>;
     selfDMReport: OnyxEntry<Report>;
 };
 
@@ -132,7 +130,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     introSelected?: IntroSelected;
     activePolicyID?: string;
     privateIsArchived?: string;
-    allBetas: OnyxEntry<Beta[]>;
     selfDMReport: OnyxEntry<Report>;
 };
 
@@ -156,7 +153,6 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
-    allBetas,
 }: CreateTransactionParams) {
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -189,7 +185,6 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
-                allBetas,
             });
         } else {
             requestMoney({
@@ -220,7 +215,6 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                allBetas,
             });
         }
     }
@@ -269,7 +263,6 @@ function handleMoneyRequestStepScanParticipants({
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
-    allBetas,
     selfDMReport,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
@@ -364,7 +357,6 @@ function handleMoneyRequestStepScanParticipants({
                             policyParams,
                             billable: false,
                             reimbursable: true,
-                            allBetas,
                         });
                     },
                     (errorData) => {
@@ -386,7 +378,6 @@ function handleMoneyRequestStepScanParticipants({
                             activePolicyID,
                             files,
                             participant,
-                            allBetas,
                         });
                     },
                 );
@@ -408,7 +399,6 @@ function handleMoneyRequestStepScanParticipants({
                 activePolicyID,
                 files,
                 participant,
-                allBetas,
             });
             return;
         }
@@ -491,7 +481,6 @@ function handleMoneyRequestStepDistanceNavigation({
     introSelected,
     activePolicyID,
     privateIsArchived,
-    allBetas,
     selfDMReport,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
@@ -549,7 +538,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
-                    allBetas,
                 });
                 return;
             }
@@ -581,7 +569,6 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                allBetas,
             });
             return;
         }
