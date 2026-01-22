@@ -136,6 +136,7 @@ function SearchPage({route}: SearchPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isCustomReportNamesBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -524,9 +525,13 @@ function SearchPage({route}: SearchPageProps) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber);
+                    // Get transactions for this report
+                    const reportTransactions = Object.values(allTransactions ?? {}).filter(
+                        (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
+                    );
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReportID, adminPolicy);
+                        moveIOUReportToPolicy(itemReportID, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
                     }
                 }
             }
@@ -584,6 +589,8 @@ function SearchPage({route}: SearchPageProps) {
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
             personalPolicyID,
+            allTransactions,
+            isCustomReportNamesBetaEnabled,
         ],
     );
 
@@ -846,6 +853,11 @@ function SearchPage({route}: SearchPageProps) {
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
                         return;
                     }
 

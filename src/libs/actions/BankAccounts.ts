@@ -393,7 +393,7 @@ function deletePaymentBankAccount(bankAccountID: number, personalPolicyID: strin
     const bankAccountFailureData = {
         ...bankAccount,
         errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount'),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        pendingAction: null,
     };
 
     const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> = {
@@ -1418,21 +1418,21 @@ function getBankAccountFromID(bankAccountID: number | undefined) {
 }
 
 function openBankAccountSharePage() {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
             value: true,
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
             value: false,
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
