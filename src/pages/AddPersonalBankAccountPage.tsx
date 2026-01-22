@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -25,7 +25,7 @@ function AddPersonalBankAccountPage() {
     const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
     const kycWallRef = useContext(KYCWallContext);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         switch (topmostFullScreenRoute?.name) {
             case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
                 Navigation.goBack(ROUTES.SETTINGS_WALLET);
@@ -37,23 +37,21 @@ function AddPersonalBankAccountPage() {
                 Navigation.goBack();
                 break;
         }
-    }, [topmostFullScreenRoute?.name]);
+    };
 
-    const exitFlow = useCallback(
-        (shouldContinue = false) => {
-            const exitReportID = personalBankAccount?.exitReportID;
-            const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
+    const exitFlow = (shouldContinue = false) => {
+        const exitReportID = personalBankAccount?.exitReportID;
+        const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
-            if (exitReportID) {
-                Navigation.dismissModalWithReport({reportID: exitReportID});
-            } else if (shouldContinue && onSuccessFallbackRoute) {
-                continueSetup(kycWallRef, onSuccessFallbackRoute);
-            } else {
-                goBack();
-            }
-        },
-        [personalBankAccount?.exitReportID, personalBankAccount?.onSuccessFallbackRoute, goBack, kycWallRef],
-    );
+        if (exitReportID) {
+            Navigation.dismissModalWithReport({reportID: exitReportID});
+        } else if (shouldContinue && onSuccessFallbackRoute) {
+            continueSetup(kycWallRef, onSuccessFallbackRoute);
+        } else {
+            goBack();
+            clearPersonalBankAccount();
+        }
+    };
 
     useEffect(() => clearPersonalBankAccount, []);
 

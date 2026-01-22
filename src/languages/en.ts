@@ -282,7 +282,6 @@ const translations = {
         wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
-        viewReport: 'View report',
         review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Not',
         signIn: 'Sign in',
@@ -956,8 +955,8 @@ const translations = {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
-        fabNewChatExplained: 'Start chat (Floating action)',
-        fabScanReceiptExplained: 'Scan receipt (Floating action)',
+        fabNewChatExplained: 'Open actions menu',
+        fabScanReceiptExplained: 'Scan receipt',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -1439,9 +1438,8 @@ const translations = {
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
             title: 'Change approver',
-            subtitle: 'Choose an option to change the approver for this report.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Add approver',
@@ -1458,6 +1456,9 @@ const translations = {
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
             hrs: 'hrs',
+            hours: 'Hours',
+            ratePreview: (rate: string) => `${rate} / hour`,
+            amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
     },
     transactionMerge: {
@@ -1946,13 +1947,6 @@ const translations = {
         chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
         chatWithConcierge: 'Chat with Concierge',
     },
-    passwordPage: {
-        changePassword: 'Change password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
-        currentPassword: 'Current password',
-        newPassword: 'New password',
-        newPasswordPrompt: 'Your new password must be different from your old password and contain at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
-    },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
         twoFactorAuthEnabled: 'Two-factor authentication enabled',
@@ -2371,9 +2365,32 @@ const translations = {
             comment: (value: string) => `Change description to "${value}"`,
             merchant: (value: string) => `Update merchant to "${value}"`,
             reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
-            report: (value: string) => `Add a report named "${value}"`,
+            report: (value: string) => `Add to a report named "${value}"`,
             tag: (value: string) => `Update tag to "${value}"`,
             tax: (value: string) => `Update tax rate to "${value}"`,
+        },
+        newRule: 'New rule',
+        addRule: {
+            title: 'Add rule',
+            expenseContains: 'If expense contains:',
+            applyUpdates: 'Then apply these updates:',
+            merchantHint: 'Type * to create a rule that applies to all merchants',
+            addToReport: 'Add to a report named',
+            createReport: 'Create report if necessary',
+            applyToExistingExpenses: 'Apply to existing matching expenses',
+            confirmError: 'Enter merchant and apply at least one update',
+            confirmErrorMerchant: 'Please enter merchant',
+            confirmErrorUpdate: 'Please apply at least one update',
+            saveRule: 'Save rule',
+        },
+        editRule: {
+            title: 'Edit rule',
+        },
+        deleteRule: {
+            deleteSingle: 'Delete rule',
+            deleteMultiple: 'Delete rules',
+            deleteSinglePrompt: 'Are you sure you want to delete this rule?',
+            deleteMultiplePrompt: 'Are you sure you want to delete these rules?',
         },
     },
     preferencesPage: {
@@ -2982,15 +2999,6 @@ const translations = {
         subtitle: 'Your request could not be completed. Please try again later.',
         wrongTypeSubtitle: "That search isn't valid. Try adjusting your search criteria.",
     },
-    setPasswordPage: {
-        enterPassword: 'Enter a password',
-        setPassword: 'Set password',
-        newPasswordPrompt: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
-        passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
-        passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
-        setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
-        validateAccount: 'Verify account',
-    },
     statusPage: {
         status: 'Status',
         statusExplanation: "Add an emoji to give your colleagues and friends an easy way to know what's going on. You can optionally add a message too!",
@@ -3135,10 +3143,13 @@ const translations = {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US, please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} is already a member of ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} is already an admin of ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify Wallet, you confirm that you have read, understand, and accept',
         facialScan: 'Onfido’s Facial Scan Policy and Release',
+        onfidoLinks: (onfidoTitle: string) =>
+            `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido’s Facial Scan Policy and Release</a>, <a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>Privacy</a> and <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>Terms of Service</a>.</muted-text-micro>`,
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         letsVerifyIdentity: "Let's verify your identity",
@@ -4958,6 +4969,25 @@ const translations = {
                     subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
                     ctaText: 'Book or manage',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Travel booking',
+                        subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
+                        manageTravelLabel: 'Manage travel',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Central invoicing',
+                        subtitle: 'Centralize all travel spend in a monthly invoice instead of paying at time of purchase.',
+                        learnHow: 'Learn how.',
+                        subsections: {
+                            currentTravelSpendLabel: 'Current travel spend',
+                            currentTravelSpendCta: 'Pay balance',
+                            currentTravelLimitLabel: 'Current travel limit',
+                            settlementAccountLabel: 'Settlement account',
+                            settlementFrequencyLabel: 'Settlement frequency',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',
@@ -6243,6 +6273,22 @@ const translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `set the default business bank account to "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}"`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `removed the default business bank account "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}"`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `changed the default business bank account to "${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}" (previously "${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}")`,
         changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
             previousAddress ? `changed the company address to "${newAddress}" (previously "${previousAddress}")` : `set the company address to "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `added ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
@@ -6360,15 +6406,6 @@ const translations = {
         deleteReportField: (fieldType: string, fieldName?: string) => `removed ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `set the monthly report submission date to "${newValue}"`;
@@ -6497,6 +6534,10 @@ const translations = {
             previousForwardsTo
                 ? `changed the approval workflow for ${approver} to stop forwarding approved reports (previously forwarded to ${previousForwardsTo})`
                 : `changed the approval workflow for ${approver} to stop forwarding approved reports`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `changed the invoice company name to "${newValue}" (previously "${oldValue}")` : `set the invoice company name to "${newValue}"`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `changed the invoice company website to "${newValue}" (previously "${oldValue}")` : `set the invoice company website to "${newValue}"`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `changed the authorized payer to "${newReimburser}" (previously "${previousReimburser}")` : `changed the authorized payer to "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
@@ -6524,6 +6565,15 @@ const translations = {
                 }
             }
         },
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -7103,6 +7153,16 @@ const translations = {
             subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
             button: 'Download the app',
         },
+        notification: {
+            title: 'GPS tracking in progress',
+            body: 'Go to the app to finish',
+        },
+        locationServicesRequiredModal: {
+            title: 'Location access required',
+            confirm: 'Open settings',
+            prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
+        },
+        fabGpsTripExplained: 'Go to GPS screen (Floating action)',
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',
@@ -7279,6 +7339,7 @@ const translations = {
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
+        noRoute: 'Please select a valid address',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
@@ -7877,6 +7938,7 @@ const translations = {
             subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
             enable: 'Enable',
         },
+        domainAdmins: 'Domain admins',
         admins: {
             title: 'Admins',
             findAdmin: 'Find admin',
