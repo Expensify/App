@@ -31,7 +31,6 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {removeTransaction} = useSearchContext();
     const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false, selector: getReportPolicyID});
     const policy = usePolicy(reportPolicyID);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const {superWideRHPRouteKeys} = useContext(WideRHPContext);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -41,7 +40,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, allBetas);
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy);
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {

@@ -36,7 +36,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
 
@@ -151,7 +150,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     currentUserPersonalDetails,
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    allBetas,
                     quickAction,
                     iouReportNextStep,
                 });
@@ -200,7 +198,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             policy,
             policyCategories,
             policyRecentlyUsedCurrencies,
-            allBetas,
             quickAction,
             report,
             reportActions,

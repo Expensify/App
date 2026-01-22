@@ -315,7 +315,6 @@ type PayInvoiceArgs = {
     methodID?: number;
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type RejectMoneyRequestData = {
@@ -496,7 +495,6 @@ type PerDiemExpenseInformation = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -512,7 +510,6 @@ type PerDiemExpenseInformationParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type RequestMoneyInformation = {
@@ -538,7 +535,6 @@ type RequestMoneyInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type MoneyRequestInformationParams = {
@@ -568,7 +564,6 @@ type MoneyRequestInformationParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -640,7 +635,6 @@ type CreateDistanceRequestInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -661,7 +655,6 @@ type CreateSplitsAndOnyxDataParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -711,7 +704,6 @@ type CreateTrackExpenseParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -754,7 +746,6 @@ type GetTrackExpenseInformationParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -3020,7 +3011,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        allBetas,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3089,7 +3079,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
-    const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, allBetas, action);
+    const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, action);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = existingTransactionID ?? NumberUtils.rand64();
@@ -3100,17 +3090,17 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport({
-                  chatReportID: chatReport.reportID,
-                  policyID: chatReport.policyID,
+            ? buildOptimisticExpenseReport(
+                  chatReport.reportID,
+                  chatReport.policyID,
                   payeeAccountID,
-                  total: amount,
+                  amount,
                   currency,
-                  allBetas,
                   nonReimbursableTotal,
-                  optimisticIOUReportID: optimisticReportID,
+                  undefined,
+                  optimisticReportID,
                   reportTransactions,
-              })
+              )
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -3436,7 +3426,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        allBetas,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3483,7 +3472,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, allBetas);
+    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = NumberUtils.rand64();
@@ -3493,16 +3482,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport({
-                  chatReportID: chatReport.reportID,
-                  policyID: chatReport.policyID,
-                  payeeAccountID,
-                  total: amount,
-                  currency,
-                  allBetas,
-                  optimisticIOUReportID: optimisticReportID,
-                  reportTransactions,
-              })
+            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, optimisticReportID, reportTransactions)
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -3706,7 +3686,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         introSelected,
         activePolicyID,
         quickAction,
-        allBetas,
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3865,21 +3844,21 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
         const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
-        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, allBetas);
+        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
-            iouReport = buildOptimisticExpenseReport({
-                chatReportID: chatReport.reportID,
-                policyID: chatReport.policyID,
+            iouReport = buildOptimisticExpenseReport(
+                chatReport.reportID,
+                chatReport.policyID,
                 payeeAccountID,
-                total: amount,
+                amount,
                 currency,
-                allBetas,
-                nonReimbursableTotal: amount,
-                optimisticIOUReportID: optimisticExpenseReportID,
+                amount,
+                undefined,
+                optimisticExpenseReportID,
                 reportTransactions,
-            });
+            );
         } else {
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -4415,7 +4394,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: lodashUnionBy(
                 transactionChanges.attendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, email})),
                 recentAttendees,
-                (attendee) => attendee.email || attendee.displayName,
+                'email',
             ).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW),
         });
     }
@@ -5751,7 +5730,6 @@ function convertBulkTrackedExpensesToIOU(
     currentUserEmailParam: string,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     policyRecentlyUsedCurrencies: string[],
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>,
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
 ) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
@@ -5875,7 +5853,6 @@ function convertBulkTrackedExpensesToIOU(
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
-            allBetas,
         });
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
@@ -6112,7 +6089,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        allBetas,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6211,7 +6187,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        allBetas,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -6377,7 +6352,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        allBetas,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
@@ -6424,7 +6398,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        allBetas,
     });
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
@@ -6494,7 +6467,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         introSelected,
         activePolicyID,
         quickAction,
-        allBetas,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6626,7 +6598,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
             introSelected,
             activePolicyID,
             quickAction,
-            allBetas,
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 
@@ -6637,7 +6608,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         value: recentServerValidatedWaypoints,
     });
 
-    if (isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction)) {
+    const isDistanceRequest = isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction);
+
+    if (isDistanceRequest) {
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -6772,7 +6745,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 optimisticReportID,
                 optimisticReportActionID,
-                policyID: policy?.id,
+                policyID: isDistanceRequest ? undefined : policy?.id,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 reimbursable,
@@ -6888,7 +6861,6 @@ function createSplitsAndOnyxData({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
-    allBetas,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7165,7 +7137,7 @@ function createSplitsAndOnyxData({
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
         const isScanRequest = isScanRequestTransactionUtils(splitTransaction);
-        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, isScanRequest, allBetas);
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, isScanRequest);
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             const optimisticExpenseReportID = generateReportID();
@@ -7179,16 +7151,17 @@ function createSplitsAndOnyxData({
             );
 
             oneOnOneIOUReport = isOwnPolicyExpenseChat
-                ? buildOptimisticExpenseReport({
-                      chatReportID: oneOnOneChatReport.reportID,
-                      policyID: oneOnOneChatReport.policyID,
-                      payeeAccountID: currentUserAccountID,
-                      total: splitAmount,
+                ? buildOptimisticExpenseReport(
+                      oneOnOneChatReport.reportID,
+                      oneOnOneChatReport.policyID,
+                      currentUserAccountID,
+                      splitAmount,
                       currency,
-                      allBetas,
-                      optimisticIOUReportID: optimisticExpenseReportID,
+                      undefined,
+                      undefined,
+                      optimisticExpenseReportID,
                       reportTransactions,
-                  })
+                  )
                 : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -7418,7 +7391,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        allBetas,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7492,7 +7464,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
-            allBetas,
         });
         onyxData = splitOnyxData;
 
@@ -7572,7 +7543,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
-            allBetas,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -8686,7 +8656,6 @@ function getReportFromHoldRequestsOnyxData({
     recipient,
     policy,
     createdTimestamp,
-    allBetas,
     isApprovalFlow = false,
 }: {
     chatReport: OnyxTypes.Report;
@@ -8694,7 +8663,6 @@ function getReportFromHoldRequestsOnyxData({
     recipient: Participant;
     policy: OnyxEntry<OnyxTypes.Policy>;
     createdTimestamp?: string;
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
 }): {
     optimisticHoldReportID: string;
@@ -8724,18 +8692,18 @@ function getReportFromHoldRequestsOnyxData({
     }
 
     const optimisticExpenseReport = isPolicyExpenseChat
-        ? buildOptimisticExpenseReport({
-              chatReportID: chatReport.reportID,
-              policyID: chatReport.policyID ?? iouReport?.policyID,
-              payeeAccountID: recipient.accountID ?? 1,
-              total: holdAmount,
-              currency: iouReport?.currency ?? '',
-              allBetas,
-              nonReimbursableTotal: holdNonReimbursableAmount,
-              parentReportActionID: newParentReportActionID,
+        ? buildOptimisticExpenseReport(
+              chatReport.reportID,
+              chatReport.policyID ?? iouReport?.policyID,
+              recipient.accountID ?? 1,
+              holdAmount,
+              iouReport?.currency ?? '',
+              holdNonReimbursableAmount,
+              newParentReportActionID,
+              undefined,
               reportTransactions,
               createdTimestamp,
-          })
+          )
         : buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
               iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID,
@@ -9015,7 +8983,6 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod,
     existingB2BInvoiceReport,
     activePolicy,
-    allBetas,
     iouReportCurrentNextStepDeprecated,
 }: {
     initialChatReport: OnyxTypes.Report;
@@ -9032,7 +8999,6 @@ function getPayMoneyRequestParams({
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam?: number;
     currentUserEmailParam?: string;
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
 }): PayMoneyRequestData {
@@ -9323,7 +9289,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, allBetas});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy});
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         successData.push(...holdReportOnyxData.successData);
@@ -9531,7 +9497,6 @@ function approveMoneyRequest(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>,
     full?: boolean,
 ) {
     if (!expenseReport) {
@@ -9716,7 +9681,6 @@ function approveMoneyRequest(
             policy,
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
-            allBetas,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -10802,7 +10766,6 @@ function payMoneyRequest(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>,
     paymentPolicyID?: string,
     full = true,
     activePolicy?: OnyxEntry<OnyxTypes.Policy>,
@@ -10826,7 +10789,6 @@ function payMoneyRequest(
         paymentPolicyID,
         activePolicy,
         reportPolicy: policy,
-        allBetas,
         iouReportCurrentNextStepDeprecated,
     });
 
@@ -10852,7 +10814,6 @@ function payInvoice({
     methodID,
     paymentMethod,
     activePolicy,
-    allBetas,
     invoiceReportCurrentNextStepDeprecated,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
@@ -10885,7 +10846,6 @@ function payInvoice({
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        allBetas,
         introSelected,
     });
 
@@ -11595,7 +11555,6 @@ function prepareRejectMoneyRequestData(
     reportID: string,
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: {sharedRejectedToReportID?: string},
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
@@ -11923,17 +11882,17 @@ function prepareRejectMoneyRequestData(
             // Pass transaction for formula computation (e.g., {report:startdate})
             const reportTransactions: Record<string, OnyxTypes.Transaction> = {[transaction.transactionID]: transaction};
 
-            const newExpenseReport = buildOptimisticExpenseReport({
-                chatReportID: report.chatReportID,
-                policyID: report?.policyID,
-                payeeAccountID: report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                total: transactionAmount,
-                currency: getCurrency(transaction),
-                allBetas,
-                nonReimbursableTotal: transactionAmount,
-                parentReportActionID: rejectedToReportID,
+            const newExpenseReport = buildOptimisticExpenseReport(
+                report.chatReportID,
+                report?.policyID,
+                report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                transactionAmount,
+                getCurrency(transaction),
+                transactionAmount,
+                undefined,
+                rejectedToReportID,
                 reportTransactions,
-            });
+            );
             const [, createdActionForExpenseReport, iouAction, ,] = buildOptimisticMoneyRequestEntities({
                 iouReport: newExpenseReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -12346,15 +12305,8 @@ function prepareRejectMoneyRequestData(
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 
-function rejectMoneyRequest(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    allBetas: OnyxEntry<OnyxTypes.Beta[]>,
-    options?: {sharedRejectedToReportID?: string},
-): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, allBetas, options);
+function rejectMoneyRequest(transactionID: string, reportID: string, comment: string, policy: OnyxEntry<OnyxTypes.Policy>, options?: {sharedRejectedToReportID?: string}): Route | undefined {
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, options);
     if (!data) {
         return;
     }

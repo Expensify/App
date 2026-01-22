@@ -42,7 +42,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
 
     const reportID = report?.reportID;
@@ -103,10 +102,9 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
-            allBetas,
             session?.email,
         );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, allBetas]);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">
