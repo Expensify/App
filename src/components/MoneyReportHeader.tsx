@@ -304,7 +304,6 @@ function MoneyReportHeader({
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
-    const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
     const {showConfirmModal} = useConfirmModal();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
         usePaymentAnimations();
@@ -643,15 +642,34 @@ function MoneyReportHeader({
         isSubmittingAnimationRunning,
     });
 
-    const confirmExport = () => {
-        setExportModalStatus(null);
+    const confirmExport = (exportType: ExportType) => {
         if (!moneyRequestReport?.reportID || !connectedIntegration) {
             return;
         }
-        if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+        if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
             exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
-        } else if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+        } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
             markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
+        }
+    };
+
+    const showExportAgainModal = async (exportType: ExportType) => {
+        if (!connectedIntegration) {
+            return;
+        }
+
+        const {action} = await showConfirmModal({
+            title: translate('workspace.exportAgainModal.title'),
+            prompt: translate('workspace.exportAgainModal.description', {
+                connectionName: connectedIntegration ?? connectedIntegrationFallback,
+                reportName: moneyRequestReport?.reportName ?? '',
+            }),
+            confirmText: translate('workspace.exportAgainModal.confirmText'),
+            cancelText: translate('workspace.exportAgainModal.cancelText'),
+        });
+
+        if (action === ConfirmModalActions.CONFIRM) {
+            confirmExport(exportType);
         }
     };
 
@@ -722,7 +740,7 @@ function MoneyReportHeader({
                     return;
                 }
                 if (isExported) {
-                    setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                    showExportAgainModal(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                     return;
                 }
                 exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
@@ -738,7 +756,7 @@ function MoneyReportHeader({
                     return;
                 }
                 if (isExported) {
-                    setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
+                    showExportAgainModal(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     return;
                 }
                 markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
@@ -828,7 +846,7 @@ function MoneyReportHeader({
                         return;
                     }
                     if (isExported) {
-                        setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                        showExportAgainModal(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                         return;
                     }
                     exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
@@ -1356,54 +1374,27 @@ function MoneyReportHeader({
         };
     }, []);
 
-    const showDeleteModal = () => {
-        showConfirmModal({
+    const showDeleteModal = async () => {
+        const {action} = await showConfirmModal({
             title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
             prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
-        }).then((result) => {
-            if (result.action !== ConfirmModalActions.CONFIRM) {
-                return;
-            }
-            if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
-                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                Navigation.goBack(backToRoute);
-            }
-            // It has been handled like the rest of the delete cases. It will be refactored along with other cases.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => handleDeleteTransactions());
         });
-    };
 
-    const showExportAgainModal = () => {
-        if (!connectedIntegration) {
+        if (action !== ConfirmModalActions.CONFIRM) {
             return;
         }
-        showConfirmModal({
-            title: translate('workspace.exportAgainModal.title'),
-            prompt: translate('workspace.exportAgainModal.description', {
-                connectionName: connectedIntegration ?? connectedIntegrationFallback,
-                reportName: moneyRequestReport?.reportName ?? '',
-            }),
-            confirmText: translate('workspace.exportAgainModal.confirmText'),
-            cancelText: translate('workspace.exportAgainModal.cancelText'),
-        }).then((result) => {
-            if (result.action !== ConfirmModalActions.CONFIRM) {
-                setExportModalStatus(null);
-                return;
-            }
-            confirmExport();
-        });
-    };
 
-    useEffect(() => {
-        if (!exportModalStatus) {
-            return;
+        if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
+            const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+            Navigation.goBack(backToRoute);
         }
-        showExportAgainModal();
-    }, [exportModalStatus, showExportAgainModal]);
+        // It has been handled like the rest of the delete cases. It will be refactored along with other cases.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => handleDeleteTransactions());
+    };
 
     const selectedTransactionsOptions = originalSelectedTransactionsOptions.map((option) => {
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
