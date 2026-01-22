@@ -24,28 +24,35 @@ Extract:
 - Platform/environment details
 - Whether "Exploratory" appears in the body
 
-### Step 2: Search for related code
+### Step 2: Get repository info for permalinks
+
+Get the default branch name for generating permalinks:
+```bash
+gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
+```
+
+### Step 3: Search for related code
 - Use keywords from the bug description to search the codebase
 - Look for relevant components, screens, or actions
 - Check recent commits to affected files
 
-### Step 3: Identify root cause
+### Step 4: Identify root cause
 - Trace the code path based on reproduction steps
 - Look for obvious bugs (null checks, async issues, state problems)
 - Check for recent changes that might have introduced the bug
 
-### Step 4: Determine confidence level
+### Step 5: Determine confidence level
 Use your judgment based on evidence:
 - **High**: Clear code path identified, obvious fix, strong evidence
 - **Medium**: Likely cause identified but needs verification
 - **Low**: Multiple possibilities, unclear root cause
 
-### Step 5: Check for External eligibility
+### Step 6: Check for External eligibility
 Issue qualifies for External ([$75]) if EITHER:
 1. The word "Exploratory" appears in the issue body
 2. You propose a fix with **High Confidence**
 
-### Step 6: Post comment and update issue
+### Step 7: Post comment and update issue
 Post investigation summary, then update title/labels if eligible.
 
 ---
@@ -61,7 +68,28 @@ Post ONE comment using this exact format:
 **Confidence**: High / Medium / Low
 
 ### Suggested Fix
-[Specific fix with file paths and code changes if High confidence, or investigation direction if Medium/Low]
+[Specific fix with code changes if High confidence, or investigation direction if Medium/Low]
+
+### Related Files
+- [filename:L##](permalink) - Brief description
+- [filename:L##-L##](permalink) - Brief description
+```
+
+---
+
+## GitHub Permalinks
+
+**IMPORTANT**: Always use GitHub permalinks when referencing code locations. This makes it easy for contributors to navigate directly to the relevant code.
+
+**Permalink format**:
+```
+https://github.com/Expensify/App/blob/{branch}/{filepath}#L{line}
+https://github.com/Expensify/App/blob/{branch}/{filepath}#L{startLine}-L{endLine}
+```
+
+**Example**:
+```markdown
+- [ReportDetailsExportPage.tsx:L80-L85](https://github.com/Expensify/App/blob/main/src/pages/home/report/ReportDetailsExportPage.tsx#L80-L85) - Export selector options
 ```
 
 ---
@@ -94,4 +122,5 @@ gh issue edit "$ISSUE_URL" --add-label "External"
 - Read the actual code before making conclusions
 - Be conservative with confidence levels
 - Explain your reasoning clearly
+- Use GitHub permalinks for all code references (not just file paths)
 - Tag relevant code owners if you need more context
