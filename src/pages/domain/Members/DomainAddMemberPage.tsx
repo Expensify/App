@@ -48,7 +48,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             return;
         }
 
-        setEmail("");
+        setEmail('');
         addMemberToDomain(domainAccountID, fullEmail);
         Navigation.dismissModal();
     };
