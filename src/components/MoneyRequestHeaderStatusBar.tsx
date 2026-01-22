@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,16 +15,14 @@ import {
     isPending,
     isScanning,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils
 } from '@libs/TransactionUtils';
-import {hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type MoneyRequestHeaderStatusBarProps = {
@@ -46,9 +44,6 @@ type MoneyRequestHeaderStatusBarProps = {
     /** Account ID of the current user */
     accountID: number | undefined;
 
-    /** Number of transactions (for multi-transaction scenarios) */
-    transactionCount?: number;
-
     /** Whether we style flex grow */
     shouldStyleFlexGrow?: boolean;
 };
@@ -60,18 +55,17 @@ function MoneyRequestHeaderStatusBar({
     parentReport,
     email,
     accountID,
-    transactionCount = 1,
     shouldStyleFlexGrow = true,
 }: MoneyRequestHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'ReceiptScan']);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'ReceiptScan', 'Stopwatch', 'Hourglass', 'Flag']);
 
     // Onyx subscriptions
-    const [transaction] = useOnyx<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [report] = useOnyx<Report>(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx<Policy>(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const transactionViolations = useTransactionViolations(transactionID);
 
     const getStatusIcon = (src: IconAsset): ReactNode => (
@@ -84,58 +78,53 @@ function MoneyRequestHeaderStatusBar({
     );
 
     // Compute status based on transaction state
-    const statusProps = useMemo((): {icon: ReactNode; description: string | ReactElement} | undefined => {
-        const isOnHold = isOnHoldTransactionUtils(transaction);
-        const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID ?? 0, report, policy, transactionViolations);
-        const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
-        const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
+    const isOnHold = isOnHoldTransactionUtils(transaction);
+    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID ?? 0, report, policy, transactionViolations);
+    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
 
-        // Priority order: hold > rejected > duplicate > broken connection > pending RTER > scanning > pending
-        if (isOnHold) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expenseOnHold')};
-        }
-        if (isMarkAsResolvedAction(parentReport, transactionViolations, policy)) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.reject.rejectedStatus')};
-        }
+    let statusIcon: ReactNode;
+    let statusDescription: string | ReactElement | undefined;
 
-        if (isDuplicate) {
-            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.expenseDuplicate')};
-        }
+    // Priority order: hold > rejected > duplicate > broken connection > pending RTER > scanning > pending
+    if (isOnHold) {
+        statusIcon = getStatusIcon(icons.Stopwatch);
+        statusDescription = translate('iou.expenseOnHold');
+    } else if (isMarkAsResolvedAction(parentReport, transactionViolations, policy)) {
+        statusIcon = getStatusIcon(icons.Hourglass);
+        statusDescription = translate('iou.reject.rejectedStatus');
+    } else if (isDuplicate) {
+        statusIcon = getStatusIcon(icons.Flag);
+        statusDescription = translate('iou.expenseDuplicate');
+    } else if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+        statusIcon = getStatusIcon(icons.CreditCardHourglass);
+        statusDescription = translate('iou.transactionPendingDescription');
+    } else if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
+        statusIcon = getStatusIcon(icons.Hourglass);
+        statusDescription = (
+            <BrokenConnectionDescription
+                transactionID={transaction?.transactionID}
+                report={parentReport}
+                policy={policy}
+            />
+        );
+    } else if (hasPendingRTERViolation) {
+        statusIcon = getStatusIcon(icons.Hourglass);
+        statusDescription = translate('iou.pendingMatchWithCreditCardDescription');
+    } else if (isScanning(transaction)) {
+        statusIcon = getStatusIcon(icons.ReceiptScan);
+        statusDescription = translate('iou.receiptScanInProgressDescription');
+    }
 
-        if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
-            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
-        }
-        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            return {
-                icon: getStatusIcon(Expensicons.Hourglass),
-                description: (
-                    <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID}
-                        report={parentReport}
-                        policy={policy}
-                    />
-                ),
-            };
-        }
-        if (hasPendingRTERViolation) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
-        }
-        if (isScanning(transaction)) {
-            return {icon: getStatusIcon(icons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
-        }
-
-        return undefined;
-    }, [transaction, transactionViolations, parentReport, policy, report, email, accountID, icons, translate, theme.icon]);
-
-    if (!statusProps) {
+    if (!statusDescription) {
         return null;
     }
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, shouldStyleFlexGrow && styles.flexGrow1, styles.overflowHidden, styles.headerStatusBarContainer]}>
-            <View style={styles.mr2}>{statusProps.icon}</View>
+            <View style={styles.mr2}>{statusIcon}</View>
             <View style={[styles.flexShrink1]}>
-                <Text style={[styles.textLabelSupporting]}>{statusProps.description}</Text>
+                <Text style={[styles.textLabelSupporting]}>{statusDescription}</Text>
             </View>
         </View>
     );
