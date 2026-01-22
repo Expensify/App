@@ -378,7 +378,7 @@ function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, report
         }
 
         const reportID = report.reportID;
-        const displayName = getReportName(report, reportAttributes);
+        const displayName = getReportName(report);
         const miniReport: MiniReport = {
             reportID,
             displayName,
