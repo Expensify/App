@@ -75,7 +75,12 @@ jobs:
         if: ${{ github.event_name == 'push' || inputs.APP_PULL_REQUEST_URL != '' }}
         run: |
           if [ "${{ github.event_name }}" == "push" ]; then
-            echo "PR_NUMBER=${{ steps.getMergedPullRequest.outputs.number }}" >> "$GITHUB_OUTPUT"
+            MERGED_PR_NUMBER="${{ steps.getMergedPullRequest.outputs.number }}"
+            if [ -z "$MERGED_PR_NUMBER" ]; then
+              echo "::error::❌ No merged PR found on main for sha ${{ github.sha }}. Aborting build."
+              exit 1
+            fi
+            echo "PR_NUMBER=$MERGED_PR_NUMBER" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.APP_PULL_REQUEST_URL }}" ]; then
             PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
             if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
