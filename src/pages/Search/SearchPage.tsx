@@ -9,10 +9,7 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import type {PaymentMethodType} from '@components/KYCWall/types';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -25,6 +22,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useFilterFormValues from '@hooks/useFilterFormValues';
+import useHoldEducationalModal from '@hooks/useHoldEducationalModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -133,16 +131,10 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const {showConfirmModal} = useConfirmModal();
+    const {showEducationalModalIfNeeded} = useHoldEducationalModal();
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const isCustomReportNamesBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES);
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
-        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
-    > | null>(null);
-
-    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
@@ -735,7 +727,7 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('search.bulkActions.reject'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => {
+                onSelected: async () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
                         return;
@@ -746,11 +738,11 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    if (dismissedRejectUseExplanation) {
-                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-                    } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
-                    }
+                    // Show educational modal if needed
+                    await showEducationalModalIfNeeded(false, false);
+
+                    // Proceed with action
+                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
                 },
             });
         }
@@ -813,7 +805,7 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => {
+                onSelected: async () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
                         return;
@@ -824,15 +816,11 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                    // Show educational modal if needed (checks NVP internally)
+                    await showEducationalModalIfNeeded(areAllTransactionsFromSubmitter, false);
 
-                    if (isDismissed) {
-                        Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
-                    } else if (areAllTransactionsFromSubmitter) {
-                        setIsHoldEducationalModalVisible(true);
-                    } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
-                    }
+                    // Proceed with action
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
         }
@@ -1185,27 +1173,6 @@ function SearchPage({route}: SearchPageProps) {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
 
-    const dismissModalAndUpdateUseHold = useCallback(() => {
-        setIsHoldEducationalModalVisible(false);
-        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
-        if (hash && selectedTransactionsKeys.length > 0) {
-            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
-        }
-    }, [hash, selectedTransactionsKeys.length, isOffline]);
-
-    const dismissRejectModalBasedOnAction = useCallback(() => {
-        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
-            dismissRejectUseExplanation();
-            if (hash && selectedTransactionsKeys.length > 0) {
-                Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
-            }
-        } else {
-            dismissRejectUseExplanation();
-            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-        }
-        setRejectModalAction(null);
-    }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
-
     return (
         <>
             <Animated.View style={[styles.flex1]}>
@@ -1264,7 +1231,6 @@ function SearchPage({route}: SearchPageProps) {
                     <DecisionModal
                         title={translate('common.youAppearToBeOffline')}
                         prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
                         onSecondOptionSubmit={handleOfflineModalClose}
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
@@ -1273,24 +1239,11 @@ function SearchPage({route}: SearchPageProps) {
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
                         onSecondOptionSubmit={handleDownloadErrorModalClose}
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isDownloadErrorModalVisible}
                         onClose={handleDownloadErrorModalClose}
                     />
-                    {!!rejectModalAction && (
-                        <HoldOrRejectEducationalModal
-                            onClose={dismissRejectModalBasedOnAction}
-                            onConfirm={dismissRejectModalBasedOnAction}
-                        />
-                    )}
-                    {!!isHoldEducationalModalVisible && (
-                        <HoldSubmitterEducationalModal
-                            onClose={dismissModalAndUpdateUseHold}
-                            onConfirm={dismissModalAndUpdateUseHold}
-                        />
-                    )}
                 </View>
             )}
         </>
