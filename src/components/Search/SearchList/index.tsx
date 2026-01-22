@@ -509,7 +509,7 @@ function SearchList({
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
-                            disabled={flattenedItems.length === 0}
+                            disabled={totalItems === 0}
                         />
                     )}
 
