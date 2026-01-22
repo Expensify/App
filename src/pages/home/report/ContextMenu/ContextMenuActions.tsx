@@ -91,6 +91,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    hasReasoning,
     isActionableJoinRequest,
     isActionableMentionWhisper,
     isActionableTrackExpense,
@@ -428,10 +429,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return false;
             }
 
-            const originalMessage = getOriginalMessage(reportAction);
-            const hasReasoning = !!(originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && originalMessage.reasoning);
-
-            return hasReasoning;
+            return hasReasoning(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID, translate, currentUserPersonalDetails}) => {
             if (!reportID) {

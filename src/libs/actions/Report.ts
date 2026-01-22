@@ -1511,17 +1511,17 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
  */
 function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
     const existingChildReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
-    const report = existingChildReport ?? buildOptimisticChildReport(childReportID, parentReportAction, parentReportID);
+    const report = existingChildReport ?? createChildReport(childReportID, parentReportAction, parentReportID);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
 }
 
 /**
- * Builds an optimistic child report and returns it without checking for existing reports.
+ * Creates a child report and returns it without checking for existing reports.
  * If childReportID is not provided, creates an optimistic report and calls openReport()
  * so the optimistic data is available when navigating to the thread.
  */
-function buildOptimisticChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string): Report {
+function createChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string): Report {
     const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
@@ -1560,7 +1560,7 @@ function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string
 
     // Check if explanation thread report already exists
     const existingChildReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-    const report = existingChildReport ?? buildOptimisticChildReport(reportAction.childReportID, reportAction, originalReportID);
+    const report = existingChildReport ?? createChildReport(reportAction.childReportID, reportAction, originalReportID);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     // Schedule adding the explanation comment on the next animation frame
@@ -6557,7 +6557,7 @@ export {
     markAsManuallyExported,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
-    buildOptimisticChildReport,
+    createChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToConciergeChat,

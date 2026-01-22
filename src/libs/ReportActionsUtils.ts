@@ -3703,11 +3703,11 @@ function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONS
 }
 
 /**
- * Checks if an action has AI as its source
+ * Checks if an action has reasoning.
  */
-function isActionFromAISource(action: OnyxInputOrEntry<ReportAction>): boolean {
+function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
     const originalMessage = getOriginalMessage(action);
-    return !!originalMessage && typeof originalMessage === 'object' && 'source' in originalMessage && originalMessage.source === CONST.CATEGORY_SOURCE.AI;
+    return !!originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && !!originalMessage.reasoning;
 }
 
 export {
@@ -3754,8 +3754,8 @@ export {
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
     getWhisperedTo,
+    hasReasoning,
     hasRequestFromCurrentAccount,
-    isActionFromAISource,
     isActionOfType,
     isActionableWhisper,
     isActionableJoinRequest,
