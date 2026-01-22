@@ -23,6 +23,30 @@ Extract:
 - Bug description and reproduction steps
 - Platform/environment details
 - Whether "Exploratory" appears in the body
+- Any image URLs (usually `https://github.com/user-attachments/assets/...`)
+
+### Step 1b: Analyze screenshots (if present)
+
+If the issue contains screenshots, download and analyze them:
+```bash
+# Extract image URL from issue body and download to working directory
+curl -L "https://github.com/user-attachments/assets/..." -o screenshot.png
+```
+
+Then use the Read tool to view the image:
+```
+Read screenshot.png
+```
+
+After analysis, clean up:
+```bash
+rm screenshot.png
+```
+
+Screenshots often reveal:
+- Which specific UI component has the bug
+- The exact location in the app (header, modal, dropdown, etc.)
+- Visual context that text descriptions miss
 
 ### Step 2: Get commit SHA for permalinks
 
