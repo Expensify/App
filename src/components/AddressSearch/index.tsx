@@ -420,7 +420,7 @@ function AddressSearch({
                                 }
                                 onBlur?.();
                             },
-                            autoComplete: autoComplete,
+                            autoComplete,
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
