@@ -2,9 +2,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
-import type {FlashListRef} from '@shopify/flash-list';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -111,12 +109,6 @@ type ReportActionsListProps = {
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
 
-    /** ID of the list */
-    listID: number;
-
-    /** Should enable auto scroll to top threshold */
-    shouldEnableAutoScrollToTopThreshold?: boolean;
-
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
 };
@@ -152,8 +144,6 @@ function ReportActionsList({
     loadOlderChats,
     onLayout,
     isComposerFullSize,
-    listID,
-    shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
 }: ReportActionsListProps) {
@@ -812,7 +802,7 @@ function ReportActionsList({
             >
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={reportScrollManager.ref as ForwardedRef<FlashListRef<OnyxTypes.ReportAction>>}
+                    // ref={reportScrollManager.ref as ForwardedRef<FlashListRef<OnyxTypes.ReportAction>>} // causing extra scroll I guess after OpenReport is finished
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={reversedReportActions}
@@ -823,7 +813,7 @@ function ReportActionsList({
                     }}
                     shouldStartRenderingFromTop={shouldFocusToTopOnMount && !reportActionID}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    // contentContainerStyle={styles.chatContentScrollView} // this causing small jumps
                     keyExtractor={keyExtractor}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
@@ -832,13 +822,10 @@ function ReportActionsList({
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={onLayoutInner}
+                    onLayout={onLayoutInner} // it relates to scrolling to bottom on the new message
                     onScroll={trackVerticalScrolling}
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
-                    key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
                     initialScrollIndex={initialScrollIndex > -1 ? initialScrollIndex : undefined}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
