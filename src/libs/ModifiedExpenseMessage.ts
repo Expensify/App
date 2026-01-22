@@ -28,6 +28,7 @@ import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, 
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- This Onyx.connect is used by utility files (ReportUtils, OptionsListUtils, ReportNameUtils) that will be migrated in follow-up PRs
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -44,6 +45,7 @@ let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let currentUserLogin = '';
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- This Onyx.connect is used by utility files (ReportUtils, OptionsListUtils, ReportNameUtils) that will be migrated in follow-up PRs
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
