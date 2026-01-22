@@ -121,7 +121,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             textInputOptions={textInputOptions}
             onSelectRow={handleSelectRow}
             ListItem={RadioListItem}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            initiallyFocusedItemKey={selectedOptionKey ?? undefined}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
