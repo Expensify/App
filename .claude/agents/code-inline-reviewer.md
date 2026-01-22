@@ -825,6 +825,131 @@ async function submitForm(data: FormData) {
 
 ---
 
+### [CLEAN-REACT-PATTERNS-1] Favor composition over configuration
+
+- **Search patterns**: `shouldShow`, `shouldEnable`, `canSelect`, `enable`, `disable`, configuration props patterns
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A **new component** is being introduced
+  - The component is implemented by adding configuration (props, flags, conditional logic) to existing components
+  - These configuration options control feature presence or behavior within the component
+  - The features could instead be expressed as child components
+  - The component's API is expanding with configuration options rather than staying stable
+
+  **Features that should be expressed as child components:**
+  - Optional UI elements that could be composed in
+  - New behavior that could be introduced as new children
+  - Features that currently require parent component code changes
+
+  **DO NOT flag if:**
+  - Props are narrow, stable values needed for coordination between composed parts (e.g., `reportID`, `data`, `columns`)
+  - The component uses composition and child components for features
+  - Parent components stay stable as features are added
+
+- **Reasoning**: When new features are implemented by adding configuration (props, flags, conditional logic) to existing components, if requirements change, then those components must be repeatedly modified, increasing coupling, surface area, and regression risk. Composition ensures features scale horizontally, limits the scope of changes, and prevents components from becoming configuration-driven "god components."
+
+Good (composition):
+
+```tsx
+// Features expressed as composable children
+// Parent stays stable; add features by adding children
+<Table data={items} columns={columns}>
+  <Table.SearchBar />
+  <Table.Header />
+  <Table.Body />
+</Table>
+
+<SelectionList data={items}>
+  <SelectionList.TextInput />
+  <SelectionList.Body />
+</SelectionList>
+```
+
+Bad (configuration):
+
+```tsx
+// Features controlled by boolean flags
+// Adding a new feature requires modifying the component's API
+<SelectionList
+  data={items}
+  shouldShowTextInput
+  shouldShowTooltips
+  shouldScrollToFocusedIndex
+  shouldDebounceScrolling
+  shouldUpdateFocusedIndex
+  canSelectMultiple
+  disableKeyboardShortcuts
+/>
+
+type SelectionListProps = {
+  shouldShowTextInput?: boolean;      // ❌ Could be <SelectionList.TextInput />
+  shouldShowConfirmButton?: boolean;  // ❌ Could be <SelectionList.ConfirmButton />
+  textInputOptions?: {...};           // ❌ Configuration object for the above
+};
+```
+
+Bad (vertical growth):
+
+```tsx
+// Structure that grows vertically over time
+// Parent has to handle more state to make child components happy with properties
+function ReportScreen({ params: { reportID }}) {
+  const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true, canBeMissing: true});
+  const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+  const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
+  const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+  const parentReportAction = useParentReportAction(reportOnyx);
+  const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+  const isTransactionThreadView = isReportTransactionThread(report);
+  // other onyx connections etc
+  
+  return (
+    <>
+      <ReportActionsView
+        report={report}
+        reportActions={reportActions}
+        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+        hasNewerActions={hasNewerActions}
+        hasOlderActions={hasOlderActions}
+        parentReportAction={parentReportAction}
+        transactionThreadReportID={transactionThreadReportID}
+        isReportTransactionThread={isTransactionThreadView}
+      />
+      // other features
+      <Composer />
+    </>
+  );
+}
+```
+
+Good (horizontal growth):
+
+```tsx
+// Structure that expands horizontally
+// Tree grows with nested structures that keep concerns separated
+// Adding new subcomponents (features) does not require changing the parent
+function ReportScreen({ params: { reportID }}) {
+  return (
+    <>
+      <ReportActionsView reportID={reportID} />
+      // other features
+      <Composer />
+    </>
+  );
+}
+
+// Component accesses stores and calculates its own state
+// Parent doesn't know the internals
+function ReportActionsView({ reportID }) {
+  const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+  const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+  // ...
+}
+```
+
+---
+
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
