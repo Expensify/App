@@ -340,6 +340,10 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
+    if (query.policyID) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(query.policyID) ? query.policyID.join(',') : query.policyID} `;
+    }
+
     const filterSet = new Set<string>(orderedQuery);
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
@@ -380,10 +384,6 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
-    }
-
-    if (query.policyID) {
-        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(query.policyID) ? query.policyID.join(',') : query.policyID} `;
     }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 

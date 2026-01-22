@@ -11605,6 +11605,8 @@ function prepareOnboardingOnyxData({
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
+    let setupTagsTaskReportID;
+    let setupCategoriesAndTagsTaskReportID;
     const tasksData = onboardingMessage.tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
@@ -11685,6 +11687,12 @@ function prepareOnboardingOnyxData({
             }
             if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS) {
                 addExpenseApprovalsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS) {
+                setupTagsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS) {
+                setupCategoriesAndTagsTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -11893,6 +11901,8 @@ function prepareOnboardingOnyxData({
                 choice: engagementChoice,
                 createWorkspace: createWorkspaceTaskReportID,
                 addExpenseApprovals: addExpenseApprovalsTaskReportID,
+                setupTags: setupTagsTaskReportID,
+                setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
             },
         },
     );
@@ -11962,6 +11972,8 @@ function prepareOnboardingOnyxData({
                 choice: null,
                 createWorkspace: null,
                 addExpenseApprovals: null,
+                setupCategoriesAndTags: null,
+                setupTags: null,
             },
         },
     );
