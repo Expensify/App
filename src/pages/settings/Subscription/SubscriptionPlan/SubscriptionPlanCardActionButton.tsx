@@ -144,7 +144,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             shouldShowRightIcon
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
             numberOfLinesTitle={3}
-            title={translate('subscription.subscriptionSettings.summary', {subscriptionType, subscriptionSize, autoRenew, autoIncrease})}
+            title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, autoRenew, autoIncrease)}
         />
     );
 }

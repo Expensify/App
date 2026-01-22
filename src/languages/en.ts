@@ -100,42 +100,42 @@ import type {
     SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
-    SplitAmountParams,
-    SplitDateRangeParams,
-    SplitExpenseEditTitleParams,
-    SplitExpenseSubtitleParams,
-    StatementTitleParams,
+    // SplitAmountParams,
+    // SplitDateRangeParams,
+    // SplitExpenseEditTitleParams,
+    // SplitExpenseSubtitleParams,
+    // StatementTitleParams,
     StepCounterParams,
-    StripePaidParams,
-    SubmitsToParams,
-    SubmittedToVacationDelegateParams,
-    SubmittedWithMemoParams,
-    SubscriptionCommitmentParams,
-    SubscriptionSettingsLearnMoreParams,
-    SubscriptionSettingsRenewsOnParams,
-    SubscriptionSettingsSaveUpToParams,
-    SubscriptionSettingsSummaryParams,
-    SubscriptionSizeParams,
+    // StripePaidParams,
+    // SubmitsToParams,
+    // SubmittedToVacationDelegateParams,
+    // SubmittedWithMemoParams,
+    // SubscriptionCommitmentParams,
+    // SubscriptionSettingsLearnMoreParams,
+    // SubscriptionSettingsRenewsOnParams,
+    // SubscriptionSettingsSaveUpToParams,
+    // SubscriptionSettingsSummaryParams,
+    // SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TaskCreatedActionParams,
-    TaxAmountParams,
-    TermsParams,
-    ThreadRequestReportNameParams,
-    ThreadSentMoneyReportNameParams,
-    ToggleImportTitleParams,
-    TotalAmountGreaterOrLessThanOriginalParams,
-    ToValidateLoginParams,
-    TransferParams,
-    TravelTypeParams,
-    TrialStartedTitleParams,
-    UnapproveWithIntegrationWarningParams,
+    // TaskCreatedActionParams,
+    // TaxAmountParams,
+    // TermsParams,
+    // ThreadRequestReportNameParams,
+    // ThreadSentMoneyReportNameParams,
+    // ToggleImportTitleParams,
+    // TotalAmountGreaterOrLessThanOriginalParams,
+    // ToValidateLoginParams,
+    // TransferParams,
+    // TravelTypeParams,
+    // TrialStartedTitleParams,
+    // UnapproveWithIntegrationWarningParams,
     UnshareParams,
-    UntilTimeParams,
-    UpdatedCustomFieldParams,
+    // UntilTimeParams,
+    // UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyAuditRateParams,
-    UpdatedPolicyCategoryDescriptionHintTypeParams,
-    UpdatedPolicyCategoryExpenseLimitTypeParams,
+    // UpdatedPolicyAuditRateParams,
+    // UpdatedPolicyCategoryDescriptionHintTypeParams,
+    // UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCategoryMaxExpenseAmountParams,
@@ -1090,18 +1090,18 @@ const translations = {
         split: 'Split',
         splitExpense: 'Split expense',
         splitDates: 'Split dates',
-        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} to ${endDate} (${count} days)`,
-        splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
+        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} to ${endDate} (${count} days)`,
+        splitExpenseSubtitle: (amount: string, merchant: string) => `${amount} from ${merchant}`,
         splitByPercentage: 'Split by percentage',
         splitByDate: 'Split by date',
         addSplit: 'Add split',
         makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',
-        totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,
-        totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} less than the original expense.`,
+        totalAmountGreaterThanOriginal: (amount: string) => `Total amount is ${amount} greater than the original expense.`,
+        totalAmountLessThanOriginal: (amount: string) => `Total amount is ${amount} less than the original expense.`,
         splitExpenseZeroAmount: 'Please enter a valid amount before continuing.',
         splitExpenseOneMoreSplit: 'No splits added. Add at least one to save.',
-        splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Edit ${amount} for ${merchant}`,
+        splitExpenseEditTitle: (amount: string, merchant: string) => `Edit ${amount} for ${merchant}`,
         removeSplit: 'Remove split',
         splitExpenseCannotBeEditedModalTitle: "This expense can't be edited",
         splitExpenseCannotBeEditedModalDescription: 'Approved or paid expenses cannot be edited',
@@ -1220,11 +1220,11 @@ const translations = {
         flip: 'Flip',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
-        submitted: ({memo}: SubmittedWithMemoParams) => `submitted${memo ? `, saying ${memo}` : ''}`,
+        submitted: (memo?: string) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
         trackedAmount: (formattedAmount: string, comment?: string) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
-        splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
+        splitAmount: (amount: string) => `split ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `Your split ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} owes ${amount}${comment ? ` for ${comment}` : ''}`,
@@ -1266,9 +1266,9 @@ const translations = {
             `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         basedOnAI: 'based on past activity',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `based on <a href="${rulesLink}">workspace rules</a>` : 'based on workspace rule'),
-        threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
+        threadExpenseReportName: (formattedAmount: string, comment: string) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
-        threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        threadPaySomeoneReportName: (formattedAmount: string, comment: string) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
         error: {
@@ -1381,7 +1381,7 @@ const translations = {
         unapprove: 'Unapprove',
         unapproveReport: 'Unapprove report',
         headsUp: 'Heads up!',
-        unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `This report has already been exported to ${accountingIntegration}. Changing it may lead to data discrepancies. Are you sure you want to unapprove this report?`,
         reimbursable: 'reimbursable',
         nonReimbursable: 'non-reimbursable',
@@ -1416,7 +1416,7 @@ const translations = {
         }),
         dates: 'Dates',
         rates: 'Rates',
-        submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        submitsTo: (name: string) => `Submits to ${name}`,
         reject: {
             educationalTitle: 'Should you hold or reject?',
             educationalText: "If you're not ready to approve or pay an expense, you can hold or reject it.",
@@ -2325,7 +2325,7 @@ const translations = {
         shipCard: 'Ship card',
     },
     transferAmountPage: {
-        transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
+        transfer: (amount: string) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit card)',
         instantSummary: (rate: string, minAmount: string) => `${rate}% fee (${minAmount} minimum)`,
         ach: '1-3 Business days (Bank account)',
@@ -2909,8 +2909,7 @@ const translations = {
         resendLink: 'Resend link',
     },
     unlinkLoginForm: {
-        toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) =>
-            `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
         noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `If you no longer have access to ${primaryLogin}, please unlink your accounts.`,
         unlink: 'Unlink',
         linkSent: 'Link sent!',
@@ -3015,7 +3014,7 @@ const translations = {
             custom: 'Custom',
         },
         untilTomorrow: 'Until tomorrow',
-        untilTime: ({time}: UntilTimeParams) => `Until ${time}`,
+        untilTime: (time: string) => `Until ${time}`,
         date: 'Date',
         time: 'Time',
         clearAfter: 'Clear after',
@@ -3024,7 +3023,7 @@ const translations = {
         setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`,
         vacationDelegateError: 'There was an error updating your vacation delegate.',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `as ${nameOrEmail}'s vacation delegate`,
-        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
+        toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
         vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
             `You're assigning ${nameOrEmail} as your vacation delegate. They're not on all your workspaces yet. If you choose to continue, an email will be sent to all your workspace admins to add them.`,
     },
@@ -3213,7 +3212,7 @@ const translations = {
             generalInfo: `For general information about prepaid accounts, visit <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>.`,
             conditionsDetails: `For details and conditions for all fees and services, visit <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> or calling +1 833-400-0904.`,
             electronicFundsWithdrawalInstant: 'Electronic funds withdrawal (instant)',
-            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
+            electronicFundsInstantFeeMin: (amount: string) => `(min ${amount})`,
         },
         longTermsForm: {
             listOfAllFees: 'A list of all Expensify Wallet fees',
@@ -3233,7 +3232,7 @@ const translations = {
             electronicFundsInstantDetails: (percentage: string, amount: string) =>
                 "There's a fee to transfer funds from your Expensify Wallet to your linked debit card using the instant transfer option. This transfer usually completes within several minutes." +
                 ` The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
-            fdicInsuranceBancorp: ({amount}: TermsParams) =>
+            fdicInsuranceBancorp: (amount: string) =>
                 `Your funds are eligible for FDIC insurance. Your funds will be held at or transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution.` +
                 ` Once there, your funds are insured up to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements are met and your card is registered. See ${CONST.TERMS.FDIC_PREPAID} for details.`,
             contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at ${CONST.EMAIL.CONCIERGE} or sign in at ${CONST.NEW_EXPENSIFY_URL}.`,
@@ -3242,7 +3241,7 @@ const translations = {
             automated: 'Automated',
             liveAgent: 'Live agent',
             instant: 'Instant',
-            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `Min ${amount}`,
+            electronicFundsInstantFeeMin: (amount: string) => `Min ${amount}`,
         },
     },
     activateStep: {
@@ -3750,15 +3749,15 @@ const translations = {
             flightSeatChanged: (airlineCode: string) => `Your seat assignment on flight ${airlineCode} has been changed.`,
             flightSeatCancelled: (airlineCode: string) => `Your seat assignment on flight ${airlineCode} was removed.`,
             paymentDeclined: 'Payment for your air booking failed. Please try again.',
-            bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `You cancelled your ${type} reservation ${id}.`,
-            bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `The vendor cancelled your ${type} reservation ${id}.`,
-            bookingRebooked: ({type, id = ''}: TravelTypeParams) => `Your ${type} reservation was re-booked. New confirmation #:${id}.`,
-            bookingUpdated: ({type}: TravelTypeParams) => `Your ${type} booking was updated. Review the new details in the itinerary.`,
+            bookingCancelledByTraveler: (type: string, id = '') => `You cancelled your ${type} reservation ${id}.`,
+            bookingCancelledByVendor: (type: string, id = '') => `The vendor cancelled your ${type} reservation ${id}.`,
+            bookingRebooked: (type: string, id = '') => `Your ${type} reservation was re-booked. New confirmation #:${id}.`,
+            bookingUpdated: (type: string) => `Your ${type} booking was updated. Review the new details in the itinerary.`,
             railTicketRefund: ({origin, destination, startDate}: RailTicketParams) =>
                 `Your rail ticket for ${origin} → ${destination} on ${startDate} has been refunded. A credit will be processed.`,
             railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
-            defaultUpdate: ({type}: TravelTypeParams) => `Your ${type} reservation was updated.`,
+            defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
         },
         flightTo: 'Flight to',
         trainTo: 'Train to',
@@ -4654,7 +4653,7 @@ const translations = {
             employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
             displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
             displayedAsReportFieldDescription: "Department selection will apply to all expenses on an employee's report.",
-            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Choose how to handle Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
+            toggleImportTitle: (mappingTitle: string) => `Choose how to handle Sage Intacct <strong>${mappingTitle}</strong> in Expensify.`,
             expenseTypes: 'Expense types',
             expenseTypesDescription: 'Your Sage Intacct expense types will import into Expensify as categories.',
             accountTypesDescription: 'Your Sage Intacct chart of accounts will import into Expensify as categories.',
@@ -5313,7 +5312,7 @@ const translations = {
                 updateTaxClaimableFailureMessage: 'The reclaimable portion must be less than the distance rate amount',
             },
             deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
-            deleteMultipleTaxConfirmation: ({taxAmount}: TaxAmountParams) => `Are you sure you want to delete ${taxAmount} taxes?`,
+            deleteMultipleTaxConfirmation: (taxAmount: number) => `Are you sure you want to delete ${taxAmount} taxes?`,
             actions: {
                 delete: 'Delete rate',
                 deleteMultiple: 'Delete rates',
@@ -6334,7 +6333,7 @@ const translations = {
             }
             return `changed the "${categoryName}" category max amount to ${newAmount} (previously ${oldAmount})`;
         },
-        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+        updateCategoryExpenseLimitType: (categoryName: string, newValue: string, oldValue?: string) => {
             if (!oldValue) {
                 return `added a limit type of ${newValue} to the category "${categoryName}"`;
             }
@@ -6347,7 +6346,7 @@ const translations = {
             return `changed the "${categoryName}" category to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
-        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
+        updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `removed the description hint "${oldValue}" from the category "${categoryName}"`;
             }
@@ -6444,7 +6443,7 @@ const translations = {
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
         forcedCorporateUpgrade: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
-        updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
+        updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
@@ -6604,7 +6603,7 @@ const translations = {
         completed: 'Completed',
         action: 'Complete',
         messages: {
-            created: ({title}: TaskCreatedActionParams) => `task for ${title}`,
+            created: (title: string) => `task for ${title}`,
             completed: 'marked as complete',
             canceled: 'deleted task',
             reopened: 'marked as incomplete',
@@ -6618,7 +6617,7 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this task?',
     },
     statementPage: {
-        title: ({year, monthName}: StatementTitleParams) => `${monthName} ${year} statement`,
+        title: (year: number | string, monthName: string) => `${monthName} ${year} statement`,
     },
     keyboardShortcutsPage: {
         title: 'Keyboard shortcuts',
@@ -6914,7 +6913,7 @@ const translations = {
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: ({to}: ShareParams) => `invited member ${to}`,
                 unshare: ({to}: UnshareParams) => `removed member ${to}`,
-                stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
+                stripePaid: (amount: string, currency: string) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
@@ -6922,14 +6921,14 @@ const translations = {
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>`,
                 addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
-                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `removed ${email}'s custom field 1 (previously "${previousValue}")`;
                     }
 
                     return !previousValue ? `added "${newValue}" to ${email}’s custom field 1` : `changed ${email}’s custom field 1 to "${newValue}" (previously "${previousValue}")`;
                 },
-                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                updatedCustomField2: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `removed ${email}'s custom field 2 (previously "${previousValue}")`;
                     }
@@ -7468,7 +7467,7 @@ const translations = {
                 subtitle: 'As a next step, <a href="#">complete your setup checklist</a> so your team can start expensing.',
             },
             trialStarted: {
-                title: ({numOfDays}: TrialStartedTitleParams) => `Trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                title: (numOfDays: number) => `Trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
             trialEnded: {
@@ -7569,10 +7568,10 @@ const translations = {
             note: 'Note: An active member is anyone who has created, edited, submitted, approved, reimbursed, or exported expense data tied to your company workspace.',
             confirmDetails: 'Confirm your new annual subscription details:',
             subscriptionSize: 'Subscription size',
-            activeMembers: ({size}: SubscriptionSizeParams) => `${size} active members/month`,
+            activeMembers: (size: number) => `${size} active members/month`,
             subscriptionRenews: 'Subscription renews',
             youCantDowngrade: 'You can’t downgrade during your annual subscription.',
-            youAlreadyCommitted: ({size, date}: SubscriptionCommitmentParams) =>
+            youAlreadyCommitted: (size: number, date: string) =>
                 `You already committed to an annual subscription size of ${size} active members per month until ${date}. You can switch to a pay-per-use subscription on ${date} by disabling auto-renew.`,
             error: {
                 size: 'Please enter a valid subscription size',
@@ -7587,7 +7586,7 @@ const translations = {
         },
         subscriptionSettings: {
             title: 'Subscription settings',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+            summary: (subscriptionType: string, subscriptionSize: string, autoRenew: string, autoIncrease: string) =>
                 `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
             none: 'none',
             on: 'on',
@@ -7595,15 +7594,15 @@ const translations = {
             annual: 'Annual',
             autoRenew: 'Auto-renew',
             autoIncrease: 'Auto-increase annual seats',
-            saveUpTo: ({amountWithCurrency}: SubscriptionSettingsSaveUpToParams) => `Save up to ${amountWithCurrency}/month per active member`,
+            saveUpTo: (amountWithCurrency: string) => `Save up to ${amountWithCurrency}/month per active member`,
             automaticallyIncrease:
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
-            renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renews on ${date}.`,
+            renewsOn: (date: string) => `Renews on ${date}.`,
             pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
-            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+            learnMore: (hasAdminsRoom: boolean) =>
                 `<muted-text>Learn more on our <a href="${CONST.PRICING}">pricing page</a> or chat with our team in your ${hasAdminsRoom ? `<a href="adminsRoom">#admins room.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',

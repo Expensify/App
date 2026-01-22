@@ -122,7 +122,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                     </View>
                     <View style={[styles.flex1, styles.termsCenterRight]}>
                         <Text style={styles.label}>{numberFormat(1.5)}%</Text>
-                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin', {amount: convertToDisplayString(25, 'USD')})}</Text>
+                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin', convertToDisplayString(25, 'USD'))}</Text>
                     </View>
                 </View>
                 <View style={[styles.shortTermsBoldHeadingSection, styles.mb4]}>

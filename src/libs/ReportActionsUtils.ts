@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -43,6 +42,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from './ReportUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -1905,33 +1905,20 @@ function getTravelUpdateMessage(
             return translate('travel.updates.paymentDeclined');
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CANCELED_BY_TRAVELER:
-            return translate('travel.updates.bookingCancelledByTraveler', {
-                type: details.type,
-                id: details.reservationID,
-            });
+            return translate('travel.updates.bookingCancelledByTraveler', details.type, details.reservationID);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CANCELED_BY_VENDOR:
-            return translate('travel.updates.bookingCancelledByVendor', {
-                type: details.type,
-                id: details.reservationID,
-            });
+            return translate('travel.updates.bookingCancelledByVendor', details.type, details.reservationID);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_REBOOKED:
-            return translate('travel.updates.bookingRebooked', {
-                type: details.type,
-                id: details.confirmations?.at(0)?.value,
-            });
+            return translate('travel.updates.bookingRebooked', details.type, details.confirmations?.at(0)?.value);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_UPDATED:
-            return translate('travel.updates.bookingUpdated', {
-                type: details.type,
-            });
+            return translate('travel.updates.bookingUpdated', details.type);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TRIP_UPDATED:
             if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
-                return translate('travel.updates.defaultUpdate', {
-                    type: details.type,
-                });
+                return translate('travel.updates.defaultUpdate', details.type);
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
                 return translate('travel.updates.railTicketUpdate', {
@@ -1944,9 +1931,7 @@ function getTravelUpdateMessage(
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_OTHER_UPDATE:
             if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
-                return translate('travel.updates.defaultUpdate', {
-                    type: details.type,
-                });
+                return translate('travel.updates.defaultUpdate', details.type);
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
                 return translate('travel.updates.railTicketUpdate', {
@@ -1972,9 +1957,7 @@ function getTravelUpdateMessage(
             });
 
         default:
-            return translate('travel.updates.defaultUpdate', {
-                type: details?.type ?? '',
-            });
+            return translate('travel.updates.defaultUpdate', details?.type ?? '');
     }
 }
 
@@ -2420,11 +2403,7 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
     const customFieldType = Object.values(CONST.CUSTOM_FIELD_KEYS).find((value) => value === field);
     if (customFieldType) {
         const translationKey = field === CONST.CUSTOM_FIELD_KEYS.customField1 ? 'report.actions.type.updatedCustomField1' : 'report.actions.type.updatedCustomField2';
-        return translate(translationKey, {
-            email,
-            newValue: stringNewValue,
-            previousValue: stringOldValue,
-        });
+        return translate(translationKey, email, stringNewValue, stringOldValue);
     }
 
     const newRole = translate('workspace.common.roleName', {role: stringNewValue}).toLowerCase();
@@ -2543,11 +2522,7 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
         if (updatedField === 'commentHint') {
-            return translate('workspaceActions.updatedDescriptionHint', {
-                oldValue: oldValue as string | undefined,
-                newValue: newValue as string | undefined,
-                categoryName: decodedOptionName,
-            });
+            return translate('workspaceActions.updatedDescriptionHint', decodedOptionName, newValue as string | undefined, oldValue as string | undefined);
         }
 
         if (updatedField === 'enabled') {
@@ -2589,11 +2564,12 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
         }
 
         if (updatedField === 'expenseLimitType' && typeof newValue === 'string' && typeof oldValue === 'string') {
-            return translate('workspaceActions.updateCategoryExpenseLimitType', {
-                categoryName: decodedOptionName,
-                oldValue: oldValue ? translate(`workspace.rules.categoryRules.expenseLimitTypes.${oldValue}` as TranslationPaths) : undefined,
-                newValue: translate(`workspace.rules.categoryRules.expenseLimitTypes.${newValue}` as TranslationPaths),
-            });
+            return translate(
+                'workspaceActions.updateCategoryExpenseLimitType',
+                decodedOptionName,
+                translate(`workspace.rules.categoryRules.expenseLimitTypes.${newValue}` as TranslationPaths),
+                oldValue ? translate(`workspace.rules.categoryRules.expenseLimitTypes.${oldValue}` as TranslationPaths) : undefined,
+            );
         }
 
         if (updatedField === 'maxAmountNoReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
@@ -3437,7 +3413,7 @@ function getUpdatedAuditRateMessage(translate: LocalizedTranslate, reportAction:
     if (typeof oldAuditRate !== 'number' || typeof newAuditRate !== 'number') {
         return getReportActionText(reportAction);
     }
-    return translate('workspaceActions.updatedAuditRate', {oldAuditRate, newAuditRate});
+    return translate('workspaceActions.updatedAuditRate', oldAuditRate, newAuditRate);
 }
 
 function getUpdatedManualApprovalThresholdMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {

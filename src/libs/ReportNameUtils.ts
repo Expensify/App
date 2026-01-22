@@ -379,7 +379,7 @@ function computeReportNameBasedOnReportAction(
         if (harvesting) {
             return translate('iou.automaticallySubmitted');
         }
-        return translate('iou.submitted', {memo: getOriginalMessage(parentReportAction)?.message});
+        return translate('iou.submitted', getOriginalMessage(parentReportAction)?.message);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {

@@ -31,7 +31,7 @@ function UnlinkLoginForm() {
     return (
         <>
             <View style={[styles.mt5]}>
-                <Text>{translate('unlinkLoginForm.toValidateLogin', {primaryLogin, secondaryLogin})}</Text>
+                <Text>{translate('unlinkLoginForm.toValidateLogin', primaryLogin, secondaryLogin)}</Text>
             </View>
             <View style={[styles.mv5]}>
                 <Text>{translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}</Text>

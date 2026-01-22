@@ -5065,7 +5065,7 @@ function getTransactionReportName({
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment: Parser.htmlToText(comment)});
+    return translateLocal('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
 /**
@@ -5626,7 +5626,7 @@ function getReportName(
             return translateLocal('iou.automaticallySubmitted');
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.submitted', {memo: getOriginalMessage(parentReportAction)?.message});
+        return translateLocal('iou.submitted', getOriginalMessage(parentReportAction)?.message);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
@@ -6179,7 +6179,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, isPolicyNamePreferred = 
             return getPolicyName({report});
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
+        return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', subtitle ?? '')}`;
     }
 
     if (isReportArchived) {

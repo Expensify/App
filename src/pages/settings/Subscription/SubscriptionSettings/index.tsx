@@ -158,9 +158,7 @@ function SubscriptionSettings() {
         <Text>
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
             <Text style={customTitleSecondSentenceStyles}>
-                {translate('subscription.subscriptionSettings.saveUpTo', {
-                    amountWithCurrency: convertToShortDisplayString(possibleCostSavings, preferredCurrency),
-                })}
+                {translate('subscription.subscriptionSettings.saveUpTo', convertToShortDisplayString(possibleCostSavings, preferredCurrency))}
             </Text>
         </Text>
     );
@@ -200,7 +198,7 @@ function SubscriptionSettings() {
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <View style={[styles.renderHTML, styles.mb5]}>
                     <RenderHTML
-                        html={translate('subscription.subscriptionSettings.learnMore', {hasAdminsRoom: !!adminsChatReportID})}
+                        html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
                         onLinkPress={(_evt, href) => handleLinkPress(href)}
                     />
                 </View>
@@ -237,9 +235,7 @@ function SubscriptionSettings() {
                                     onToggle={handleAutoRenewToggle}
                                     isActive={privateSubscription?.autoRenew}
                                 />
-                                {!!autoRenewalDate && (
-                                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>
-                                )}
+                                {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate)}</Text>}
                             </View>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
