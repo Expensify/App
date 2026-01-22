@@ -3,7 +3,6 @@ import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -46,7 +45,17 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import {
+    filterValidHasValues,
+    getDatePresets,
+    getFeedOptions,
+    getGroupByOptions,
+    getGroupCurrencyOptions,
+    getHasOptions,
+    getStatusOptions,
+    getTypeOptions,
+    getWithdrawalTypeOptions,
+} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -303,12 +312,7 @@ function SearchFiltersBar({
                 updatedFilterFormValues.columns = [];
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
                 // Filter out invalid "has" values for the new type
-                if (updatedFilterFormValues.has && updatedFilterFormValues.type) {
-                    const validHasOptions = getHasOptions(translate, updatedFilterFormValues.type);
-                    const validHasValues = new Set(validHasOptions.map((option) => option.value));
-                    const filteredHasValues = updatedFilterFormValues.has.filter((hasValue) => validHasValues.has(hasValue as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
-                    updatedFilterFormValues.has = filteredHasValues.length > 0 ? filteredHasValues : undefined;
-                }
+                updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
             }
 
             if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {

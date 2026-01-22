@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getHasOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {filterValidHasValues, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,9 +44,7 @@ function SearchFiltersTypePage() {
 
     const applyChanges = useCallback(() => {
         const hasTypeChanged = selectedItem !== searchAdvancedFiltersForm?.type;
-        const validHasOptions = getHasOptions(translate, selectedItem);
-        const validHasValues = new Set(validHasOptions.map((option) => option.value));
-        const filteredHasValues = searchAdvancedFiltersForm?.has?.filter((hasValue) => validHasValues.has(hasValue as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+        const filteredHasValues = filterValidHasValues(searchAdvancedFiltersForm?.has, selectedItem, translate);
         const updatedFilters = {
             type: selectedItem,
             ...(hasTypeChanged && {
