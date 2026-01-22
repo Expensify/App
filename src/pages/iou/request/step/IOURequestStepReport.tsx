@@ -221,6 +221,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         handleCreateReport();
     };
 
+    let selectedPolicyID;
+    if (isPerDiemTransaction) {
+        selectedPolicyID = perDiemOriginalPolicy?.id;
+    } else {
+        selectedPolicyID = !isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined;
+    }
+
     return (
         <>
             {CreateReportConfirmationModal}
@@ -229,7 +236,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 selectReport={selectReport}
                 transactionIDs={transaction ? [transaction.transactionID] : []}
                 selectedReportID={selectedReportID}
-                selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
+                selectedPolicyID={selectedPolicyID}
                 removeFromReport={removeFromReport}
                 isEditing={isEditing}
                 isUnreported={isUnreported}
