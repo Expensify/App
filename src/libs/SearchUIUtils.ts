@@ -643,17 +643,12 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: createTopSearchMenuItem(
-            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            'search.topSpenders',
-            Expensicons.User,
-            CONST.SEARCH.GROUP_BY.FROM
-        ),
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: createTopSearchMenuItem(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, 'search.topSpenders', Expensicons.User, CONST.SEARCH.GROUP_BY.FROM),
         [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: createTopSearchMenuItem(
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             'search.topCategories',
             Expensicons.Folder,
-            CONST.SEARCH.GROUP_BY.CATEGORY
+            CONST.SEARCH.GROUP_BY.CATEGORY,
         ),
     };
 }
@@ -2948,10 +2943,7 @@ function createTypeMenuSections(
             menuItems: [],
         };
 
-        const insightsSearchKeys = [
-            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-        ];
+        const insightsSearchKeys = [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
 
         for (const key of insightsSearchKeys) {
             if (!suggestedSearchesVisibility[key]) {
