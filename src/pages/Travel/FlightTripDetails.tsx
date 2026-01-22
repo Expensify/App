@@ -108,6 +108,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                             interactive={false}
                             copyValue={reservation.seatNumber}
                             copyable={!!reservation.seatNumber?.length}
+                            pressableTestID={CONST.FLIGHT_SEAT_TEST_ID}
                         />
                     </View>
                 )}
