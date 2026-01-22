@@ -111,7 +111,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const [sectionData] = getSections({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: transactionsSnapshot?.data,
-            currentAccountID: accountID,
+            currentAccountID: currentUserDetails.accountID,
             currentUserEmail: currentUserDetails.email ?? '',
             translate,
             formatPhoneNumber,

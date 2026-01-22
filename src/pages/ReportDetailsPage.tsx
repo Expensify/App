@@ -882,6 +882,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
                 allTransactionViolationsParam: allTransactionViolations,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
         } else if (iouTransactionID) {
             deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);

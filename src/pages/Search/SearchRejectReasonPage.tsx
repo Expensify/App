@@ -2,6 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
@@ -25,7 +26,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
     const selectedTransactionsForReject = useMemo(() => {
         if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID) {
@@ -45,7 +46,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 return;
             }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports, allBetas);
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports, allBetas, currentUserAccountID);
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 context.clearSelectedTransactions(true);
             } else {

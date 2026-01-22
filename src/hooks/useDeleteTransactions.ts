@@ -178,6 +178,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     selectedTransactionIDs: transactionIDs,
                     hash: currentSearchHash,
                     allTransactionViolationsParam: transactionViolations,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {

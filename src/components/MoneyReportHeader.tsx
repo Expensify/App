@@ -1434,7 +1434,7 @@ function MoneyReportHeader({
                     Navigation.goBack(backToRoute);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport(moneyRequestReport?.reportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
+                        deleteAppReport(moneyRequestReport?.reportID, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList);
                     });
                 });
             },

@@ -579,6 +579,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
                             allTransactionViolationsParam: allTransactionViolations,
+                            currentUserAccountIDParam: accountID,
                         });
                     } else {
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);

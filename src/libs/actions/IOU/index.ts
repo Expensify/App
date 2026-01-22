@@ -231,7 +231,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
@@ -850,6 +850,7 @@ type DeleteTrackExpenseParams = {
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
+    currentUserAccountIDParam: number;
 };
 
 type DeleteMoneyRequestFunctionParams = {
@@ -865,6 +866,7 @@ type DeleteMoneyRequestFunctionParams = {
     selectedTransactionIDs?: string[];
     hash?: number;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
+    currentUserAccountIDParam: number;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -9086,6 +9088,7 @@ function deleteMoneyRequest({
     selectedTransactionIDs,
     allTransactionViolationsParam,
     hash,
+    currentUserAccountIDParam,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -9202,7 +9205,7 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, allTransactionViolationsParam, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, currentUserAccountIDParam, allTransactionViolationsParam, undefined),
             },
         });
     }
@@ -9221,7 +9224,14 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, allTransactionViolationsParam, undefined),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(
+                        chatReport,
+                        iouReport?.reportID,
+                        currentUserEmail,
+                        currentUserAccountIDParam,
+                        allTransactionViolationsParam,
+                        undefined,
+                    ),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
@@ -9423,6 +9433,7 @@ function deleteTrackExpense({
     isChatReportArchived,
     isChatIOUReportArchived,
     allTransactionViolationsParam,
+    currentUserAccountIDParam,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -9451,6 +9462,7 @@ function deleteTrackExpense({
             isChatIOUReportArchived,
             isSingleTransactionView,
             allTransactionViolationsParam,
+            currentUserAccountIDParam,
         });
         return urlToNavigateBack;
     }
@@ -9939,7 +9951,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    currentUserAccountIDParam?: number;
+    currentUserAccountIDParam: number;
     currentUserEmailParam?: string;
     allBetas: OnyxEntry<OnyxTypes.Beta[]>;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -10034,7 +10046,7 @@ function getPayMoneyRequestParams({
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, allTransactionViolations, undefined),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, currentUserAccountIDParam, allTransactionViolations, undefined),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -10381,9 +10393,8 @@ function canSubmitReport(
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
     currentUserEmailParam: string,
+    currentUserAccountID: number,
 ) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
-    const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
@@ -10522,7 +10533,7 @@ function approveMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail, allTransactionViolations, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail, currentUserAccountIDParam, allTransactionViolations, undefined),
             },
         };
     }
@@ -11737,6 +11748,7 @@ function payMoneyRequest(
         reportPolicy: policy,
         allBetas,
         iouReportCurrentNextStepDeprecated,
+        currentUserAccountIDParam: userAccountID,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -12505,6 +12517,7 @@ function prepareRejectMoneyRequestData(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     allBetas: OnyxEntry<OnyxTypes.Beta[]>,
+    currentUserAccountIDParam: number,
     options?: {sharedRejectedToReportID?: string},
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
@@ -13108,7 +13121,14 @@ function prepareRejectMoneyRequestData(
     // Update hasOutstandingChildRequest on the chat report after all optimistic updates
     if (policyExpenseChat) {
         const excludedReportID = rejectedToReportID ?? reportID;
-        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, excludedReportID, currentUserEmail, allTransactionViolations, undefined);
+        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(
+            policyExpenseChat,
+            excludedReportID,
+            currentUserEmail,
+            currentUserAccountIDParam,
+            allTransactionViolations,
+            undefined,
+        );
 
         if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
             optimisticData.push({
@@ -13261,9 +13281,10 @@ function rejectMoneyRequest(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     allBetas: OnyxEntry<OnyxTypes.Beta[]>,
+    currentUserAccountIDParam: number,
     options?: {sharedRejectedToReportID?: string},
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, allBetas, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, allBetas, currentUserAccountIDParam, options);
     if (!data) {
         return;
     }
