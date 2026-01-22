@@ -907,7 +907,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーとして使用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！さっそく設定を始めましょう。',
         chatWithAccountManager: 'ここでアカウントマネージャーとチャットする',
-        sayHello: 'こんにちはと言ってください！',
+        askMeAnything: '何でも聞いてください！',
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `「＋」ボタンを使って経費を${additionalText}してください。`,

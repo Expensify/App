@@ -93,9 +93,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
 
     const reportDetailsLink = report?.reportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}` : '';
 
-    let welcomeHeroText = translate('reportActionsView.sayHello');
+    let welcomeHeroText = translate('reportActionsView.askMeAnything');
     if (isInvoiceRoom) {
-        welcomeHeroText = translate('reportActionsView.sayHello');
+        welcomeHeroText = translate('reportActionsView.askMeAnything');
     } else if (isChatRoom) {
         welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: reportName});
     } else if (isSelfDM) {
