@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -80,7 +80,6 @@ import {
     isInvoiceReport,
     isMoneyRequest,
     isMoneyRequestReport,
-    isMoneyRequestReportPendingDeletion,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isReportTransactionThread,
@@ -361,6 +360,25 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
+    const reportIdRef = useRef<{onyxReportId: string | undefined; routeReportId: string | undefined}>({onyxReportId: undefined, routeReportId: undefined});
+
+    const redirectBackOnDeletedReport = useCallback(() => {
+        if (!reportIdRef.current.onyxReportId) {
+            reportIdRef.current.onyxReportId = reportOnyx?.reportID;
+            reportIdRef.current.routeReportId = reportIDFromRoute;
+        } else {
+            if (reportOnyx?.reportID) {
+                return;
+            }
+
+            if (reportIdRef.current.routeReportId === reportIDFromRoute) {
+                Navigation.goBack(route.params.backTo ?? undefined);
+            }
+        }
+    }, [reportOnyx?.reportID, route.params.backTo, reportIDFromRoute]);
+
+    useFocusEffect(redirectBackOnDeletedReport);
+
     const {closeSidePanel} = useSidePanel();
 
     useEffect(() => {
@@ -524,14 +542,32 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return false;
             }
 
-            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            if (
+                !wasReportAccessibleRef.current &&
+                !firstRenderRef.current &&
+                !reportID &&
+                !reportIdRef?.current.onyxReportId &&
+                !isOptimisticDelete &&
+                !reportMetadata?.isLoadingInitialReportActions &&
+                !userLeavingStatus
+            ) {
                 return true;
             }
 
             return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         },
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
+        [
+            firstRender,
+            shouldShowNotFoundLinkedAction,
+            reportID,
+            isOptimisticDelete,
+            reportMetadata?.isLoadingInitialReportActions,
+            userLeavingStatus,
+            currentReportIDFormRoute,
+            reportIdRef?.current.onyxReportId,
+        ],
     );
 
     const createOneTransactionThreadReport = useCallback(() => {
@@ -770,13 +806,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 });
             }
             if (prevReport?.parentReportID) {
-                // Prevent navigation to the IOU/Expense Report if it is pending deletion.
-                if (isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
-                    return;
-                }
-                Navigation.isNavigationReady().then(() => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
-                });
                 return;
             }
 
