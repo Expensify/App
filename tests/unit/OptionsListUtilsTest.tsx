@@ -650,7 +650,7 @@ describe('OptionsListUtils', () => {
         it('should return all options when no search value is provided', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const results = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const results = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL], policyCollection: allPolicies});
 
             // Then all personal details (including those that have reports) should be returned
             expect(results.personalDetails.length).toBe(10);
@@ -675,6 +675,7 @@ describe('OptionsListUtils', () => {
                 includeRecentReports: true,
                 includeCurrentUser: true,
                 loginList,
+                policyCollection: allPolicies,
             });
 
             // Then the current user should be included in personalDetails
@@ -702,6 +703,7 @@ describe('OptionsListUtils', () => {
                 includeUserToInvite: false,
                 includeRecentReports: true,
                 loginList,
+                policyCollection: allPolicies,
             });
 
             // Then the current user should not be included in personalDetails
@@ -1581,7 +1583,7 @@ describe('OptionsListUtils', () => {
         it('should return all options when search is empty', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL], policyCollection: allPolicies});
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList);
 
@@ -1593,7 +1595,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'man';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL], policyCollection: allPolicies});
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, {sortByReportTypeInSearch: true});
 
@@ -1612,7 +1614,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'mistersinister@marauders.com';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL], policyCollection: allPolicies});
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList);
 
@@ -1626,7 +1628,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'Archived';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL], policyCollection: allPolicies});
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList);
 
@@ -1642,7 +1644,14 @@ describe('OptionsListUtils', () => {
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
             const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS_WITH_PERIODS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_PERIODS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                policyCollection: allPolicies,
+            });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, {sortByReportTypeInSearch: true});
 
@@ -1656,7 +1665,14 @@ describe('OptionsListUtils', () => {
             const searchText = 'avengers';
             // Given a set of options with workspace rooms
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS_WITH_WORKSPACE_ROOM, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_WORKSPACE_ROOM,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                policyCollection: allPolicies,
+            });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList);
 
@@ -1669,7 +1685,7 @@ describe('OptionsListUtils', () => {
         it('should put exact match by login on the top of the list', () => {
             const searchText = 'reedrichards@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL], policyCollection: allPolicies});
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList);
 
@@ -1684,7 +1700,14 @@ describe('OptionsListUtils', () => {
             // Given a set of options with chat rooms
             const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS_WITH_CHAT_ROOMS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_CHAT_ROOMS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                policyCollection: allPolicies,
+            });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList);
 
@@ -1698,7 +1721,7 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             const searchText = 'fantastic';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [], policyCollection: allPolicies});
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList);
 
@@ -1713,7 +1736,7 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, loginList, nvpDismissedProductTraining});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, loginList, nvpDismissedProductTraining, betas: [], policyCollection: allPolicies});
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList);
 
@@ -1737,7 +1760,7 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email and the user is not excluded', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, loginList, nvpDismissedProductTraining});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, loginList, nvpDismissedProductTraining, betas: [], policyCollection: allPolicies});
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
@@ -1748,7 +1771,7 @@ describe('OptionsListUtils', () => {
         it('should return limited amount of recent reports if the limit is set', () => {
             const searchText = '';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, loginList, nvpDismissedProductTraining});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, loginList, nvpDismissedProductTraining, betas: [], policyCollection: allPolicies});
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, {maxRecentReportsToShow: 2});
 
@@ -1766,7 +1789,7 @@ describe('OptionsListUtils', () => {
         it('should not return any user to invite if email exists on the personal details list', () => {
             const searchText = 'natasharomanoff@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL], policyCollection: allPolicies});
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList);
 
@@ -2084,7 +2107,7 @@ describe('OptionsListUtils', () => {
 
         it('should return matching option when searching (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [], policyCollection: allPolicies});
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList);
 
@@ -2096,7 +2119,7 @@ describe('OptionsListUtils', () => {
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [], policyCollection: allPolicies});
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList);
 
@@ -2113,7 +2136,7 @@ describe('OptionsListUtils', () => {
                     // Given a set of options with periods
                     const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
                     // When we call getSearchOptions
-                    const results = getSearchOptions({options: OPTIONS_WITH_PERIODS, draftComments: {}, nvpDismissedProductTraining, loginList});
+                    const results = getSearchOptions({options: OPTIONS_WITH_PERIODS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [], policyCollection: allPolicies});
                     // When we pass the returned options to filterAndOrderOptions with a search value
                     const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', COUNTRY_CODE, loginList, {sortByReportTypeInSearch: true});
 
@@ -2131,7 +2154,7 @@ describe('OptionsListUtils', () => {
             OPTIONS.personalDetails = OPTIONS.personalDetails.flatMap((obj) => [obj, {...obj}]);
 
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL], policyCollection: allPolicies});
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList);
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
@@ -2147,7 +2170,14 @@ describe('OptionsListUtils', () => {
             const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
 
             // Given a set of options with self dm and all betas
-            const options = getSearchOptions({options: OPTIONS_WITH_SELF_DM, draftComments: {}, nvpDismissedProductTraining, loginList, betas: [CONST.BETAS.ALL]});
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_SELF_DM,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                policyCollection: allPolicies,
+            });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, loginList);
 
