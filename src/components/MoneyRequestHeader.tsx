@@ -113,13 +113,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
-    const markAsCash = () => {
-        markAsCashAction(transaction?.transactionID, reportID);
-    };
-
-    const primaryAction = !report || !parentReport || !transaction
-        ? ''
-        : getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, transaction, [], policy, isFromReviewDuplicates);
+    const primaryAction =
+        !report || !parentReport || !transaction
+            ? ''
+            : getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, transaction, [], policy, isFromReviewDuplicates);
 
     const primaryActionImplementation = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
@@ -185,7 +182,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             <Button
                 success
                 text={translate('iou.markAsCash')}
-                onPress={markAsCash}
+                onPress={() => {
+                    markAsCashAction(transaction?.transactionID, reportID);
+                }}
             />
         ),
     };
