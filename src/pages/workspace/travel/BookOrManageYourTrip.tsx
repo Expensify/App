@@ -36,7 +36,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
             isCentralPane
         >
             <MenuItem
-                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.manageTravel')}
+                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
                 icon={Expensicons.LuggageWithLines}
                 onPress={handleManageTravel}
                 shouldShowRightIcon

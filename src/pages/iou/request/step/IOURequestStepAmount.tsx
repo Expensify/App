@@ -11,13 +11,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage, shouldRequireMerchant} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -32,6 +33,8 @@ import {
     setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
     setSplitShares,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
@@ -80,10 +83,11 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
-    const policyID = report?.policyID;
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
@@ -184,6 +188,16 @@ function IOURequestStepAmount({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput);
 
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const taxCode = selectedCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -236,7 +250,6 @@ function IOURequestStepAmount({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                        allBetas,
                     });
                     return;
                 }
@@ -261,7 +274,6 @@ function IOURequestStepAmount({
                         introSelected,
                         activePolicyID,
                         quickAction,
-                        allBetas,
                     });
                     return;
                 }
@@ -271,8 +283,14 @@ function IOURequestStepAmount({
                 setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
+                // If merchant is required and missing, navigate to merchant step first
+                if (shouldRequireMerchant(transaction, report, isEditingSplitBill)) {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, reportActionID));
+                    return;
+                }
                 navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
             });
+
             return;
         }
 
@@ -292,7 +310,9 @@ function IOURequestStepAmount({
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID, undefined, reportActionID),
+                    );
                 });
             };
 
@@ -314,6 +334,10 @@ function IOURequestStepAmount({
                 const chatReportID = selectedReport?.chatReportID ?? iouReportID;
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    if (shouldRequireMerchant(transaction, selectedReport, isEditingSplitBill)) {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID, undefined, reportActionID));
+                        return;
+                    }
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID));
                 });
             } else {
@@ -371,6 +395,7 @@ function IOURequestStepAmount({
             taxAmount,
             policy,
             taxCode,
+            taxValue: taxPercentage,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,

@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
+    getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
     getEligibleBankAccountShareRecipients,
     getManagerAccountID,
@@ -1728,6 +1729,84 @@ describe('PolicyUtils', () => {
             };
             const result = getTagApproverRule(policy, '');
             expect(result).toBeUndefined();
+        });
+    });
+
+    describe('getAllTaxRatesNamesAndValues', () => {
+        it('returns empty object when there are no policies or no tax rates', () => {
+            expect(getAllTaxRatesNamesAndValues(undefined)).toEqual({});
+            expect(getAllTaxRatesNamesAndValues({})).toEqual({});
+            const policiesWithoutTaxes: OnyxCollection<Policy> = {
+                policy1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: undefined,
+                },
+            };
+            expect(getAllTaxRatesNamesAndValues(policiesWithoutTaxes)).toEqual({});
+        });
+
+        it('aggregates tax rates across policies', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            TAX_A: {name: 'A', value: '5'},
+                            TAX_B: {name: 'B', value: '10'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            TAX_C: {name: 'C', value: '15'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRatesNamesAndValues(policies);
+            expect(Object.keys(result).sort()).toEqual(['TAX_A', 'TAX_B', 'TAX_C']);
+            expect(result.TAX_B).toEqual({name: 'B', value: '10'});
+        });
+
+        it('preserves the first occurrence when duplicate tax keys appear in multiple policies', () => {
+            const policies: OnyxCollection<Policy> = {
+                first: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            DUP_TAX: {name: 'First', value: '1'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                second: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            DUP_TAX: {name: 'Second', value: '2'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRatesNamesAndValues(policies);
+            expect(result.DUP_TAX).toEqual({name: 'First', value: '1'});
         });
     });
 
