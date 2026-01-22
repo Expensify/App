@@ -338,6 +338,11 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
         return false;
     }
 
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (isDEWPolicy && !isAdmin) {
+        return false;
+    }
+
     if (report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
         return isManager || isAdmin;
     }

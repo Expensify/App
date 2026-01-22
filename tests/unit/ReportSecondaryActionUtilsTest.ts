@@ -991,6 +991,73 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
 
+    it('does not include UNAPPROVE option for non-admin on DEW policy', () => {
+        // Given an approved expense report on a DEW policy where the current user is the manager but not an admin
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: EMPLOYEE_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+
+        // When getting secondary report actions
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            allBetas: [CONST.BETAS.ALL],
+        });
+
+        // Then UNAPPROVE should not be included because DEW policies restrict unapprove to admins only
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
+    });
+
+    it('includes UNAPPROVE option for admin on DEW policy', () => {
+        // Given an approved expense report on a DEW policy where the current user is an admin
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: MANAGER_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            approver: APPROVER_EMAIL,
+            role: CONST.POLICY.ROLE.ADMIN,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+
+        // When getting secondary report actions
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            allBetas: [CONST.BETAS.ALL],
+        });
+
+        // Then UNAPPROVE should be included because admins can unapprove on DEW policies
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
+    });
+
     it('includes CANCEL_PAYMENT option for report paid elsewhere', () => {
         const report = {
             reportID: REPORT_ID,
