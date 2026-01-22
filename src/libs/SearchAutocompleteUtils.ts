@@ -170,6 +170,11 @@ function filterOutRangesWithCorrectValue(
         return range.value.length > 0;
     }
 
+    if ((range.key as string) === CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT) {
+        const num = Number(range.value);
+        return Number.isInteger(num) && num > 0;
+    }
+
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:

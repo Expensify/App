@@ -93,7 +93,9 @@ const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
  * @example
  * getUserFriendlyKey("taxRate") // returns "tax-rate"
  */
-function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+function getUserFriendlyKey(
+    keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT,
+): UserFriendlyKey {
     const isReportField = keyName.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
 
     if (isReportField) {
@@ -375,6 +377,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${Array.isArray(query.columns) ? query.columns.join(',') : query.columns}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit ?? ''}`;
 
     if (query.policyID) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(query.policyID) ? query.policyID.join(',') : query.policyID} `;
@@ -440,6 +443,11 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
+        }
+
+        if (result.limit !== undefined) {
+            const num = Number(result.limit);
+            result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
         }
 
         return result;
@@ -545,6 +553,7 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
 type BuildQueryStringOptions = {
     sortBy?: string;
     sortOrder?: string;
+    limit?: number;
 };
 
 /**
@@ -573,6 +582,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${options?.sortOrder ?? CONST.SEARCH.SORT_ORDER.DESC}`);
+    if (options?.limit !== undefined) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${options.limit}`);
+    }
 
     if (type) {
         const sanitizedType = sanitizeSearchValue(type);
@@ -1172,6 +1184,9 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
             userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS);
             break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT:
+            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT);
+            break;
         default:
             userFriendlyKey = getUserFriendlyKey(rawFilter.key as SearchFilterKey);
             break;
@@ -1203,7 +1218,7 @@ function buildUserReadableQueryString(
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
 ) {
-    const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
+    const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -1267,6 +1282,10 @@ function buildUserReadableQueryString(
     if (columns && columns.length > 0) {
         const columnValue = Array.isArray(columns) ? columns.map((column) => getUserFriendlyValue(column)).join(',') : getUserFriendlyValue(columns);
         title += ` columns:${columnValue}`;
+    }
+
+    if (limit !== undefined) {
+        title += ` limit:${limit}`;
     }
 
     for (const filterObject of filters) {

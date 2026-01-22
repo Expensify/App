@@ -7047,6 +7047,7 @@ const CONST = {
             SORT_ORDER: 'sortOrder',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LIMIT: 'limit',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7156,6 +7157,7 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             COLUMNS: 'columns',
+            LIMIT: 'limit',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {

@@ -243,6 +243,7 @@ type SearchQueryAST = {
     policyID?: string[];
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    limit?: number;
 };
 
 type SearchQueryJSON = {

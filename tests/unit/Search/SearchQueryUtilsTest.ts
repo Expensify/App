@@ -268,6 +268,39 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawn:last-month');
         });
+
+        describe('limit option', () => {
+            test('includes limit in query string when provided', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+
+                expect(result).toEqual('sortBy:date sortOrder:desc limit:10 type:expense');
+            });
+
+            test('combines limit with sort options', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    merchant: 'Amazon',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc', limit: 25});
+
+                expect(result).toEqual('sortBy:amount sortOrder:asc limit:25 type:expense merchant:Amazon');
+            });
+
+            test('omits limit when not provided', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('limit:');
+            });
+        });
     });
 
     describe('buildUserReadableQueryString', () => {
@@ -558,6 +591,50 @@ describe('SearchQueryUtils', () => {
             const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:trip feed:"oauth.americanexpressfdx.com 1001"');
 
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        describe('limit filter hashing', () => {
+            it('should return same similarSearchHash for queries with different limit values', () => {
+                const queryJSONa = buildSearchQueryJSON('type:expense limit:10');
+                const queryJSONb = buildSearchQueryJSON('type:expense limit:50');
+
+                expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            });
+
+            it('should return different primaryHash for queries with different limit values', () => {
+                const queryJSONa = buildSearchQueryJSON('type:expense limit:10');
+                const queryJSONb = buildSearchQueryJSON('type:expense limit:50');
+
+                expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+            });
+        });
+    });
+
+    describe('limit filter parsing', () => {
+        it('parses limit value as a number', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:25');
+
+            expect(queryJSON?.limit).toBe(25);
+            expect(typeof queryJSON?.limit).toBe('number');
+        });
+
+        it('preserves limit when combined with other filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:100 merchant:Amazon');
+
+            expect(queryJSON?.limit).toBe(100);
+            expect(queryJSON?.type).toBe('expense');
+        });
+
+        it('returns undefined limit when not specified in query', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:Amazon');
+
+            expect(queryJSON?.limit).toBeUndefined();
+        });
+
+        it('handles large limit values', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:9999');
+
+            expect(queryJSON?.limit).toBe(9999);
         });
     });
 
