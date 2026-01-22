@@ -62,7 +62,6 @@ import type {
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type Locale from '@src/types/onyx/Locale';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -462,6 +461,20 @@ type BuildOptimisticIOUReportActionParams = {
     bankAccountID?: number | undefined;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
+};
+
+type BuildOptimisticExpenseReportParams = {
+    chatReportID: string | undefined;
+    policyID: string | undefined;
+    payeeAccountID: number;
+    total: number;
+    currency: string;
+    allBetas: OnyxEntry<Beta[]>;
+    nonReimbursableTotal?: number;
+    parentReportActionID?: string;
+    optimisticIOUReportID?: string;
+    reportTransactions?: Record<string, Transaction>;
+    createdTimestamp?: string;
 };
 
 type OptimisticIOUReportAction = Pick<
@@ -1100,12 +1113,6 @@ Onyx.connectWithoutView({
             return acc;
         }, {});
     },
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -4462,7 +4469,6 @@ function getTransactionDetails(
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     currentUserDetails = currentUserPersonalDetails,
-    locale?: Locale,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4473,7 +4479,7 @@ function getTransactionDetails(
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     return {
-        created: getFormattedCreated(transaction, createdDateFormat, locale),
+        created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
@@ -4493,7 +4499,7 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
-        postedDate: getFormattedPostedDate(transaction, undefined, locale),
+        postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
@@ -6759,7 +6765,7 @@ function buildOptimisticInvoiceReport(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimisticReport = false) {
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, allBetas: OnyxEntry<Beta[]>, isEmptyOptimisticReport = false) {
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     if (isASAPSubmitBetaEnabled) {
         return {
@@ -6803,18 +6809,19 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimi
  * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
  * @param optimisticIOUReportID – Optimistic IOU report id
  */
-function buildOptimisticExpenseReport(
-    chatReportID: string | undefined,
-    policyID: string | undefined,
-    payeeAccountID: number,
-    total: number,
-    currency: string,
+function buildOptimisticExpenseReport({
+    chatReportID,
+    policyID,
+    payeeAccountID,
+    total,
+    currency,
+    allBetas,
     nonReimbursableTotal = 0,
-    parentReportActionID?: string,
-    optimisticIOUReportID?: string,
-    reportTransactions?: Record<string, Transaction>,
-    createdTimestamp?: string,
-): OptimisticExpenseReport {
+    parentReportActionID,
+    optimisticIOUReportID,
+    reportTransactions,
+    createdTimestamp,
+}: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
@@ -6827,7 +6834,7 @@ function buildOptimisticExpenseReport(
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 
@@ -6886,8 +6893,16 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, parentReportActionID: string, policy: OnyxEntry<Policy>, timeOfCreation: string) {
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, true);
+function buildOptimisticEmptyReport(
+    reportID: string,
+    accountID: number,
+    parentReport: OnyxEntry<Report>,
+    parentReportActionID: string,
+    policy: OnyxEntry<Policy>,
+    timeOfCreation: string,
+    allBetas: OnyxEntry<Beta[]>,
+) {
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas, true);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
@@ -9895,6 +9910,7 @@ function getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
+    allBetas: OnyxEntry<Beta[]>,
     filterDeprecatedTypes = false,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
@@ -10012,10 +10028,11 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
+    allBetas: OnyxEntry<Beta[]>,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, true, isReportArchived, isRestrictedToPreferredPolicy) as Array<
+    return getMoneyRequestOptions(report, policy, reportParticipants, allBetas, true, isReportArchived, isRestrictedToPreferredPolicy) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
@@ -10226,6 +10243,7 @@ function canCreateRequest(
     policy: OnyxEntry<Policy>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     isReportArchived: boolean | undefined,
+    allBetas: OnyxEntry<Beta[]>,
     isRestrictedToPreferredPolicy = false,
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
@@ -10234,7 +10252,7 @@ function canCreateRequest(
         return false;
     }
 
-    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, false, isReportArchived, isRestrictedToPreferredPolicy);
+    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, allBetas, false, isReportArchived, isRestrictedToPreferredPolicy);
     requestOptions.push(CONST.IOU.TYPE.CREATE);
 
     return requestOptions.includes(iouType);
@@ -10602,7 +10620,7 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
 /**
  * Check to see if the current user has access to view the report.
  */
-function canCurrentUserOpenReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function canCurrentUserOpenReport(report: OnyxEntry<Report>, allBetas: OnyxEntry<Beta[]>, isReportArchived = false): boolean {
     return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allBetas, isReportArchived);
 }
 
@@ -11065,6 +11083,7 @@ function shouldCreateNewMoneyRequestReport(
     existingIOUReport: OnyxInputOrEntry<Report> | undefined,
     chatReport: OnyxInputOrEntry<Report>,
     isScanRequest: boolean,
+    allBetas: OnyxEntry<Beta[]>,
     action?: IOUAction,
 ): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
@@ -12401,7 +12420,7 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
     return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
 }
 
-function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>): boolean {
+function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>, allBetas: OnyxEntry<Beta[]>): boolean {
     const transactions = getReportTransactions(iouReport?.reportID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
@@ -12953,6 +12972,25 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
+/**
+ * Get both field values map and fields-by-name map in a single pass
+ */
+function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
+    const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const fieldValues: Record<string, string> = {};
+    const fieldsByName: Record<string, PolicyReportField> = {};
+
+    for (const field of fields) {
+        if (field.name) {
+            const key = field.name.toLowerCase();
+            fieldValues[key] = field.value ?? field.defaultValue ?? '';
+            fieldsByName[key] = field;
+        }
+    }
+
+    return {fieldValues, fieldsByName};
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -13089,6 +13127,7 @@ export {
     getReimbursementQueuedActionMessage,
     getReportDescription,
     getReportFieldKey,
+    getReportFieldMaps,
     getReportIDFromLink,
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated

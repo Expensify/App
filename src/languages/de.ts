@@ -970,7 +970,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Etwas suchen …',
         buttonMySettings: 'Meine Einstellungen',
         fabNewChat: 'Chat starten',
-        fabNewChatExplained: 'Chat starten (Schwebende Aktion)',
+        fabNewChatExplained: 'Aktionsmenü öffnen',
         fabScanReceiptExplained: 'Beleg scannen (Schwebende Aktion)',
         chatPinned: 'Chat angeheftet',
         draftedMessage: 'Entwurfsnachricht',
@@ -1450,9 +1450,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Sie können Per Diem-Ausgaben nicht in Berichte auf anderen Arbeitsbereichen verschieben, da sich die Tagessätze zwischen Arbeitsbereichen unterscheiden können.',
         changeApprover: {
             title: 'Genehmigenden ändern',
-            subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Sie können den Genehmiger auch dauerhaft für alle Berichte in Ihren <a href="${workflowSettingLink}">Workflow-Einstellungen</a> ändern.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern. (Aktualisieren Sie Ihre <a href="${workflowSettingLink}">Arbeitsbereichseinstellungen</a>, um diese Änderung dauerhaft für alle Berichte zu übernehmen.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
@@ -1954,13 +1953,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Ihr Konto ist gesperrt',
         chatToConciergeToUnlock: 'Chatte mit Concierge, um Sicherheitsbedenken zu klären und dein Konto wieder freizuschalten.',
         chatWithConcierge: 'Chat mit Concierge',
-    },
-    passwordPage: {
-        changePassword: 'Passwort ändern',
-        changingYourPasswordPrompt: 'Wenn Sie Ihr Passwort ändern, wird es sowohl für Ihr Expensify.com-Konto als auch für Ihr New-Expensify-Konto aktualisiert.',
-        currentPassword: 'Aktuelles Passwort',
-        newPassword: 'Neues Passwort',
-        newPasswordPrompt: 'Ihr neues Passwort muss sich von Ihrem alten Passwort unterscheiden und mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
     },
     twoFactorAuth: {
         headerTitle: 'Zwei-Faktor-Authentifizierung',
@@ -3000,15 +2992,6 @@ ${
         subtitle: 'Ihre Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
         wrongTypeSubtitle: 'Diese Suche ist ungültig. Versuche, deine Suchkriterien anzupassen.',
     },
-    setPasswordPage: {
-        enterPassword: 'Passwort eingeben',
-        setPassword: 'Passwort festlegen',
-        newPasswordPrompt: 'Dein Passwort muss mindestens 8 Zeichen, 1 Großbuchstaben, 1 Kleinbuchstaben und 1 Zahl enthalten.',
-        passwordFormTitle: 'Willkommen zurück bei New Expensify! Bitte lege dein Passwort fest.',
-        passwordNotSet: 'Wir konnten Ihr neues Passwort nicht festlegen. Wir haben Ihnen einen neuen Passwort-Link gesendet, damit Sie es erneut versuchen können.',
-        setPasswordLinkInvalid: 'Dieser Link zum Festlegen des Passworts ist ungültig oder abgelaufen. Ein neuer wartet bereits in deinem E-Mail-Posteingang auf dich!',
-        validateAccount: 'Konto verifizieren',
-    },
     statusPage: {
         status: 'Status',
         statusExplanation: 'Füge ein Emoji hinzu, damit deine Kolleg:innen und Freund:innen leicht sehen können, was los ist. Du kannst optional auch eine Nachricht hinzufügen!',
@@ -3152,6 +3135,7 @@ ${
         errorMessageInvalidPhone: `Bitte gib eine gültige Telefonnummer ohne Klammern oder Bindestriche ein. Wenn du außerhalb der USA bist, gib bitte deine Ländervorwahl an (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Ungültige E-Mail',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ist bereits Mitglied von ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} ist bereits ein Admin von ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Indem Sie mit der Anfrage zur Aktivierung Ihres Expensify Wallets fortfahren, bestätigen Sie, dass Sie gelesen, verstanden und akzeptiert haben',
@@ -5054,6 +5038,25 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     title: 'Buchen oder verwalten Sie Ihre Reise',
                     subtitle: 'Nutzen Sie Expensify Travel für die besten Reiseangebote und verwalten Sie alle Ihre Geschäftsausgaben an einem Ort.',
                     ctaText: 'Buchen oder verwalten',
+                },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Reisebuchung',
+                        subtitle: 'Glückwunsch! Du kannst jetzt in diesem Workspace Reisen buchen und verwalten.',
+                        manageTravelLabel: 'Reisen verwalten',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Zentrale Rechnungsstellung',
+                        subtitle: 'Zentralisieren Sie alle Reisekosten in einer monatlichen Rechnung, anstatt zum Zeitpunkt des Kaufs zu bezahlen.',
+                        learnHow: "So funktioniert's.",
+                        subsections: {
+                            currentTravelSpendLabel: 'Aktuelle Reisekosten',
+                            currentTravelSpendCta: 'Saldo bezahlen',
+                            currentTravelLimitLabel: 'Aktuelles Reiselimit',
+                            settlementAccountLabel: 'Ausgleichskonto',
+                            settlementFrequencyLabel: 'Abrechnungshäufigkeit',
+                        },
+                    },
                 },
             },
             expensifyCard: {
@@ -8009,6 +8012,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <ul><li>Firmenkarten-Verbindungen und alle nicht eingereichten Ausgaben von diesen Karten</li> <li>SAML- und Gruppeneinstellungen</li> </ul> Alle Konten, Workspaces, Berichte, Ausgaben und anderen Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> löschen.`,
         },
         members: {title: 'Mitglieder', findMember: 'Mitglied suchen'},
+        domainAdmins: 'Domain-Admins',
     },
     gps: {
         tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
@@ -8049,7 +8053,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
             button: 'App herunterladen',
         },
-        notification: {title: 'GPS-Tracking läuft', body: 'Wechsel zur App, um abzuschließen'},
+        notification: {title: 'GPS-Tracking läuft', body: 'Zur App gehen, um abzuschließen'},
+        locationServicesRequiredModal: {
+            title: 'Standortzugriff erforderlich',
+            confirm: 'Einstellungen öffnen',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
+        },
+        fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
