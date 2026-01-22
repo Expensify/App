@@ -7,10 +7,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import type {IOUType} from '@src/CONST';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import TripStatusIndicator from './TripStatusIndicator';
@@ -31,11 +29,7 @@ function DistanceCounter({report, transaction, iouType}: DistanceCounterProps) {
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
-    const shouldUseDefaultExpensePolicy =
-        iouType === CONST.IOU.TYPE.CREATE &&
-        isPaidGroupPolicy(defaultExpensePolicy) &&
-        defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy);
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 

@@ -16,9 +16,8 @@ import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyR
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getRateID} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -68,15 +67,10 @@ function IOURequestStepDistanceGPS({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy =
-        iouType === CONST.IOU.TYPE.CREATE &&
-        isPaidGroupPolicy(defaultExpensePolicy) &&
-        defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy);
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
@@ -121,7 +115,6 @@ function IOURequestStepDistanceGPS({
             gpsCoordinates,
             gpsDistance: distance,
             firstCreatedGpsExpenseDateNewDot,
-            allBetas,
         });
     };
 

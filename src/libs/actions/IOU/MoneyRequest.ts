@@ -5,10 +5,9 @@ import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUt
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -411,12 +410,7 @@ function handleMoneyRequestStepScanParticipants({
 
     // If there was no reportID, then that means the user started this flow from the global + menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (
-        iouType === CONST.IOU.TYPE.CREATE &&
-        isPaidGroupPolicy(defaultExpensePolicy) &&
-        defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
-    ) {
+    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -601,12 +595,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
     // If there was no reportID, then that means the user started this flow from the global menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (
-        iouType === CONST.IOU.TYPE.CREATE &&
-        isPaidGroupPolicy(defaultExpensePolicy) &&
-        defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
-    ) {
+    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
