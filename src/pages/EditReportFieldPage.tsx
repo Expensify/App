@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React from 'react';
+import {InteractionManager} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -90,10 +91,13 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            goBack();
-            setTimeout(() => {
-                deleteReportField(report.reportID, reportField);
-            }, CONST.ANIMATED_TRANSITION);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                goBack();
+                setTimeout(() => {
+                    deleteReportField(report.reportID, reportField);
+                }, CONST.ANIMATED_TRANSITION);
+            });
         });
     };
 

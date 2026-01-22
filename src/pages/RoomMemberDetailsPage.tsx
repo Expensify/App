@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -66,7 +66,10 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                 return;
             }
             removeFromRoom(report?.reportID, [accountID]);
-            Navigation.goBack(backTo);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.goBack(backTo);
+            });
         });
     }, [showConfirmModal, translate, displayName, report.reportID, accountID, backTo]);
 
