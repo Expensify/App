@@ -25,6 +25,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SectionHeader, SelectionListWithSectionsProps} from './types';
 
@@ -102,6 +103,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             // FlashList may throw if layout for this index doesn't exist yet
             // This can happen when data changes rapidly (e.g., during search filtering)
             // The layout will be computed on next render, so we can safely ignore this
+            Log.warn('SelectionListWithSections: error scrolling to index', {error});
         }
     };
 
