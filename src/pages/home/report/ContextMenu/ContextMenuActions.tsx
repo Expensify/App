@@ -247,6 +247,7 @@ type ContextMenuActionPayload = {
     harvestReport?: OnyxEntry<ReportType>;
     isDelegateAccessRestricted?: boolean;
     showDelegateNoAccessModal?: () => void;
+    currentUserLogin: string;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -693,6 +694,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         movedFromReport,
                         movedToReport,
                         policyTags,
+                        currentUserLogin,
                     });
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {

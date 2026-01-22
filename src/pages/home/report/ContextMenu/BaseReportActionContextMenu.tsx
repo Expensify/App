@@ -189,6 +189,7 @@ function BaseReportActionContextMenu({
     const policyID = report?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
@@ -412,6 +413,7 @@ function BaseReportActionContextMenu({
                             isDelegateAccessRestricted,
                             showDelegateNoAccessModal,
                             currentUserAccountID,
+                            currentUserLogin: session?.email ?? '',
                         };
 
                         if ('renderContent' in contextAction) {

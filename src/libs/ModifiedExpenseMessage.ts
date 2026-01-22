@@ -504,6 +504,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
+    currentUserLogin: currentUserLoginParam,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -511,6 +512,7 @@ function getForReportActionTemp({
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyTags: OnyxEntry<PolicyTagLists>;
+    currentUserLogin: string;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -600,7 +602,7 @@ function getForReportActionTemp({
         if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
             categoryLabel += ` ${translate('iou.basedOnAI')}`;
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
-            const isAdmin = isPolicyAdmin(policy, currentUserLogin);
+            const isAdmin = isPolicyAdmin(policy, currentUserLoginParam);
 
             // For admins, create a hyperlink to the workspace rules page
             if (isAdmin && policy?.id) {
