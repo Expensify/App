@@ -117,17 +117,12 @@ platforms:
       - href: domains
         title: Domains
         icon: /assets/images/domains.svg
-        description: Claim and verify your company’s domain to manage users and enable enhanced security.
+        description: Claim and verify your company’s domain to access additional management and security features.
       
       - href: reports-and-expenses
         title: Reports & Expenses
         icon: /assets/images/envelope-receipt.svg
         description: Learn more about expense tracking and submission.
-      
-      - href: domains
-        title: Domains
-        icon: /assets/images/domains.svg
-        description: Claim and verify your company’s domain to access additional management and security features.
 
       - href: wallet-and-payments
         title: Wallet & Payments
