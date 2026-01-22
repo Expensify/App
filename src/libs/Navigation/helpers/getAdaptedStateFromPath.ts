@@ -93,6 +93,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         let queryParam: Record<string, string> = {};
         if (route.path) {
             const decodedPath = decodeURIComponent(route.path);
+            // Extract the "q" query parameter (matches ?q=... or &q=...)
             const searchMatch = decodedPath.match(/[?&]q=([^&/]+)/);
             if (searchMatch?.[1]) {
                 queryParam = {q: decodeURIComponent(searchMatch[1])};
