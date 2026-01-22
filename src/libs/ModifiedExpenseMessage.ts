@@ -28,7 +28,7 @@ import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, 
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- This Onyx.connect is used by utility files (ReportUtils, OptionsListUtils, ReportNameUtils) that will be migrated in follow-up PRs
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- ModifiedExpenseMessage utility uses Onyx.connectWithoutView to maintain global policyTags state for getForReportAction, which is called by utility files (ReportUtils, OptionsListUtils, ReportNameUtils) that cannot use hooks. This will be migrated when those utility files are refactored.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -45,7 +45,7 @@ let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let currentUserLogin = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- This Onyx.connect is used by utility files (ReportUtils, OptionsListUtils, ReportNameUtils) that will be migrated in follow-up PRs
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- ModifiedExpenseMessage utility uses Onyx.connectWithoutView to access session data globally for getForReportAction, which is called by utility files (ReportUtils, OptionsListUtils, ReportNameUtils) that cannot use hooks. This will be migrated when those utility files are refactored.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
