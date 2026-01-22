@@ -325,9 +325,29 @@ type PayInvoiceArgs = {
 };
 
 type RejectMoneyRequestData = {
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
+    optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        >
+    >;
+    successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.TRANSACTION>
+    >;
+    failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        >
+    >;
     parameters: RejectMoneyRequestParams;
     urlToNavigateBack: Route | undefined;
 };
@@ -1293,9 +1313,13 @@ function setMoneyRequestTimeCount(transactionID: string, count: number, isDraft:
  * @param transactionID - The transaction ID
  * @param category - The category name
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
+ * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+    if (isMovingFromTrackExpense) {
+        return;
+    }
     if (!policy) {
         setMoneyRequestTaxRate(transactionID, '');
         setMoneyRequestTaxAmount(transactionID, null);
@@ -3143,13 +3167,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     // STEP 3: Build an optimistic transaction with the receipt
-    const isDistanceRequest =
-        existingTransaction &&
-        (existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
-            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
-    const isManualDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
+    const isManualDistanceRequest = existingTransaction && isManualDistanceRequestTransactionUtils(existingTransaction);
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID: optimisticTransactionID,
         existingTransaction,
@@ -3203,8 +3222,17 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: omittedConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
+        const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
         optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
+
+        // Calculate proportional convertedAmount for the split based on the original conversion rate
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+        const originalAmount = Number(existingTransaction.modifiedAmount) || existingTransaction.amount;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+        const splitAmount = Number(optimisticTransaction.modifiedAmount) || optimisticTransaction.amount;
+        if (originalConvertedAmount && originalAmount && splitAmount) {
+            optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
+        }
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -4455,7 +4483,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         isPaidGroupPolicy(policy) &&
         !isInvoice &&
         updatedTransaction &&
-        (hasModifiedTag ||
+        (hasPendingWaypoints ||
+            hasModifiedTag ||
             hasModifiedCategory ||
             hasModifiedComment ||
             hasModifiedMerchant ||
@@ -4478,6 +4507,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedCategory && transactionChanges.category === ''
                 ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                 : optimisticViolations;
+        if (hasPendingWaypoints) {
+            optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
+        }
 
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
@@ -5146,6 +5178,7 @@ type UpdateMoneyRequestTaxRateParams = {
     parentReport: OnyxEntry<OnyxTypes.Report>;
     taxCode: string;
     taxAmount: number;
+    taxValue: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -5162,6 +5195,7 @@ function updateMoneyRequestTaxRate({
     parentReport,
     taxCode,
     taxAmount,
+    taxValue,
     policy,
     policyTagList,
     policyCategories,
@@ -5173,6 +5207,7 @@ function updateMoneyRequestTaxRate({
     const transactionChanges = {
         taxCode,
         taxAmount,
+        taxValue,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
@@ -5198,9 +5233,9 @@ type UpdateMoneyRequestDistanceParams = {
     waypoints?: WaypointCollection;
     distance?: number;
     routes?: Routes;
-    policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -5218,9 +5253,9 @@ function updateMoneyRequestDistance({
     waypoints,
     distance,
     routes = undefined,
-    policy = {} as OnyxTypes.Policy,
-    policyTagList = {},
-    policyCategories = {},
+    policy,
+    policyTagList,
+    policyCategories,
     transactionBackup,
     currentUserAccountIDParam,
     currentUserEmailParam,
@@ -6208,7 +6243,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           category,
                           tag,
                           taxCode,
-                          taxAmount,
+                          taxAmount: Math.abs(taxAmount),
                           billable,
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
@@ -6604,7 +6639,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         value: recentServerValidatedWaypoints,
     });
 
-    if (isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction)) {
+    const isDistanceRequest = isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction);
+
+    if (isDistanceRequest) {
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -6739,6 +6776,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 optimisticReportID,
                 optimisticReportActionID,
+                policyID: isDistanceRequest ? undefined : policy?.id,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 reimbursable,
@@ -8482,6 +8520,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     taxCode: string;
+    taxValue: string;
     allowNegative?: boolean;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -8504,6 +8543,7 @@ function updateMoneyRequestAmountAndCurrency({
     policyTagList,
     policyCategories,
     taxCode,
+    taxValue,
     allowNegative = false,
     transactions,
     transactionViolations,
@@ -8518,6 +8558,7 @@ function updateMoneyRequestAmountAndCurrency({
         currency,
         taxCode,
         taxAmount,
+        taxValue,
     };
 
     let data: UpdateMoneyRequestData;
@@ -9423,6 +9464,95 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     return {holdReportActions, holdTransactions};
 }
 
+type OptimisticReportActionCopyIDs = Record<string, string>;
+
+/**
+ * Gets duplicate workflow actions for a partial expense report.
+ * Used when splitting held expenses into a new partial report to maintain action history.
+ *
+ * @param sourceReportID - The ID of the original report to copy actions from
+ * @param targetReportID - The ID of the new partial expense report to copy actions to
+ * @returns A tuple of [optimisticData, successData, failureData, duplicatedReportActionIDs]
+ */
+function getDuplicateActionsForPartialReport(
+    sourceReportID: string | undefined,
+    targetReportID: string | undefined,
+): [
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+    OptimisticReportActionCopyIDs,
+] {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs = {};
+
+    if (!sourceReportID || !targetReportID) {
+        return [optimisticData, successData, failureData, optimisticReportActionCopyIDs];
+    }
+
+    const sourceReportActions = getAllReportActions(sourceReportID);
+
+    // Match the backend's WORKFLOW_ACTIONS list
+    const workflowActionTypes = [
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+        CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+        CONST.REPORT.ACTIONS.TYPE.REJECTED,
+        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+        CONST.REPORT.ACTIONS.TYPE.CLOSED,
+        CONST.REPORT.ACTIONS.TYPE.REOPENED,
+        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+        CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+        CONST.REPORT.ACTIONS.TYPE.REROUTE,
+    ] as const;
+
+    const copiedActions: Record<string, OnyxTypes.ReportAction> = {};
+    const copiedActionsSuccess: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const copiedActionsFailure: Record<string, null> = {};
+
+    for (const action of Object.values(sourceReportActions)) {
+        if (action && (workflowActionTypes as readonly string[]).includes(action.actionName)) {
+            const newActionID = NumberUtils.rand64();
+            copiedActions[newActionID] = {
+                ...action,
+                reportActionID: newActionID,
+                reportID: targetReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            copiedActionsSuccess[newActionID] = {
+                pendingAction: null,
+            };
+            copiedActionsFailure[newActionID] = null;
+            optimisticReportActionCopyIDs[action.reportActionID] = newActionID;
+        }
+    }
+
+    if (Object.keys(copiedActions).length > 0) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActions,
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActionsSuccess,
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActionsFailure,
+        });
+    }
+
+    return [optimisticData, successData, failureData, optimisticReportActionCopyIDs];
+}
+
 function getReportFromHoldRequestsOnyxData({
     chatReport,
     iouReport,
@@ -9442,6 +9572,7 @@ function getReportFromHoldRequestsOnyxData({
     optimisticHoldActionID: string;
     optimisticCreatedReportForUnapprovedTransactionsActionID: string | undefined;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
+    optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs;
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
@@ -9686,6 +9817,17 @@ function getReportFromHoldRequestsOnyxData({
         },
     ];
 
+    // Copy submission/approval actions to the new report
+    const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticReportActionCopyIDs] = getDuplicateActionsForPartialReport(
+        iouReport?.reportID,
+        optimisticExpenseReport.reportID,
+    );
+    // Only copy the report action for approval flow
+    if (isApprovalFlow && !isEmptyObject(optimisticReportActionCopyIDs)) {
+        optimisticData.push(...copiedActionsOptimistic);
+        successData.push(...copiedActionsSuccess);
+        failureData.push(...copiedActionsFailure);
+    }
     // add optimistic system message explaining the created report for unapproved transactions
     if (isApprovalFlow && optimisticCreatedReportForUnapprovedAction) {
         optimisticData.push({
@@ -9724,6 +9866,7 @@ function getReportFromHoldRequestsOnyxData({
         successData,
         optimisticHoldReportID: optimisticExpenseReport.reportID,
         optimisticHoldReportExpenseActionIDs,
+        optimisticReportActionCopyIDs,
     };
 }
 
@@ -10430,6 +10573,7 @@ function approveMoneyRequest(
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
+    let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
     if (!full && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
@@ -10449,6 +10593,7 @@ function approveMoneyRequest(
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+        optimisticReportActionCopyIDs = JSON.stringify(holdReportOnyxData.optimisticReportActionCopyIDs);
     }
 
     // Remove duplicates violations if we approve the report
@@ -10491,6 +10636,7 @@ function approveMoneyRequest(
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        optimisticReportActionCopyIDs,
         optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
@@ -10748,7 +10894,7 @@ function retractReport(
         });
     }
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -10770,7 +10916,7 @@ function retractReport(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -10780,16 +10926,19 @@ function retractReport(
                 },
             },
         },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 stateNum: expenseReport.stateNum,
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 statusNum: expenseReport.stateNum,
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 hasReportBeenRetracted: false,
                 nextStep: expenseReport.nextStep ?? null,
                 pendingFields: {
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     partial: null,
                     nextStep: null,
                 },
@@ -11513,6 +11662,7 @@ function completePaymentOnboarding(
         companySize: introSelected?.companySize as OnboardingCompanySize,
     });
 }
+
 function payMoneyRequest(
     paymentType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
@@ -12720,14 +12870,14 @@ function prepareRejectMoneyRequestData(
             );
             successData.push(
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${rejectedToReportID}`,
                     value: {
                         pendingFields: null,
                     },
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${rejectedToReportID}`,
                     value: {
                         isOptimisticReport: null,
@@ -14422,4 +14572,5 @@ export type {
     PerDiemExpenseTransactionParams,
     UpdateMoneyRequestData,
     BasePolicyParams,
+    RejectMoneyRequestData,
 };

@@ -63,7 +63,6 @@ import type {
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type Locale from '@src/types/onyx/Locale';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -187,6 +186,8 @@ import {
     getExportIntegrationLastMessageText,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -218,6 +219,7 @@ import {
     getSortedReportActions,
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -301,6 +303,7 @@ import {
     getConvertedAmount,
     getCurrency,
     getDescription,
+    getDistanceInMeters,
     getFormattedCreated,
     getFormattedPostedDate,
     getMCCGroup,
@@ -327,6 +330,7 @@ import {
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isMapDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
@@ -686,9 +690,9 @@ type OptimisticTaskReportAction = Pick<
 >;
 
 type AnnounceRoomOnyxData = {
-    onyxOptimisticData: OnyxUpdate[];
-    onyxSuccessData: OnyxUpdate[];
-    onyxFailureData: OnyxUpdate[];
+    onyxOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    onyxSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    onyxFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
 };
 
 type OptimisticAnnounceChat = {
@@ -904,9 +908,11 @@ type OptionData = {
     ReportNameValuePairs;
 
 type OnyxDataTaskAssigneeChat = {
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    >;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>>;
     optimisticAssigneeAddComment?: OptimisticReportAction;
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
@@ -1315,6 +1321,17 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
         return undefined;
     }
     return getReport(report.parentReportID, allReports);
+}
+
+/**
+ * Returns the appropriate report to use for display.
+ * For invoice chat threads, returns the parent invoice report.
+ * For other cases, returns the provided report.
+ */
+function getReportForHeader(report: OnyxEntry<Report>): OnyxEntry<Report> {
+    const parentReport = getParentReport(report);
+    const isParentInvoiceAndIsChatThread = isChatThread(report) && isInvoiceReport(parentReport);
+    return isParentInvoiceAndIsChatThread ? parentReport : report;
 }
 
 /**
@@ -4451,7 +4468,6 @@ function getTransactionDetails(
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     currentUserDetails = currentUserPersonalDetails,
-    locale?: Locale,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4462,7 +4478,7 @@ function getTransactionDetails(
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     return {
-        created: getFormattedCreated(transaction, createdDateFormat, locale),
+        created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
@@ -4482,7 +4498,7 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
-        postedDate: getFormattedPostedDate(transaction, undefined, locale),
+        postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
@@ -4963,18 +4979,9 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 }
 
 /**
- * Check if any of the transactions in the report has required missing fields
- */
-function hasMissingSmartscanFields(iouReportID: string | undefined, transactions?: Transaction[]): boolean {
-    const reportTransactions = transactions ?? getReportTransactions(iouReportID);
-
-    return reportTransactions.some((transaction) => hasMissingSmartscanFieldsTransactionUtils(transaction));
-}
-
-/**
  * Get report action which is missing smartscan fields
  */
-function getReportActionWithMissingSmartscanFields(iouReportID: string | undefined): ReportAction | undefined {
+function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>, iouReportID: string | undefined): ReportAction | undefined {
     const reportActions = Object.values(getAllReportActions(iouReportID));
     return reportActions.find((action) => {
         if (!isMoneyRequestAction(action)) {
@@ -4987,15 +4994,15 @@ function getReportActionWithMissingSmartscanFields(iouReportID: string | undefin
         if (!wasActionTakenByCurrentUser(action)) {
             return false;
         }
-        return hasMissingSmartscanFieldsTransactionUtils(transaction);
+        return hasMissingSmartscanFieldsTransactionUtils(transaction, report);
     });
 }
 
 /**
  * Check if iouReportID has required missing fields
  */
-function shouldShowRBRForMissingSmartscanFields(iouReportID: string | undefined): boolean {
-    return !!getReportActionWithMissingSmartscanFields(iouReportID);
+function shouldShowRBRForMissingSmartscanFields(report: OnyxEntry<Report>, iouReportID: string | undefined): boolean {
+    return !!getReportActionWithMissingSmartscanFields(report, iouReportID);
 }
 
 /**
@@ -5033,7 +5040,8 @@ function getTransactionReportName({
         return translateLocal('iou.receiptScanning', {count: 1});
     }
 
-    if (hasMissingSmartscanFieldsTransactionUtils(transaction)) {
+    const report = getReportOrDraftReport(transaction?.reportID, reports);
+    if (hasMissingSmartscanFieldsTransactionUtils(transaction, report)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.receiptMissingDetails');
     }
@@ -5043,11 +5051,16 @@ function getTransactionReportName({
         return translateLocal('iou.fieldPending');
     }
 
+    // The unit does not matter as we are only interested in whether the distance is zero or not
+    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('violations.noRoute');
+    }
+
     if (isSentMoneyReportAction(reportAction)) {
         return getIOUReportActionDisplayMessage(reportAction as ReportAction, transaction);
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, reports);
     const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
@@ -5105,7 +5118,7 @@ function getReportPreviewMessage(
                 return translateLocal('iou.receiptScanning', {count: 1});
             }
 
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
+            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.receiptMissingDetails');
             }
@@ -5141,7 +5154,7 @@ function getReportPreviewMessage(
                 return translateLocal('iou.receiptScanning', {count: 1});
             }
 
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
+            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.receiptMissingDetails');
             }
@@ -5656,6 +5669,10 @@ function getReportName(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getWorkspaceFeatureEnabledMessage(translateLocal, parentReportAction);
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getUpdateACHAccountMessage(translateLocal, parentReportAction);
+    }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('systemMessage.mergedWithCashTransaction');
@@ -5735,6 +5752,14 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getForwardsToUpdateMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getInvoiceCompanyNameUpdateMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getInvoiceCompanyWebsiteUpdateMessage(translateLocal, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -9322,9 +9347,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         }
     }
 
-    if (!isReportArchived && hasSmartscanError(reportActionsArray)) {
+    if (!isReportArchived && hasSmartscanError(reportActionsArray, report)) {
         reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
-        reportAction = getReportActionWithSmartscanError(reportActionsArray);
+        reportAction = getReportActionWithSmartscanError(reportActionsArray, report);
     }
 
     if (!isReportArchived && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -10612,7 +10637,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
-function getReportActionWithSmartscanError(reportActions: ReportAction[]): ReportAction | undefined {
+function getReportActionWithSmartscanError(reportActions: ReportAction[], report: OnyxEntry<Report>): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
         const isSplitOrTrackAction = isSplitBillReportAction(action) || isTrackExpenseAction(action);
@@ -10620,14 +10645,14 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[]): Repor
             return false;
         }
         const IOUReportID = getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
+        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(report, IOUReportID) && !isSettled(IOUReportID);
         if (isReportPreviewError) {
             return true;
         }
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
-        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction);
+        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction, report);
 
         return isTransactionThreadError;
     });
@@ -10636,8 +10661,8 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[]): Repor
 /**
  * Checks if report action has error when smart scanning
  */
-function hasSmartscanError(reportActions: ReportAction[]): boolean {
-    return !!getReportActionWithSmartscanError(reportActions);
+function hasSmartscanError(reportActions: ReportAction[], report: OnyxEntry<Report>): boolean {
+    return !!getReportActionWithSmartscanError(reportActions, report);
 }
 
 function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
@@ -10949,7 +10974,7 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): OnyxUpdate[] {
+function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> {
     let previousActionDeleted = false;
     return ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction}, index) => {
         const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
@@ -11095,6 +11120,12 @@ function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: On
     return isPolicyAdminPolicyUtils(policy) || isPolicyOwner(policy, currentUserAccountID) || isReportOwner(report) || isApprover;
 }
 
+function isNonOwnerMangerOfIOUReport(report: OnyxEntry<Report>): boolean {
+    const isOwner = report?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const isManager = report?.managerID === currentUserPersonalDetails?.accountID;
+    return isIOUReport(report) && !isOwner && !isManager;
+}
+
 /**
  * Whether the user can join a report
  */
@@ -11173,7 +11204,12 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
         return canLeaveInvoiceRoom(report);
     }
 
-    return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
+    return (
+        (isChatThread(report) && !!getReportNotificationPreference(report)) ||
+        isUserCreatedPolicyRoom(report) ||
+        isNonAdminOrOwnerOfPolicyExpenseChat(report, policy) ||
+        isNonOwnerMangerOfIOUReport(report)
+    );
 }
 
 function createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected: OnyxEntry<IntroSelected>, transactionID: string, actionName: IOUAction): void {
@@ -11203,6 +11239,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     actionName: IOUAction,
     reportActionID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
+    allTransactionDrafts: OnyxCollection<Transaction>,
     activePolicy: OnyxEntry<Policy>,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID?: string,
@@ -11230,7 +11267,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         attendees: transaction?.modifiedAttendees ?? baseComment.attendees,
     };
 
-    removeDraftTransactions();
+    removeDraftTransactions(false, allTransactionDrafts);
 
     createDraftTransaction({
         ...transaction,
@@ -11686,7 +11723,17 @@ function prepareOnboardingOnyxData({
 
     const hasOutstandingChildTask = tasksData.some((task) => !task.completedTaskReportAction);
 
-    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => {
+    const tasksForOptimisticData = tasksData.reduce<
+        Array<
+            OnyxUpdate<
+                | typeof ONYXKEYS.COLLECTION.REPORT
+                | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+                | typeof ONYXKEYS.NVP_INTRO_SELECTED
+                | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+                | typeof ONYXKEYS.NVP_ONBOARDING
+            >
+        >
+    >((acc, {currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => {
         acc.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11749,7 +11796,7 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const tasksForFailureData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskReportAction}) => {
+    const tasksForFailureData = tasksData.reduce<Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>>>((acc, {currentTask, taskReportAction}) => {
         acc.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11775,7 +11822,9 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const tasksForSuccessData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, completedTaskReportAction}) => {
+    const tasksForSuccessData = tasksData.reduce<
+        Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>
+    >((acc, {currentTask, taskCreatedAction, taskReportAction, completedTaskReportAction}) => {
         acc.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11825,7 +11874,7 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
+    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...tasksForOptimisticData];
     const lastVisibleActionCreated = welcomeSignOffCommentAction.created;
     optimisticData.push(
         {
@@ -11864,7 +11913,9 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    const successData: OnyxUpdate[] = [...tasksForSuccessData];
+    const successData: Array<
+        TupleToUnion<typeof tasksForSuccessData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_ONBOARDING>
+    > = [...tasksForSuccessData];
 
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -11893,7 +11944,10 @@ function prepareOnboardingOnyxData({
         };
     }
 
-    const failureData: OnyxUpdate[] = [...tasksForFailureData];
+    const failureData: Array<
+        | TupleToUnion<typeof tasksForFailureData>
+        | OnyxUpdate<typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
+    > = [...tasksForFailureData];
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12908,6 +12962,25 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
+/**
+ * Get both field values map and fields-by-name map in a single pass
+ */
+function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
+    const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const fieldValues: Record<string, string> = {};
+    const fieldsByName: Record<string, PolicyReportField> = {};
+
+    for (const field of fields) {
+        if (field.name) {
+            const key = field.name.toLowerCase();
+            fieldValues[key] = field.value ?? field.defaultValue ?? '';
+            fieldsByName[key] = field;
+        }
+    }
+
+    return {fieldValues, fieldsByName};
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -13044,6 +13117,7 @@ export {
     getReimbursementQueuedActionMessage,
     getReportDescription,
     getReportFieldKey,
+    getReportFieldMaps,
     getReportIDFromLink,
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -13085,7 +13159,6 @@ export {
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,
     hasMissingPaymentMethod,
-    hasMissingSmartscanFields,
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
@@ -13217,8 +13290,6 @@ export {
     shouldReportShowSubscript,
     shouldShowFlagComment,
     sortOutstandingReportsBySelected,
-    getReportActionWithMissingSmartscanFields,
-    shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
     updateOptimisticParentReportAction,
     updateReportPreview,
@@ -13319,6 +13390,7 @@ export {
     isOneTransactionReport,
     isTrackExpenseReportNew,
     shouldHideSingleReportField,
+    getReportForHeader,
 };
 
 export type {
