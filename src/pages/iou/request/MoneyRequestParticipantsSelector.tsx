@@ -504,7 +504,7 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const importContactsButtonComponent = useMemo(() => {
+    const footerContentAbovePaginationComponent = useMemo(() => {
         const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
         if (!shouldShowImportContactsButton) {
             return null;
@@ -515,9 +515,10 @@ function MoneyRequestParticipantsSelector({
                 icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
+                style={styles.mb3}
             />
         );
-    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate]);
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (searchTerm.length || isSearchingForReports) {
@@ -579,8 +580,7 @@ function MoneyRequestParticipantsSelector({
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
-                listHeaderContent={importContactsButtonComponent}
-                showSectionTitleWithListHeaderContent
+                footerContentAbovePagination={footerContentAbovePaginationComponent}
                 headerMessage={header}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}

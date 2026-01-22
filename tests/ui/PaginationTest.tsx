@@ -9,6 +9,7 @@ import {setSidebarLoaded} from '@userActions/App';
 import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
@@ -208,7 +209,7 @@ async function fastSignInWithTestUser() {
             email: USER_A_EMAIL,
             encryptedAuthToken: TEST_AUTH_TOKEN,
         },
-        [ONYXKEYS.BETAS]: [CONST.BETAS.ALL],
+        [ONYXKEYS.BETAS]: ['all'],
         [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
             [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
@@ -284,6 +285,10 @@ async function signInAndGetApp(): Promise<void> {
 }
 
 describe('Pagination', () => {
+    beforeEach(() => {
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+        return waitForBatchedUpdates();
+    });
     afterEach(async () => {
         await waitForIdle();
         await act(async () => {

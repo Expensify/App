@@ -968,7 +968,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Encontre algo...',
         buttonMySettings: 'Minhas configurações',
         fabNewChat: 'Iniciar chat',
-        fabNewChatExplained: 'Abrir menu de ações',
+        fabNewChatExplained: 'Iniciar chat (Ação flutuante)',
         fabScanReceiptExplained: 'Digitalizar recibo (Ação flutuante)',
         chatPinned: 'Conversa fixada',
         draftedMessage: 'Mensagem rascunhada',
@@ -3118,7 +3118,6 @@ ${
         errorMessageInvalidPhone: `Insira um número de telefone válido sem parênteses ou traços. Se você estiver fora dos EUA, inclua o código do seu país (por exemplo, ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'E-mail inválido',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} já é membro de ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} já é um administrador de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Ao prosseguir com o pedido para ativar sua Carteira Expensify, você confirma que leu, compreende e aceita',
@@ -5008,25 +5007,6 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     title: 'Reserve ou gerencie sua viagem',
                     subtitle: 'Use o Expensify Travel para obter as melhores ofertas de viagem e gerencie todas as suas despesas comerciais em um só lugar.',
                     ctaText: 'Reservar ou gerenciar',
-                },
-                travelInvoicing: {
-                    travelBookingSection: {
-                        title: 'Reserva de viagem',
-                        subtitle: 'Parabéns! Agora você está pronto para reservar e gerenciar viagens neste workspace.',
-                        manageTravelLabel: 'Gerenciar viagens',
-                    },
-                    centralInvoicingSection: {
-                        title: 'Faturamento centralizado',
-                        subtitle: 'Centralize todos os gastos de viagem em uma fatura mensal em vez de pagar no momento da compra.',
-                        learnHow: 'Saiba como.',
-                        subsections: {
-                            currentTravelSpendLabel: 'Gasto atual com viagens',
-                            currentTravelSpendCta: 'Pagar saldo',
-                            currentTravelLimitLabel: 'Limite de viagem atual',
-                            settlementAccountLabel: 'Conta de liquidação',
-                            settlementFrequencyLabel: 'Frequência de liquidação',
-                        },
-                    },
                 },
             },
             expensifyCard: {
@@ -7971,7 +7951,6 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <ul><li>Conexões de cartão corporativo e quaisquer despesas não reportadas desses cartões</li> <li>Configurações de SAML e de grupo</li> </ul> Todas as contas, workspaces, relatórios, despesas e outros dados permanecerão. <br/><br/>Observação: Você pode remover este domínio da sua lista de domínios excluindo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
         },
         members: {title: 'Membros', findMember: 'Encontrar membro'},
-        domainAdmins: 'Administradores de domínio',
     },
     gps: {
         tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',

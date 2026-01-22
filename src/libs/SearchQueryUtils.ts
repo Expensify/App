@@ -809,13 +809,10 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
             filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
-            // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
-            filtersForm[key as typeof filterKey] = filterValues;
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {

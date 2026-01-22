@@ -7,6 +7,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -23,6 +24,7 @@ type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
 
+    const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign'] as const);
 
@@ -73,6 +75,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         >
             {domainHasOnlyOneAdmin && (
                 <MenuItem
+                    style={styles.mb5}
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
@@ -82,6 +85,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                 <MenuItem
                     disabled={isCurrentUserPrimaryContact}
                     hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
+                    style={styles.mb5}
                     title={translate('domain.admins.revokeAdminAccess')}
                     icon={icons.ClosedSign}
                     onPress={handleRevokeAdminAccess}

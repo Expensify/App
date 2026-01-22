@@ -113,7 +113,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }`,
         {canBeMissing: true},
     );
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`, {canBeMissing: true});
@@ -200,11 +199,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
-                    allBetas,
                 });
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies, allBetas],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
@@ -266,11 +264,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 success
                 text={translate('iou.unhold')}
                 onPress={() => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
                     changeMoneyRequestHoldStatus(parentReportAction);
                 }}
             />
@@ -333,8 +326,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', accountID, parentReport, transaction, parentReportAction, originalTransaction, policy, report);
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID]);
+        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', parentReport, transaction, parentReportAction, originalTransaction, policy, report);
+    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction]);
 
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);
@@ -393,11 +386,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             onSelected: () => {
                 if (!parentReportAction) {
                     throw new Error('Parent action does not exist');
-                }
-
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
                 }
 
                 changeMoneyRequestHoldStatus(parentReportAction);

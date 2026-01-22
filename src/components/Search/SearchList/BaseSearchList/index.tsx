@@ -114,7 +114,7 @@ function BaseSearchList({
             renderItem={renderItemWithKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
-            showsVerticalScrollIndicator
+            showsVerticalScrollIndicator={false}
             ref={ref}
             extraData={extraData}
             onEndReached={onEndReached}

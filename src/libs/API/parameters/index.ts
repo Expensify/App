@@ -308,7 +308,6 @@ export type {default as EnablePolicyInvoicingParams} from './EnablePolicyInvoici
 export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
 export type {default as RemoveWorkspaceReportFieldListValueParams} from './RemoveWorkspaceReportFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
-export type {default as OpenPolicyTravelPageParams} from './OpenPolicyTravelPageParams';
 export type {default as OpenPolicyEditCardLimitTypePageParams} from './OpenPolicyEditCardLimitTypePageParams';
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';

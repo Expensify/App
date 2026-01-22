@@ -12,7 +12,6 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
-import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -94,12 +93,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(<RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />);
-            return;
-        }
-
-        // Spotnana requires a private domain email for travel booking
-        if (isEmailPublicDomain(primaryContactMethod)) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
             return;
         }
 

@@ -80,7 +80,6 @@ function BaseAnchorForCommentsOnly({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             role={CONST.ROLE.LINK}
-            tabIndex={-1}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
         >
@@ -92,7 +91,6 @@ function BaseAnchorForCommentsOnly({
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
                     role={CONST.ROLE.LINK}
-                    tabIndex={0}
                     hrefAttrs={{
                         rel,
                         target: isEmail || !linkProps.href ? '_self' : target,

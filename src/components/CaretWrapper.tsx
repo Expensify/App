@@ -12,10 +12,9 @@ type CaretWrapperProps = ChildrenProps & {
     style?: StyleProp<ViewStyle>;
     caretWidth?: number;
     caretHeight?: number;
-    isActive?: boolean;
 };
 
-function CaretWrapper({children, style, caretWidth, caretHeight, isActive = false}: CaretWrapperProps) {
+function CaretWrapper({children, style, caretWidth, caretHeight}: CaretWrapperProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow'] as const);
@@ -28,7 +27,6 @@ function CaretWrapper({children, style, caretWidth, caretHeight, isActive = fals
                 fill={theme.icon}
                 width={caretWidth ?? variables.iconSizeExtraSmall}
                 height={caretHeight ?? variables.iconSizeExtraSmall}
-                additionalStyles={isActive ? styles.flipUpsideDown : []}
             />
         </View>
     );

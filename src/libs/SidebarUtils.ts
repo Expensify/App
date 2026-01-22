@@ -282,9 +282,7 @@ function getReportsToDisplayInLHN(
         );
 
         if (shouldDisplay) {
-            const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
-            reportsToDisplay[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
+            reportsToDisplay[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
         }
     }
 
@@ -341,9 +339,7 @@ function updateReportsToDisplayInLHN({
         );
 
         if (shouldDisplay) {
-            const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
-            displayedReportsCopy[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
+            displayedReportsCopy[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
         } else {
             delete displayedReportsCopy[reportID];
         }
@@ -354,7 +350,12 @@ function updateReportsToDisplayInLHN({
 /**
  * Categorizes reports into their respective LHN groups
  */
-function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, reportsDrafts: OnyxCollection<string> | undefined, reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
+function categorizeReportsForLHN(
+    reportsToDisplay: ReportsToDisplayInLHN,
+    reportsDrafts: OnyxCollection<string> | undefined,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
@@ -388,7 +389,7 @@ function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, report
         };
 
         const isPinned = !!report.isPinned;
-        const requiresAttention = !!report?.requiresAttention;
+        const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
         const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
         const hasDraft = !!draftComment;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
@@ -516,6 +517,7 @@ function sortReportsToDisplayInLHN(
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: OnyxCollection<string> | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
 
@@ -533,7 +535,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs, reportAttributes);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -945,8 +947,7 @@ function getOptionData({
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName =
-                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails)) ||
-                lastActorDisplayName;
+                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID)) || lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
@@ -1012,8 +1013,7 @@ function getOptionData({
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
             const displayName =
-                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails)) ||
-                lastActorDisplayName;
+                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID)) || lastActorDisplayName;
             result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
             result.alternateText = formatReportLastMessageText(lastMessageText);

@@ -1,7 +1,7 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useContext, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,6 +36,7 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
@@ -210,9 +211,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Text to display for the item */
         title?: string;
-
-        /** Accessibility label for the menu item */
-        accessibilityLabel?: string;
 
         /** Component to display as the title */
         titleComponent?: ReactElement;
@@ -403,12 +401,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
-        /** Additional styles for the root wrapper View */
-        rootWrapperStyle?: StyleProp<ViewStyle>;
-
-        /** The accessibility role to use for this menu item */
-        role?: Role;
-
         /** Whether to show the badge in a separate row */
         shouldShowBadgeInSeparateRow?: boolean;
 
@@ -487,7 +479,6 @@ function MenuItem({
     focused = false,
     disabled = false,
     title,
-    accessibilityLabel,
     titleComponent,
     titleContainerStyle,
     subtitle,
@@ -553,12 +544,10 @@ function MenuItem({
     ref,
     isFocused,
     sentryLabel,
-    rootWrapperStyle,
-    role = CONST.ROLE.MENUITEM,
     shouldBeAccessible = true,
     tabIndex = 0,
 }: MenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -571,7 +560,6 @@ function MenuItem({
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
-    const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -709,10 +697,7 @@ function MenuItem({
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
     return (
-        <View
-            style={rootWrapperStyle}
-            onBlur={onBlur}
-        >
+        <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
@@ -758,8 +743,8 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={role}
-                                accessibilityLabel={accessibilityLabel ?? defaultAccessibilityLabel}
+                                role={CONST.ROLE.MENUITEM}
+                                accessibilityLabel={title ? title.toString() : ''}
                                 accessible={shouldBeAccessible}
                                 tabIndex={tabIndex}
                                 onFocus={onFocus}
@@ -1003,7 +988,7 @@ function MenuItem({
                                                 {!!brickRoadIndicator && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
-                                                            src={icons.DotIndicator}
+                                                            src={Expensicons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
@@ -1035,7 +1020,7 @@ function MenuItem({
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                                                 {shouldShowSelectedItemCheck && isSelected && (
                                                     <Icon
-                                                        src={icons.Checkmark}
+                                                        src={Expensicons.Checkmark}
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />

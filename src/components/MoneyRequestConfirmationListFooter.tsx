@@ -1,5 +1,4 @@
 import {emailSelector} from '@selectors/Session';
-import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
@@ -18,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
+import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -39,7 +38,7 @@ import {
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -284,7 +283,7 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
 
@@ -294,12 +293,17 @@ function MoneyRequestConfirmationListFooter({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
         canBeMissing: true,
     });
-    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const formattedCreatedDate = useMemo(() => {
+        const formatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
+        return formatter.format(new Date(iouCreated ?? Date.now()));
+    }, [iouCreated, preferredLocale]);
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
 
@@ -375,13 +379,11 @@ function MoneyRequestConfirmationListFooter({
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
-    const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
-
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable =
         (isFromGlobalCreate && !isPerDiemRequest ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
-    const taxRates = policy?.taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses?.taxRates : null);
+    const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     // Determines whether the tax fields can be modified.
@@ -396,19 +398,11 @@ function MoneyRequestConfirmationListFooter({
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
-    let taxRateTitle;
-    if (getTaxName(policy, transaction)) {
-        taxRateTitle = getTaxName(policy, transaction);
-    } else if (isMovingCurrentTransactionFromTrackExpense) {
-        taxRateTitle = getTaxName(policyForMovingExpenses, transaction);
-    } else {
-        taxRateTitle = '';
-    }
+    const taxRateTitle = getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
-    const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
@@ -704,7 +698,7 @@ function MoneyRequestConfirmationListFooter({
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                    title={formattedCreatedDate}
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -775,8 +769,6 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
-                    brickRoadIndicator={shouldDisplayTaxRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayTaxRateError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowTax,

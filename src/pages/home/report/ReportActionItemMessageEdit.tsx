@@ -12,6 +12,7 @@ import type {TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
@@ -19,7 +20,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -155,7 +155,6 @@ function ReportActionItemMessageEdit({
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -511,7 +510,7 @@ function ReportActionItemMessageEdit({
                             >
                                 <Icon
                                     fill={theme.icon}
-                                    src={icons.Close}
+                                    src={Expensicons.Close}
                                 />
                             </PressableWithFeedback>
                         </Tooltip>
@@ -528,7 +527,6 @@ function ReportActionItemMessageEdit({
                                     ref.current = el;
                                 }
                             }}
-                            autoFocus={!shouldUseNarrowLayout}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -628,7 +626,7 @@ function ReportActionItemMessageEdit({
                                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON}
                             >
                                 <Icon
-                                    src={icons.Checkmark}
+                                    src={Expensicons.Checkmark}
                                     fill={hasExceededMaxCommentLength ? theme.icon : theme.textLight}
                                 />
                             </PressableWithFeedback>

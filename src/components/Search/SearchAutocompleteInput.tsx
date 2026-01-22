@@ -197,7 +197,7 @@ function SearchAutocompleteInput({
                         onChangeText={onSearchQueryChange}
                         autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
                         caretHidden={caretHidden}
-                        role={CONST.ROLE.SEARCHBOX}
+                        role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
                         autoCorrect={false}

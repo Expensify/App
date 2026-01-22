@@ -1,6 +1,5 @@
-import {useContext, useState} from 'react';
+import {useState} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense} from '@libs/actions/IOU';
@@ -68,7 +67,6 @@ function useSelectedTransactionsActions({
     isOnSearch?: boolean;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -82,7 +80,7 @@ function useSelectedTransactionsActions({
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
-    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {login} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (transaction) {
@@ -186,11 +184,6 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.Stopwatch,
                 value: HOLD,
                 onSelected: () => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
                     if (!report?.reportID) {
                         return;
                     }
@@ -205,11 +198,6 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.Stopwatch,
                 value: UNHOLD,
                 onSelected: () => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
                     for (const transactionID of selectedTransactionIDs) {
                         const action = getIOUActionForTransactionID(reportActions, transactionID);
                         if (!action?.childReportID) {
@@ -231,11 +219,6 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ThumbsDown,
                 value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
                 onSelected: () => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
                 },
             });
@@ -334,8 +317,7 @@ function useSelectedTransactionsActions({
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
-        const canSplitTransaction =
-            selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy);
+        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', policy);
 
         if (canSplitTransaction) {
             options.push({

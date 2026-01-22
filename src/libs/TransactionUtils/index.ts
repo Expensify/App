@@ -70,6 +70,7 @@ import type {
     ViolationName,
 } from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type Locale from '@src/types/onyx/Locale';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -742,10 +743,6 @@ function getUpdatedTransaction({
         updatedTransaction.taxCode = transactionChanges.taxCode;
     }
 
-    if (Object.hasOwn(transactionChanges, 'taxValue') && typeof transactionChanges.taxCode === 'string') {
-        updatedTransaction.taxValue = transactionChanges.taxValue;
-    }
-
     if (Object.hasOwn(transactionChanges, 'reimbursable') && typeof transactionChanges.reimbursable === 'boolean') {
         updatedTransaction.reimbursable = transactionChanges.reimbursable;
     }
@@ -922,12 +919,13 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the formatted posted date from the transaction.
  */
-function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat?: string, locale?: Locale): string {
+    const dateFormatString = dateFormat ?? CONST.DATE.FNS_FORMAT_STRING;
     const postedDate = getPostedDate(transaction);
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
-        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
+        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormatString, locale);
     }
     return '';
 }
@@ -1280,9 +1278,10 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat?: string, locale?: Locale): string {
+    const dateFormatString = dateFormat ?? CONST.DATE.FNS_FORMAT_STRING;
     const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
+    return DateUtils.formatWithUTCTimeZone(created, dateFormatString, locale);
 }
 
 /**
@@ -2071,18 +2070,9 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 /**
  * Gets the name corresponding to the taxCode that is displayed to the user
  */
-function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-
-    // transaction?.taxCode may be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode || defaultTaxCode));
-
-    if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
-        return transaction?.taxValue;
-    }
-
-    return taxRate?.modifiedName;
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;

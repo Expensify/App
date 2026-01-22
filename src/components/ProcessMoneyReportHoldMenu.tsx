@@ -1,4 +1,4 @@
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +14,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
-import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -81,15 +80,8 @@ function ProcessMoneyReportHoldMenu({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (full: boolean) => {
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return;
-        }
-
         if (isApprove) {
             if (startAnimation) {
                 startAnimation();
@@ -102,14 +94,13 @@ function ProcessMoneyReportHoldMenu({
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 moneyRequestReportNextStep,
-                allBetas,
                 full,
             );
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, moneyRequestReportNextStep, allBetas, undefined, full, activePolicy, policy);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, moneyRequestReportNextStep, undefined, full, activePolicy, policy);
         }
         onClose();
     };

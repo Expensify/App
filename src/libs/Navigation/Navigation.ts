@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
@@ -80,47 +80,6 @@ function setShouldPopToSidebar(shouldPopAllStateFlag: boolean) {
  */
 function getShouldPopToSidebar() {
     return shouldPopToSidebar;
-}
-
-/**
- * Recursively get the deepest focused screen name from the navigation state.
- * Unlike findFocusedRoute, this also handles the case where the nested navigator
- * hasn't been mounted yet and the target screen is in params instead of state.
- */
-function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined): string | undefined {
-    if (!route) {
-        return undefined;
-    }
-
-    // NavigationState case - has routes array
-    if ('routes' in route && Array.isArray(route.routes)) {
-        // When routes array is just one item, the index key is omitted
-        let focusedRoute = route.routes[0];
-        if ('index' in route && typeof route.index === 'number') {
-            focusedRoute = route.routes[route.index];
-        }
-        return getDeepestFocusedScreenName(focusedRoute);
-    }
-
-    // Route with nested state case
-    if ('state' in route && route.state) {
-        return getDeepestFocusedScreenName(route.state);
-    }
-
-    // Route with params.screen case (initial navigation before sidebar navigator mounts)
-    if ('params' in route && route.params && typeof route.params === 'object' && 'screen' in route.params) {
-        const params = route.params as {screen?: string; params?: Record<string, unknown>};
-        if (params.screen) {
-            return getDeepestFocusedScreenName({name: params.screen, params: params.params});
-        }
-    }
-
-    // Leaf route - return the name
-    if ('name' in route) {
-        return route.name;
-    }
-
-    return undefined;
 }
 
 type CanNavigateParams = {
@@ -915,4 +874,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, shouldShowRequire2FAPage};
+export {navigationRef};

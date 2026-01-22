@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {addDays, format} from 'date-fns';
+import {addDays} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -26,7 +26,7 @@ import variables from '@styles/variables';
 import {queueExpensifyCardForBilling} from '@userActions/Card';
 import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
 import {navigateToConciergeChat} from '@userActions/Report';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -48,7 +48,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [isVisible, setVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
@@ -95,7 +95,13 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const isSettleBalanceButtonDisplayed = !!cardSettings?.isMonthlySettlementAllowed && !cardManualBilling && isCurrentBalanceType;
     const isSettleDateTextDisplayed = !!cardManualBilling && isCurrentBalanceType;
 
-    const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';
+    const settlementDate = useMemo(() => {
+        if (!isSettleDateTextDisplayed) {
+            return '';
+        }
+        const formatter = Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
+        return formatter.format(addDays(new Date(), 1));
+    }, [isSettleDateTextDisplayed, preferredLocale]);
 
     const handleSettleBalanceButtonClick = () => {
         queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);

@@ -22,11 +22,19 @@ function SuccessPage({route}: SuccessPageProps) {
     const styles = useThemeStyles();
 
     const goBack = useCallback(() => {
+        if (route.params?.backTo === ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
+            Navigation.dismissModal();
+            return;
+        }
         quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
     }, [route.params?.backTo]);
 
     useEffect(() => {
         return () => {
+            // When the 2FA RHP is closed, we want to remove the 2FA required page from the navigation stack too.
+            if (route.params?.backTo !== ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
+                return;
+            }
             Navigation.popRootToTop();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

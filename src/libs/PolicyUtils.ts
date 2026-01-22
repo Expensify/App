@@ -666,19 +666,13 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(
-    isPolicyExpenseChatOrUnreportedExpense: boolean,
-    policy: OnyxEntry<Policy>,
-    isDistanceRequest: boolean,
-    isPerDiemRequest = false,
-    isTimeRequest = false,
-): boolean {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false, isTimeRequest = false): boolean {
     if (isPerDiemRequest || isTimeRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyTaxTrackingEnabled = isPolicyExpenseChatOrUnreportedExpense && policy?.tax?.trackingEnabled;
+    const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && !!customUnitID && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
     return !!(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);

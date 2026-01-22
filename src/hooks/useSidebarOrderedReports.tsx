@@ -34,7 +34,7 @@ type SidebarOrderedReportsContextValue = {
     clearLHNCache: () => void;
 };
 
-type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
+type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],
@@ -230,7 +230,7 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs),
+        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts],

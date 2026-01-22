@@ -7,7 +7,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -78,7 +77,6 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -338,7 +336,7 @@ function IOURequestStepParticipants({
                 const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
                 const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
                 const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
-                setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? policyForMovingExpenses : undefined, isMovingTransactionFromTrackExpense);
+                setMoneyRequestCategory(transaction.transactionID, category, undefined);
                 if (shouldUpdateTransactionReportID) {
                     setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
                 }
@@ -407,7 +405,6 @@ function IOURequestStepParticipants({
             transactions,
             isMovingTransactionFromTrackExpense,
             allPolicies,
-            policyForMovingExpenses,
             introSelected,
             backTo,
         ],

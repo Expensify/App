@@ -61,7 +61,7 @@ function CalendarPicker({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const pressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
@@ -69,7 +69,7 @@ function CalendarPicker({
 
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
-    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView, preferredLocale);
     const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
     const heightValue = useSharedValue(initialHeight);
 
@@ -105,7 +105,9 @@ function CalendarPicker({
      */
     const onDayPressed = (day: number) => {
         setCurrentDateView((prev) => {
-            const newCurrentDateView = setDate(new Date(prev), day);
+            // convert to UTC to avoid timezone issues
+            const date = new Date(Date.UTC(prev.getFullYear(), prev.getMonth(), prev.getDate()));
+            const newCurrentDateView = setDate(date, day);
             onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
             return newCurrentDateView;
         });
@@ -150,8 +152,8 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames().map((month) => Str.UCFirst(month));
-    const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
+    const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.UCFirst(month));
+    const daysOfWeek = DateUtils.getDaysOfWeek(preferredLocale).map((day) => day.toUpperCase());
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
@@ -194,7 +196,6 @@ function CalendarPicker({
                     disabled={years.length <= 1}
                     testID="currentYearButton"
                     accessibilityLabel={translate('common.currentYear')}
-                    role={CONST.ROLE.BUTTON}
                 >
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
@@ -220,7 +221,6 @@ function CalendarPicker({
                         onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.previous')}
-                        role={CONST.ROLE.BUTTON}
                     >
                         <ArrowIcon
                             disabled={!hasAvailableDatesPrevMonth}
@@ -234,7 +234,6 @@ function CalendarPicker({
                         onPress={moveToNextMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.next')}
-                        role={CONST.ROLE.BUTTON}
                     >
                         <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                     </PressableWithFeedback>
@@ -282,7 +281,6 @@ function CalendarPicker({
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                    role={CONST.ROLE.BUTTON}
                                 >
                                     {({hovered, pressed}) => (
                                         <DayComponent
