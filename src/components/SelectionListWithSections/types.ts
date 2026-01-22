@@ -125,6 +125,9 @@ type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
 
+    /** Text to be announced by screen reader */
+    accessibilityLabel?: string;
+
     /** Alternate text to display */
     alternateText?: string | null;
 
