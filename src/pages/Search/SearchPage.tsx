@@ -3,7 +3,6 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import DecisionModal from '@components/DecisionModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -12,6 +11,7 @@ import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalM
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 // Using composition pattern - import from SearchComposition
 import Search from '@components/Search/SearchComposition';
+import {SearchDownloadErrorModal, SearchOfflineModal} from '@components/Search/modals';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -59,9 +59,7 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
 
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -385,21 +383,11 @@ function SearchPage({route}: SearchPageProps) {
             </Animated.View>
             {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
                 <View>
-                    <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={handleOfflineModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
+                    <SearchOfflineModal
                         isVisible={isOfflineModalVisible}
                         onClose={handleOfflineModalClose}
                     />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={handleDownloadErrorModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
+                    <SearchDownloadErrorModal
                         isVisible={isDownloadErrorModalVisible}
                         onClose={handleDownloadErrorModalClose}
                     />
