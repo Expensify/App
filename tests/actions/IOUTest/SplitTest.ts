@@ -349,8 +349,7 @@ describe('split expense', () => {
                                 // 5. The chat report with Rory + Vit (new)
                                 vitChatReport = Object.values(allReports ?? {}).find(
                                     (report) =>
-                                        report?.type === CONST.REPORT.TYPE.CHAT &&
-                                        deepEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
+                                        report?.type === CONST.REPORT.TYPE.CHAT && deepEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
                                 );
                                 expect(isEmptyObject(vitChatReport)).toBe(false);
                                 expect(vitChatReport?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -1173,9 +1172,7 @@ describe('split expense', () => {
                 waitForCollectionCallback: true,
                 callback: (transactions) => {
                     Onyx.disconnect(connection);
-                    const splits = Object.values(transactions ?? {}).filter(
-                        (t) => t?.transactionID !== originalTransactionID && t?.comment?.originalTransactionID === originalTransactionID,
-                    );
+                    const splits = Object.values(transactions ?? {}).filter((t) => t?.transactionID !== originalTransactionID && t?.comment?.originalTransactionID === originalTransactionID);
                     resolve(splits as Transaction[]);
                 },
             });
