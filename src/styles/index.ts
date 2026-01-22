@@ -1267,7 +1267,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowPercentInputContainer: {
-            width: 66, // Width of the split expense percentage text input container. It should not be too wide or too narrow.
+            width: variables.splitExpensePercentageWidth,
         },
 
         optionRowPercentInput: {

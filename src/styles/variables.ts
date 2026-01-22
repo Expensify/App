@@ -393,6 +393,9 @@ export default {
     // Report search header max width
     reportSearchHeaderMaxWidth: 700,
 
+    // Split expense tabs
+    splitExpensePercentageWidth: 66,
+
     // Multifactor Authentication illustrations size
     openPadlockWidth: 140,
     openPadlockHeight: 140,
