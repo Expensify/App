@@ -8,7 +8,7 @@ type ScrollableTabSelectorContextValue = {
     onContainerLayout: (event: LayoutChangeEvent) => void;
     onContainerScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     scrollToTab: (tabKey: string) => void;
-    registerTab: (tabKey: string, ref: HTMLDivElement | View) => void;
+    registerTab: (tabKey: string, ref: HTMLDivElement | View | null) => void;
     onTabLayout: (tabKey: string, event: LayoutChangeEvent) => void;
 };
 
@@ -55,7 +55,11 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
         setContainerX(x);
     };
 
-    const registerTab = (tabKey: string, ref: HTMLDivElement | View) => {
+    const registerTab = (tabKey: string, ref: HTMLDivElement | View | null) => {
+        if (ref === null) {
+            return;
+        }
+
         tabsRef.current[tabKey] = {...tabsRef.current[tabKey], ref};
     };
 

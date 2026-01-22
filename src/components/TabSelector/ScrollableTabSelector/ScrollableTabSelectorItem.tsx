@@ -13,6 +13,8 @@ import {ScrollableTabSelectorContext} from './ScrollableTabSelectorContext';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
+type ScrollableTabSelectorItemProps = TabSelectorItemProps & {tabKey: string};
+
 function ScrollableTabSelectorItem({
     icon,
     tabKey,
@@ -25,7 +27,7 @@ function ScrollableTabSelectorItem({
     shouldShowLabelWhenInactive = true,
     testID,
     equalWidth = false,
-}: TabSelectorItemProps & {tabKey: string}) {
+}: ScrollableTabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
 
@@ -33,13 +35,7 @@ function ScrollableTabSelectorItem({
 
     return (
         <AnimatedPressableWithFeedback
-            ref={(ref: HTMLDivElement | View | null) => {
-                if (!ref) {
-                    return;
-                }
-
-                registerTab(tabKey, ref);
-            }}
+            ref={(ref: HTMLDivElement | View | null) => registerTab(tabKey, ref)}
             accessibilityLabel={title}
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
             wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1]}

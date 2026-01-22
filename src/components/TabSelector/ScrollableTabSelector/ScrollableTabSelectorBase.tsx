@@ -42,10 +42,6 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
                 paddingHorizontal: 20,
             }}
             horizontal
-            contentOffset={{
-                x: 300,
-                y: 0,
-            }}
             showsHorizontalScrollIndicator={false}
         >
             {tabs.map((tab, index) => {
