@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMemberError} from '@libs/actions/Domain';
+import {clearAddMemberError} from '@libs/actions/Domain';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -46,8 +46,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     );
 
     const getCustomRowProps = (accountID: number, email?: string) => ({
-        errors: email ? getLatestError(domainErrors?.memberErrors?.[email]?.errors) : (getLatestError(domainErrors?.memberErrors?.[accountID]?.errors) ?? undefined),
-        pendingAction: email ? domainPendingActions?.member?.[email]?.pendingAction : undefined,
+        errors: getLatestError(domainErrors?.memberErrors?.[email ?? accountID]?.errors),
+        pendingAction: domainPendingActions?.member?.[email ?? accountID]?.pendingAction,
     });
 
     return (
@@ -60,7 +60,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerIcon={illustrations.Profile}
             headerContent={renderHeaderButtons}
             getCustomRowProps={getCustomRowProps}
-            onDismissError={(item) => clearMemberError(domainAccountID, item.accountID, item.login)}
+            onDismissError={(item) => clearAddMemberError(domainAccountID, item.accountID, item.login)}
         />
     );
 }
