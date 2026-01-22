@@ -29,12 +29,20 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
+import {completeTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+/**
+ * Checks if a task report is incomplete (not approved)
+ */
+function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
+    return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
+}
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
@@ -112,7 +120,14 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData<typeof ONYXKE
     return onyxData;
 }
 
-function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTagLists = {}) {
+function createPolicyTag(
+    policyID: string,
+    tagName: string,
+    policyTags: PolicyTagLists = {},
+    setupTagsTaskReport?: OnyxEntry<Report>,
+    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
+    policyHasCustomCategories?: boolean,
+) {
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
 
@@ -174,6 +189,14 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
     };
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
+
+    if (isTaskIncomplete(setupTagsTaskReport)) {
+        completeTask(setupTagsTaskReport, false, false, undefined);
+    }
+
+    if (isTaskIncomplete(setupCategoriesAndTagsTaskReport) && policyHasCustomCategories) {
+        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
+    }
 }
 
 function importPolicyTags(policyID: string, tags: PolicyTag[]) {
