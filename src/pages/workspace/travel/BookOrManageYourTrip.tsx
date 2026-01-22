@@ -30,20 +30,18 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     };
 
     return (
-        <>
-            <Section
-                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
-                subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
-                isCentralPane
-            >
-                <MenuItem
-                    title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.manageTravel')}
-                    onPress={handleManageTravel}
-                    shouldShowRightIcon
-                    iconRight={Expensicons.Link}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                />
-            </Section>
+        <Section
+            title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
+            subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
+            isCentralPane
+        >
+            <MenuItem
+                title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.manageTravel')}
+                onPress={handleManageTravel}
+                shouldShowRightIcon
+                iconRight={Expensicons.Link}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+            />
 
             <View style={styles.mt5}>
                 <ToggleSettingOptionRow
@@ -55,7 +53,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     pendingAction={policy?.pendingFields?.travelSettings}
                 />
             </View>
-        </>
+        </Section>
     );
 }
 
