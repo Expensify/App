@@ -404,9 +404,6 @@ function uniqFast(items: string[]): string[] {
     return result;
 }
 
-/**
- * Get the last actor display name from last actor details.
- */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number) {
     if (!lastActorDetails) {
         return '';
@@ -423,10 +420,12 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
           translateLocal('common.you');
 }
 
-/**
- * Should show the last actor display name from last actor details.
- */
-function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, lastAction: OnyxEntry<ReportAction>, currentUserAccountID: number) {
+function shouldShowLastActorDisplayName(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    lastAction: OnyxEntry<ReportAction>,
+    currentUserAccountIDParam: number,
+) {
     const reportID = report?.reportID;
     const lastReportAction = (reportID ? lastVisibleReportActions[reportID] : undefined) ?? lastAction;
 
@@ -437,7 +436,7 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
         !lastActionName ||
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
-        (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
+        (isDM(report) && lastActorDetails.accountID !== currentUserAccountIDParam) ||
         lastActionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
         (lastActionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
@@ -445,7 +444,7 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
         return false;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam);
 
     if (!lastActorDisplayName) {
         return false;
@@ -1148,7 +1147,7 @@ function isCurrentUser(userDetails: PersonalDetails, loginList: OnyxEntry<Login>
     // If user login is a mobile number, append sms domain if not appended already.
     const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login ?? '');
 
-    if (currentUserEmail?.toLowerCase() === userDetailsLogin.toLowerCase()) {
+    if (currentUserEmail.toLowerCase() === userDetailsLogin.toLowerCase()) {
         return true;
     }
 
@@ -1718,7 +1717,6 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
-    searchInputValue,
     loginsToExclude = {},
     selectedOptions = [],
     showChatPreviewLine = false,
@@ -1738,9 +1736,6 @@ function getUserToInviteOption({
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude = loginsToExclude[addSMSDomainIfPhoneNumber(searchValue).toLowerCase()];
-    const trimmedSearchInputValue = searchInputValue?.trim();
-    const shouldUseSearchInputValue = shouldAcceptName && !!trimmedSearchInputValue && !isValidEmail && !isValidPhoneNumber;
-    const displayValue = shouldUseSearchInputValue ? trimmedSearchInputValue : searchValue;
 
     // Angle brackets are not valid characters for user names
     const hasInvalidCharacters = shouldAcceptName && (searchValue.includes('<') || searchValue.includes('>'));
@@ -1764,11 +1759,9 @@ function getUserToInviteOption({
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    userToInvite.text = userToInvite.text || displayValue;
+    userToInvite.text = userToInvite.text || searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    userToInvite.displayName = userToInvite.displayName || displayValue;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    userToInvite.alternateText = userToInvite.alternateText || displayValue;
+    userToInvite.alternateText = userToInvite.alternateText || searchValue;
 
     // If user doesn't exist, use a fallback avatar
     userToInvite.icons = [
@@ -2027,7 +2020,12 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, policiesCollection: OnyxCollection<Policy>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
+function prepareReportOptionsForDisplay(
+    options: Array<SearchOption<Report>>,
+    policiesCollection: OnyxCollection<Policy>,
+    currentUserAccountID: number,
+    config: GetValidReportsConfig,
+): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -2039,7 +2037,6 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, po
         showRBR = true,
         shouldShowGBR = false,
         shouldUnreadBeBold = false,
-        currentUserAccountID,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2174,6 +2171,8 @@ function getValidOptions(
     draftComments: OnyxCollection<string> | undefined,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     loginList: OnyxEntry<Login>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
     {
         excludeLogins = {},
         includeSelectedOptions = false,
@@ -2185,18 +2184,15 @@ function getValidOptions(
         excludeHiddenThreads = false,
         canShowManagerMcTest = false,
         searchString,
-        searchInputValue,
         maxElements,
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
         shouldAcceptName = false,
-        currentUserAccountID,
-        currentUserEmail,
         ...config
-    }: GetOptionsConfig,
+    }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): Options {
-    const restrictedLogins = getRestrictedLogins({...config, currentUserAccountID, currentUserEmail}, options, canShowManagerMcTest, nvpDismissedProductTraining);
+    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
@@ -2268,38 +2264,35 @@ function getValidOptions(
         [selfDMChats, workspaceChats, recentReportOptions] = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
 
         if (selfDMChats.length > 0) {
-            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, policiesCollection, {
+            selfDMChat = prepareReportOptionsForDisplay(selfDMChats, policiesCollection, currentUserAccountID, {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
                 shouldSeparateSelfDMChat,
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
-                currentUserAccountID,
             }).at(0);
         }
 
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policiesCollection, {
+        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policiesCollection, currentUserAccountID, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
-            currentUserAccountID,
         });
 
-        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
+        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, currentUserAccountID, {
             ...getValidReportsConfig,
             selectedOptions,
             shouldBoldTitleByDefault,
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
-            currentUserAccountID,
         });
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
@@ -2387,7 +2380,6 @@ function getValidOptions(
             {
                 excludeLogins: loginsToExclude,
                 shouldAcceptName,
-                searchInputValue,
             },
         );
     }
@@ -2453,6 +2445,9 @@ function getSearchOptions({
         draftComments,
         nvpDismissedProductTraining,
         loginList,
+        currentUserAccountID,
+        currentUserEmail,
+
         {
             betas,
             includeRecentReports,
@@ -2473,8 +2468,6 @@ function getSearchOptions({
             includeUserToInvite,
             shouldShowGBR,
             shouldUnreadBeBold,
-            currentUserAccountID,
-            currentUserEmail,
         },
         countryCode,
     );
@@ -2530,24 +2523,11 @@ function getFilteredRecentAttendees(
         });
     }
 
-    // Deduplicate recentAttendees: use email for regular users, displayName for name-only attendees
-    const seenAttendees = new Set<string>();
-    const deduplicatedRecentAttendees = recentAttendees.filter((attendee) => {
-        const key = attendee.email || attendee.displayName || '';
-        if (seenAttendees.has(key)) {
-            return false;
-        }
-        seenAttendees.add(key);
-        return true;
-    });
-
-    const filteredRecentAttendees = deduplicatedRecentAttendees
+    const filteredRecentAttendees = recentAttendees
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
             ...attendee,
-            // Use || instead of ?? to handle empty string email for name-only attendees
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            login: attendee.email || attendee.displayName,
+            login: attendee.email ? attendee.email : attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetails));
@@ -2602,6 +2582,8 @@ function getMemberInviteOptions(
         undefined,
         nvpDismissedProductTraining,
         loginList,
+        currentUserAccountID,
+        currentUserEmail,
         {
             betas,
             includeP2P: true,
@@ -2610,8 +2592,6 @@ function getMemberInviteOptions(
             includeRecentReports: false,
             searchString: '',
             maxElements: undefined,
-            currentUserAccountID,
-            currentUserEmail,
         },
         countryCode,
     );
@@ -2924,7 +2904,6 @@ function filterOptions(
     config?: FilterUserToInviteConfig,
 ): Options {
     const trimmedSearchInput = searchInputValue.trim();
-    const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
@@ -2945,10 +2924,7 @@ function filterOptions(
         currentUserEmail,
         currentUserAccountID,
         countryCode,
-        {
-            ...config,
-            searchInputValue: searchInputValueForInvite,
-        },
+        config,
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 

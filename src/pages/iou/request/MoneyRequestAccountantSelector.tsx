@@ -90,12 +90,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             draftComments,
             nvpDismissedProductTraining,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
-                currentUserAccountID,
-                currentUserEmail,
             },
             countryCode,
         );

@@ -104,11 +104,11 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             draftComments,
             nvpDismissedProductTraining,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
-                currentUserAccountID,
-                currentUserEmail,
             },
             countryCode,
         );

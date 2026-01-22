@@ -101,11 +101,11 @@ function useOptions() {
         draftComments,
         nvpDismissedProductTraining,
         loginList,
+        currentUserAccountID,
+        currentUserEmail,
         {
             betas: betas ?? [],
             includeSelfDM: true,
-            currentUserAccountID,
-            currentUserEmail,
             shouldAlwaysIncludeDM: true,
         },
         countryCode,
