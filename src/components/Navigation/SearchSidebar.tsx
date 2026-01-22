@@ -27,8 +27,8 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     const route = state.routes.at(-1);
     const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
-    const {state, actions} = useSearchContext();
-    const {lastSearchType, currentSearchResults} = state;
+    const {state: searchState, actions} = useSearchContext();
+    const {lastSearchType, currentSearchResults} = searchState;
     const {setLastSearchType} = actions;
 
     const queryJSON = params?.q ? buildSearchQueryJSON(params.q, params.rawQuery) : undefined;
