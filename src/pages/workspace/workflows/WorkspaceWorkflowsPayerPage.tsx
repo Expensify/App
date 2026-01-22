@@ -86,11 +86,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
 
     useEffect(() => {
-        if (!shouldShowSuccess || !policy?.id || !accountID) {
+        if (!shouldShowSuccess || !policy?.id) {
             return;
         }
         setWorkspacePayer(policy?.id, authorizedPayerEmail);
-    }, [accountID, authorizedPayerEmail, policy?.id, shouldShowSuccess]);
+    }, [authorizedPayerEmail, policy?.id, shouldShowSuccess]);
 
     useEffect(() => {
         return () => {
