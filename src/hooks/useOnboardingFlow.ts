@@ -17,7 +17,9 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
 
 /**
- * Hook to handle HybridApp-specific modals and provide onboarding status
+ * Hook to handle redirection to the onboarding flow based on the user's onboarding status
+ *
+ * Warning: This hook should be used only once in the app
  */
 function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
@@ -48,7 +50,7 @@ function useOnboardingFlowRouter() {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const handle = InteractionManager.runAfterInteractions(() => {
-            // Prevent showing modals if we are logging in as a new user with short lived token
+            // Prevent showing onboarding if we are logging in as a new user with short lived token
             if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                 return;
             }
@@ -66,7 +68,7 @@ function useOnboardingFlowRouter() {
             }
 
             if (currentUrl.endsWith('/r')) {
-                // Don't trigger modals if we are in the middle of a redirect to a report
+                // Don't trigger onboarding if we are in the middle of a redirect to a report
                 return;
             }
 
@@ -81,14 +83,13 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            // HYBRID APP EXPLANATION MODAL
-            // Show the explanation modal when user is transitioning from OldDot to NewDot
             if (CONFIG.IS_HYBRID_APP) {
-                // For single entries, such as using the Travel feature from OldDot, we don't want to show modals
+                // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                 if (isSingleNewDotEntry) {
                     return;
                 }
 
+                // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
                 if (isHybridAppOnboardingCompleted === false) {
                     Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
                 }

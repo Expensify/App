@@ -125,9 +125,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return undefined;
         }
 
-        // NOTE: Core onboarding flow redirects are handled by OnboardingGuard in the navigation guard system
-        // The guardedLastVisitedState already applies guard evaluation, so no additional onboarding checks needed here
-
         if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
             // Only skip restoration if there's a specific deep link that's not the root
             // This allows restoration when app is killed and reopened without a deep link
