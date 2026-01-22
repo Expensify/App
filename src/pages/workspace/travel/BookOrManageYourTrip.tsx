@@ -19,7 +19,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
 
-    const autoAddTripName = policy?.travelSettings?.autoAddTripName ?? true;
+    const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
     const toggleAutoAddTripName = (enabled: boolean) => {
         setPolicyTravelSettings(policyID, {autoAddTripName: enabled});
