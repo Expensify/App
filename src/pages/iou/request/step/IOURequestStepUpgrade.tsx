@@ -71,19 +71,16 @@ function IOURequestStepUpgrade({
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
-    const feature = useMemo(
-        () =>
-            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === upgradePath),
-        [upgradePath],
-    );
+    const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+        .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+        .find((f) => f.alias === upgradePath);
 
     const navigateWithMicrotask = useCallback(
         (route: Route) => {
@@ -111,16 +108,18 @@ function IOURequestStepUpgrade({
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
 
             // Move ALL selected transactions to the new report
-            changeTransactionsReport(
-                selectedTransactionsKeys,
+            changeTransactionsReport({
+                transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                session?.email ?? '',
-                optimisticReport,
-                newPolicy,
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
+                newReport: optimisticReport,
+                policy: newPolicy,
                 reportNextStep,
-                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
-            );
+                policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
+                allTransactions,
+            });
+
             clearSelectedTransactions();
 
             Navigation.dismissModal();
@@ -183,16 +182,10 @@ function IOURequestStepUpgrade({
         currentUserPersonalDetails,
     ]);
 
-    const adminParticipant = useMemo(() => {
-        const participant = transaction?.participants?.[0];
-        if (!isDistanceRateUpgrade || !participant?.accountID) {
-            return;
-        }
+    const participant = transaction?.participants?.[0];
+    const adminParticipant = isDistanceRateUpgrade && participant?.accountID ? getParticipantsOption(participant, personalDetails) : undefined;
 
-        return getParticipantsOption(participant, personalDetails);
-    }, [isDistanceRateUpgrade, transaction?.participants, personalDetails]);
-
-    const onUpgrade = useCallback(() => {
+    const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {
             setIsUpgradeWarningModalOpen(true);
             return;
@@ -225,23 +218,11 @@ function IOURequestStepUpgrade({
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    }, [
-        isCategorizing,
-        isReporting,
-        currentUserPersonalDetails?.localCurrencyCode,
-        isDistanceRateUpgrade,
-        adminParticipant,
-        activePolicyID,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
-        introSelected,
-        onboardingPurposeSelected,
-        isRestrictedPolicyCreation,
-    ]);
+    };
 
-    const handleConfirmUpgradeWarning = useCallback(() => {
+    const handleConfirmUpgradeWarning = () => {
         setIsUpgradeWarningModalOpen(false);
-    }, []);
+    };
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
