@@ -15,7 +15,8 @@ import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchContext} from '@components/Search/SearchContext';
+// Using composition pattern - import from SearchComposition
+import Search from '@components/Search/SearchComposition';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -108,8 +109,10 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchResults} =
-        useSearchContext();
+    // Using composition pattern - access state and actions separately
+    const {state, actions} = Search.useSearch();
+    const {selectedTransactions, selectedReports, lastSearchType, areAllMatchingItemsSelected, currentSearchResults} = state;
+    const {clearSelectedTransactions, setLastSearchType, selectAllMatchingItems} = actions;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
