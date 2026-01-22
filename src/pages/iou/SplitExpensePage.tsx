@@ -105,7 +105,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         report &&
         transaction &&
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
-    const isSingleTransactionMode = draftTransaction?.comment?.isSingleTransactionMode ?? false;
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction) ?? {};
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
@@ -298,8 +297,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const isInitialSplit = childTransactions.length === 0;
 
-    // In single transaction mode (split moved between workspaces), hide add/split options
-    const listFooterContent = isSingleTransactionMode ? null : (
+    const listFooterContent = (
         <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
             <MenuItem
                 onPress={onAddSplitExpense}
