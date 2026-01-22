@@ -22,10 +22,14 @@ const InputBlurActionsContext = React.createContext<InputBlurActionsContextType>
 function InputBlurContextProvider({children}: ChildrenProps) {
     const [isBlurred, setIsBlurred] = useState<boolean>(false);
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue = {
         setIsBlurred,
     };
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue = {isBlurred};
 
     return (

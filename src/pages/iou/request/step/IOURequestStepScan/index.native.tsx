@@ -299,6 +299,7 @@ function IOURequestStepScan({
                 allBetas,
             });
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- reportNameValuePairs?.private_isArchived is not needed
         [
             backTo,
             backToReport,
@@ -550,6 +551,7 @@ function IOURequestStepScan({
                         Log.warn('Error taking photo', error);
                     });
             });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
         didCapturePhoto,

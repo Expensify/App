@@ -7,7 +7,6 @@ import createDummySharedValue from '@src/utils/createDummySharedValue';
 import {INITIAL_ACTION_SHEET_STATE} from './constants';
 import type {
     ActionSheetAwareScrollViewActionsContextValue,
-    ActionSheetAwareScrollViewContextValue,
     ActionSheetAwareScrollViewMeasurements,
     ActionSheetAwareScrollViewStateContextValue,
 } from './types';

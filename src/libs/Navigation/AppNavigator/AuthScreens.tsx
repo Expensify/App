@@ -153,7 +153,8 @@ function AuthScreens() {
         canBeMissing: true,
     });
     const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
-    const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
+    const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
+    const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =

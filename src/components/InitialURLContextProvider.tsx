@@ -44,11 +44,15 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
         });
     }, []);
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue = {
         initialURL,
         isAuthenticatedAtStartup,
     };
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue = {
         setInitialURL,
         setIsAuthenticatedAtStartup,

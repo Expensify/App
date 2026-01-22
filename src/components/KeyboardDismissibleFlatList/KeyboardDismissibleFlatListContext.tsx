@@ -1,5 +1,5 @@
 import type {PropsWithChildren} from 'react';
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import useOnyx from '@hooks/useOnyx';
@@ -118,18 +118,19 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
         },
     });
 
-    const stateValue = useMemo<KeyboardDismissibleFlatListStateContextValue>(
-        () => ({
-            keyboardHeight: height,
-            keyboardOffset: offset,
-            scrollY,
-            contentSizeHeight,
-            layoutMeasurementHeight,
-        }),
-        [contentSizeHeight, height, layoutMeasurementHeight, offset, scrollY],
-    );
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const stateValue: KeyboardDismissibleFlatListStateContextValue = {
+        keyboardHeight: height,
+        keyboardOffset: offset,
+        scrollY,
+        contentSizeHeight,
+        layoutMeasurementHeight,
+    };
 
-    const actionsValue = useMemo<KeyboardDismissibleFlatListActionsContextValue>(() => ({onScroll, setListBehavior}), [onScroll, setListBehavior]);
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsValue: KeyboardDismissibleFlatListActionsContextValue = {onScroll, setListBehavior};
 
     return (
         <KeyboardDismissibleFlatListActionsContext.Provider value={actionsValue}>

@@ -36,10 +36,14 @@ const FullScreenLoaderActionsContext = createContext<FullScreenLoaderActionsCont
 function FullScreenLoaderContextProvider({children}: FullScreenLoaderContextProviderProps) {
     const [isLoaderVisible, setIsLoaderVisible] = useState(false);
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue = {
         setIsLoaderVisible,
     };
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue = {isLoaderVisible};
 
     return (

@@ -48,11 +48,15 @@ function FullScreenBlockingViewContextProvider({children}: FullScreenBlockingVie
 
     const isBlockingViewVisible = useMemo(() => routeKeys.size > 0, [routeKeys.size]);
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue = {
         addRouteKey,
         removeRouteKey,
     };
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue = {isBlockingViewVisible};
 
     return (

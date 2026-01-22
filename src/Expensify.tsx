@@ -1,7 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
