@@ -24,11 +24,11 @@ Extract:
 - Platform/environment details
 - Whether "Exploratory" appears in the body
 
-### Step 2: Get repository info for permalinks
+### Step 2: Get commit SHA for permalinks
 
-Get the default branch name for generating permalinks:
+Get the current commit SHA for generating permalinks:
 ```bash
-gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
+git rev-parse HEAD
 ```
 
 ### Step 3: Search for related code
@@ -64,32 +64,34 @@ Post ONE comment using this exact format:
 ```markdown
 ## 🔍 Investigation Summary
 
-**Root Cause**: [Brief description of what's causing the bug]
+**Root Cause**: [Brief description with GitHub permalinks to relevant code]
 **Confidence**: High / Medium / Low
 
 ### Suggested Fix
-[Specific fix with code changes if High confidence, or investigation direction if Medium/Low]
-
-### Related Files
-- [filename:L##](permalink) - Brief description
-- [filename:L##-L##](permalink) - Brief description
+[Specific fix with code changes if High confidence, or investigation direction if Medium/Low. Include permalinks to code that needs to be modified.]
 ```
 
 ---
 
 ## GitHub Permalinks
 
-**IMPORTANT**: Always use GitHub permalinks when referencing code locations. This makes it easy for contributors to navigate directly to the relevant code.
+**IMPORTANT**: Always use GitHub permalinks with commit SHA when referencing code locations. Post permalinks on their own line so GitHub renders them as embedded code snippets.
 
-**Permalink format**:
+**Permalink format** (use commit SHA from Step 2):
 ```
-https://github.com/Expensify/App/blob/{branch}/{filepath}#L{line}
-https://github.com/Expensify/App/blob/{branch}/{filepath}#L{startLine}-L{endLine}
+https://github.com/Expensify/App/blob/{commitSHA}/{filepath}#L{line}
+https://github.com/Expensify/App/blob/{commitSHA}/{filepath}#L{startLine}-L{endLine}
 ```
 
-**Example**:
+**Example** (each permalink on its own line):
 ```markdown
-- [ReportDetailsExportPage.tsx:L80-L85](https://github.com/Expensify/App/blob/main/src/pages/home/report/ReportDetailsExportPage.tsx#L80-L85) - Export selector options
+The issue is in the export options configuration:
+
+https://github.com/Expensify/App/blob/3779ccf1f226c1ee125b1f0b9d3bf6eb30ec27b8/src/pages/home/report/ReportDetailsExportPage.tsx#L80-L85
+
+This can be fixed by following the pattern used here:
+
+https://github.com/Expensify/App/blob/3779ccf1f226c1ee125b1f0b9d3bf6eb30ec27b8/src/components/ReportActionItem/ExportWithDropdownMenu.tsx#L67
 ```
 
 ---
