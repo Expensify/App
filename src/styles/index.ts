@@ -1267,7 +1267,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowPercentInputContainer: {
-            width: 72,
+            width: 66,
         },
 
         optionRowPercentInput: {
