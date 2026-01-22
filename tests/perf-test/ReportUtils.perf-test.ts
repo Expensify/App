@@ -204,7 +204,7 @@ describe('ReportUtils', () => {
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants));
+        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants, [CONST.BETAS.ALL]));
     });
 
     test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {
@@ -268,7 +268,7 @@ describe('ReportUtils', () => {
             requiresTag: true,
         };
 
-        const onyxData: OnyxData = {
+        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
             optimisticData: [],
             failureData: [],
             successData: [],
