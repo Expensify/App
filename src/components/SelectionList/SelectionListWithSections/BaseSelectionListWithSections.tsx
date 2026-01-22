@@ -113,7 +113,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         initialFocusedIndex,
         maxIndex: flattenedData.length - 1,
         disabledIndexes,
-        isActive: isScreenFocused,
+        isActive: isScreenFocused && itemsCount > 0,
         onFocusedIndexChange: (index: number) => {
             if (!shouldScrollToFocusedIndex) {
                 return;
