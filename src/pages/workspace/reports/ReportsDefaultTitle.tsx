@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
@@ -45,9 +45,38 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         translate('workspace.reports.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const fieldListItem = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-    const customNameDefaultValue = Str.htmlDecode(fieldListItem?.defaultValue ?? '');
+    // Create fallback title field when policy fieldList is empty (matches OldDot behavior)
+    const titleField = useMemo(() => {
+        const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+        if (policyTitleField) {
+            return policyTitleField;
+        }
+
+        const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+        if (isPolicyFieldListEmpty) {
+            return {
+                fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
+                name: 'title',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: 'New Report',
+                deletable: true,
+            };
+        }
+
+        return undefined;
+    }, [policy?.fieldList]);
+
+    const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
     const [reportTitle, setReportTitle] = useState(() => customNameDefaultValue);
+
+    // Update state when titleField defaultValue changes (e.g., when policy loads or fieldList becomes available)
+    // Only update if the current value is empty to avoid overwriting user input
+    React.useEffect(() => {
+        const newDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
+        if (newDefaultValue && !reportTitle) {
+            setReportTitle(newDefaultValue);
+        }
+    }, [titleField?.defaultValue, reportTitle]);
 
     const validateCustomName = useCallback(
         ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
@@ -107,7 +136,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     addBottomSafeAreaPadding
                 >
                     <OfflineWithFeedback
-                        pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
+                        pendingAction={(titleField && 'pendingFields' in titleField ? titleField.pendingFields?.defaultValue : undefined) ?? policy?.pendingAction}
                         errors={titleFieldError}
                         errorRowStyles={styles.mh0}
                         onClose={clearTitleFieldError}
