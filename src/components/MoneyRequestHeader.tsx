@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -94,8 +94,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
-
-    // New hooks
     const {showConfirmModal} = useConfirmModal();
     const {showEducationalModalIfNeeded} = useHoldEducationalModal();
     const {isDuplicateActive, temporarilyDisableDuplicateAction, duplicateTransaction} = useDuplicateExpenseAction(accountID);
@@ -115,16 +113,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
-    const markAsCash = useCallback(() => {
+    const markAsCash = () => {
         markAsCashAction(transaction?.transactionID, reportID);
-    }, [reportID, transaction?.transactionID]);
+    };
 
-    const primaryAction = useMemo(() => {
-        if (!report || !parentReport || !transaction) {
-            return '';
-        }
-        return getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, transaction, [], policy, isFromReviewDuplicates);
-    }, [parentReport, policy, report, transaction, isFromReviewDuplicates, currentUserLogin, accountID]);
+    const primaryAction = !report || !parentReport || !transaction
+        ? ''
+        : getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, transaction, [], policy, isFromReviewDuplicates);
 
     const primaryActionImplementation = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
@@ -195,12 +190,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         ),
     };
 
-    const secondaryActions = useMemo(() => {
-        if (!transaction || !parentReportAction || !parentReport) {
-            return [];
-        }
-        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', accountID, parentReport, transaction, parentReportAction, originalTransaction, policy, report);
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID]);
+    const secondaryActions =
+        !transaction || !parentReportAction || !parentReport
+            ? []
+            : getSecondaryTransactionThreadActions(currentUserLogin ?? '', accountID, parentReport, transaction, parentReportAction, originalTransaction, policy, report);
 
     const secondaryActionsImplementation: Partial<
         Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>>
