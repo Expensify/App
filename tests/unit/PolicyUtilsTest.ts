@@ -187,6 +187,17 @@ const rules = {
             approver: 'tagapprover2@test.com',
             id: '4',
         },
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'category',
+                    value: 'cat3',
+                },
+            ],
+            approver: 'categoryapprover1@test.com',
+            id: '5',
+        },
     ],
 };
 const policyTags = {
@@ -531,9 +542,11 @@ describe('PolicyUtils', () => {
                     category: '',
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                    [transaction1.transactionID]: transaction1,
-                    [transaction2.transactionID]: transaction2,
+                await Onyx.multiSet({
+                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                        [transaction1.transactionID]: transaction1,
+                        [transaction2.transactionID]: transaction2,
+                    },
                 });
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover1AccountID);
             });
@@ -560,9 +573,7 @@ describe('PolicyUtils', () => {
                     tag: '',
                 };
 
-                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                    [transaction.transactionID]: transaction,
-                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
             });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
@@ -592,11 +603,62 @@ describe('PolicyUtils', () => {
                     created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                    [transaction1.transactionID]: transaction1,
-                    [transaction2.transactionID]: transaction2,
+                await Onyx.multiSet({
+                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                        [transaction1.transactionID]: transaction1,
+                        [transaction2.transactionID]: transaction2,
+                    },
                 });
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover2AccountID);
+            });
+            it('should return the first rule approver who is not the current submitter', async () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    employeeList,
+                    rules,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: categoryApprover1AccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const transaction1: Transaction = {
+                    ...createRandomTransaction(0),
+                    category: 'cat1',
+                    reportID: expenseReport.reportID,
+                    tag: '',
+                    created: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                };
+
+                const transaction2: Transaction = {
+                    ...createRandomTransaction(1),
+                    category: 'cat3',
+                    reportID: expenseReport.reportID,
+                    tag: '',
+                    created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                };
+
+                const transaction3: Transaction = {
+                    ...createRandomTransaction(2),
+                    category: '',
+                    reportID: expenseReport.reportID,
+                    tag: 'tag1',
+                    created: testDate,
+                };
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                        [transaction1.transactionID]: transaction1,
+                        [transaction2.transactionID]: transaction2,
+                        [transaction3.transactionID]: transaction3,
+                    },
+                });
+
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
                 it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {

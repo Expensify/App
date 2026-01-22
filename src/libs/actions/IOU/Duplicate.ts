@@ -462,6 +462,7 @@ type DuplicateExpenseTransactionParams = {
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
+    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 function duplicateExpenseTransaction({
@@ -476,6 +477,7 @@ function duplicateExpenseTransaction({
     targetPolicy,
     targetPolicyCategories,
     targetReport,
+    allBetas,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -514,6 +516,10 @@ function duplicateExpenseTransaction({
             receipt: undefined,
             source: undefined,
             waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+            type: transaction?.comment?.type,
+            count: transaction?.comment?.units?.count,
+            rate: transaction?.comment?.units?.rate,
+            unit: transaction?.comment?.units?.unit,
         },
         shouldHandleNavigation: false,
         shouldGenerateTransactionThreadReport: true,
@@ -523,6 +529,7 @@ function duplicateExpenseTransaction({
         transactionViolations: {},
         policyRecentlyUsedCurrencies,
         quickAction,
+        allBetas,
     };
 
     // If no workspace is provided the expense should be unreported
