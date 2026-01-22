@@ -89,6 +89,10 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
 }
 
+function isBusinessBankAccountLocked(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
+}
+
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const styles = useThemeStyles();
@@ -105,6 +109,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     const getBadgeText = useCallback(
         (listItem: PaymentMethodItem) => {
+            if (isBusinessBankAccountLocked(listItem)) {
+                return translate('common.locked');
+            }
             if (isAccountInSetupState(listItem)) {
                 return translate('common.actionRequired');
             }
@@ -133,8 +140,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
                 badgeText={getBadgeText(item)}
-                badgeIcon={isAccountInSetupState(item) ? icons.DotIndicator : undefined}
+                badgeIcon={(isAccountInSetupState(item) ?? isBusinessBankAccountLocked(item)) ? icons.DotIndicator : undefined}
                 badgeSuccess={isAccountInSetupState(item) ? true : undefined}
+                badgeError={isBusinessBankAccountLocked(item) ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={item.iconRight}
                 shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}

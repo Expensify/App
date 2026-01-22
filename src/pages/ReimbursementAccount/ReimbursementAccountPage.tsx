@@ -110,7 +110,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         workspaceRoute = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
     }
     useEffect(() => {
-        return () => getPaymentMethods(true);
+        return () => getPaymentMethods();
     }, []);
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;

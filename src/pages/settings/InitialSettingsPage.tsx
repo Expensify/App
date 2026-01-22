@@ -130,6 +130,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
@@ -152,7 +153,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        hasBrokenFeedConnection
+        hasBrokenFeedConnection ||
+        hasLockedBankAccount
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     } else if (hasPartiallySetupBankAccount(bankAccountList)) {

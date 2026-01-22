@@ -635,6 +635,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
         originalAmount: 'Kwota pierwotna',
         insights: 'Analizy',
+        locked: 'Zablokowany',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -3063,6 +3064,10 @@ ${
             `Ups! Wygląda na to, że waluta Twojego workspace’u jest ustawiona na inną niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawień workspace’u</a>, ustaw ją na USD i spróbuj ponownie.`,
         bbaAdded: 'Dodano firmowe konto bankowe!',
         bbaAddedDescription: 'Jest gotowe do użycia w płatnościach.',
+        lockedBankAccount: 'Zablokowane konto bankowe',
+        unlockBankAccount: 'Odblokuj konto bankowe',
+        youCantPayThis: 'Nie możesz zapłacić za ten raport, ponieważ masz',
+        tapBelow: 'Stuknij poniżej, a Concierge pomoże Ci w kolejnych krokach odblokowania.',
         error: {
             youNeedToSelectAnOption: 'Wybierz opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, brak dostępnego konta bankowego',

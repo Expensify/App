@@ -1096,6 +1096,7 @@ function openReport(
         parentReportActionID,
         transactionID: transaction?.transactionID,
         includePartiallySetupBankAccounts: true,
+        includeLockedBankAccounts: true,
     };
 
     if (optimisticSelfDMReport) {

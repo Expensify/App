@@ -48,6 +48,7 @@ import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
+import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -318,4 +319,5 @@ export type {
     DomainErrors,
     DomainPendingActions,
     DomainSecurityGroup,
+    InitiatingBankAccountUnlock,
 };

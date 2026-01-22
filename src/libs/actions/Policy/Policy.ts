@@ -3075,7 +3075,7 @@ function openPolicyWorkflowsPage(policyID: string) {
         ],
     };
 
-    const params: OpenPolicyWorkflowsPageParams = {policyID};
+    const params: OpenPolicyWorkflowsPageParams = {policyID, includeAllBankAccounts: true};
 
     API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
 }
@@ -4655,7 +4655,7 @@ function openPolicyMoreFeaturesPage(policyID: string) {
 }
 
 function openPolicyProfilePage(policyID: string) {
-    const params: OpenPolicyProfilePageParams = {policyID};
+    const params: OpenPolicyProfilePageParams = {policyID, includeAllBankAccounts: true};
 
     API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
 }

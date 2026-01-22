@@ -634,6 +634,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
         insights: 'インサイト',
+        locked: 'ロック済み',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -3062,6 +3063,10 @@ ${
             `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、<a href="${workspaceRoute}">ワークスペース設定</a>に移動して通貨をUSDに変更し、もう一度お試しください。`,
         bbaAdded: 'ビジネス銀行口座を追加しました！',
         bbaAddedDescription: '支払いに使用する準備ができました。',
+        lockedBankAccount: 'ロックされた銀行口座',
+        unlockBankAccount: '銀行口座を解除する',
+        youCantPayThis: 'このレポートは支払えません。なぜなら、',
+        tapBelow: '下をタップすると、コンシェルジュが解除の手続きを案内します。',
         error: {
             youNeedToSelectAnOption: '続行するオプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません',

@@ -1,15 +1,18 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import truncate from 'lodash/truncate';
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -36,8 +39,9 @@ import {
 } from '@libs/ReportUtils';
 import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {pressedOnLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -148,8 +152,10 @@ function SettlementButton({
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const kycWallRef = useContext(KYCWallContext);
+    const [showUnlockBankAccountModal, setShowUnlockBankAccountModal] = useState(false);
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
+    const isBankAccountLocked = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
     const personalBankAccountList: typeof formattedPaymentMethods = [];
     const policyBankAccounts: typeof formattedPaymentMethods = [];
@@ -188,6 +194,11 @@ function SettlementButton({
         if (isAccountLocked) {
             showLockedAccountModal();
             return true;
+        }
+
+        if (isBankAccountLocked) {
+            setShowUnlockBankAccountModal(true);
+            return;
         }
 
         if (!isUserValidated) {
@@ -502,6 +513,16 @@ function SettlementButton({
         }
     }
 
+    const handleConfirm = () => {
+        setShowUnlockBankAccountModal(false);
+
+        if (policy?.achAccount?.bankAccountID === undefined) {
+            return;
+        }
+        pressedOnLockedBankAccount(policy?.achAccount?.bankAccountID);
+        navigateToConciergeChat();
+    };
+
     const secondaryText = truncate(secondaryTextValue, {length: CONST.FORM_CHARACTER_LIMIT});
 
     const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
@@ -524,61 +545,79 @@ function SettlementButton({
     const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
 
     return (
-        <KYCWall
-            ref={kycWallRef}
-            onSuccessfulKYC={(paymentType) => onPress(paymentType, undefined, undefined)}
-            enablePaymentsRoute={enablePaymentsRoute}
-            addDebitCardRoute={addDebitCardRoute}
-            isDisabled={isOffline}
-            source={CONST.KYC_WALL_SOURCE.REPORT}
-            chatReportID={chatReportID}
-            addBankAccountRoute={isExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(iouReport?.policyID, undefined, Navigation.getActiveRoute()) : undefined}
-            iouReport={iouReport}
-            policy={lastPaymentPolicy}
-            anchorAlignment={kycWallAnchorAlignment}
-            shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-            currency={currency}
-        >
-            {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu<string>
-                    onOptionsMenuShow={onPaymentOptionsShow}
-                    onOptionsMenuHide={onPaymentOptionsHide}
-                    buttonRef={buttonRef}
-                    shouldAlwaysShowDropdownMenu={isInvoiceReport && !onlyShowPayElsewhere}
-                    customText={customText}
-                    menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
-                    isSplitButton={shouldUseSplitButton}
-                    isDisabled={isDisabled}
-                    shouldStayNormalOnDisable={shouldStayNormalOnDisable}
-                    isLoading={isLoading}
-                    defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
-                    onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
-                    success={!hasOnlyHeldExpenses}
-                    extraSmall={extraSmall}
-                    secondLineText={secondaryText}
-                    pressOnEnter={pressOnEnter}
-                    options={paymentButtonOptions}
-                    onOptionSelected={(option) => {
-                        if (paymentButtonOptions.length === 1) {
-                            return;
-                        }
-                        handlePaymentSelection(undefined, option.value, triggerKYCFlow);
-                    }}
-                    style={style}
-                    shouldUseShortForm={shouldUseShortForm}
-                    shouldPopoverUseScrollView={paymentButtonOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
-                    containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
-                    wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
-                    disabledStyle={disabledStyle}
-                    buttonSize={buttonSize}
-                    anchorAlignment={paymentMethodDropdownAnchorAlignment}
-                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                    useKeyboardShortcuts={useKeyboardShortcuts}
-                    shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}
-                    sentryLabel={sentryLabel}
-                />
-            )}
-        </KYCWall>
+        <>
+            <KYCWall
+                ref={kycWallRef}
+                onSuccessfulKYC={(paymentType) => onPress(paymentType, undefined, undefined)}
+                enablePaymentsRoute={enablePaymentsRoute}
+                addDebitCardRoute={addDebitCardRoute}
+                isDisabled={isOffline}
+                source={CONST.KYC_WALL_SOURCE.REPORT}
+                chatReportID={chatReportID}
+                addBankAccountRoute={isExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(iouReport?.policyID, undefined, Navigation.getActiveRoute()) : undefined}
+                iouReport={iouReport}
+                policy={lastPaymentPolicy}
+                anchorAlignment={kycWallAnchorAlignment}
+                shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
+                currency={currency}
+            >
+                {(triggerKYCFlow, buttonRef) => (
+                    <ButtonWithDropdownMenu<string>
+                        onOptionsMenuShow={onPaymentOptionsShow}
+                        onOptionsMenuHide={onPaymentOptionsHide}
+                        buttonRef={buttonRef}
+                        shouldAlwaysShowDropdownMenu={isInvoiceReport && !onlyShowPayElsewhere}
+                        customText={customText}
+                        menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
+                        isSplitButton={shouldUseSplitButton}
+                        isDisabled={isDisabled}
+                        shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                        isLoading={isLoading}
+                        defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
+                        onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
+                        success={!hasOnlyHeldExpenses}
+                        extraSmall={extraSmall}
+                        secondLineText={secondaryText}
+                        pressOnEnter={pressOnEnter}
+                        options={paymentButtonOptions}
+                        onOptionSelected={(option) => {
+                            if (paymentButtonOptions.length === 1) {
+                                return;
+                            }
+                            handlePaymentSelection(undefined, option.value, triggerKYCFlow);
+                        }}
+                        style={style}
+                        shouldUseShortForm={shouldUseShortForm}
+                        shouldPopoverUseScrollView={paymentButtonOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                        containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
+                        wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
+                        disabledStyle={disabledStyle}
+                        buttonSize={buttonSize}
+                        anchorAlignment={paymentMethodDropdownAnchorAlignment}
+                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                        useKeyboardShortcuts={useKeyboardShortcuts}
+                        shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}
+                        sentryLabel={sentryLabel}
+                    />
+                )}
+            </KYCWall>
+            <ConfirmModal
+                title={translate('bankAccount.lockedBankAccount')}
+                onConfirm={handleConfirm}
+                onCancel={() => {
+                    setShowUnlockBankAccountModal(false);
+                }}
+                isVisible={showUnlockBankAccountModal}
+                prompt={
+                    <Text>
+                        {translate('bankAccount.youCantPayThis')}{' '}
+                        <TextLink href={CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}>{`${translate('bankAccount.lockedBankAccount').toLowerCase()}`}</TextLink>. {translate('bankAccount.tapBelow')}
+                    </Text>
+                }
+                confirmText={translate('bankAccount.unlockBankAccount')}
+                cancelText={translate('common.cancel')}
+            />
+        </>
     );
 }
 
