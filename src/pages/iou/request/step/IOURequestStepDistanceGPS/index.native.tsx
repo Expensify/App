@@ -68,6 +68,7 @@ function IOURequestStepDistanceGPS({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
@@ -120,6 +121,7 @@ function IOURequestStepDistanceGPS({
             gpsCoordinates,
             gpsDistance: distance,
             firstCreatedGpsExpenseDateNewDot,
+            allBetas,
         });
     };
 
