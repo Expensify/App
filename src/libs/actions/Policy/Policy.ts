@@ -819,21 +819,20 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
         for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
             const employee = policy?.employeeList?.[employeeEmail];
+            const updates: Partial<PolicyEmployee> = {};
 
             if (employee?.submitsTo) {
-                optimisticMembersState[employeeEmail] = {
-                    submitsTo: policy?.owner,
-                };
+                updates.submitsTo = policy?.owner;
             }
             if (employee?.forwardsTo) {
-                optimisticMembersState[employeeEmail] = {
-                    forwardsTo: '',
-                };
+                updates.forwardsTo = '';
             }
             if (employee?.overLimitForwardsTo) {
-                optimisticMembersState[employeeEmail] = {
-                    forwardsTo: '',
-                };
+                updates.overLimitForwardsTo = '';
+            }
+
+            if (Object.keys(updates).length > 0) {
+                optimisticMembersState[employeeEmail] = updates;
             }
         }
     }
