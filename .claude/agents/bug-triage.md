@@ -64,8 +64,10 @@ Post ONE comment using this exact format:
 ```markdown
 ## 🔍 Investigation Summary
 
-**Root Cause**: [Brief description with GitHub permalinks to relevant code]
 **Confidence**: High / Medium / Low
+
+### Root Cause
+[Detailed explanation of what's causing the bug. Walk through the code path step by step, explaining how data flows and where it breaks. Include GitHub permalinks on their own lines so they render as code snippets.]
 
 ### Suggested Fix
 [Specific fix with code changes if High confidence, or investigation direction if Medium/Low. Include permalinks to code that needs to be modified.]
