@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyReportField} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
@@ -41,8 +41,32 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
-    const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+
+    const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+    const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+    let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
+    let policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+
+    // If the title field is missing, create a fallback so that it can still be edited and matches the OldDot behavior.
+    if (isTitleField && isPolicyFieldListEmpty && !reportField && !policyField) {
+        const fallbackTitleField: PolicyReportField = {
+            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            name: 'title',
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            target: 'expense',
+            defaultValue: 'New Report',
+            deletable: true,
+            values: [],
+            disabledOptions: [],
+            orderWeight: 0,
+            keys: [],
+            externalIDs: [],
+            isTax: false,
+        };
+        reportField = fallbackTitleField;
+        policyField = fallbackTitleField;
+    }
+
     const isDisabled = isReportFieldDisabledForUser(report, reportField, policy) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
