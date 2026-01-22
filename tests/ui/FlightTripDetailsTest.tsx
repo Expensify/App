@@ -30,7 +30,7 @@ const mockFlightReservation: Reservation = {
         cityName: 'San Francisco, CA, USA',
     },
     route: {
-        number: '725', // This is the FLIGHT number
+        number: '725',
         airlineCode: 'AS725',
         class: 'ECONOMY',
     },
@@ -40,9 +40,9 @@ const mockFlightReservation: Reservation = {
             value: 'CONF123',
         },
     ],
-    seatNumber: '18D', // This is the ACTUAL seat number
+    seatNumber: '18D',
     type: CONST.RESERVATION_TYPE.FLIGHT,
-    duration: 6600, // 1h 50m in seconds
+    duration: 6600,
     travelerPersonalInfo: {
         name: 'John Doe',
         email: 'john.doe@example.com',
@@ -50,7 +50,7 @@ const mockFlightReservation: Reservation = {
 };
 
 describe('FlightTripDetailsTest', () => {
-    it('should display the actual seat number, not the flight number', () => {
+    it('should display the actual seat number correctly', () => {
         render(
             <FlightTripDetails
                 reservation={mockFlightReservation}
@@ -59,8 +59,6 @@ describe('FlightTripDetailsTest', () => {
             />,
         );
 
-        // The seat field should display the actual seat number "18D"
-        // and NOT the flight number "725" from route.number
         const seatElement = screen.getByTestId(CONST.FLIGHT_SEAT_TEST_ID);
         expect(seatElement).toHaveTextContent('18D');
         expect(seatElement).not.toHaveTextContent('725');
@@ -84,7 +82,7 @@ describe('FlightTripDetailsTest', () => {
         expect(screen.queryByTestId(CONST.FLIGHT_SEAT_TEST_ID)).toBeNull();
     });
 
-    it('should still not display flight number as seat even when seatNumber is empty', () => {
+    it('should still not display flight number as seat when seatNumber is empty', () => {
         const reservationWithoutSeat: Reservation = {
             ...mockFlightReservation,
             seatNumber: undefined,
@@ -98,8 +96,6 @@ describe('FlightTripDetailsTest', () => {
             />,
         );
 
-        // Even with a route.number present, we should NOT see a seat section
-        // because the actual seatNumber is empty
         expect(screen.queryByTestId(CONST.FLIGHT_SEAT_TEST_ID)).toBeNull();
     });
 });
