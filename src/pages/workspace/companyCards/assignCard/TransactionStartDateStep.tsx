@@ -1,5 +1,5 @@
 import {format, subDays} from 'date-fns';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -14,24 +14,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
-import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function TransactionStartDateStep() {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [assignCard, assignCardMeta] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const cardToAssign = assignCard?.cardToAssign;
-    const formatter = useMemo(() => {
-        return new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
-    }, [preferredLocale]);
 
     const [dateOptionSelected, setDateOptionSelected] = useState(cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
-    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? formatter.format());
+    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     useEffect(() => {
         if (cardToAssign?.dateOption) {
@@ -58,7 +55,7 @@ function TransactionStartDateStep() {
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
         }
-        setStartDate(formatter.format());
+        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const submit = () => {
