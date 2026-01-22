@@ -61,7 +61,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserEmail = currentUserPersonalDetails.email;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});

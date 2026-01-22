@@ -64,6 +64,7 @@ function useOptions() {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
+    const currentUserEmail = personalData.email ?? '';
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
@@ -104,7 +105,7 @@ function useOptions() {
             betas: betas ?? [],
             includeSelfDM: true,
             currentUserAccountID,
-            currentUserEmail: personalData.email,
+            currentUserEmail,
             shouldAlwaysIncludeDM: true,
         },
         countryCode,
@@ -117,7 +118,7 @@ function useOptions() {
     const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        currentUserEmail: personalData.email,
+        currentUserEmail,
         currentUserAccountID,
     });
 
@@ -160,7 +161,7 @@ function useOptions() {
                       getUserToInviteOption({
                           searchValue: participant?.login,
                           loginList,
-                          currentUserEmail: personalData.email,
+                          currentUserEmail: personalData.email ?? '',
                           currentUserAccountID: personalData.accountID,
                       });
                   if (participantOption) {

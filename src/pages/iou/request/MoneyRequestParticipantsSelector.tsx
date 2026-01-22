@@ -119,6 +119,7 @@ function MoneyRequestParticipantsSelector({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -334,7 +335,7 @@ function MoneyRequestParticipantsSelector({
                     status: availableOptions.userToInvite?.status ?? undefined,
                 },
                 loginList,
-                currentUserLogin,
+                currentUserEmail,
             ) &&
             !isPerDiemRequest
         ) {
@@ -375,7 +376,7 @@ function MoneyRequestParticipantsSelector({
         showImportContacts,
         inputHelperText,
         currentUserAccountID,
-        currentUserLogin,
+        currentUserEmail,
     ]);
 
     /**

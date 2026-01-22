@@ -53,7 +53,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserEmail = currentUserPersonalDetails.email;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
