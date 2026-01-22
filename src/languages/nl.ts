@@ -1107,6 +1107,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Splitsing verwijderen',
         splitExpenseCannotBeEditedModalTitle: 'Deze uitgave kan niet worden bewerkt',
         splitExpenseCannotBeEditedModalDescription: 'Goedgekeurde of betaalde uitgaven kunnen niet worden bewerkt',
+        splitExpenseDistanceErrorModalDescription: 'Los de fout in het afstandstarief op en probeer het opnieuw.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Betaal ${name ?? 'iemand'}`,
         expense: 'Uitgave',
         categorize: 'Categoriseren',

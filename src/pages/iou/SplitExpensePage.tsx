@@ -136,9 +136,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransactionViolations = transaction?.comment?.originalTransactionID
         ? (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.comment.originalTransactionID}`] ?? [])
         : [];
+
+    const customUnitOutOfPolicyViolation = CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY;
     const hasDistanceRateError =
-        currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) ||
-        originalTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+        currentTransactionViolations.some((violation) => violation.name === customUnitOutOfPolicyViolation) ||
+        originalTransactionViolations.some((violation) => violation.name === customUnitOutOfPolicyViolation);
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -169,7 +171,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSaveSplitExpense = () => {
         if (hasDistanceRateError) {
             showConfirmModal({
-                title: translate('iou.splitExpenseDistanceErrorModalTitle'),
+                title: translate('iou.splitExpense'),
                 prompt: translate('iou.splitExpenseDistanceErrorModalDescription'),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
