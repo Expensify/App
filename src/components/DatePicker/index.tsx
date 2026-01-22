@@ -39,6 +39,7 @@ function DatePicker({
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
+    // shouldUseNarrowLayout returns true for RHP but goal here is to prevent autoFocus only on small devices.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -77,6 +78,7 @@ function DatePicker({
 
     const handlePress = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
+            // This makes sure that cursor does not appear in the TextInput when we open the DatePicker
             event?.preventDefault();
             calculatePopoverPosition();
             setIsModalVisible(true);
