@@ -2,7 +2,7 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -27,6 +27,19 @@ function DraggableList<T>({
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
+
+    // Generate a unique ID per mount to ensure DndContext state resets when component remounts
+    const [instanceId] = useState(() => `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
+    // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
+    useEffect(() => {
+        return () => {
+            if (typeof document === 'undefined') {
+                return;
+            }
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', code: 'Escape', bubbles: true, cancelable: true}));
+        };
+    }, []);
 
     const items = data.map((item, index) => {
         return keyExtractor(item, index);
@@ -77,6 +90,11 @@ function DraggableList<T>({
         }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
+            keyboardCodes: {
+                start: ['Space'],
+                cancel: ['Escape'],
+                end: ['Space'],
+            },
         }),
     );
 
@@ -90,6 +108,7 @@ function DraggableList<T>({
         >
             <div>
                 <DndContext
+                    key={instanceId}
                     onDragEnd={onDragEnd}
                     sensors={sensors}
                     collisionDetection={closestCenter}
