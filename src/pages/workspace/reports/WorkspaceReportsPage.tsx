@@ -88,6 +88,27 @@ function WorkspaceReportFieldsPage({
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
+    // Create fallback title field when policy fieldList is empty (matches OldDot behavior)
+    const titleField = useMemo(() => {
+        const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+        if (policyTitleField) {
+            return policyTitleField;
+        }
+
+        const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+        if (isPolicyFieldListEmpty) {
+            return {
+                fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
+                name: 'title',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: 'New Report',
+                deletable: true,
+            };
+        }
+
+        return undefined;
+    }, [policy?.fieldList]);
+
     const reportFieldsSections: ReportFieldForList[] = policy?.fieldList
         ? Object.entries(policy.fieldList)
               .filter(([, value]) => value.fieldID !== 'text_title')
@@ -140,7 +161,7 @@ function WorkspaceReportFieldsPage({
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
 
-    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
+    const reportTitlePendingFields = (titleField && 'pendingFields' in titleField ? titleField.pendingFields : undefined) ?? {};
 
     const clearTitleFieldError = () => {
         clearPolicyTitleFieldError(policyID);
@@ -212,7 +233,7 @@ function WorkspaceReportFieldsPage({
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
-                                    title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue ?? '')}
+                                    title={Str.htmlDecode(titleField?.defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
@@ -224,7 +245,7 @@ function WorkspaceReportFieldsPage({
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={toggleTitleStyle}
-                                isActive={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.deletable === false}
+                                isActive={titleField?.deletable === false}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
