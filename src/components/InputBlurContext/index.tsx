@@ -1,32 +1,46 @@
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useContext, useState} from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type InputBlurContextType = {
-    isBlurred: boolean; // Boolean state to track blur
-    setIsBlurred: React.Dispatch<React.SetStateAction<boolean>>; // Function to update the state
+type InputBlurStateContextType = {
+    isBlurred: boolean;
 };
 
-const InputBlurContext = React.createContext<InputBlurContextType>({
-    isBlurred: true,
+type InputBlurActionsContextType = {
+    setIsBlurred: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const defaultInputBlurActionsContext: InputBlurActionsContextType = {
     setIsBlurred: () => {},
+};
+
+const InputBlurStateContext = React.createContext<InputBlurStateContextType>({
+    isBlurred: true,
 });
+
+const InputBlurActionsContext = React.createContext<InputBlurActionsContextType>(defaultInputBlurActionsContext);
 
 function InputBlurContextProvider({children}: ChildrenProps) {
     const [isBlurred, setIsBlurred] = useState<boolean>(false);
 
-    const contextValue = useMemo(
-        () => ({
-            isBlurred,
-            setIsBlurred,
-        }),
-        [isBlurred],
+    const actionsContextValue = {
+        setIsBlurred,
+    };
+
+    const stateContextValue = {isBlurred};
+
+    return (
+        <InputBlurActionsContext.Provider value={actionsContextValue}>
+            <InputBlurStateContext.Provider value={stateContextValue}>{children}</InputBlurStateContext.Provider>
+        </InputBlurActionsContext.Provider>
     );
-
-    return <InputBlurContext.Provider value={contextValue}>{children}</InputBlurContext.Provider>;
 }
 
-function useInputBlurContext() {
-    return useContext(InputBlurContext);
+function useInputBlurState() {
+    return useContext(InputBlurStateContext);
 }
 
-export {useInputBlurContext, InputBlurContextProvider};
+function useInputBlurActions() {
+    return useContext(InputBlurActionsContext);
+}
+
+export {InputBlurContextProvider, useInputBlurState, useInputBlurActions};
