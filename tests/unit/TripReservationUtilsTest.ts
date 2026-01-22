@@ -178,7 +178,7 @@ const airPnrDirect: Pnr = {
                                 legIdx: 0,
                                 flightIdx: 0,
                                 amount: 0,
-                                number: 0,
+                                number: '14C',
                             },
                         ],
                         itinerary: {
