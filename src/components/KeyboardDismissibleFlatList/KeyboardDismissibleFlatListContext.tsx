@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createDummySharedValue from '@src/utils/createDummySharedValue';
-import type {KeyboardDismissibleFlatListActionsContextValue, KeyboardDismissibleFlatListContextValue, KeyboardDismissibleFlatListStateContextValue, ListBehavior} from './types';
+import type {KeyboardDismissibleFlatListActionsContextValue, KeyboardDismissibleFlatListStateContextValue, ListBehavior} from './types';
 
 const defaultStateValue: KeyboardDismissibleFlatListStateContextValue = {
     keyboardHeight: createDummySharedValue(0),

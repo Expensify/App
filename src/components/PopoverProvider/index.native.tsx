@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import type {PopoverContextProps, PopoverContextValue} from './types';
+import type {PopoverContextProps} from './types';
 
 type PopoverStateContextType = {
     isOpen: boolean;
@@ -28,12 +28,16 @@ const PopoverStateContext = React.createContext<PopoverStateContextType>({
 const PopoverActionsContext = React.createContext<PopoverActionsContextType>(defaultPopoverActionsContext);
 
 function PopoverContextProvider(props: PopoverContextProps) {
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue: PopoverActionsContextType = {
         onOpen: () => {},
         close: () => {},
         setActivePopoverExtraAnchorRef: () => {},
     };
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue: PopoverStateContextType = {
         isOpen: false,
         popover: null,
