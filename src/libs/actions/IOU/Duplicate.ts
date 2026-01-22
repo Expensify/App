@@ -18,7 +18,7 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
-import {getTransactionType} from '@libs/TransactionUtils';
+import {getRequestType, getTransactionType} from '@libs/TransactionUtils';
 import {getPolicyTagsData} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -570,7 +570,7 @@ function duplicateExpenseTransaction({
                 existingTransaction: {
                     ...(params.transactionParams ?? {}),
                     comment: transaction.comment,
-                    iouRequestType: transaction.iouRequestType ?? CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    iouRequestType: getRequestType(transaction),
                     modifiedCreated: '',
                     reportID: '1',
                     transactionID: '1',
