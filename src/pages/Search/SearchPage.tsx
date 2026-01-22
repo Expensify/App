@@ -18,7 +18,7 @@ import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
-import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmModal, {ConfirmModalActions} from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useFilterFormValues from '@hooks/useFilterFormValues';
@@ -57,7 +57,6 @@ import {
     updateAdvancedFilters,
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
-import {setNameValuePair} from '@libs/actions/User';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -82,7 +81,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import {canIOUBePaid, dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {canIOUBePaid, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -99,9 +98,7 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 function SearchPage({route}: SearchPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
 
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -279,7 +276,7 @@ function SearchPage({route}: SearchPageProps) {
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
             });
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             clearSelectedTransactions(undefined, true);
@@ -310,7 +307,7 @@ function SearchPage({route}: SearchPageProps) {
                 confirmText: translate('search.exportSearchResults.title'),
                 cancelText: translate('common.cancel'),
             });
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -387,7 +384,7 @@ function SearchPage({route}: SearchPageProps) {
                 confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
                 shouldShowCancelButton: false,
             });
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
@@ -439,7 +436,7 @@ function SearchPage({route}: SearchPageProps) {
                 cancelText: translate('common.cancel'),
                 danger: true,
             });
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             // Translations copy for delete modal depends on amount of selected items,
@@ -1013,8 +1010,7 @@ function SearchPage({route}: SearchPageProps) {
         expensifyIcons.ThumbsDown,
         expensifyIcons.ThumbsUp,
         expensifyIcons.Trashcan,
-        dismissedHoldUseExplanation,
-        dismissedRejectUseExplanation,
+        showEducationalModalIfNeeded,
         areAllTransactionsFromSubmitter,
         allTransactionViolations,
         currentSearchResults?.data,
