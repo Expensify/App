@@ -129,11 +129,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
-        if (shouldShowRequire2FAPage) {
-            return guardedLastVisitedState;
-        }
-
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
         // If we have a transition URL, don't restore last visited path - let React Navigation handle it

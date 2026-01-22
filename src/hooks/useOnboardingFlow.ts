@@ -78,12 +78,6 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            // Prevent starting the onboarding flow if 2FA setup is required
-            // This is temporary solution until we have an onboarding flow migrated to navigation guards
-            if (shouldShowRequire2FAPage) {
-                return;
-            }
-
             if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
                 const navigationState = navigationRef.getRootState();
                 const lastRoute = navigationState.routes.at(-1);
@@ -168,7 +162,6 @@ function useOnboardingFlowRouter() {
         currentOnboardingPurposeSelected,
         onboardingInitialPath,
         isOnboardingLoading,
-        shouldShowRequire2FAPage,
     ]);
 
     return {
