@@ -713,6 +713,82 @@ describe('OptionsListUtils', () => {
             // Then all personal details except the current user should be returned
             expect(results.personalDetails.length).toBe(10);
         });
+
+        it('should use policyCollection to filter workspace chats correctly', () => {
+            // Given a set of options with workspace rooms
+            // When we call getSearchOptions with policyCollection
+            const results = getSearchOptions({
+                options: OPTIONS_WITH_WORKSPACE_ROOM,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: '',
+                maxResults: undefined,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                loginList,
+                policyCollection: allPolicies,
+            });
+
+            // Then recent reports should include the workspace room
+            expect(results.recentReports.length).toBeGreaterThan(0);
+
+            // Then the workspace room should be in recent reports (with subtitle 'Avengers Room')
+            const workspaceRoom = results.recentReports.find((report) => report.subtitle === 'Avengers Room');
+            expect(workspaceRoom).toBeDefined();
+        });
+
+        it('should handle empty policyCollection', () => {
+            // Given a set of options
+            // When we call getSearchOptions with empty policyCollection
+            const results = getSearchOptions({
+                options: OPTIONS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: '',
+                maxResults: undefined,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                loginList,
+                policyCollection: {},
+            });
+
+            // Then it should still return personal details
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+
+            // Then it should still return recent reports
+            expect(results.recentReports.length).toBeGreaterThan(0);
+        });
+
+        it('should handle undefined policyCollection', () => {
+            // Given a set of options
+            // When we call getSearchOptions with undefined policyCollection
+            const results = getSearchOptions({
+                options: OPTIONS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: '',
+                maxResults: undefined,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                loginList,
+                policyCollection: undefined,
+            });
+
+            // Then it should still return personal details
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+
+            // Then it should still return recent reports
+            expect(results.recentReports.length).toBeGreaterThan(0);
+        });
     });
 
     describe('orderOptions()', () => {
