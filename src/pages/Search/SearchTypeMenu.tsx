@@ -240,7 +240,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
 
                                 {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                                    <>{renderSavedSearchesSection(savedSearchesMenuItems)}</>
+                                    renderSavedSearchesSection(savedSearchesMenuItems)
                                 ) : (
                                     <>
                                         {section.menuItems.map((item, itemIndex) => {
