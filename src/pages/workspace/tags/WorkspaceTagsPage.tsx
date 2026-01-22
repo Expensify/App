@@ -134,7 +134,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useEffect(() => {
         fetchTags();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -184,7 +183,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
             return newSelectedTags;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tagsList]);
     const cleanupSelectedOption = useCallback(() => setSelectedTags([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);

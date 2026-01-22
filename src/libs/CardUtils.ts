@@ -22,7 +22,7 @@ import type {
     PrivatePersonalDetails,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {FilteredCardList} from '@src/types/onyx/Card';
+import type {UnassignedCard} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -397,21 +397,6 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
-/**
- * Checks if a feed key represents a CSV feed or Expensify Card.
- * CSV feeds include feeds starting with "csv" or "ccupload", or containing "ccupload".
- * Expensify Cards also don't count toward feed limits.
- *
- * @param feedKey - The feed key to check
- * @returns true if the feed is a CSV feed or Expensify Card, false otherwise
- */
-function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
-    const lowerFeedKey = feedKey.toLowerCase();
-    // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
-    // Also exclude Expensify Cards which don't count toward the limit
-    return lowerFeedKey.startsWith('csv') || lowerFeedKey.startsWith('ccupload') || feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === 'Expensify Card';
-}
-
 function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
@@ -575,8 +560,16 @@ function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean 
     return cardFeed?.expiration ? isBefore(fromUnixTime(cardFeed.expiration), new Date()) : false;
 }
 
-/** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
+/**
+ * Returns list of unassigned cards that can be assigned.
+ *
+ * This function normalizes the difference between:
+ * - Direct feeds (Plaid/OAuth): cards stored as string[] in accountList
+ * - Commercial feeds (Visa/Mastercard/Amex): cards stored as Record<displayName, encryptedValue> in cardList
+ *
+ * @returns Array of UnassignedCard objects with consistent displayName and cardIdentifier properties
+ */
+function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): UnassignedCard[] {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
 
@@ -595,16 +588,27 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: 
         }
     }
 
+    // For direct feeds (Plaid/OAuth): displayName === cardIdentifier
     if (accountList) {
-        const unassignedDirectFeedCards = accountList.filter((cardNumber) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
-        return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
+        return accountList
+            .filter((cardName) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+            .map((cardName) => ({
+                cardName,
+                cardID: cardName,
+            }));
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
+    // For commercial feeds: displayName is the key, cardIdentifier is the encrypted value
+    return Object.entries(customFeedCardsToAssign ?? {})
+        .filter(([cardName]) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+        .map(([cardName, encryptedCardNumber]) => ({
+            cardName,
+            cardID: encryptedCardNumber,
+        }));
 }
 
-function hasOnlyOneCardToAssign(list: FilteredCardList) {
-    return Object.keys(list).length === 1;
+function hasOnlyOneCardToAssign(list: UnassignedCard[]) {
+    return list.length === 1;
 }
 
 function getDefaultCardName(cardholder?: string) {
@@ -860,60 +864,20 @@ function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string 
     };
 }
 
-/**
- * Check if two masked card numbers (PAN) are equal.
- * This function compares the first and last digits of the masked card numbers.
- * If the number of revealed digits do not match, it will compare the the number of revealed digits.
- *
- * @param a the first masked card number
- * @param b the second masked card number
- * @param maskChar the character used to mask the card number
- * @returns true if the two masked card numbers are equal, false otherwise
- */
-function isMaskedCardNumberEqual(a: string | undefined, b: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, compareIfPatternDoesNotMatch = true) {
-    if (!a || !b) {
+function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): boolean {
+    if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
 
-    const aParts = splitMaskedCardNumber(a, maskChar);
-    const bParts = splitMaskedCardNumber(b, maskChar);
-
-    const aFirstDigitsCount = aParts.firstDigits?.length ?? 0;
-    const bFirstDigitsCount = bParts.firstDigits?.length ?? 0;
-    const aLastDigitsCount = aParts.lastDigits?.length ?? 0;
-    const bLastDigitsCount = bParts.lastDigits?.length ?? 0;
-
-    if (!compareIfPatternDoesNotMatch) {
-        return aFirstDigitsCount === bFirstDigitsCount && aLastDigitsCount === bLastDigitsCount;
-    }
-
-    const firstDigitsCount = Math.min(aFirstDigitsCount, bFirstDigitsCount);
-    const lastDigitsCount = Math.min(aLastDigitsCount, bLastDigitsCount);
-
-    const areFirstDigitsEqual = aParts.firstDigits?.slice(0, firstDigitsCount) === bParts.firstDigits?.slice(0, firstDigitsCount);
-    const areLastDigitsEqual = aParts.lastDigits?.slice(-lastDigitsCount) === bParts.lastDigits?.slice(-lastDigitsCount);
-    return areFirstDigitsEqual && areLastDigitsEqual;
-}
-
-function isCardAlreadyAssigned(cardNumber: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): boolean {
-    if (!cardNumber || !workspaceCardFeeds) {
-        return false;
-    }
-    for (const workspaceCards of Object.values(workspaceCardFeeds)) {
+    return Object.values(workspaceCardFeeds).some((workspaceCards) => {
         if (!workspaceCards) {
-            continue;
+            return false;
         }
         const {cardList, ...assignedCards} = workspaceCards;
-        for (const card of Object.values(assignedCards)) {
-            if (card?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                continue;
-            }
-            if (card?.cardName === cardNumber) {
-                return true;
-            }
-        }
-    }
-    return false;
+        return Object.values(assignedCards).some(
+            (card) => card?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (card?.encryptedCardNumber === cardNumberToCheck || card?.cardName === cardNumberToCheck),
+        );
+    });
 }
 
 export {
@@ -937,7 +901,6 @@ export {
     isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
-    isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
     getPlaidCountry,
@@ -982,7 +945,6 @@ export {
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
-    isMaskedCardNumberEqual,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
 };

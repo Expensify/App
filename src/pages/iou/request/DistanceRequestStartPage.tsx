@@ -33,6 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
+import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
@@ -213,6 +214,18 @@ function DistanceRequestStartPage({
                                 {() => (
                                     <TabScreenWithFocusTrapWrapper>
                                         <IOURequestStepDistanceGPS
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
+                        {false && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
                                             route={route}
                                             navigation={navigation}
                                         />

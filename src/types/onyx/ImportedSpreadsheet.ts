@@ -14,7 +14,7 @@ type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
     promptKey: TPath;
 
     /** Parameters for the translation */
-    promptKeyParams: TranslationParameters<TPath>;
+    promptKeyParams: TranslationParameters<TPath>[0];
 };
 
 /**

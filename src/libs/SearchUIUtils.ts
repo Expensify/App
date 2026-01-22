@@ -1,6 +1,7 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {CurrencyListContextProps} from '@components/CurrencyListContextProvider';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -68,7 +69,7 @@ import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription, getCustomOrFormattedFeedName} from './CardUtils';
-import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
+import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import Navigation from './Navigation/Navigation';
@@ -144,6 +145,20 @@ type ExpenseReportSorting = ColumnSortMapping<ExpenseReportListItemType>;
 type TransactionMemberGroupSorting = ColumnSortMapping<TransactionMemberGroupListItemType>;
 type TransactionCardGroupSorting = ColumnSortMapping<TransactionCardGroupListItemType>;
 type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdrawalIDGroupListItemType>;
+
+type GetReportSectionsParams = {
+    data: OnyxTypes.SearchResults['data'];
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentSearch: SearchKey;
+    currentAccountID: number | undefined;
+    currentUserEmail: string;
+    translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    isActionLoadingSet: ReadonlySet<string> | undefined;
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    reportActions?: Record<string, OnyxTypes.ReportAction[]>;
+};
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -229,19 +244,8 @@ const expenseStatusActionMapping = {
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
-const actionFilterMapping = {
-    [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
-    [CONST.SEARCH.ACTION_FILTERS.APPROVE]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-    [CONST.SEARCH.ACTION_FILTERS.PAY]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.APPROVED],
-    [CONST.SEARCH.ACTION_FILTERS.EXPORT]: () => true,
-};
-
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
     return typeof status === 'string' && status in expenseStatusActionMapping;
-}
-
-function isValidActionFilter(action: unknown): action is ValueOf<typeof CONST.SEARCH.ACTION_FILTERS> {
-    return typeof action === 'string' && action in actionFilterMapping;
 }
 
 function getExpenseStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
@@ -350,10 +354,12 @@ type ArchivedReportsIDSet = ReadonlySet<string>;
 type GetSectionsParams = {
     type: SearchDataTypes;
     data: OnyxTypes.SearchResults['data'];
+    policies?: OnyxCollection<OnyxTypes.Policy>;
     currentAccountID: number | undefined;
     currentUserEmail: string;
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     groupBy?: SearchGroupBy;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     currentSearch?: SearchKey;
@@ -361,6 +367,7 @@ type GetSectionsParams = {
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
 };
 
 /**
@@ -1249,6 +1256,7 @@ function getTransactionsSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1314,7 +1322,7 @@ function getTransactionsSections(
                 report,
             );
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -1488,7 +1496,8 @@ function getActions(
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     key: string,
     currentSearch: SearchKey,
-    currentUserEmail: string,
+    currentUserLogin: string,
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction[] {
     const isTransaction = isTransactionEntry(key);
@@ -1509,7 +1518,7 @@ function getActions(
     }
 
     const policy = getPolicyFromKey(data, report);
-    const isExportAvailable = isExportAction(report, policy, reportActions) && !isTransaction;
+    const isExportAvailable = isExportAction(report, currentUserLogin, policy, reportActions) && !isTransaction;
 
     if (isSettled(report) && !isExportAvailable) {
         return [CONST.SEARCH.ACTION_TYPES.PAID];
@@ -1552,8 +1561,8 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
-    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
 
     // We're not supporting pay partial amount on search page now.
     if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
@@ -1584,7 +1593,7 @@ function getActions(
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserEmail) && isAllowedToApproveExpenseReport) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
@@ -1703,7 +1712,7 @@ function createAndOpenSearchTransactionThread(
         const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = shouldNavigateToTransactionThread ? transactionThreadReport?.reportID : item.reportID;
 
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
     }
 }
 
@@ -1776,16 +1785,19 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportSections(
-    data: OnyxTypes.SearchResults['data'],
-    currentSearch: SearchKey,
-    currentAccountID: number | undefined,
-    currentUserEmail: string,
-    translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    isActionLoadingSet: ReadonlySet<string> | undefined,
-    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-): [TransactionGroupListItemType[], number] {
+function getReportSections({
+    data,
+    policies,
+    currentSearch,
+    currentAccountID,
+    currentUserEmail,
+    translate,
+    formatPhoneNumber,
+    isActionLoadingSet,
+    allTransactionViolations,
+    bankAccountList,
+    reportActions = {},
+}: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const {
@@ -1849,17 +1861,12 @@ function getReportSections(
                         shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](reportItem) : false;
                     }
                 }
-                const actionFromQuery = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters?.at(0)?.value;
-
-                if (actionFromQuery && isValidActionFilter(actionFromQuery)) {
-                    shouldShow = shouldShow && actionFilterMapping[actionFromQuery](reportItem);
-                }
             }
 
             if (shouldShow) {
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
+                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
 
                 const fromDetails =
                     data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -1873,11 +1880,12 @@ function getReportSections(
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
 
                 const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
-                const policy = getPolicyFromKey(data, reportItem);
+                const policyFromKey = getPolicyFromKey(data, reportItem);
+                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID ?? String(CONST.DEFAULT_NUMBER_ID)}`] ?? policyFromKey;
 
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
-                    allViolations,
+                    allTransactionViolations ?? allViolations,
                     currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserEmail,
                     allReportTransactions,
@@ -1886,7 +1894,14 @@ function getReportSections(
                 );
                 const hasVisibleViolationsForReport =
                     hasAnyViolationsForReport &&
-                    ViolationsUtils.hasVisibleViolationsForUser(reportItem, allViolations, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions);
+                    ViolationsUtils.hasVisibleViolationsForUser(
+                        reportItem,
+                        allTransactionViolations ?? allViolations,
+                        currentUserEmail,
+                        currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                        policy,
+                        allReportTransactions,
+                    );
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -1935,7 +1950,7 @@ function getReportSections(
                 report,
             );
 
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, bankAccountList, actions);
             const transaction = {
                 ...transactionItem,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -2146,10 +2161,12 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
 function getSections({
     type,
     data,
+    policies,
     currentAccountID,
     currentUserEmail,
     translate,
     formatPhoneNumber,
+    bankAccountList,
     groupBy,
     reportActions = {},
     currentSearch = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -2157,6 +2174,7 @@ function getSections({
     queryJSON,
     isActionLoadingSet,
     cardFeeds,
+    allTransactionViolations,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2166,7 +2184,19 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, translate, formatPhoneNumber, isActionLoadingSet, reportActions);
+        return getReportSections({
+            data,
+            policies,
+            currentSearch,
+            currentAccountID,
+            currentUserEmail,
+            translate,
+            formatPhoneNumber,
+            isActionLoadingSet,
+            allTransactionViolations,
+            bankAccountList,
+            reportActions,
+        });
     }
 
     if (groupBy) {
@@ -2182,7 +2212,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions);
 }
 
 /**
@@ -3094,7 +3124,7 @@ function getGroupByOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
 }
 
-function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList) {
+function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
             if (!currencyList?.[currencyCode]?.retired) {
@@ -3152,6 +3182,8 @@ function getColumnsToShow(
     type?: SearchDataTypes,
     groupBy?: SearchGroupBy,
     isExpenseReportViewFromIOUReport = false,
+    shouldShowBillableColumn = false,
+    shouldShowReimbursableColumn = false,
 ): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -3280,6 +3312,8 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
+              [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
           }
@@ -3320,7 +3354,7 @@ function getColumnsToShow(
     });
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
-        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
         const result: SearchColumnType[] = [];
 
         // Add required columns that aren't in visibleColumns at the start

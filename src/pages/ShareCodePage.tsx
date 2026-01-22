@@ -31,6 +31,7 @@ import {
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
+    getReportForHeader,
     isExpenseReport,
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
@@ -99,7 +100,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
-    const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
+    const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
+    const title = isReport ? getReportName(reportForTitle) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`

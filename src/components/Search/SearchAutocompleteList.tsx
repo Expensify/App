@@ -10,6 +10,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useDebounce from '@hooks/useDebounce';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -308,8 +309,8 @@ function SearchAutocompleteList({
         [policies, currentUserLogin],
     );
 
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const currencyAutocompleteList = useMemo(() => Object.keys(currencyList ?? {}).filter((currency) => !currencyList?.[currency]?.retired), [currencyList]);
+    const {currencyList} = useCurrencyList();
+    const currencyAutocompleteList = useMemo(() => Object.keys(currencyList).filter((currency) => !currencyList[currency]?.retired), [currencyList]);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS, {canBeMissing: true});
@@ -808,6 +809,7 @@ function SearchAutocompleteList({
             }),
         [recentReportsOptions, styles.br2, styles.pr3, styles.pl3],
     );
+
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {

@@ -79,21 +79,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (!url) {
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
         customWindow = openBankConnection(url);
     }, [url]);
 
     useEffect(() => {
-        // Only redirect if blocked AND we're not in the middle of adding a feed (i.e., no feed selected and not a new feed)
-        // If feed is defined, user is assigning cards to an existing feed, so don't redirect
-        // If isNewFeedConnected is true, user just successfully added a feed, so don't redirect
-        if (!policyID || !isBlockedToAddNewFeeds || feed || isNewFeedConnected) {
+        if (!policyID || !isBlockedToAddNewFeeds) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockedToAddNewFeeds, policyID, feed, isNewFeedConnected]);
+    }, [isBlockedToAddNewFeeds, policyID]);
 
     const handleBackButtonPress = () => {
         customWindow?.close();

@@ -8,15 +8,16 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+// eslint-disable-next-line no-restricted-imports
+import {Plus} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -63,16 +64,16 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
-    const icons = useMemoizedLazyExpensifyIcons(['User', 'MakeAdmin', 'RemoveMembers', 'FallbackAvatar', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'MakeAdmin', 'RemoveMembers', 'FallbackAvatar']);
+    const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const textInputRef = useRef<BaseTextInputRef>(null);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -240,43 +241,18 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = useCallback(() => {
+    const removeUsers = () => {
         // Remove the admin from the list
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSearchValue('');
+        setRemoveMembersConfirmModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
-    }, [selectedMembers, currentUserAccountID, report.reportID, setSelectedMembers]);
-
-    const showRemoveMembersModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
-            prompt: translate('workspace.people.removeMembersPrompt', {
-                count: selectedMembers.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
-            }),
-            confirmText: translate('common.remove'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then(({action}) => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef.current.focus();
-            });
-
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            removeUsers();
-        });
-    }, [showConfirmModal, translate, selectedMembers, formatPhoneNumber, currentUserAccountID, removeUsers]);
+    };
 
     const changeUserRole = useCallback(
         (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
@@ -333,7 +309,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
-                onSelected: showRemoveMembersModal,
+                onSelected: () => setRemoveMembersConfirmModalVisible(true),
             },
         ];
 
@@ -360,7 +336,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         }
 
         return options;
-    }, [icons.RemoveMembers, icons.User, icons.MakeAdmin, changeUserRole, translate, showRemoveMembersModal, selectedMembers, report.participants]);
+    }, [icons.RemoveMembers, icons.User, icons.MakeAdmin, changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
 
     const headerButtons = useMemo(() => {
         if (!isGroupChat) {
@@ -386,14 +362,14 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
-                        icon={icons.Plus}
+                        icon={Plus}
                         innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -453,6 +429,28 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
+                <ConfirmModal
+                    danger
+                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
+                    isVisible={removeMembersConfirmModalVisible}
+                    onConfirm={removeUsers}
+                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
+                    prompt={translate('workspace.people.removeMembersPrompt', {
+                        count: selectedMembers.length,
+                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+                    })}
+                    confirmText={translate('common.remove')}
+                    cancelText={translate('common.cancel')}
+                    onModalHide={() => {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => {
+                            if (!textInputRef.current) {
+                                return;
+                            }
+                            textInputRef.current.focus();
+                        });
+                    }}
+                />
                 <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
                     <SelectionListWithModal
                         data={participants}

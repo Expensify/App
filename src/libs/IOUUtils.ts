@@ -4,14 +4,15 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type Transaction from '@src/types/onyx/Transaction';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
-import {getReportTransactions} from './ReportUtils';
-import {getCurrency, getTagArrayFromName} from './TransactionUtils';
+import {getReportTransactions, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
+import {getCurrency, getTagArrayFromName, isMerchantMissing, isScanRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -32,8 +33,14 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
         case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
             Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER:
+            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            break;
         case CONST.IOU.REQUEST_TYPE.SCAN:
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            break;
+        case CONST.IOU.REQUEST_TYPE.TIME:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
         default:
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
@@ -317,6 +324,66 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
+/**
+ * Checks if merchant is required and missing for a transaction.
+ * Merchant is required for policy expense chats, expense requests, or when any participant is a policy expense chat.
+ * For scan requests, merchant is not required unless it's a split bill being edited.
+ *
+ * @param transaction - The transaction to check
+ * @param report - The report associated with the transaction
+ * @param isEditingSplitBill - Whether this is editing a split bill
+ * @returns true if merchant is required and missing, false otherwise
+ */
+function shouldRequireMerchant(transaction: OnyxInputOrEntry<Transaction> | undefined, report: OnyxInputOrEntry<Report> | undefined, isEditingSplitBill = false): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    // Check if merchant is required based on report type and participants
+    const isMerchantRequired = !!(isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat));
+
+    // For scan requests, merchant is not required unless it's a split bill being edited
+    if (isScanRequest(transaction) && !isEditingSplitBill) {
+        return false;
+    }
+
+    return isMerchantRequired && isMerchantMissing(transaction);
+}
+
+function navigateToConfirmationPage(
+    iouType: IOUType,
+    transactionID: string,
+    reportID: string,
+    backToReport: string | undefined,
+    shouldNavigateToSubmit = false,
+    reportIDParam: string | undefined = undefined,
+    fromManualDistanceRequest = false,
+) {
+    switch (iouType) {
+        case CONST.IOU.TYPE.REQUEST:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
+            break;
+        case CONST.IOU.TYPE.SEND:
+            if (fromManualDistanceRequest) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+            }
+            break;
+        default:
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
+                    transactionID,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    reportIDParam || reportID,
+                    backToReport,
+                ),
+            );
+    }
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -331,4 +398,6 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    shouldRequireMerchant,
+    navigateToConfirmationPage,
 };

@@ -53,7 +53,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, isControlPolicy, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import {
+    getConnectionExporters,
+    getMemberAccountIDsForWorkspace,
+    isControlPolicy,
+    isDeletedPolicyEmployee,
+    isExpensifyTeam,
+    isPaidGroupPolicy,
+    isPolicyAdmin as isPolicyAdminUtils,
+} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -136,7 +144,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
@@ -156,17 +164,30 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const confirmModalPrompt = useMemo(() => {
         const approverEmail = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
-        if (!approverEmail) {
-            const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
-            return translate('workspace.people.removeMembersPrompt', {
-                count: selectedEmployees.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], currentUserAccountID}).at(0)?.displayName ?? ''),
+
+        if (approverEmail) {
+            const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
+            return translate('workspace.people.removeMembersWarningPrompt', {
+                memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+                ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
             });
         }
-        const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
-        return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
-            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+
+        const exporters = getConnectionExporters(policy);
+        const userExporter = selectedEmployees.find((selectedEmployee) => exporters.includes(selectedEmployee));
+
+        if (userExporter) {
+            const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
+            return translate('workspace.people.removeMemberPromptExporter', {
+                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber}),
+                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+            });
+        }
+
+        const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
+        return translate('workspace.people.removeMembersPrompt', {
+            count: selectedEmployees.length,
+            memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], currentUserAccountID}).at(0)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, currentUserAccountID]);
     /**
@@ -186,7 +207,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return;
         }
         setRemoveMembersConfirmModalVisible(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [accountIDs]);
 
     useEffect(() => {
@@ -414,6 +435,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                 role={policyEmployee.role}
                                 owner={policy?.owner}
                                 login={details.login}
+                                badgeStyles={[styles.alignSelfEnd]}
                             />
                         </View>
                     </>
@@ -452,6 +474,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.flex1,
         styles.pr3,
         styles.alignSelfStart,
+        styles.alignSelfEnd,
         isControlPolicyWithWideLayout,
         StyleUtils,
         formatPhoneNumber,

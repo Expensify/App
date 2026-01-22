@@ -52,6 +52,5 @@ export default function useDebounceNonReactive<T extends GenericFunction>(func: 
         debouncedFnRef.current?.(...args);
     }, []);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     return debounceCallback as T;
 }

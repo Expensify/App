@@ -34,8 +34,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
-import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {formatMemberForList} from './OptionsListUtils';
@@ -666,13 +666,19 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false, isTimeRequest = false): boolean {
+function isTaxTrackingEnabled(
+    isPolicyExpenseChatOrUnreportedExpense: boolean,
+    policy: OnyxEntry<Policy>,
+    isDistanceRequest: boolean,
+    isPerDiemRequest = false,
+    isTimeRequest = false,
+): boolean {
     if (isPerDiemRequest || isTimeRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
+    const isPolicyTaxTrackingEnabled = isPolicyExpenseChatOrUnreportedExpense && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && !!customUnitID && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
     return !!(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);
@@ -785,7 +791,7 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
             continue;
         }
 
-        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes)) {
+        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes ?? {})) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
                 continue;
@@ -794,6 +800,25 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
                 continue;
             }
             allTaxRates[taxRate.name].push(taxRateKey);
+        }
+    }
+
+    return allTaxRates;
+}
+
+/** Get a tax rate object built like Record<TaxID, TaxRate> */
+function getAllTaxRatesNamesAndValues(policies: OnyxCollection<Policy>): Record<string, TaxRate> {
+    const allTaxRates: Record<string, TaxRate> = {};
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.taxRates?.taxes) {
+            continue;
+        }
+
+        for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes ?? {})) {
+            if (!allTaxRates[taxRateKey]) {
+                allTaxRates[taxRateKey] = taxRate;
+            }
         }
     }
 
@@ -856,7 +881,8 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    return [...categoryApprovers, ...tagApprovers];
+    // Return the unique approvers list
+    return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
 function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
@@ -884,7 +910,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
-    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin && policy?.preventSelfApproval) {
+    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin) {
         ruleApprovers.shift();
     }
     if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
@@ -1610,17 +1636,10 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-function isPreferredExporter(policy: Policy) {
-    const user = getCurrentUserEmail();
-    const exporters = [
-        policy.connections?.intacct?.config?.export?.exporter,
-        policy.connections?.netsuite?.options?.config?.exporter,
-        policy.connections?.quickbooksDesktop?.config?.export?.exporter,
-        policy.connections?.quickbooksOnline?.config?.export?.exporter,
-        policy.connections?.xero?.config?.export?.exporter,
-    ];
+function isPreferredExporter(policy: Policy, currentUserLogin: string) {
+    const exporters = getConnectionExporters(policy);
 
-    return exporters.some((exporter) => exporter && exporter === user);
+    return exporters.some((exporter) => exporter && exporter === currentUserLogin);
 }
 
 /**
@@ -1667,6 +1686,27 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
+/**
+ * Returns an array of connection exporters from the policy's accounting integrations
+ */
+function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string | undefined> {
+    return [
+        policy?.connections?.intacct?.config?.export?.exporter,
+        policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+        policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+        policy?.connections?.xero?.config?.export?.exporter,
+        policy?.connections?.netsuite?.options?.config?.exporter,
+    ];
+}
+
+function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.units?.time?.enabled;
+}
+
+function getDefaultTimeTrackingRate(policy: Policy): number | undefined {
+    return policy.units?.time?.rate ? convertToBackendAmount(policy.units?.time?.rate) : undefined;
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1675,6 +1715,7 @@ export {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
+    getConnectionExporters,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
@@ -1794,6 +1835,7 @@ export {
     getForwardsToAccount,
     getSubmitToAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
+    getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,
     getTagApproverRule,
     getDomainNameForPolicy,
@@ -1829,6 +1871,8 @@ export {
     getTravelStep,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
+    isTimeTrackingEnabled,
+    getDefaultTimeTrackingRate,
 };
 
 export type {MemberEmailsToAccountIDs};
