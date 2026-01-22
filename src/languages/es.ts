@@ -291,6 +291,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valor',
         downloadFailedTitle: 'Error en la descarga',
         downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'No puedes exportar un informe vacío.',
+            other: () => `No puedes exportar informes vacíos.`,
+        }),
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
@@ -937,8 +941,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '¿Estás seguro de que quieres eliminar esta solicitud?',
             other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
         }),
-        deleteReport: 'Eliminar informe',
-        deleteReportConfirmation: '¿Estás seguro de que quieres eliminar este informe?',
+        deleteReport: () => ({
+            one: 'Eliminar informe',
+            other: 'Eliminar informes',
+        }),
+        deleteReportConfirmation: () => ({
+            one: '¿Estás seguro de que quieres eliminar este informe?',
+            other: '¿Estás seguro de que quieres eliminar estos informes?',
+        }),
         settledExpensify: 'Pagado',
         done: 'Listo',
         settledElsewhere: 'Pagado de otra forma',
