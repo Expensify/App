@@ -5,17 +5,14 @@ import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedTo
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
-import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Account, Onboarding, Session} from '@src/types/onyx';
-import type {GuardContext, GuardResult, NavigationGuard} from './types';
+import type {Account, Onboarding} from '@src/types/onyx';
+import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
@@ -24,8 +21,6 @@ type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
  * Module-level Onyx subscriptions for OnboardingGuard
  * These provide synchronous access to onboarding-related data
  */
-let session: OnyxEntry<Session>;
-let isLoadingApp = true;
 let onboarding: OnyxEntry<Onboarding>;
 let account: OnyxEntry<Account>;
 let tryNewDot: {isHybridAppOnboardingCompleted: boolean | undefined; hasBeenAddedToNudgeMigration: boolean} | undefined;
@@ -35,20 +30,6 @@ let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 let onboardingInitialPath: OnyxEntry<string>;
 let hasNonPersonalPolicy: OnyxEntry<boolean>;
 let wasInvitedToNewDot: boolean | undefined;
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        session = value;
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        isLoadingApp = value ?? true;
-    },
-});
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -124,7 +105,12 @@ const OnboardingGuard: NavigationGuard = {
         return true;
     },
 
-    evaluate: (state: NavigationState, action: NavigationAction, context: GuardContext): GuardResult => {
+    evaluate: (state: NavigationState | undefined, action: NavigationAction): GuardResult => {
+        // Handle case where state is not yet initialized
+        if (!state || !state.routes || state.routes.length === 0) {
+            return {type: 'ALLOW'};
+        }
+
         // Get the target route from the action
         const getTargetRoute = () => {
             if (action.type === 'NAVIGATE' && 'payload' in action && action.payload && typeof action.payload === 'object' && 'name' in action.payload) {
@@ -134,109 +120,44 @@ const OnboardingGuard: NavigationGuard = {
         };
 
         const targetRoute = getTargetRoute();
-        const currentUrl = getCurrentUrl();
-        const sessionEmail = session?.email;
-        const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
+        const focusedRoute = findFocusedRoute(state);
 
-        // 1. ALLOW: Still loading critical data
-        if (isLoadingApp !== false) {
-            return {type: 'ALLOW'};
-        }
-
-        // 2. ALLOW: Transitioning from OldDot with short-lived token
-        if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
-            return {type: 'ALLOW'};
-        }
-
-        // 3. ALLOW: Mid-redirect (URL ends with /r)
-        if (currentUrl?.endsWith('/r')) {
-            return {type: 'ALLOW'};
-        }
-
-        // 4. ALLOW: In onboarding flow (navigating to or currently on onboarding screen)
+        // Early exit: Allow if navigating to or currently on onboarding
         const isNavigatingToOnboarding = targetRoute && isOnboardingFlowName(targetRoute);
-        const isCurrentlyOnOnboarding = state.routes && state.routes.length > 0 && isOnboardingFlowName(findFocusedRoute(state)?.name);
-        if (isNavigatingToOnboarding ?? isCurrentlyOnOnboarding) {
+        const isCurrentlyOnOnboarding = isOnboardingFlowName(focusedRoute?.name);
+
+        if (isNavigatingToOnboarding || isCurrentlyOnOnboarding) {
             return {type: 'ALLOW'};
         }
 
-        // 5. CHECK IF USER HAS COMPLETED ONBOARDING
+        // Calculate all skip conditions
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
+        const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration;
+        const isSingleEntry = hybridApp?.isSingleNewDotEntry;
+        const needsExplanationModal = CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true;
+        const isInvitedOrGroupMember = !CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy ?? wasInvitedToNewDot);
 
-        // 6. SKIP ONBOARDING FOR SPECIAL CASES
-        const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
+        const shouldSkipOnboarding = isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
 
-        // Skip onboarding for migrated users (they'll see migrated user modal instead)
-        if (hasBeenAddedToNudgeMigration) {
+        if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
         }
 
-        // 7. HYBRID APP ONBOARDING
-        if (CONFIG.IS_HYBRID_APP) {
-            const isSingleNewDotEntry = hybridApp?.isSingleNewDotEntry;
-            const {isHybridAppOnboardingCompleted} = tryNewDot ?? {};
+        // Need onboarding - redirect
+        const onboardingRoute = getOnboardingInitialPath({
+            onboardingValuesParam: onboarding,
+            isUserFromPublicDomain: !!account?.isFromPublicDomain,
+            hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+            currentOnboardingCompanySize: onboardingCompanySize,
+            currentOnboardingPurposeSelected: onboardingPurposeSelected,
+            onboardingInitialPath,
+            onboardingValues: onboarding,
+        });
 
-            // Skip onboarding for single entries from OldDot (e.g., Travel feature)
-            if (isSingleNewDotEntry) {
-                return {type: 'ALLOW'};
-            }
-
-            // Skip NewDot onboarding if HybridApp onboarding (explanation modal) not completed yet
-            // The explanation modal should be handled by a separate guard
-            if (isHybridAppOnboardingCompleted === false) {
-                return {type: 'ALLOW'};
-            }
-
-            // HybridApp onboarding completed, but NewDot onboarding not completed
-            // REDIRECT to NewDot onboarding
-            if (isHybridAppOnboardingCompleted === true && !isOnboardingCompleted) {
-                const onboardingRoute = getOnboardingInitialPath({
-                    onboardingValuesParam: onboarding,
-                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                    currentOnboardingCompanySize: onboardingCompanySize,
-                    currentOnboardingPurposeSelected: onboardingPurposeSelected,
-                    onboardingInitialPath,
-                    onboardingValues: onboarding,
-                });
-
-                return {
-                    type: 'REDIRECT',
-                    route: onboardingRoute as Route,
-                };
-            }
-        }
-
-        // 8. STANDALONE (NON-HYBRID) ONBOARDING
-        if (!CONFIG.IS_HYBRID_APP && !isOnboardingCompleted) {
-            // Skip onboarding if user is part of a group workspace or was invited
-            const shouldSkipOnboarding =
-                hasNonPersonalPolicy ?? // User is part of a group workspace
-                wasInvitedToNewDot; // User was invited to NewDot
-
-            if (shouldSkipOnboarding) {
-                return {type: 'ALLOW'};
-            }
-
-            // REDIRECT to onboarding flow
-            const onboardingRoute = getOnboardingInitialPath({
-                onboardingValuesParam: onboarding,
-                isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                currentOnboardingCompanySize: onboardingCompanySize,
-                currentOnboardingPurposeSelected: onboardingPurposeSelected,
-                onboardingInitialPath,
-                onboardingValues: onboarding,
-            });
-
-            return {
-                type: 'REDIRECT',
-                route: onboardingRoute as Route,
-            };
-        }
-
-        // 9. ALLOW: Onboarding is complete or not required
-        return {type: 'ALLOW'};
+        return {
+            type: 'REDIRECT',
+            route: onboardingRoute as Route,
+        };
     },
 };
 
