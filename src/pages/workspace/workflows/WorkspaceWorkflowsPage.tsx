@@ -344,9 +344,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                 showLockedAccountModal();
                                                 return;
                                             }
+
                                             if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
                                                 pressedOnLockedBankAccount(bankAccountID);
                                                 navigateToConciergeChat();
+                                                return;
                                             }
                                             navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                         }}
@@ -357,7 +359,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         iconStyles={bankIcon.iconStyles}
                                         disabled={isOffline || !isPolicyAdmin}
                                         badgeText={getBadgeText(accountData?.state)}
-                                        badgeIcon={(isAccountInSetupState ?? (isBusinessBankAccountLocked && isPolicyAdmin)) ? expensifyIcons.DotIndicator : undefined}
+                                        badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
                                         badgeSuccess={isAccountInSetupState ? true : undefined}
                                         badgeError={isBusinessBankAccountLocked && isPolicyAdmin ? true : undefined}
                                         shouldShowRightIcon={isAccountInSetupState}
