@@ -692,7 +692,7 @@ describe('canApproveIOU', () => {
     const CURRENT_USER_EMAIL = 'test@email.com';
 
     beforeEach(async () => {
-        await Onyx.init({
+        Onyx.init({
             keys: ONYXKEYS,
         });
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: CURRENT_USER_EMAIL});
