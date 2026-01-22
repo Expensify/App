@@ -119,7 +119,7 @@ function PhoneNumberPage() {
                                     }
                                     clearPhoneNumberError();
                                 }}
-                                autoComplete='tel'
+                                autoComplete="tel"
                             />
                         </OfflineWithFeedback>
                     </FormProvider>

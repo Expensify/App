@@ -114,7 +114,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
-                        autoComplete='cc-csc'
+                        autoComplete="cc-csc"
                     />
                 </>
                 <PaymentCardCurrencyModal

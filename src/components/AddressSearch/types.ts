@@ -79,7 +79,7 @@ type AddressSearchProps = ForwardedFSClassProps & {
 
     /** Auto complete attribute for the input field */
     autoComplete?: string;
-    
+
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;
 

@@ -106,7 +106,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus
                 forwardedFSClass={forwardedFSClass}
-                autoComplete='birthdate-full'
+                autoComplete="birthdate-full"
             />
             {footerComponent}
             {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}

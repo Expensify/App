@@ -176,7 +176,7 @@ function AddressForm({
                         country: INPUT_IDS.COUNTRY as Country,
                     }}
                     shouldSaveDraft={shouldSaveDraft}
-                    autoComplete='address-line1'
+                    autoComplete="address-line1"
                 />
             </View>
             <View style={styles.formSpaceVertical} />
@@ -189,8 +189,8 @@ function AddressForm({
                 defaultValue={street2}
                 spellCheck={false}
                 shouldSaveDraft={shouldSaveDraft}
-                autoComplete='address-line2'
-                />
+                autoComplete="address-line2"
+            />
             <View style={styles.formSpaceVertical} />
             <View style={styles.mhn5}>
                 <InputWrapper
@@ -249,7 +249,7 @@ function AddressForm({
                 hint={zipFormat}
                 onValueChange={onAddressChanged}
                 shouldSaveDraft={shouldSaveDraft}
-                autoComplete='postal-code'
+                autoComplete="postal-code"
             />
         </FormProvider>
     );

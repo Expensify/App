@@ -139,7 +139,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
-                    autoComplete='given-name'
+                    autoComplete="given-name"
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -151,7 +151,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
-                    autoComplete='family-name'
+                    autoComplete="family-name"
                 />
                 {shouldShowHelpLinks && (
                     <>

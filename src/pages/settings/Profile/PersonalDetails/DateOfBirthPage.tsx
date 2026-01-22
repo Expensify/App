@@ -72,7 +72,7 @@ function DateOfBirthPage() {
                             minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                             maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
                             autoFocus
-                            autoComplete='birthdate-full'
+                            autoComplete="birthdate-full"
                         />
                     </FormProvider>
                 )}

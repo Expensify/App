@@ -113,7 +113,7 @@ function LegalNamePage() {
                                 defaultValue={legalFirstName}
                                 spellCheck={false}
                                 autoCapitalize="words"
-                                autoComplete='given-name'
+                                autoComplete="given-name"
                             />
                         </View>
                         <View>
@@ -127,7 +127,7 @@ function LegalNamePage() {
                                 defaultValue={legalLastName}
                                 spellCheck={false}
                                 autoCapitalize="words"
-                                autoComplete='family-name'
+                                autoComplete="family-name"
                             />
                         </View>
                     </FormProvider>

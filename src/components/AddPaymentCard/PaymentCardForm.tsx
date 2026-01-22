@@ -272,7 +272,7 @@ function PaymentCardForm({
                     onChangeText={onChangeCardNumber}
                     value={cardNumber}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    autoComplete='cc-number'
+                    autoComplete="cc-number"
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -284,7 +284,7 @@ function PaymentCardForm({
                     containerStyles={[styles.mt5]}
                     spellCheck={false}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    autoComplete='cc-name'
+                    autoComplete="cc-name"
                 />
                 <View style={[styles.flexRow, styles.mt5]}>
                     <View style={[styles.mr2, styles.flex1]}>
@@ -302,7 +302,7 @@ function PaymentCardForm({
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             maxLength={5}
                             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                            autoComplete='cc-exp'
+                            autoComplete="cc-exp"
                         />
                     </View>
                     <View style={styles.flex1}>
@@ -316,7 +316,7 @@ function PaymentCardForm({
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                            autoComplete='cc-csc'
+                            autoComplete="cc-csc"
                         />
                     </View>
                 </View>
@@ -332,7 +332,7 @@ function PaymentCardForm({
                             // Limit the address search only to the USA until we fully can support international debit cards
                             limitSearchesToCountry={CONST.COUNTRY.US}
                             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                            autoComplete='street-address'
+                            autoComplete="street-address"
                         />
                     </View>
                 )}
@@ -344,7 +344,7 @@ function PaymentCardForm({
                     aria-label={translate('common.zipPostCode')}
                     role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt5]}
-                    autoComplete='postal-code'
+                    autoComplete="postal-code"
                 />
                 {!!showStateSelector && (
                     <View style={[styles.mt4, styles.mhn5]}>
