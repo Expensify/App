@@ -5,6 +5,7 @@ import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedTo
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
@@ -127,17 +128,20 @@ const OnboardingGuard: NavigationGuard = {
         const isCurrentlyOnOnboarding = isOnboardingFlowName(focusedRoute?.name);
 
         if (isNavigatingToOnboarding || isCurrentlyOnOnboarding) {
+            Log.info('[OnboardingGuard] Allowing navigation - already in onboarding flow');
             return {type: 'ALLOW'};
         }
 
         // Only redirect authenticated users
         if (!context.isAuthenticated) {
+            Log.info('[OnboardingGuard] Allowing navigation - user not authenticated');
             return {type: 'ALLOW'};
         }
 
         // Don't redirect during transition flow (e.g., switching between apps)
         const isTransitioning = context.currentUrl?.includes('transition');
         if (isTransitioning) {
+            Log.info('[OnboardingGuard] Allowing navigation - in transition flow', false, {currentUrl: context.currentUrl});
             return {type: 'ALLOW'};
         }
 
@@ -163,6 +167,11 @@ const OnboardingGuard: NavigationGuard = {
             currentOnboardingPurposeSelected: onboardingPurposeSelected,
             onboardingInitialPath,
             onboardingValues: onboarding,
+        });
+
+        Log.info('[OnboardingGuard] Redirecting to onboarding', false, {
+            targetRoute,
+            onboardingRoute,
         });
 
         return {
