@@ -6926,7 +6926,11 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
         const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
-        const optimisticReportName = Formula.compute(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, formulaContext);
+
+        // When policy field list is empty, use "New Report" as default (matches OldDot behavior)
+        const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+        const defaultValue = titleReportField?.defaultValue ?? (isPolicyFieldListEmpty ? 'New Report' : CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN);
+        const optimisticReportName = Formula.compute(defaultValue, formulaContext);
         optimisticEmptyReport.reportName = optimisticReportName ?? '';
     }
 
