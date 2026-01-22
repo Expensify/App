@@ -10,7 +10,7 @@ import ConfirmModal from './components/ConfirmModal';
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
-import {InitialURLContext} from './components/InitialURLContextProvider';
+import {useInitialURLActions} from './components/InitialURLContextProvider';
 import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -127,7 +127,7 @@ function Expensify() {
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
-    const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
+    const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     useEffect(() => {
         if (isCheckingPublicRoom) {
             return;

@@ -1,22 +1,30 @@
-import React, {createContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import type {Route} from '@src/ROUTES';
 
-type InitialUrlContextType = {
+type InitialUrlStateContextType = {
     initialURL: Route | null;
-    setInitialURL: React.Dispatch<React.SetStateAction<Route | null>>;
     isAuthenticatedAtStartup: boolean;
+};
+
+type InitialUrlActionsContextType = {
+    setInitialURL: React.Dispatch<React.SetStateAction<Route | null>>;
     setIsAuthenticatedAtStartup: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-/** Initial url that will be opened when NewDot is embedded into Hybrid App. */
-const InitialURLContext = createContext<InitialUrlContextType>({
-    initialURL: null,
+const defaultInitialURLActionsContext: InitialUrlActionsContextType = {
     setInitialURL: () => {},
-    isAuthenticatedAtStartup: false,
     setIsAuthenticatedAtStartup: () => {},
+};
+
+/** Initial url that will be opened when NewDot is embedded into Hybrid App. */
+const InitialURLStateContext = createContext<InitialUrlStateContextType>({
+    initialURL: null,
+    isAuthenticatedAtStartup: false,
 });
+
+const InitialURLActionsContext = createContext<InitialUrlActionsContextType>(defaultInitialURLActionsContext);
 
 type InitialURLContextProviderProps = {
     /** Children passed to the context provider */
@@ -36,18 +44,31 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
         });
     }, []);
 
-    const initialUrlContext = useMemo(
-        () => ({
-            initialURL,
-            setInitialURL,
-            isAuthenticatedAtStartup,
-            setIsAuthenticatedAtStartup,
-        }),
-        [initialURL, isAuthenticatedAtStartup],
-    );
+    const stateContextValue = {
+        initialURL,
+        isAuthenticatedAtStartup,
+    };
 
-    return <InitialURLContext.Provider value={initialUrlContext}>{children}</InitialURLContext.Provider>;
+    const actionsContextValue = {
+        setInitialURL,
+        setIsAuthenticatedAtStartup,
+    };
+
+    return (
+        <InitialURLActionsContext.Provider value={actionsContextValue}>
+            <InitialURLStateContext.Provider value={stateContextValue}>{children}</InitialURLStateContext.Provider>
+        </InitialURLActionsContext.Provider>
+    );
 }
 
 export default InitialURLContextProvider;
-export {InitialURLContext};
+
+function useInitialURLState() {
+    return useContext(InitialURLStateContext);
+}
+
+function useInitialURLActions() {
+    return useContext(InitialURLActionsContext);
+}
+
+export {useInitialURLState, useInitialURLActions};
