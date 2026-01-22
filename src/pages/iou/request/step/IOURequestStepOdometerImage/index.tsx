@@ -8,7 +8,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -21,6 +21,7 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -35,8 +36,7 @@ function IOURequestStepOdometerImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDraggingOver} = useContext(DragAndDropContext);
-    const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload']);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'ReceiptScan']);
     const isTransactionDraft = shouldUseTransactionDraft(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -44,6 +44,7 @@ function IOURequestStepOdometerImage({
 
     const title = readingType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
     const message = readingType === 'start' ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
+    const icon = readingType === 'start' ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
 
     const navigateBack = useCallback(() => {
         Navigation.goBack();
@@ -80,11 +81,11 @@ function IOURequestStepOdometerImage({
     );
 
     const desktopUploadView = () => (
-        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
+        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1, styles.ph11]}>
             <Icon
-                src={lazyIllustrations.ReceiptUpload}
-                width={CONST.RECEIPT.ICON_SIZE}
-                height={CONST.RECEIPT.ICON_SIZE}
+                src={icon}
+                width={variables.iconSection}
+                height={variables.iconSection}
                 additionalStyles={[styles.mb5]}
             />
             <Text style={[styles.textFileUpload, styles.mb2]}>{translate('receipt.upload')}</Text>
