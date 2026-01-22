@@ -60,6 +60,7 @@ import type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
+    VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -260,6 +261,7 @@ import {
     isRenamedAction,
     isReopenedAction,
     isReportActionAttachment,
+    isReportActionVisible,
     isReportPreviewAction,
     isRetractedAction,
     isReversedTransaction,
@@ -274,7 +276,6 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
-    shouldReportActionBeVisible,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -9118,14 +9119,23 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
-function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived: boolean | undefined): boolean {
+function shouldHideReport(
+    report: OnyxEntry<Report>,
+    currentReportId: string | undefined,
+    isReportArchived: boolean | undefined,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+): boolean {
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const isChildReportHasComment = Object.values(reportActions ?? {})?.some(
-        (reportAction) =>
-            (reportAction?.childVisibleActionCount ?? 0) > 0 && shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
-    );
+    const reportID = report?.reportID;
+    const isChildReportHasComment =
+        !!reportID &&
+        Object.values(reportActions ?? {})?.some(
+            (reportAction) =>
+                (reportAction?.childVisibleActionCount ?? 0) > 0 &&
+                isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData),
+        );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
@@ -10154,7 +10164,13 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
+function navigateToLinkedReportAction(
+    ancestor: Ancestor,
+    isInNarrowPaneModal: boolean,
+    canUserPerformWrite: boolean | undefined,
+    isOffline: boolean,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+) {
     if (isInNarrowPaneModal) {
         Navigation.navigate(
             ROUTES.SEARCH_REPORT.getRoute({
@@ -10169,7 +10185,8 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     // Pop the thread report screen before navigating to the chat report.
     Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
 
-    const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWrite);
+    const reportID = ancestor.report.reportID;
+    const isVisibleAction = !!reportID && isReportActionVisible(ancestor.reportAction, reportID, canUserPerformWrite, visibleReportActionsData);
 
     if (isVisibleAction && !isOffline) {
         // Pop the chat report screen before navigating to the linked report action.
@@ -11605,6 +11622,8 @@ function prepareOnboardingOnyxData({
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
+    let setupTagsTaskReportID;
+    let setupCategoriesAndTagsTaskReportID;
     const tasksData = onboardingMessage.tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
@@ -11685,6 +11704,12 @@ function prepareOnboardingOnyxData({
             }
             if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS) {
                 addExpenseApprovalsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS) {
+                setupTagsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS) {
+                setupCategoriesAndTagsTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -11893,6 +11918,8 @@ function prepareOnboardingOnyxData({
                 choice: engagementChoice,
                 createWorkspace: createWorkspaceTaskReportID,
                 addExpenseApprovals: addExpenseApprovalsTaskReportID,
+                setupTags: setupTagsTaskReportID,
+                setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
             },
         },
     );
@@ -11962,6 +11989,8 @@ function prepareOnboardingOnyxData({
                 choice: null,
                 createWorkspace: null,
                 addExpenseApprovals: null,
+                setupCategoriesAndTags: null,
+                setupTags: null,
             },
         },
     );
