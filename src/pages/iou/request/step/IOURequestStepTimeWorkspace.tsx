@@ -8,6 +8,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePoliciesWithExpenseChatAndTimeEnabled, getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {setMoneyRequestParticipantsFromReport, setMoneyRequestTimeRate} from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
@@ -42,7 +43,7 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
                     setMoneyRequestTimeRate(transactionID, defaultRate, isTransactionDraft);
                 }
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, policyExpenseChat.reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, CONST.IOU.HOURS_STEP_ORIGIN.START, transactionID, policyExpenseChat.reportID));
             }}
         />
     );

@@ -3001,6 +3001,10 @@ const CONST = {
             MONEY_REQUEST: 'moneyRequest',
             REPLACE_RECEIPT: 'replaceReceipt',
         },
+        HOURS_STEP_ORIGIN: {
+            CONFIRM: 'confirm',
+            START: 'start',
+        },
     },
 
     CATEGORY_SOURCE: {
