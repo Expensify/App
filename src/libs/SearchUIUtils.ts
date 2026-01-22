@@ -72,6 +72,7 @@ import {getCardDescription, getCustomOrFormattedFeedName} from './CardUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
+import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -3491,6 +3492,14 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) => string}, fallbackRoute?: string) {
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.navigate(route.getRoute(Navigation.getActiveRoute()));
+    } else {
+        Navigation.navigate(fallbackRoute ?? route.getRoute());
+    }
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -3540,5 +3549,6 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    navigateToSearchRHP,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
