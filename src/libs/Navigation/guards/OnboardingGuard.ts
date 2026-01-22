@@ -12,7 +12,7 @@ import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Account, Onboarding} from '@src/types/onyx';
-import type {GuardResult, NavigationGuard} from './types';
+import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
@@ -105,7 +105,7 @@ const OnboardingGuard: NavigationGuard = {
         return true;
     },
 
-    evaluate: (state: NavigationState | undefined, action: NavigationAction): GuardResult => {
+    evaluate: (state: NavigationState | undefined, action: NavigationAction, context: GuardContext): GuardResult => {
         // Handle case where state is not yet initialized
         if (!state || !state.routes || state.routes.length === 0) {
             return {type: 'ALLOW'};
@@ -127,6 +127,17 @@ const OnboardingGuard: NavigationGuard = {
         const isCurrentlyOnOnboarding = isOnboardingFlowName(focusedRoute?.name);
 
         if (isNavigatingToOnboarding || isCurrentlyOnOnboarding) {
+            return {type: 'ALLOW'};
+        }
+
+        // Only redirect authenticated users
+        if (!context.isAuthenticated) {
+            return {type: 'ALLOW'};
+        }
+
+        // Don't redirect during transition flow (e.g., switching between apps)
+        const isTransitioning = context.currentUrl?.includes('transition');
+        if (isTransitioning) {
             return {type: 'ALLOW'};
         }
 

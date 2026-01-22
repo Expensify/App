@@ -156,7 +156,7 @@ type CanNavigateParams = {
 };
 
 /**
- * Checks if the route can be navigated to based on whether the navigation ref is ready.
+ * Checks if navigation is ready.
  */
 function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
     if (navigationRef.isReady()) {

@@ -370,12 +370,6 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                             }
                         };
 
-                        if (isAnonymousUser()) {
-                            handleDeeplinkNavigation();
-                            return;
-                        }
-                        // NOTE: Onboarding flow redirects are now handled by OnboardingGuard in the navigation guard system
-                        // When handleDeeplinkNavigation() tries to navigate, the guard will intercept and redirect if needed
                         handleDeeplinkNavigation();
                     });
                 },
