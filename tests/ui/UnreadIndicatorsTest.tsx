@@ -157,7 +157,7 @@ async function fastSignInWithTestUser() {
             email: USER_A_EMAIL,
             encryptedAuthToken: TEST_AUTH_TOKEN,
         },
-        [ONYXKEYS.BETAS]: [CONST.BETAS.ALL],
+        [ONYXKEYS.BETAS]: ['all'],
         [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
             [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
@@ -726,7 +726,6 @@ describe('Unread Indicators', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
-            allBetas: [CONST.BETAS.ALL],
             recentWaypointsCollection: recentWaypoints,
         });
         await waitForBatchedUpdates();

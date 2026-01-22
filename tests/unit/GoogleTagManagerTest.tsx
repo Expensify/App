@@ -203,7 +203,6 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
-            allBetas: [CONST.BETAS.ALL],
             recentWaypointsCollection: recentWaypoints,
         });
 
