@@ -98,7 +98,6 @@ import {
     getPolicyName,
     getReportOrDraftReport,
     getReportStatusTranslation,
-    getSearchReportName,
     hasAnyViolations,
     hasHeldExpenses,
     hasInvoiceReports,
@@ -302,8 +301,6 @@ type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
-
-type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
@@ -789,13 +786,6 @@ function isReportEntry(key: string): key is ReportKey {
  */
 function isGroupEntry(key: string): key is SearchGroupKey {
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX);
-}
-
-/**
- * @private
- */
-function isPolicyEntry(key: string): key is PolicyKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
 }
 
 function isViolationEntry(key: string): key is ViolationKey {
@@ -1725,17 +1715,11 @@ function createAndOpenSearchTransactionThread(
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
-    const transactions = Object.keys(data)
-        .filter(isTransactionEntry)
-        .map((key) => data[key]);
-
-    const reports = Object.keys(data)
-        .filter(isReportEntry)
-        .map((key) => data[key]);
-
-    const policies = Object.keys(data)
-        .filter(isPolicyEntry)
-        .map((key) => data[key]);
+    const transactionsFromData = getTransactionsFromData(data);
+    const reportsFromData = getReportsFromData(data);
+    const policiesFromData = getPoliciesFromData(data);
+    const reportNameValuePairsFromData = getReportNameValuePairsFromData(data);
+    const reportActionsFromData = getReportActionsFromData(data);
 
     let n = 0;
 
@@ -1746,12 +1730,10 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
             for (const reportAction of reportActions) {
                 const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
-                const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
-                const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-                const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
-                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
+                const reportNameValuePairs = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+                const isReportArchived = isArchivedReport(reportNameValuePairs);
                 if (
                     !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
                     isDeletedAction(reportAction) ||
@@ -1767,8 +1749,17 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                 reportActionItems.push({
                     ...reportAction,
                     from,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
+                    reportName: computeReportName(
+                        report,
+                        reportsFromData,
+                        policiesFromData,
+                        transactionsFromData,
+                        reportNameValuePairsFromData,
+                        data.personalDetailsList,
+                        reportActionsFromData,
+                        undefined,
+                        reportNameValuePairs?.private_isArchived,
+                    ),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
