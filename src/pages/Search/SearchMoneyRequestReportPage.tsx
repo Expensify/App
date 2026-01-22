@@ -156,6 +156,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
+
+        // oneTransactionID dependency handles the case when deleting a transaction:
+        // oneTransactionID updates after transactionThreadReportID,
+        // so we need it in dependencies to re-run the effect with the correct remaining transaction.
+        // For more details see https://github.com/Expensify/App/pull/80107
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportIDFromRoute, transactionThreadReportID, oneTransactionID]);
