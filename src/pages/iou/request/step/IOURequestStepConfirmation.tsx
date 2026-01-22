@@ -738,6 +738,8 @@ function IOURequestStepConfirmation({
         ],
     );
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
             if (!transactions.length) {
@@ -802,31 +804,33 @@ function IOURequestStepConfirmation({
                     activePolicyID,
                     quickAction,
                     allBetas,
+                    recentWaypointsCollection: recentWaypoints,
                 });
             }
         },
         [
-            report,
             transactions,
-            receiptFiles,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            transactionTaxCode,
-            transactionTaxAmount,
-            policy,
-            policyTags,
-            policyCategories,
-            action,
-            customUnitRateID,
-            isDraftPolicy,
+            privateIsArchivedMap,
             isManualDistanceRequest,
             isOdometerDistanceRequest,
-            privateIsArchivedMap,
+            report,
+            isDraftPolicy,
+            action,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyCategories,
+            policyTags,
+            receiptFiles,
+            transactionTaxCode,
+            transactionTaxAmount,
+            customUnitRateID,
             isASAPSubmitBetaEnabled,
             introSelected,
             activePolicyID,
             quickAction,
             allBetas,
+            recentWaypoints,
         ],
     );
 
