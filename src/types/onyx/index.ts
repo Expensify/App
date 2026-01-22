@@ -127,7 +127,7 @@ import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
-import type {TravelSettings} from './TravelSettings';
+import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
 import type UnshareBankAccount from './UnshareBankAccount';
 import type UserLocation from './UserLocation';
@@ -251,6 +251,7 @@ export type {
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
+    WorkspaceTravelSettings,
     UserLocation,
     UserMetadata,
     UserWallet,
