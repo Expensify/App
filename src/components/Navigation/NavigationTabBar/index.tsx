@@ -48,6 +48,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 import type {Domain, Policy, Report} from '@src/types/onyx';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
@@ -61,7 +62,7 @@ function doesLastReportExistSelector(report: OnyxEntry<Report>) {
     return !!report?.reportID;
 }
 
-function getLastRoute(rootState: NavigationState, navigator: string, screen: string) {
+function getLastRoute(rootState: NavigationState, navigator: ValueOf<typeof NAVIGATORS>, screen: Screen) {
     const lastNavigator = rootState.routes.findLast((route) => route.name === navigator);
     const lastNavigatorState = lastNavigator && lastNavigator.key ? getPreservedNavigatorState(lastNavigator?.key) : undefined;
     const lastRoute = lastNavigatorState?.routes.findLast((route) => route.name === screen);
