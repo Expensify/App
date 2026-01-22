@@ -4,13 +4,13 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,6 @@ import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
-import {PROGRAM_TRAVEL_US} from '@libs/TravelInvoicingUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -53,10 +52,11 @@ function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
 function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`, {canBeMissing: true});
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
@@ -111,7 +111,7 @@ function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlement
                                 initiallyFocusedItemKey={paymentBankAccountID?.toString()}
                                 listFooterContent={
                                     <MenuItem
-                                        icon={Expensicons.Plus}
+                                        icon={icons.Plus}
                                         title={translate('workspace.expensifyCard.addNewBankAccount')}
                                         onPress={() =>
                                             Navigation.navigate(
@@ -127,7 +127,7 @@ function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlement
                             />
                         ) : (
                             <MenuItem
-                                icon={Expensicons.Plus}
+                                icon={icons.Plus}
                                 title={translate('workspace.expensifyCard.addNewBankAccount')}
                                 onPress={() =>
                                     Navigation.navigate(
@@ -146,7 +146,5 @@ function WorkspaceTravelSettlementAccountPage({route}: WorkspaceTravelSettlement
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTravelSettlementAccountPage.displayName = 'WorkspaceTravelSettlementAccountPage';
 
 export default WorkspaceTravelSettlementAccountPage;

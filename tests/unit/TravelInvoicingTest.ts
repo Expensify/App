@@ -3,7 +3,6 @@ import {clearTravelInvoicingSettlementAccountErrors, setTravelInvoicingSettlemen
 // We need to import API because it is used in the tests
 // eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
-import {PROGRAM_TRAVEL_US} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -25,7 +24,7 @@ describe('TravelInvoicing', () => {
         const workspaceAccountID = 456;
         const settlementBankAccountID = 789;
         const previousPaymentBankAccountID = 111;
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
 
         setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, settlementBankAccountID, previousPaymentBankAccountID);
 
@@ -77,7 +76,7 @@ describe('TravelInvoicing', () => {
     it('clearTravelInvoicingSettlementAccountErrors clears errors, resets pendingAction, and restores restored paymentBankAccountID', () => {
         const workspaceAccountID = 456;
         const restoredAccountID = 111;
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
 
         clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, restoredAccountID);
 
