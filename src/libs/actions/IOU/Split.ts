@@ -1,43 +1,77 @@
-import { InteractionManager } from 'react-native';
-import type { OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate } from 'react-native-onyx';
+import {InteractionManager} from 'react-native';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
-import type { SearchContextProps } from '@components/Search/types';
+import type {ValueOf} from 'type-fest';
+import type {SearchContextProps} from '@components/Search/types';
 import * as API from '@libs/API';
-import type { CompleteSplitBillParams, RevertSplitTransactionParams, SplitBillParams, SplitTransactionParams, SplitTransactionSplitsParam, StartSplitBillParams } from '@libs/API/parameters';
-import { WRITE_COMMANDS } from '@libs/API/types';
+import type {CompleteSplitBillParams, RevertSplitTransactionParams, SplitBillParams, SplitTransactionParams, SplitTransactionSplitsParam, StartSplitBillParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import { getMicroSecondOnyxErrorWithTranslationKey } from '@libs/ErrorUtils';
-import { calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal } from '@libs/IOUUtils';
-import { formatPhoneNumber } from '@libs/LocalePhoneNumber';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation, { navigationRef } from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import { addSMSDomainIfPhoneNumber } from '@libs/PhoneNumber';
-import { getDistanceRateCustomUnitRate } from '@libs/PolicyUtils';
-import { getAllReportActions, getOriginalMessage, getReportAction, getReportActionHtml, getReportActionText, isMoneyRequestAction } from '@libs/ReportActionsUtils';
-import { buildOptimisticChatReport, buildOptimisticCreatedReportAction, buildOptimisticExpenseReport, buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildOptimisticMoneyRequestEntities, buildOptimisticReportPreview, generateReportID, getChatByParticipants, getParsedComment, getReportOrDraftReport, getTransactionDetails, hasViolations as hasViolationsReportUtils, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils, updateReportPreview } from '@libs/ReportUtils';
-import playSound, { SOUNDS } from '@libs/Sound';
-import { buildOptimisticTransaction, getChildTransactions, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils } from '@libs/TransactionUtils';
-import { buildOptimisticPolicyRecentlyUsedTags } from '@userActions/Policy/Tag';
-import { notifyNewAction } from '@userActions/Report';
-import { removeDraftSplitTransaction, removeDraftTransaction } from '@userActions/TransactionEdit';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {getAllReportActions, getOriginalMessage, getReportAction, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
+    buildOptimisticExpenseReport,
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildOptimisticMoneyRequestEntities,
+    buildOptimisticReportPreview,
+    generateReportID,
+    getChatByParticipants,
+    getParsedComment,
+    getReportOrDraftReport,
+    getTransactionDetails,
+    hasViolations as hasViolationsReportUtils,
+    isArchivedReport,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
+    updateReportPreview,
+} from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
+import {buildOptimisticTransaction, getChildTransactions, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
+import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
+import {notifyNewAction} from '@userActions/Report';
+import {removeDraftSplitTransaction, removeDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { Attendee, Participant, Split, SplitExpense } from '@src/types/onyx/IOU';
-import type { CurrentUserPersonalDetails } from '@src/types/onyx/PersonalDetails';
+import type {Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type { OnyxData } from '@src/types/onyx/Request';
-import type { SplitShares, TransactionChanges } from '@src/types/onyx/Transaction';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-import { buildMinimalTransactionForFormula, buildOnyxDataForMoneyRequest, createSplitsAndOnyxData, dismissModalAndOpenReportInInboxTab, getAllPersonalDetails, getAllReports, getAllTransactions, getDeleteTrackExpenseInformation, getMoneyRequestInformation, getMoneyRequestParticipantsFromReport, getOrCreateOptimisticSplitChatReport, getReceiptError, getReportPreviewAction, getUpdateMoneyRequestParams, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies } from './index';
-import type { MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams } from './index';
-
+import type {OnyxData} from '@src/types/onyx/Request';
+import type {SplitShares, TransactionChanges} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {
+    buildMinimalTransactionForFormula,
+    buildOnyxDataForMoneyRequest,
+    createSplitsAndOnyxData,
+    dismissModalAndOpenReportInInboxTab,
+    getAllPersonalDetails,
+    getAllReports,
+    getAllTransactions,
+    getDeleteTrackExpenseInformation,
+    getMoneyRequestInformation,
+    getMoneyRequestParticipantsFromReport,
+    getOrCreateOptimisticSplitChatReport,
+    getReceiptError,
+    getReportPreviewAction,
+    getUpdateMoneyRequestParams,
+    mergePolicyRecentlyUsedCategories,
+    mergePolicyRecentlyUsedCurrencies,
+} from './index';
+import type {MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
