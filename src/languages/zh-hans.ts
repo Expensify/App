@@ -623,7 +623,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长...',
         domains: '域名',
-        viewReport: '查看报告',
         actionRequired: '需要操作',
         duplicate: '复制',
         duplicated: '已重复',
@@ -957,7 +956,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
         fabNewChat: '开始聊天',
-        fabNewChatExplained: '开始聊天（浮动操作）',
+        fabNewChatExplained: '打开操作菜单',
         fabScanReceiptExplained: '扫描收据（浮动操作）',
         chatPinned: '聊天已置顶',
         draftedMessage: '已起草的消息',
@@ -1423,8 +1422,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: '您无法将每日津贴费用移至其他工作区的报告，因为不同工作区之间的每日津贴费率可能有所不同。',
         changeApprover: {
             title: '更改审批人',
-            subtitle: '选择一个选项以更改此报表的审批人。',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) => `您也可以在<a href="${workflowSettingLink}">工作流设置</a>中永久更改所有报表的审批人。`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `选择一个选项来更改此报告的审批人。（更新您的<a href="${workflowSettingLink}">工作区设置</a>，可永久更改所有报告的审批人。）`,
             changedApproverMessage: (managerID: number) => `将审批人更改为 <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: '添加审批人',
@@ -1921,13 +1920,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: '您的账户已被锁定',
         chatToConciergeToUnlock: '与 Concierge 聊天以解决安全问题并解锁您的账户。',
         chatWithConcierge: '与 Concierge 聊天',
-    },
-    passwordPage: {
-        changePassword: '更改密码',
-        changingYourPasswordPrompt: '更改密码会同时更新您在 Expensify.com 和 New Expensify 账户中的密码。',
-        currentPassword: '当前密码',
-        newPassword: '新密码',
-        newPasswordPrompt: '您的新密码必须不同于旧密码，并且至少包含 8 个字符，1 个大写字母、1 个小写字母和 1 个数字。',
     },
     twoFactorAuth: {
         headerTitle: '双重身份验证',
@@ -2944,15 +2936,6 @@ ${
         subtitle: '无法完成您的请求。请稍后再试。',
         wrongTypeSubtitle: '该搜索无效。请尝试调整你的搜索条件。',
     },
-    setPasswordPage: {
-        enterPassword: '输入密码',
-        setPassword: '设置密码',
-        newPasswordPrompt: '您的密码必须至少包含 8 个字符，且至少包含 1 个大写字母、1 个小写字母和 1 个数字。',
-        passwordFormTitle: '欢迎回到全新 Expensify！请设置您的密码。',
-        passwordNotSet: '我们未能设置您的新密码。我们已向您发送了一个新的密码链接，请重试。',
-        setPasswordLinkInvalid: '该设置密码链接无效或已过期。新的链接已发送到您的邮箱！',
-        validateAccount: '验证账户',
-    },
     statusPage: {
         status: '状态',
         statusExplanation: '添加一个表情符号，让同事和朋友能轻松了解发生了什么。你也可以选择性地添加一条消息！',
@@ -3093,6 +3076,7 @@ ${
         errorMessageInvalidPhone: `请输入不带括号或短横线的有效电话号码。如果您在美国以外，请包含您的国家区号（例如：${CONST.EXAMPLE_PHONE_NUMBER}）。`,
         errorMessageInvalidEmail: '无效的邮箱',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} 已经是 ${name} 的成员`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} 已经是 ${name} 的管理员`,
     },
     onfidoStep: {
         acceptTerms: '通过继续申请激活您的 Expensify Wallet，即表示您确认已阅读、理解并接受',
@@ -4935,6 +4919,21 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
                     ctaText: '预订或管理',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {title: '旅行预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', manageTravelLabel: '管理差旅'},
+                    centralInvoicingSection: {
+                        title: '集中开票',
+                        subtitle: '将所有差旅支出集中到月度发票中，而不是在购买时逐笔付款。',
+                        learnHow: '了解如何操作。',
+                        subsections: {
+                            currentTravelSpendLabel: '当前差旅行支出',
+                            currentTravelSpendCta: '支付余额',
+                            currentTravelLimitLabel: '当前出差限额',
+                            settlementAccountLabel: '结算账户',
+                            settlementFrequencyLabel: '结算频率',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',
@@ -4981,6 +4980,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     `选择要导出交易记录的 ${integration} 账户。请选择不同的<a href="${exportPageLink}">导出选项</a>以更改可用账户。`,
                 lastUpdated: '最近更新',
                 transactionStartDate: '交易开始日期',
+                changeTransactionStartDateWarning: '更改开始日期将删除所有未报告/草稿报表的交易，并从新开始日期重新导入所有交易。这可能导致重复交易。',
                 updateCard: '更新卡片',
                 unassignCard: '取消分配卡片',
                 unassign: '取消分配',
@@ -7780,6 +7780,7 @@ ${reportName}
             resetDomainInfo: `此操作是<strong>永久性的</strong>，并且以下数据将被删除：<br/> <ul><li>公司卡连接以及这些卡片上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用以及其他数据将会保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域名从您的域名列表中清除。`,
         },
         members: {title: '成员', findMember: '查找成员'},
+        domainAdmins: '域管理员',
     },
     gps: {
         tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',
@@ -7798,6 +7799,8 @@ ${reportName}
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
         notification: {title: '正在进行 GPS 跟踪', body: '前往应用完成'},
+        locationServicesRequiredModal: {title: '需要访问位置信息', confirm: '打开设置', prompt: '请在设备设置中允许位置访问，以开始 GPS 距离跟踪。'},
+        fabGpsTripExplained: '前往 GPS 屏幕（悬浮操作）',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

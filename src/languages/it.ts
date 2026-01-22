@@ -627,7 +627,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copia negli appunti',
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
-        viewReport: 'Visualizza rendiconto',
         actionRequired: 'Azione richiesta',
         duplicate: 'Duplica',
         duplicated: 'Duplicato',
@@ -970,7 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Trova qualcosa...',
         buttonMySettings: 'Le mie impostazioni',
         fabNewChat: 'Avvia chat',
-        fabNewChatExplained: 'Avvia chat (Azione flottante)',
+        fabNewChatExplained: 'Apri menu azioni',
         fabScanReceiptExplained: 'Scansiona ricevuta (Azione flottante)',
         chatPinned: 'Chat fissata',
         draftedMessage: 'Messaggio in bozza',
@@ -1448,9 +1447,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Non puoi spostare le spese per diaria su report in altri workspace, perché le tariffe per diaria possono differire tra workspace.',
         changeApprover: {
             title: 'Cambia approvatore',
-            subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Puoi anche modificare in modo permanente l'approvatore per tutti i report nelle tue <a href="${workflowSettingLink}">impostazioni del flusso di lavoro</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Scegli un'opzione per modificare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dell'area di lavoro</a> per modificare questa impostazione in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l'approvatore in <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Aggiungi approvatore',
@@ -1952,13 +1950,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Il tuo account è bloccato',
         chatToConciergeToUnlock: 'Chatta con Concierge per risolvere i problemi di sicurezza e sbloccare il tuo account.',
         chatWithConcierge: 'Chatta con Concierge',
-    },
-    passwordPage: {
-        changePassword: 'Cambia password',
-        changingYourPasswordPrompt: 'La modifica della password aggiornerà la password sia per il tuo account Expensify.com sia per il tuo account New Expensify.',
-        currentPassword: 'Password attuale',
-        newPassword: 'Nuova password',
-        newPasswordPrompt: 'La nuova password deve essere diversa dalla vecchia password e contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticazione a due fattori',
@@ -2994,15 +2985,6 @@ ${
         subtitle: 'Impossibile completare la tua richiesta. Riprova più tardi.',
         wrongTypeSubtitle: 'Questa ricerca non è valida. Prova a modificare i criteri di ricerca.',
     },
-    setPasswordPage: {
-        enterPassword: 'Inserisci una password',
-        setPassword: 'Imposta password',
-        newPasswordPrompt: 'La tua password deve contenere almeno 8 caratteri, 1 lettera maiuscola, 1 lettera minuscola e 1 numero.',
-        passwordFormTitle: 'Bentornato nella nuova Expensify! Imposta la tua password.',
-        passwordNotSet: 'Non è stato possibile impostare la tua nuova password. Ti abbiamo inviato un nuovo link per la password per riprovare.',
-        setPasswordLinkInvalid: 'Questo link per impostare la password non è valido o è scaduto. Un nuovo link ti sta aspettando nella tua casella di posta!',
-        validateAccount: 'Verifica account',
-    },
     statusPage: {
         status: 'Stato',
         statusExplanation: "Aggiungi un'emoji per offrire a colleghi e amici un modo semplice per capire cosa sta succedendo. Puoi anche aggiungere un messaggio opzionale!",
@@ -3144,6 +3126,7 @@ ${
         errorMessageInvalidPhone: `Per favore inserisci un numero di telefono valido senza parentesi o trattini. Se ti trovi fuori dagli Stati Uniti, includi il prefisso del tuo paese (ad es. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email non valido',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già un membro di ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già un amministratore di ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Continuando con la richiesta di attivare il tuo Expensify Wallet, confermi di aver letto, compreso e accettato',
@@ -5043,6 +5026,25 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestisci tutte le tue spese aziendali in un unico posto.',
                     ctaText: 'Prenota o gestisci',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Prenotazione di viaggio',
+                        subtitle: 'Complimenti! Ora sei pronto per prenotare e gestire i viaggi in questo spazio di lavoro.',
+                        manageTravelLabel: 'Gestisci viaggi',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Fatturazione centralizzata',
+                        subtitle: 'Centralizza tutte le spese di viaggio in una fattura mensile invece di pagare al momento dell’acquisto.',
+                        learnHow: 'Scopri come.',
+                        subsections: {
+                            currentTravelSpendLabel: 'Spesa di viaggio attuale',
+                            currentTravelSpendCta: 'Paga saldo',
+                            currentTravelLimitLabel: 'Limite di viaggio attuale',
+                            settlementAccountLabel: 'Conto di regolamento',
+                            settlementFrequencyLabel: 'Frequenza di regolamento',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Carta Expensify',
@@ -5094,6 +5096,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     `Scegli il conto ${integration} in cui esportare le transazioni. Seleziona una <a href="${exportPageLink}">opzione di esportazione</a> diversa per modificare i conti disponibili.`,
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
+                changeTransactionStartDateWarning:
+                    'Modificando la data di inizio verranno eliminate tutte le transazioni non segnalate/bozze di segnalazione e verranno reimportate tutte le transazioni dalla nuova data di inizio. Ciò può causare transazioni duplicate.',
                 updateCard: 'Aggiorna carta',
                 unassignCard: 'Rimuovi assegnazione carta',
                 unassign: 'Rimuovi assegnazione',
@@ -7996,6 +8000,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             resetDomainInfo: `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall'elenco dei tuoi domini eliminando l'email associata dalle tue <a href="#">modalità di contatto</a>.`,
         },
         members: {title: 'Membri', findMember: 'Trova membro'},
+        domainAdmins: 'Amministratori di dominio',
     },
     gps: {
         tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
@@ -8036,7 +8041,13 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
         },
-        notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per completare"},
+        notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
+        locationServicesRequiredModal: {
+            title: 'È necessario l’accesso alla posizione',
+            confirm: 'Apri impostazioni',
+            prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza tramite GPS.',
+        },
+        fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
