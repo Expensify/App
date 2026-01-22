@@ -384,6 +384,7 @@ function IOURequestStepScan({
             transactionViolations,
             introSelected,
             activePolicyID,
+            reportNameValuePairs?.private_isArchived,
         ],
     );
 

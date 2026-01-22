@@ -165,7 +165,7 @@ function IOURequestStepScan({
 
     const {translate} = useLocalize();
 
-    const askForPermissions = () => {
+    const askForPermissions = useCallback(() => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
         CameraPermission.requestCameraPermission?.()
@@ -179,7 +179,7 @@ function IOURequestStepScan({
             .catch(() => {
                 setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
-    };
+    }, []);
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
@@ -331,6 +331,7 @@ function IOURequestStepScan({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            reportNameValuePairs?.private_isArchived,
         ],
     );
 

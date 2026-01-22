@@ -343,6 +343,7 @@ function IOURequestStepDistanceMap({
         personalPolicy?.autoReporting,
         reportID,
         selfDMReport,
+        reportNameValuePairs?.private_isArchived,
     ]);
 
     const getError = () => {
@@ -458,6 +459,7 @@ function IOURequestStepDistanceMap({
         transaction?.transactionID,
         transactionBackup,
         waypoints,
+        parentReportNextStep,
     ]);
 
     const renderItem = useCallback(

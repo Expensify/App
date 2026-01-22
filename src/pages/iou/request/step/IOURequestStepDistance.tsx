@@ -343,6 +343,7 @@ function IOURequestStepDistance({
         personalPolicy?.autoReporting,
         reportID,
         selfDMReport,
+        reportNameValuePairs?.private_isArchived,
     ]);
 
     const getError = () => {
@@ -458,6 +459,7 @@ function IOURequestStepDistance({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
+        parentReportNextStep,
     ]);
 
     const renderItem = useCallback(

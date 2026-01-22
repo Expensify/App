@@ -240,6 +240,8 @@ function IOURequestStepDistanceManual({
             personalPolicy?.autoReporting,
             selfDMReport,
             reportID,
+            parentReportNextStep,
+            reportNameValuePairs?.private_isArchived,
         ],
     );
 
