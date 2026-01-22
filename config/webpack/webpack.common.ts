@@ -128,6 +128,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 fileWhitelist: [/\.lottie$/],
                 include: 'allAssets',
             }),
+            new PreloadWebpackPlugin({
+                rel: 'prefetch',
+                as: 'script',
+                include: 'asyncChunks',
+                fileWhitelist: [/(navigator|heicTo)(.*)\.js$/],
+            }),
             new webpack.ProvidePlugin({
                 process: 'process/browser',
             }),
