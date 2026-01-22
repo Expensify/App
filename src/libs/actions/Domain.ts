@@ -848,7 +848,7 @@ function addMemberToDomain(domainAccountID: number, email: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 member: {
-                    [optimisticAccountID]: {
+                    [email]: {
                         pendingAction: null,
                     },
                 },
@@ -919,12 +919,11 @@ function addMemberToDomain(domainAccountID: number, email: string) {
 }
 
 /**
- * Removes an error and pending actions after trying to add admin. It clears errors for both email and accountID
+ * Removes an error and pending actions after trying to add member. It clears errors for both email and accountID
  */
-function clearMemberError(domainAccountID: number, accountID: number, email: string) {
+function clearAddMemberError(domainAccountID: number, accountID: number, email: string) {
     /* eslint-disable rulesdir/no-default-id-values */
     const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
-    const optimisticAccountID = generateAccountID(email);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         memberErrors: {
@@ -936,7 +935,7 @@ function clearMemberError(domainAccountID: number, accountID: number, email: str
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         [DOMAIN_SECURITY_GROUP]: {
             shared: {
-                [optimisticAccountID]: null,
+                [accountID]: null,
             },
         },
     } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>);
@@ -966,5 +965,5 @@ export {
     resetDomain,
     clearDomainErrors,
     addMemberToDomain,
-    clearMemberError,
+    clearAddMemberError,
 };
