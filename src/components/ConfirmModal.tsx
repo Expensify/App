@@ -214,42 +214,45 @@ function ConfirmModal({
 
     /**
      * Compute initialFocus for Modal's FocusTrap.
-     * Returns a function that finds the first button in this modal's container.
+     *
+     * IMPORTANT: This must be a function (not an IIFE) so the keyboard check
+     * happens at trap ACTIVATION time, not render time. The useLayoutEffect
+     * that sets wasOpenedViaKeyboardRef runs after render but before trap
+     * activation, so a lazy check will see the correct value.
+     *
      * Returns false for mouse opens (no auto-focus) or non-web platforms.
+     * Returns HTMLElement (first button) for keyboard opens.
      */
-    const computeInitialFocus = (() => {
+    const computeInitialFocus = (): HTMLElement | false => {
         const platform = getPlatform();
 
-        // Skip for mouse/touch opens or non-web platforms
+        // Check ref LAZILY - this runs when FocusTrap activates (after useLayoutEffect)
         if (!wasOpenedViaKeyboardRef.current || platform !== CONST.PLATFORM.WEB) {
             return false;
         }
 
-        // Return function called when FocusTrap activates
-        return () => {
-            // CRITICAL: Scope query to this modal's container
-            // This prevents focusing buttons from OTHER open modals
-            // in nested scenarios (e.g., ThreeDotsMenu → PopoverMenu → ConfirmModal)
-            const container = modalContainerRef.current as unknown as HTMLElement;
-            if (!container) {
-                // Fallback: If container ref not set, use last dialog (legacy behavior)
-                Log.warn('[ConfirmModal] modalContainerRef is null, falling back to last dialog');
-                const dialogs = document.querySelectorAll('[role="dialog"]');
-                const lastDialog = dialogs[dialogs.length - 1];
-                const firstButton = lastDialog?.querySelector('button');
-                return firstButton instanceof HTMLElement ? firstButton : false;
-            }
-
-            const firstButton = container.querySelector('button');
-
-            Log.info('[ConfirmModal] initialFocus activated via keyboard', false, {
-                foundButton: !!firstButton,
-                buttonText: firstButton?.textContent?.slice(0, 30),
-            });
-
+        // CRITICAL: Scope query to this modal's container
+        // This prevents focusing buttons from OTHER open modals
+        // in nested scenarios (e.g., ThreeDotsMenu → PopoverMenu → ConfirmModal)
+        const container = modalContainerRef.current as unknown as HTMLElement;
+        if (!container) {
+            // Fallback: If container ref not set, use last dialog (legacy behavior)
+            Log.warn('[ConfirmModal] modalContainerRef is null, falling back to last dialog');
+            const dialogs = document.querySelectorAll('[role="dialog"]');
+            const lastDialog = dialogs[dialogs.length - 1];
+            const firstButton = lastDialog?.querySelector('button');
             return firstButton instanceof HTMLElement ? firstButton : false;
-        };
-    })();
+        }
+
+        const firstButton = container.querySelector('button');
+
+        Log.info('[ConfirmModal] initialFocus activated via keyboard', false, {
+            foundButton: !!firstButton,
+            buttonText: firstButton?.textContent?.slice(0, 30),
+        });
+
+        return firstButton instanceof HTMLElement ? firstButton : false;
+    };
 
     // Perf: Prevents from rendering whole confirm modal on initial render.
     if (!isVisible && !prevVisible) {
