@@ -34,13 +34,13 @@ type SelectionWithSectionsListHandle = {
 };
 
 type SectionHeader = {
-    type: CONST.SECTION_LIST_ITEM_TYPE.HEADER;
+    type: typeof CONST.SECTION_LIST_ITEM_TYPE.HEADER;
     title: string;
     keyForList: string;
     isDisabled: boolean;
 };
 
-type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number; type: CONST.SECTION_LIST_ITEM_TYPE.ROW};
+type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number; type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW};
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
