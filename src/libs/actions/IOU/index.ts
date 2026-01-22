@@ -9684,36 +9684,35 @@ function approveMoneyRequest(
     }
 
     const failureData: OnyxUpdate[] = [
-        ...(isDEWPolicy
-            ? []
-            : [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const,
-                      value: {
-                          statusNum: expenseReport.statusNum,
-                          stateNum: expenseReport.stateNum,
-                          nextStep: expenseReport.nextStep ?? null,
-                          pendingFields: {
-                              partial: null,
-                              nextStep: null,
-                          },
-                      },
-                  },
-              ]),
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}` as const,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}` as const,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: expenseReportCurrentNextStepDeprecated ?? null,
         },
     ];
+
+    if (!isDEWPolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                statusNum: expenseReport.statusNum,
+                stateNum: expenseReport.stateNum,
+                nextStep: expenseReport.nextStep ?? null,
+                pendingFields: {
+                    partial: null,
+                    nextStep: null,
+                },
+            },
+        });
+    }
 
     if (shouldAddOptimisticApproveAction) {
         if (isDEWPolicy) {

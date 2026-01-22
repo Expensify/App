@@ -10,15 +10,7 @@ import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getPolicy, hasDynamicExternalWorkflow} from './PolicyUtils';
-import {
-    getMostRecentActiveDEWApproveFailedAction,
-    getMostRecentActiveDEWSubmitFailedAction,
-    getOriginalMessage,
-    isDynamicExternalWorkflowApproveFailedAction,
-    isDynamicExternalWorkflowSubmitFailedAction,
-    isMessageDeleted,
-    isMoneyRequestAction,
-} from './ReportActionsUtils';
+import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     hasActionWithErrorsForTransaction,
     hasReceiptError,
@@ -282,13 +274,6 @@ function getTransactionPreviewTextAndTranslationPaths({
             const dewErrorMessage = originalMessage?.message;
             RBRMessage = dewErrorMessage ? {text: dewErrorMessage} : {translationPath: 'iou.error.other'};
         }
-
-        const dewApproveFailedAction = getMostRecentActiveDEWApproveFailedAction(reportActions);
-        if (dewApproveFailedAction && isDynamicExternalWorkflowApproveFailedAction(dewApproveFailedAction)) {
-            const originalMessage = getOriginalMessage(dewApproveFailedAction);
-            const dewErrorMessage = originalMessage?.message;
-            RBRMessage = dewErrorMessage ? {text: dewErrorMessage} : {translationPath: 'iou.error.other'};
-        }
     }
 
     let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
@@ -432,8 +417,7 @@ function createTransactionPreviewConditionals({
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
     const isDEWSubmitFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions);
-    const isDEWApproveFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWApproveFailedAction(reportActions);
-    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed || isDEWApproveFailed;
+    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed;
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = areThereDuplicates;

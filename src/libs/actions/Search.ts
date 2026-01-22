@@ -130,7 +130,7 @@ function handleActionButtonPress({
                 onDEWModalOpen?.();
                 return;
             }
-            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], hasDynamicExternalWorkflow(snapshotPolicy), currentSearchKey);
+            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
@@ -533,7 +533,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], isDEWPolicy?: boolean, currentSearchKey?: SearchKey) {
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -543,7 +543,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], isDEW
                     `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     {
                         isActionLoading: true,
-                        ...(isDEWPolicy ? {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE} : {}),
+                        pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
                     },
                 ]),
             ),
@@ -559,7 +559,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], isDEW
                     `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     {
                         isActionLoading: false,
-                        ...(isDEWPolicy ? {pendingExpenseAction: null} : {}),
+                        pendingExpenseAction: null,
                     },
                 ]),
             ),
@@ -587,7 +587,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], isDEW
                     `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     {
                         isActionLoading: false,
-                        ...(isDEWPolicy ? {pendingExpenseAction: null} : {}),
+                        pendingExpenseAction: null,
                     },
                 ]),
             ),

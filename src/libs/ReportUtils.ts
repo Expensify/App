@@ -4218,6 +4218,18 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
+    // Check for DEW approve failures on SUBMITTED status reports (GBR)
+    if (optionOrReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        const reportActionsArray = Object.values(reportActions ?? {});
+        const mostRecentActiveDEWApproveAction = getMostRecentActiveDEWApproveFailedAction(reportActionsArray);
+        if (mostRecentActiveDEWApproveAction) {
+            return {
+                reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED,
+                reportAction: mostRecentActiveDEWApproveAction,
+            };
+        }
+    }
+
     const optionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
     const iouReportActionToApproveOrPay = getIOUReportActionToApproveOrPay(optionOrReport, undefined, optionReportMetadata);
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
@@ -9362,15 +9374,6 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         if (mostRecentActiveDEWAction) {
             reportActionErrors.dewSubmitFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage');
             reportAction = mostRecentActiveDEWAction;
-        }
-    }
-
-    // Check for DEW approve failures on SUBMITTED status reports (GBR)
-    if (!isReportArchived && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-        const mostRecentActiveDEWApproveAction = getMostRecentActiveDEWApproveFailedAction(reportActionsArray);
-        if (mostRecentActiveDEWApproveAction) {
-            reportActionErrors.dewApproveFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage');
-            reportAction = mostRecentActiveDEWApproveAction;
         }
     }
 
