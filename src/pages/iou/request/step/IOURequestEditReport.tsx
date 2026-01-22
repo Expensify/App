@@ -47,7 +47,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
 
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
 
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
@@ -107,15 +106,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(
-            currentUserPersonalDetails,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            policyForNewReport,
-            allBetas,
-            false,
-            shouldDismissEmptyReportsConfirmation,
-        );
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
