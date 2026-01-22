@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -243,29 +243,22 @@ function MoneyReportHeader({
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const {translate, localeCompare} = useLocalize();
 
-    const exportTemplates = useMemo(
-        () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
-        [integrationsExportTemplates, csvExportLayouts, policy, translate],
-    );
+    const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy);
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
 
-    const requestParentReportAction = useMemo(() => {
-        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-            return null;
-        }
-        return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
-    }, [reportActions, transactionThreadReport?.parentReportActionID]);
+    const requestParentReportAction =
+        !reportActions || !transactionThreadReport?.parentReportActionID
+            ? null
+            : reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
 
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
-    const transactions = useMemo(() => {
-        return Object.values(reportTransactions);
-    }, [reportTransactions]);
+    const transactions = Object.values(reportTransactions);
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
@@ -274,9 +267,14 @@ function MoneyReportHeader({
     const isSubmitterSameAsNextApprover =
         isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
-    const isBlockSubmitDueToStrictPolicyRules = useMemo(() => {
-        return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email ?? '', transactions);
-    }, [moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email, transactions]);
+    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
+        moneyRequestReport?.reportID,
+        violations,
+        areStrictPolicyRulesEnabled,
+        accountID,
+        email ?? '',
+        transactions,
+    );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
@@ -291,14 +289,8 @@ function MoneyReportHeader({
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
     const {deleteTransactions} = useDeleteTransactions({report: chatReport, reportActions, policy});
-    const isExported = useMemo(() => isExportedUtils(reportActions), [reportActions]);
-    // wrapped in useMemo to improve performance because this is an operation on array
-    const integrationNameFromExportMessage = useMemo(() => {
-        if (!isExported) {
-            return null;
-        }
-        return getIntegrationNameFromExportMessageUtils(reportActions);
-    }, [isExported, reportActions]);
+    const isExported = isExportedUtils(reportActions);
+    const integrationNameFromExportMessage = !isExported ? null : getIntegrationNameFromExportMessageUtils(reportActions);
 
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
@@ -331,10 +323,8 @@ function MoneyReportHeader({
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
     const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isScanning(t));
-    const hasOnlyPendingTransactions = useMemo(() => {
-        return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-    }, [transactions]);
-    const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
+    const hasOnlyPendingTransactions = !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const transactionIDs = transactions?.map((t) => t.transactionID) ?? [];
     // eslint-disable-next-line rulesdir/no-negated-variables
     const canTriggerAutomaticPDFDownload = useRef(false);
     const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
@@ -345,22 +335,17 @@ function MoneyReportHeader({
         canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
     }, [isPDFModalVisible]);
 
-    const messagePDF = useMemo(() => {
-        if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
-            return translate('reportDetailsPage.errorPDF');
-        }
-        if (!hasFinishedPDFDownload) {
-            return translate('reportDetailsPage.waitForPDF');
-        }
-        return translate('reportDetailsPage.successPDF');
-    }, [reportPDFFilename, hasFinishedPDFDownload, translate]);
+    let messagePDF;
+    if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
+        messagePDF = translate('reportDetailsPage.errorPDF');
+    } else if (!hasFinishedPDFDownload) {
+        messagePDF = translate('reportDetailsPage.waitForPDF');
+    } else {
+        messagePDF = translate('reportDetailsPage.successPDF');
+    }
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
-    // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
-    const hasAllPendingRTERViolations = useMemo(
-        () => allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy),
-        [transactions, violations, email, accountID, moneyRequestReport, policy],
-    );
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy);
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
@@ -368,15 +353,21 @@ function MoneyReportHeader({
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
-    const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
-        [moneyRequestReport, chatReport, policy, bankAccountList, transaction],
-    );
+    const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
+        canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, onlyShowPayElsewhere);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
-    const {selectedTransactionIDs, removeTransaction, clearAllSelectedTransactions, clearSelectedTransactionsByHash, currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} =
-        useSearchContext();
+    const {
+        selectedTransactionIDs,
+        removeTransaction,
+        clearAllSelectedTransactions,
+        clearSelectedTransactionsByHash,
+        currentSearchQueryJSON,
+        currentSearchKey,
+        currentSearchHash,
+        currentSearchResults,
+    } = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
     const {showEducationalModalIfNeeded} = useHoldEducationalModal();
 
@@ -384,38 +375,35 @@ function MoneyReportHeader({
 
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
-    const showExportProgressModal = useCallback(() => {
+    const showExportProgressModal = () => {
         return showConfirmModal({
             title: translate('export.exportInProgress'),
             prompt: translate('export.conciergeWillSend'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const beginExportWithTemplate = useCallback(
-        (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
-            if (!moneyRequestReport) {
+    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
+        if (!moneyRequestReport) {
+            return;
+        }
+
+        showExportProgressModal().then((result) => {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
-
-            showExportProgressModal().then((result) => {
-                if (result.action !== ConfirmModalActions.CONFIRM) {
-                    return;
-                }
-                clearSelectedTransactionsByHash(undefined, true);
-            });
-            queueExportSearchWithTemplate({
-                templateName,
-                templateType,
-                jsonQuery: '{}',
-                reportIDList: [moneyRequestReport.reportID],
-                transactionIDList,
-                policyID,
-            });
-        },
-        [moneyRequestReport, showExportProgressModal, clearSelectedTransactionsByHash],
-    );
+            clearSelectedTransactionsByHash(undefined, true);
+        });
+        queueExportSearchWithTemplate({
+            templateName,
+            templateType,
+            jsonQuery: '{}',
+            reportIDList: [moneyRequestReport.reportID],
+            transactionIDList,
+            policyID,
+        });
+    };
 
     const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
@@ -444,15 +432,12 @@ function MoneyReportHeader({
         isOnSearch,
     });
 
-    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
-    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
+    const canIOUBePaid = getCanIOUBePaid();
+    const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
 
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
-    const shouldShowApproveButton = useMemo(
-        () => (canApproveIOU(moneyRequestReport, policy, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
-        [moneyRequestReport, policy, transactions, hasOnlyPendingTransactions, isApprovedAnimationRunning],
-    );
+    const shouldShowApproveButton = (canApproveIOU(moneyRequestReport, policy, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
@@ -507,75 +492,52 @@ function MoneyReportHeader({
     const isChatReportDM = isDM(chatReport);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
-    const confirmPayment = useCallback(
-        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
-            if (!type || !chatReport) {
-                return;
-            }
-            setPaymentType(type);
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-            if (isDelegateAccessRestricted) {
-                showDelegateNoAccessModal();
-            } else if (isAnyTransactionOnHold) {
-                if (getPlatform() === CONST.PLATFORM.IOS) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
-                } else {
-                    setIsHoldMenuVisible(true);
-                }
-            } else if (isInvoiceReport) {
-                startAnimation();
-                payInvoice({
-                    paymentMethodType: type,
-                    chatReport,
-                    invoiceReport: moneyRequestReport,
-                    invoiceReportCurrentNextStepDeprecated: nextStep,
-                    introSelected,
-                    currentUserAccountIDParam: accountID,
-                    currentUserEmailParam: email ?? '',
-                    payAsBusiness,
-                    existingB2BInvoiceReport,
-                    methodID,
-                    paymentMethod,
-                    activePolicy,
-                });
+    const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
+        if (!type || !chatReport) {
+            return;
+        }
+        setPaymentType(type);
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+        } else if (isAnyTransactionOnHold) {
+            if (getPlatform() === CONST.PLATFORM.IOS) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
             } else {
-                startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, nextStep, undefined, true, activePolicy, policy);
-                if (currentSearchQueryJSON && !isOffline) {
-                    search({
-                        searchKey: currentSearchKey,
-                        shouldCalculateTotals,
-                        offset: 0,
-                        queryJSON: currentSearchQueryJSON,
-                        isOffline,
-                        isLoading: !!currentSearchResults?.search?.isLoading,
-                    });
-                }
+                setIsHoldMenuVisible(true);
             }
-        },
-        [
-            chatReport,
-            isDelegateAccessRestricted,
-            isAnyTransactionOnHold,
-            isInvoiceReport,
-            showDelegateNoAccessModal,
-            startAnimation,
-            moneyRequestReport,
-            nextStep,
-            introSelected,
-            accountID,
-            email,
-            existingB2BInvoiceReport,
-            activePolicy,
-            policy,
-            currentSearchQueryJSON,
-            isOffline,
-            currentSearchKey,
-            shouldCalculateTotals,
-            currentSearchResults?.search?.isLoading,
-        ],
-    );
+        } else if (isInvoiceReport) {
+            startAnimation();
+            payInvoice({
+                paymentMethodType: type,
+                chatReport,
+                invoiceReport: moneyRequestReport,
+                invoiceReportCurrentNextStepDeprecated: nextStep,
+                introSelected,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                payAsBusiness,
+                existingB2BInvoiceReport,
+                methodID,
+                paymentMethod,
+                activePolicy,
+            });
+        } else {
+            startAnimation();
+            payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, nextStep, undefined, true, activePolicy, policy);
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
+                });
+            }
+        }
+    };
 
     const showDWEModal = async () => {
         const result = await showConfirmModal({
@@ -606,7 +568,7 @@ function MoneyReportHeader({
         }
     };
 
-    const markAsCash = useCallback(() => {
+    const markAsCash = () => {
         if (!requestParentReportAction) {
             return;
         }
@@ -616,36 +578,33 @@ function MoneyReportHeader({
             return;
         }
         markAsCashAction(iouTransactionID, reportID, transactionViolations);
-    }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID, transactionViolations]);
+    };
 
-    const duplicateExpenseTransaction = useCallback(
-        (transactionList: OnyxTypes.Transaction[]) => {
-            if (!transactionList.length) {
-                return;
-            }
+    const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
+        if (!transactionList.length) {
+            return;
+        }
 
-            const optimisticChatReportID = generateReportID();
-            const optimisticIOUReportID = generateReportID();
-            const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
+        const optimisticChatReportID = generateReportID();
+        const optimisticIOUReportID = generateReportID();
+        const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
-            for (const item of transactionList) {
-                duplicateTransactionAction({
-                    transaction: item,
-                    optimisticChatReportID,
-                    optimisticIOUReportID,
-                    isASAPSubmitBetaEnabled,
-                    introSelected,
-                    activePolicyID,
-                    quickAction,
-                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    targetPolicy: defaultExpensePolicy ?? undefined,
-                    targetPolicyCategories: activePolicyCategories,
-                    targetReport: activePolicyExpenseChat,
-                });
-            }
-        },
-        [activePolicyExpenseChat, activePolicyID, allPolicyCategories, defaultExpensePolicy, introSelected, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies],
-    );
+        for (const item of transactionList) {
+            duplicateTransactionAction({
+                transaction: item,
+                optimisticChatReportID,
+                optimisticIOUReportID,
+                isASAPSubmitBetaEnabled,
+                introSelected,
+                activePolicyID,
+                quickAction,
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                targetPolicy: defaultExpensePolicy ?? undefined,
+                targetPolicyCategories: activePolicyCategories,
+                targetReport: activePolicyExpenseChat,
+            });
+        }
+    };
 
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
         const duplicateTransaction = transactionsList.find((reportTransaction) =>
@@ -665,45 +624,26 @@ function MoneyReportHeader({
         return getThreadReportIDsForTransactions(allReportActions, [duplicateTransaction]).at(0);
     };
 
-    const primaryAction = useMemo(() => {
-        return getReportPrimaryAction({
-            currentUserLogin: currentUserLogin ?? '',
-            currentUserAccountID: accountID,
-            report: moneyRequestReport,
-            chatReport,
-            reportTransactions: transactions,
-            violations,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            reportActions,
-            reportMetadata,
-            isChatReportArchived,
-            invoiceReceiverPolicy,
-            isPaidAnimationRunning,
-            isApprovedAnimationRunning,
-            isSubmittingAnimationRunning,
-        });
-    }, [
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        isSubmittingAnimationRunning,
-        moneyRequestReport,
+    const primaryAction = getReportPrimaryAction({
+        currentUserLogin: currentUserLogin ?? '',
+        currentUserAccountID: accountID,
+        report: moneyRequestReport,
         chatReport,
-        transactions,
+        reportTransactions: transactions,
         violations,
+        bankAccountList,
         policy,
         reportNameValuePairs,
         reportActions,
         reportMetadata,
         isChatReportArchived,
         invoiceReceiverPolicy,
-        currentUserLogin,
-        accountID,
-        bankAccountList,
-    ]);
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
+    });
 
-    const confirmExport = useCallback(() => {
+    const confirmExport = () => {
         setExportModalStatus(null);
         if (!moneyRequestReport?.reportID || !connectedIntegration) {
             return;
@@ -713,7 +653,7 @@ function MoneyReportHeader({
         } else if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
             markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
         }
-    }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
+    };
 
     const getAmount = (actionType: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => ({
         formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType),
@@ -734,99 +674,88 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
-    const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
-    );
+    const addExpenseDropdownOptions = getAddExpenseDropdownOptions(expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType);
 
-    const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
-        const options: Record<string, DropdownOption<string>> = {
-            [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
-                text: translate('export.basicExport'),
-                icon: expensifyIcons.Table,
-                value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
-                sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
-                onSelected: () => {
-                    if (!moneyRequestReport) {
-                        return;
-                    }
-                    if (isOffline) {
+    const exportIntegrationIconName = getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback);
+    const exportIntegrationIcon = exportIntegrationIconName ? expensifyIcons[exportIntegrationIconName] : undefined;
+    const exportSubmenuOptions: Record<string, DropdownOption<string>> = {
+        [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
+            text: translate('export.basicExport'),
+            icon: expensifyIcons.Table,
+            value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
+                if (isOffline) {
+                    showConfirmModal({
+                        title: translate('common.youAppearToBeOffline'),
+                        prompt: translate('common.offlinePrompt'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
+                    return;
+                }
+                exportReportToCSV(
+                    {reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs},
+                    () => {
                         showConfirmModal({
-                            title: translate('common.youAppearToBeOffline'),
-                            prompt: translate('common.offlinePrompt'),
+                            title: translate('common.downloadFailedTitle'),
+                            prompt: translate('common.downloadFailedDescription'),
                             confirmText: translate('common.buttonConfirm'),
                             shouldShowCancelButton: false,
                         });
-                        return;
-                    }
-                    exportReportToCSV(
-                        {reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs},
-                        () => {
-                            showConfirmModal({
-                                title: translate('common.downloadFailedTitle'),
-                                prompt: translate('common.downloadFailedDescription'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                            });
-                        },
-                        translate,
-                    );
-                },
+                    },
+                    translate,
+                );
             },
-            [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegrationFallback!}),
-                icon: (() => {
-                    const iconName = getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback);
-                    return iconName ? expensifyIcons[iconName] : undefined;
-                })(),
-                value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
-                onSelected: () => {
-                    if (!connectedIntegration || !moneyRequestReport) {
-                        return;
-                    }
-                    if (isExported) {
-                        setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
-                        return;
-                    }
-                    exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
-                },
+        },
+        [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegrationFallback!}),
+            icon: exportIntegrationIcon,
+            value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
+            onSelected: () => {
+                if (!connectedIntegration || !moneyRequestReport) {
+                    return;
+                }
+                if (isExported) {
+                    setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                    return;
+                }
+                exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
             },
-            [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
-                text: translate('workspace.common.markAsExported'),
-                icon: (() => {
-                    const iconName = getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback);
-                    return iconName ? expensifyIcons[iconName] : undefined;
-                })(),
-                value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-                sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
-                onSelected: () => {
-                    if (!connectedIntegration || !moneyRequestReport) {
-                        return;
-                    }
-                    if (isExported) {
-                        setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
-                        return;
-                    }
-                    markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
-                },
+        },
+        [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
+            text: translate('workspace.common.markAsExported'),
+            icon: exportIntegrationIcon,
+            value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
+            onSelected: () => {
+                if (!connectedIntegration || !moneyRequestReport) {
+                    return;
+                }
+                if (isExported) {
+                    setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
+                    return;
+                }
+                markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
             },
+        },
+    };
+
+    for (const template of exportTemplates) {
+        exportSubmenuOptions[template.name] = {
+            text: template.name,
+            icon: expensifyIcons.Table,
+            value: template.templateName,
+            description: template.description,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
+            onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.policyID),
         };
-
-        for (const template of exportTemplates) {
-            options[template.name] = {
-                text: template.name,
-                icon: expensifyIcons.Table,
-                value: template.templateName,
-                description: template.description,
-                sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
-                onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.policyID),
-            };
-        }
-
-        return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, expensifyIcons, showConfirmModal]);
+    }
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -988,59 +917,33 @@ function MoneyReportHeader({
         exportReportToPDF({reportID});
     };
 
-    const secondaryActions = useMemo(() => {
-        if (!moneyRequestReport) {
-            return [];
-        }
-        return getSecondaryReportActions({
-            currentUserLogin: currentUserLogin ?? '',
-            currentUserAccountID: accountID,
-            report: moneyRequestReport,
-            chatReport,
-            reportTransactions: transactions,
-            originalTransaction: originalIOUTransaction,
-            violations,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            reportActions,
-            reportMetadata,
-            policies,
-            isChatReportArchived,
-        });
-    }, [
-        moneyRequestReport,
-        currentUserLogin,
-        accountID,
-        chatReport,
-        transactions,
-        originalIOUTransaction,
-        violations,
-        policy,
-        reportNameValuePairs,
-        reportActions,
-        reportMetadata,
-        policies,
-        isChatReportArchived,
-        bankAccountList,
-    ]);
+    const secondaryActions = !moneyRequestReport
+        ? []
+        : getSecondaryReportActions({
+              currentUserLogin: currentUserLogin ?? '',
+              currentUserAccountID: accountID,
+              report: moneyRequestReport,
+              chatReport,
+              reportTransactions: transactions,
+              originalTransaction: originalIOUTransaction,
+              violations,
+              bankAccountList,
+              policy,
+              reportNameValuePairs,
+              reportActions,
+              reportMetadata,
+              policies,
+              isChatReportArchived,
+          });
 
-    const secondaryExportActions = useMemo(() => {
-        if (!moneyRequestReport) {
-            return [];
-        }
-        return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
-    }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
+    const secondaryExportActions = !moneyRequestReport ? [] : getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
-    const unapproveWarningText = useMemo(
-        () => (
-            <Text>
-                <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
-                <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
-            </Text>
-        ),
-        [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
+    const unapproveWarningText = (
+        <Text>
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
+            <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
+        </Text>
     );
 
     const reopenExportedReportWarningText = (
@@ -1453,7 +1356,7 @@ function MoneyReportHeader({
         };
     }, []);
 
-    const showDeleteModal = useCallback(() => {
+    const showDeleteModal = () => {
         showConfirmModal({
             title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
             prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
@@ -1472,9 +1375,9 @@ function MoneyReportHeader({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => handleDeleteTransactions());
         });
-    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID]);
+    };
 
-    const showExportAgainModal = useCallback(() => {
+    const showExportAgainModal = () => {
         if (!connectedIntegration) {
             return;
         }
@@ -1493,7 +1396,7 @@ function MoneyReportHeader({
             }
             confirmExport();
         });
-    }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
+    };
 
     useEffect(() => {
         if (!exportModalStatus) {
@@ -1502,31 +1405,29 @@ function MoneyReportHeader({
         showExportAgainModal();
     }, [exportModalStatus, showExportAgainModal]);
 
-    const selectedTransactionsOptions = useMemo(() => {
-        return originalSelectedTransactionsOptions.map((option) => {
-            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
-                return {
-                    ...option,
-                    onSelected: showDeleteModal,
-                };
-            }
-            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
-                return {
-                    ...option,
-                    onSelected: async () => {
-                        // Show educational modal if needed
-                        await showEducationalModalIfNeeded(false, isChatReportDM);
+    const selectedTransactionsOptions = originalSelectedTransactionsOptions.map((option) => {
+        if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
+            return {
+                ...option,
+                onSelected: showDeleteModal,
+            };
+        }
+        if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
+            return {
+                ...option,
+                onSelected: async () => {
+                    // Show educational modal if needed
+                    await showEducationalModalIfNeeded(false, isChatReportDM);
 
-                        // Proceed with bulk reject - navigate to bulk reject page
-                        if (moneyRequestReport?.reportID) {
-                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
-                        }
-                    },
-                };
-            }
-            return option;
-        });
-    }, [originalSelectedTransactionsOptions, showDeleteModal, showEducationalModalIfNeeded, isChatReportDM, moneyRequestReport?.reportID]);
+                    // Proceed with bulk reject - navigate to bulk reject page
+                    if (moneyRequestReport?.reportID) {
+                        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
+                    }
+                },
+            };
+        }
+        return option;
+    });
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
