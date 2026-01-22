@@ -84,7 +84,7 @@ function SecuritySettingsPage() {
     });
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {isActingAsDelegate, isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
