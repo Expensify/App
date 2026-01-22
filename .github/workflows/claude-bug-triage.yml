@@ -39,7 +39,7 @@ jobs:
         uses: ./.github/actions/composite/validateActor
         with:
           REQUIRE_APP_DEPLOYER: false
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          OS_BOTIFY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -77,7 +77,7 @@ jobs:
         uses: anthropics/claude-code-action@a7e4c51380c42dd89b127f5e5f9be7b54020bc6b # v1.0.21
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: "/triage-bug ISSUE_URL: ${{ env.ISSUE_URL }}"
           claude_args: |
             --allowedTools "Task,Glob,Grep,Read,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(curl:*https://github.com/user-attachments/assets/*),Bash(rm screenshot*)"
