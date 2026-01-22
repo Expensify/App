@@ -70,12 +70,16 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
         });
     }, [cardListErrors]);
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsContextValue: ExpensifyCardActionsContextType = {
         setCardsDetails,
         setIsCardDetailsLoading,
         setCardsDetailsErrors,
     };
 
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue: ExpensifyCardStateContextType = {
         cardsDetails,
         isCardDetailsLoading,

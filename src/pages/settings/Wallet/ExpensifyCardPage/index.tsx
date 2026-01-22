@@ -127,7 +127,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }, [virtualCards]);
 
     const {cardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardState();
-    const {setCardsDetails, setIsCardDetailsLoading, setCardsDetailsErrors} = useExpensifyCardActions();
+    const {setCardsDetails} = useExpensifyCardActions();
 
     // Resets card details when navigating away from the page.
     useFocusEffect(
