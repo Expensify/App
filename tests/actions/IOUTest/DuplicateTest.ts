@@ -798,15 +798,13 @@ describe('actions/Duplicate', () => {
                 comment: {
                     ...randomDistanceTransaction.comment,
                     customUnit: {
-                        ...randomDistanceTransaction.comment.customUnit,
+                        ...randomDistanceTransaction.comment?.customUnit,
                         quantity: DISTANCE_MI,
                     },
                 },
             };
 
             await Onyx.clear();
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTIONS}${mockDistanceTransaction.transactionID}`, mockDistanceTransaction);
 
             duplicateExpenseTransaction({
                 transaction: mockDistanceTransaction,
@@ -821,6 +819,7 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
