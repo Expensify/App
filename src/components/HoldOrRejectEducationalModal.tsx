@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ModalProps} from '@components/Modal/Global/ModalContext';
+import type {ValueOf} from 'type-fest';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +11,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
+import type {ModalProps} from './Modal/Global/ModalContext';
 import Text from './Text';
 
 type SectionMenuItem = {
@@ -21,7 +22,13 @@ type SectionMenuItem = {
     titleTranslationKey: TranslationPaths;
 };
 
-type HoldOrRejectEducationalModalProps = ModalProps;
+const HoldOrRejectEducationalModalActions = {
+    CONFIRMED: 'CONFIRMED',
+} as const;
+
+type HoldOrRejectEducationalModalAction = ValueOf<typeof HoldOrRejectEducationalModalActions>;
+
+type HoldOrRejectEducationalModalProps = ModalProps<HoldOrRejectEducationalModalAction>;
 
 function HoldOrRejectEducationalModal({closeModal}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
@@ -29,7 +36,7 @@ function HoldOrRejectEducationalModal({closeModal}: HoldOrRejectEducationalModal
     const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject']);
 
     const handleClose = () => {
-        closeModal({action: 'CONFIRMED'});
+        closeModal({action: HoldOrRejectEducationalModalActions.CONFIRMED});
     };
 
     useBeforeRemove(handleClose);
@@ -94,3 +101,5 @@ function HoldOrRejectEducationalModal({closeModal}: HoldOrRejectEducationalModal
 }
 
 export default HoldOrRejectEducationalModal;
+export {HoldOrRejectEducationalModalActions};
+export type {HoldOrRejectEducationalModalAction};

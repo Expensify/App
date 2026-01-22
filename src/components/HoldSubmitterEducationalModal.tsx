@@ -1,5 +1,5 @@
 import React from 'react';
-import type {ModalProps} from '@components/Modal/Global/ModalContext';
+import type {ValueOf} from 'type-fest';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,8 +8,15 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
+import type {ModalProps} from './Modal/Global/ModalContext';
 
-type HoldSubmitterEducationalModalProps = ModalProps;
+const HoldSubmitterEducationalModalActions = {
+    CONFIRMED: 'CONFIRMED',
+} as const;
+
+type HoldSubmitterEducationalModalAction = ValueOf<typeof HoldSubmitterEducationalModalActions>;
+
+type HoldSubmitterEducationalModalProps = ModalProps<HoldSubmitterEducationalModalAction>;
 
 function HoldSubmitterEducationalModal({closeModal}: HoldSubmitterEducationalModalProps) {
     const {translate} = useLocalize();
@@ -17,7 +24,7 @@ function HoldSubmitterEducationalModal({closeModal}: HoldSubmitterEducationalMod
     const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
 
     const handleClose = () => {
-        closeModal({action: 'CONFIRMED'});
+        closeModal({action: HoldSubmitterEducationalModalActions.CONFIRMED});
     };
 
     useBeforeRemove(handleClose);
@@ -46,3 +53,5 @@ function HoldSubmitterEducationalModal({closeModal}: HoldSubmitterEducationalMod
 }
 
 export default HoldSubmitterEducationalModal;
+export {HoldSubmitterEducationalModalActions};
+export type {HoldSubmitterEducationalModalAction};
