@@ -65,6 +65,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
                     return;
                 }
 
+                Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from test drive modal');
                 startOnboardingFlow({
                     onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
                     isUserFromPublicDomain: false,

@@ -16,10 +16,10 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -58,11 +58,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-
-type PolicyOption = ListItem & {
-    /** Category name is used as a key for the selectedCategories state */
-    keyForList: string;
-};
 
 type WorkspaceCategoriesPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>
@@ -115,7 +110,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     useEffect(() => {
         fetchCategories();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -147,7 +141,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return newSelectedCategories;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyCategories]);
 
     useSearchBackPress({
@@ -183,9 +177,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
     const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
 
-    const categoryList = useMemo<PolicyOption[]>(() => {
+    const categoryList = useMemo<ListItem[]>(() => {
         const categories = Object.values(policyCategories ?? {});
-        return categories.reduce<PolicyOption[]>((acc, value) => {
+        return categories.reduce<ListItem[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (!isOffline && isDisabled) {
@@ -212,7 +206,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             <Switch
                                 isOn={value.enabled}
                                 disabled={isDisabled}
-                                accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                         setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
@@ -228,7 +222,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Switch
                         isOn={value.enabled}
                         disabled={isDisabled}
-                        accessibilityLabel={translate('workspace.categories.enableCategory')}
+                        accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                 setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
@@ -245,12 +239,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, []);
     }, [policyCategories, isOffline, translate, updateWorkspaceCategoryEnabled, policy, isControlPolicyWithWideLayout, glCodeContainerStyle, glCodeTextStyle, switchContainerStyle]);
 
-    const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
+    const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {
         const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
     }, []);
     const sortCategories = useCallback(
-        (data: PolicyOption[]) => {
+        (data: ListItem[]) => {
             return data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
         },
         [localeCompare],
@@ -260,7 +254,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
     const toggleCategory = useCallback(
-        (category: PolicyOption) => {
+        (category: ListItem) => {
             setSelectedCategories((prev) => {
                 if (prev.includes(category.keyForList)) {
                     return prev.filter((key) => key !== category.keyForList);
@@ -309,7 +303,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         );
     };
 
-    const navigateToCategorySettings = (category: PolicyOption) => {
+    const navigateToCategorySettings = (category: ListItem) => {
         if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleCategory(category);
             return;
@@ -329,7 +323,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
     };
 
-    const dismissError = (item: PolicyOption) => {
+    const dismissError = (item: ListItem) => {
         clearCategoryErrors(policyId, item.keyForList, policyCategories);
     };
 
@@ -591,11 +585,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         return (
             <View style={[styles.renderHTML]}>
-                <RenderHTML
-                    html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', {
-                        accountingPageURL: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`,
-                    })}
-                />
+                <RenderHTML html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`)} />
             </View>
         );
     }, [policyHasAccountingConnections, styles.renderHTML, styles.textAlignCenter, styles.textSupporting, styles.textNormal, translate, environmentURL, policyId]);
@@ -654,24 +644,24 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
                 {hasVisibleCategories && !isLoading && (
                     <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
-                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                        sections={[{data: filteredCategoryList, isDisabled: false}]}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        selectedItems={selectedCategories}
-                        onCheckboxPress={toggleCategory}
-                        onSelectRow={navigateToCategorySettings}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
+                        data={filteredCategoryList}
                         ListItem={TableListItem}
-                        listHeaderContent={headerContent}
-                        shouldShowListEmptyContent={false}
-                        onDismissError={dismissError}
+                        onCheckboxPress={toggleCategory}
+                        selectedItems={selectedCategories}
+                        onSelectRow={navigateToCategorySettings}
+                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
+                        onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
+                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        customListHeaderContent={headerContent}
+                        canSelectMultiple={canSelectMultiple}
+                        showListEmptyContent={false}
+                        onDismissError={dismissError}
                         showScrollIndicator={false}
-                        addBottomSafeAreaPadding
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}

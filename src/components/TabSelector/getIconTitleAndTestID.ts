@@ -23,6 +23,7 @@ const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = [
     'Percent',
     'Crosshair',
     'Meter',
+    'Clock',
 ] as const;
 
 function getIconTitleAndTestID(
@@ -38,7 +39,7 @@ function getIconTitleAndTestID(
         case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
             return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
         case CONST.TAB_REQUEST.MANUAL:
-            return {icon: icons.Meter, title: 'Odometer longer name', testID: 'manual'};
+            return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
             return {icon: icons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
@@ -54,17 +55,21 @@ function getIconTitleAndTestID(
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: icons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
-            return {icon: icons.Map, title: 'Map', testID: 'distanceMap'};
+            return {icon: icons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
-            return {icon: icons.Pencil, title: 'Manual longer name', testID: 'distanceManual'};
+            return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         case CONST.TAB_REQUEST.DISTANCE_GPS:
-            return {icon: icons.Crosshair, title: 'GPS longer name', testID: 'distanceGPS'};
+            return {icon: icons.Crosshair, title: translate('tabSelector.gps'), testID: 'distanceGPS'};
+        case CONST.TAB_REQUEST.DISTANCE_ODOMETER:
+            return {icon: icons.Meter, title: translate('tabSelector.odometer'), testID: 'distanceOdometer'};
         case CONST.TAB.SPLIT.AMOUNT:
             return {icon: icons.MoneyCircle, title: translate('iou.amount'), testID: 'split-amount'};
         case CONST.TAB.SPLIT.PERCENTAGE:
             return {icon: icons.Percent, title: translate('iou.percent'), testID: 'split-percentage'};
         case CONST.TAB.SPLIT.DATE:
             return {icon: icons.CalendarSolid, title: translate('iou.date'), testID: 'split-date'};
+        case CONST.TAB_REQUEST.TIME:
+            return {icon: icons.Clock, title: translate('iou.time'), testID: 'time'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }

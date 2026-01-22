@@ -1,5 +1,5 @@
 import {createPersonalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
@@ -54,6 +54,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {environmentURL} = useEnvironment();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector, canBeMissing: false});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
@@ -64,7 +65,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isSystemChat = isSystemChatReportUtils(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived, isRestrictedToPreferredPolicy);
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, allBetas, isReportArchived, isRestrictedToPreferredPolicy);
     const policyName = getPolicyName({report});
 
     const filteredOptions = moneyRequestOptions.filter(
@@ -90,38 +91,24 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportDetailsLink = useMemo(() => {
-        if (!report?.reportID) {
-            return '';
-        }
+    const reportDetailsLink = report?.reportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}` : '';
 
-        return `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}`;
-    }, [environmentURL, report?.reportID]);
+    let welcomeHeroText = translate('reportActionsView.sayHello');
+    if (isInvoiceRoom) {
+        welcomeHeroText = translate('reportActionsView.sayHello');
+    } else if (isChatRoom) {
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+    } else if (isSelfDM) {
+        welcomeHeroText = translate('reportActionsView.yourSpace');
+    } else if (isSystemChat) {
+        welcomeHeroText = reportName;
+    } else if (isPolicyExpenseChat) {
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+    }
 
-    const welcomeHeroText = useMemo(() => {
-        if (isInvoiceRoom) {
-            return translate('reportActionsView.sayHello');
-        }
-
-        if (isChatRoom) {
-            return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
-        }
-
-        if (isSelfDM) {
-            return translate('reportActionsView.yourSpace');
-        }
-
-        if (isSystemChat) {
-            return reportName;
-        }
-
-        if (isPolicyExpenseChat) {
-            return translate('reportActionsView.welcomeToRoom', {roomName: policyName});
-        }
-
-        return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
-    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
+    const shouldExcludeCurrentUser = participantAccountIDs.length > 0;
+    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, shouldExcludeCurrentUser);
     const participantPersonalDetailListExcludeCurrentUser = Object.values(
         getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
     );

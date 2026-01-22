@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 /* eslint-disable no-restricted-imports */
@@ -6,11 +5,10 @@ import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View}
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -50,7 +48,6 @@ type PopoverReportActionContextMenuProps = {
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -77,6 +74,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const {email} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
+    const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
 
     const [isRoomArchived, setIsRoomArchived] = useState(false);
     const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
@@ -86,6 +85,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -104,6 +104,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const onPopoverHide = useRef(() => {});
     const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>(undefined);
     const onCancelDeleteModal = useRef(() => {});
+    const onConfirmDeleteModal = useRef(() => {});
 
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
@@ -323,6 +324,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         canBeMissing: true,
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {currentSearchHash} = useSearchContext();
     const {deleteTransactions} = useDeleteTransactions({
         report,
@@ -335,14 +337,15 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
-    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
         }
         ancestorsRef.current = ancestors;
     }, [originalReport, ancestors]);
-    const performDelete = useCallback(() => {
+    const confirmDeleteAndHideModal = useCallback(() => {
+        callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
@@ -359,12 +362,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isSingleTransactionView: undefined,
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
+                    allTransactionViolationsParam: allTransactionViolations,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', reportTransactions, violations);
+            deleteAppReport(reportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -373,6 +377,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
+        setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
         iouReport,
@@ -383,48 +388,34 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         isChatIOUReportArchived,
         deleteTransactions,
         currentSearchHash,
-        isOriginalReportArchived,
         email,
         reportTransactions,
-        violations,
+        isOriginalReportArchived,
+        allTransactionViolations,
+        bankAccountList,
     ]);
 
-    const hideDeleteModal = useCallback(() => {
+    const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
+        setIsDeleteCommentConfirmModalVisible(false);
+        setShouldSetModalVisibilityForDeleteConfirmation(true);
         setIsRoomArchived(false);
         setIsChronosReportEnabled(false);
         setIsChatPinned(false);
         setHasUnreadMessages(false);
-    }, []);
+    };
 
     /** Opens the Confirm delete action modal */
-    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = useCallback(
-        async (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
-            reportIDRef.current = reportID;
-            reportActionRef.current = reportAction ?? null;
+    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
+        onCancelDeleteModal.current = onCancel;
 
-            const result = await showConfirmModal({
-                title: translate('reportActionContextMenu.deleteAction', {action: reportAction}),
-                prompt: translate('reportActionContextMenu.deleteConfirmation', {action: reportAction}),
-                confirmText: translate('common.delete'),
-                cancelText: translate('common.cancel'),
-                danger: true,
-                shouldSetModalVisibility,
-            });
+        onConfirmDeleteModal.current = onConfirm;
+        reportIDRef.current = reportID;
+        reportActionRef.current = reportAction ?? null;
 
-            if (result.action === ModalActions.CONFIRM) {
-                onConfirm();
-                performDelete();
-            } else {
-                onCancel();
-            }
-
-            // Clear refs and run callbacks AFTER the action is performed
-            clearActiveReportAction();
-            callbackWhenDeleteModalHide.current();
-        },
-        [showConfirmModal, translate, performDelete],
-    );
+        setShouldSetModalVisibilityForDeleteConfirmation(shouldSetModalVisibility);
+        setIsDeleteCommentConfirmModalVisible(true);
+    };
 
     useImperativeHandle(ref, () => ({
         showContextMenu,
@@ -440,41 +431,60 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
+    const reportAction = reportActionRef.current;
+
     return (
-        <PopoverWithMeasuredContent
-            isVisible={isPopoverVisible}
-            onClose={() => hideContextMenu()}
-            onModalShow={runAndResetOnPopoverShow}
-            onModalHide={runAndResetOnPopoverHide}
-            anchorPosition={popoverAnchorPosition.current}
-            animationIn="fadeIn"
-            disableAnimation={false}
-            shouldSetModalVisibility={false}
-            fullscreen
-            withoutOverlay={isWithoutOverlay}
-            anchorDimensions={contextMenuDimensions.current}
-            anchorRef={anchorRef}
-            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-        >
-            <BaseReportActionContextMenu
+        <>
+            <PopoverWithMeasuredContent
                 isVisible={isPopoverVisible}
-                type={typeRef.current}
-                reportID={reportIDRef.current}
-                reportActionID={reportActionIDRef.current}
-                draftMessage={reportActionDraftMessageRef.current}
-                selection={selectionRef.current}
-                isArchivedRoom={isRoomArchived}
-                isChronosReport={isChronosReportEnabled}
-                isPinnedChat={isChatPinned}
-                isUnreadChat={hasUnreadMessages}
-                isThreadReportParentAction={isThreadReportParentAction}
-                anchor={contextMenuTargetNode}
-                contentRef={contentRef}
-                originalReportID={originalReportIDRef.current}
-                disabledActions={disabledActions}
-                setIsEmojiPickerActive={onEmojiPickerToggle.current}
+                onClose={() => hideContextMenu()}
+                onModalShow={runAndResetOnPopoverShow}
+                onModalHide={runAndResetOnPopoverHide}
+                anchorPosition={popoverAnchorPosition.current}
+                animationIn="fadeIn"
+                disableAnimation={false}
+                shouldSetModalVisibility={false}
+                fullscreen
+                withoutOverlay={isWithoutOverlay}
+                anchorDimensions={contextMenuDimensions.current}
+                anchorRef={anchorRef}
+                shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+            >
+                <BaseReportActionContextMenu
+                    isVisible={isPopoverVisible}
+                    type={typeRef.current}
+                    reportID={reportIDRef.current}
+                    reportActionID={reportActionIDRef.current}
+                    draftMessage={reportActionDraftMessageRef.current}
+                    selection={selectionRef.current}
+                    isArchivedRoom={isRoomArchived}
+                    isChronosReport={isChronosReportEnabled}
+                    isPinnedChat={isChatPinned}
+                    isUnreadChat={hasUnreadMessages}
+                    isThreadReportParentAction={isThreadReportParentAction}
+                    anchor={contextMenuTargetNode}
+                    contentRef={contentRef}
+                    originalReportID={originalReportIDRef.current}
+                    disabledActions={disabledActions}
+                    setIsEmojiPickerActive={onEmojiPickerToggle.current}
+                />
+            </PopoverWithMeasuredContent>
+            <ConfirmModal
+                title={translate('reportActionContextMenu.deleteAction', {action: reportAction})}
+                isVisible={isDeleteCommentConfirmModalVisible}
+                shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
+                onConfirm={confirmDeleteAndHideModal}
+                onCancel={hideDeleteModal}
+                onModalHide={() => {
+                    clearActiveReportAction();
+                    callbackWhenDeleteModalHide.current();
+                }}
+                prompt={translate('reportActionContextMenu.deleteConfirmation', {action: reportAction})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
             />
-        </PopoverWithMeasuredContent>
+        </>
     );
 }
 
