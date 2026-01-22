@@ -14548,11 +14548,11 @@ function updateMultipleMoneyRequests(
             const reimbursable = transactionChanges.reimbursable;
 
             if (billable && reimbursable) {
-                updates.state = CONST.REPORT.STATE_NUM.REIMBURSABLE_BILLABLE;
+                updates.state = CONST.TRANSACTION.STATE_NUM.REIMBURSABLE_BILLABLE;
             } else if (billable) {
-                updates.state = CONST.REPORT.STATE_NUM.BILLING;
+                updates.state = CONST.TRANSACTION.STATE_NUM.BILLABLE;
             } else if (reimbursable) {
-                updates.state = CONST.REPORT.STATE_NUM.REIMBURSABLE;
+                updates.state = CONST.TRANSACTION.STATE_NUM.REIMBURSABLE;
             }
         }
 
@@ -14569,12 +14569,12 @@ function updateMultipleMoneyRequests(
         const failureData: OnyxUpdate[] = [];
 
         // Pending fields for the transaction
-        const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
+        const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
         const clearedPendingFields = getClearedPendingFields(transactionChanges);
 
         const errorFields = Object.fromEntries(
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]),
+            Object.keys(pendingFields).map((field) => [field, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]),
         );
 
         // Build updated transaction
@@ -14721,7 +14721,10 @@ function updateMultipleMoneyRequests(
 }
 
 /**
- * Initializes the draft transaction for bulk editing multiple expenses
+ * Initializes the bulk-edit draft transaction under one fixed placeholder ID.
+ * We keep a single draft in Onyx to store the shared edits for a multi-select,
+ * then apply those edits to each real transaction later. The placeholder ID is
+ * just the storage key and never equals any actual transactionID.
  */
 function initBulkEditDraftTransaction() {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {

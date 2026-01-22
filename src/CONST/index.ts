@@ -1480,8 +1480,6 @@ const CONST = {
             SUBMITTED: 1,
             APPROVED: 2,
             BILLING: 3,
-            REIMBURSABLE: 4,
-            REIMBURSABLE_BILLABLE: 5,
             AUTOREIMBURSED: 6,
         },
         STATUS_NUM: {
@@ -1804,6 +1802,11 @@ const CONST = {
         LIABILITY_TYPE: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
+        },
+        STATE_NUM: {
+            REIMBURSABLE: 3,
+            BILLABLE: 4,
+            REIMBURSABLE_BILLABLE: 5,
         },
     },
     TIME_TRACKING: {
