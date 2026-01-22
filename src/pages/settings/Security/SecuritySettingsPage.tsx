@@ -130,7 +130,7 @@ function SecuritySettingsPage() {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: icons.Shield,
                 action: () => {
-                    if (isDelegateAccessRestricted) {
+                    if (isActingAsDelegate) {
                         showDelegateNoAccessModal();
                         return;
                     }
@@ -149,10 +149,6 @@ function SecuritySettingsPage() {
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: icons.ArrowCollapse,
                 action: () => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
                     if (isAccountLocked) {
                         showLockedAccountModal();
                         return;
@@ -187,11 +183,6 @@ function SecuritySettingsPage() {
             translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.ClosedSign,
             action: () => {
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;
@@ -213,7 +204,7 @@ function SecuritySettingsPage() {
         icons.UserLock,
         icons.Shield,
         isAccountLocked,
-        isDelegateAccessRestricted,
+        isActingAsDelegate,
         isUserValidated,
         showDelegateNoAccessModal,
         showLockedAccountModal,
@@ -301,7 +292,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: icons.Pencil,
             onPress: () => {
-                if (isDelegateAccessRestricted) {
+                if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -319,7 +310,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
             onPress: () => {
-                if (isActingAsDelegate) {
+                if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -403,25 +394,23 @@ function SecuritySettingsPage() {
                                             <MenuItemList menuItems={delegateMenuItems} />
                                         </>
                                     )}
-                                    {!isDelegateAccessRestricted && (
-                                        <MenuItem
-                                            title={translate('delegate.addCopilot')}
-                                            icon={icons.UserPlus}
-                                            onPress={() => {
-                                                if (!isUserValidated) {
-                                                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
-                                                    return;
-                                                }
-                                                if (isAccountLocked) {
-                                                    showLockedAccountModal();
-                                                    return;
-                                                }
-                                                Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
-                                            }}
-                                            shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
-                                        />
-                                    )}
+                                    <MenuItem
+                                        title={translate('delegate.addCopilot')}
+                                        icon={icons.UserPlus}
+                                        onPress={() => {
+                                            if (!isUserValidated) {
+                                                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
+                                                return;
+                                            }
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
+                                        }}
+                                        shouldShowRightIcon
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
+                                    />
                                     {hasDelegators && (
                                         <>
                                             <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
@@ -453,7 +442,7 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
-                                    if (isActingAsDelegate) {
+                                    if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
                                         setShouldShowRemoveDelegateModal(false);
                                         showDelegateNoAccessModal();
                                         return;
