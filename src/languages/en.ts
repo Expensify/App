@@ -5037,8 +5037,6 @@ const translations = {
                     `Choose the ${integration} account where transactions should be exported. Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
-                changeTransactionStartDateWarning:
-                    'Changing start date will remove all unreported/draft report transactions and reimport all transactions from the new start date. This can cause duplicate transactions.',
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
                 unassign: 'Unassign',

@@ -5117,8 +5117,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     `Scegli il conto ${integration} in cui esportare le transazioni. Seleziona una <a href="${exportPageLink}">opzione di esportazione</a> diversa per modificare i conti disponibili.`,
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
-                changeTransactionStartDateWarning:
-                    'Modificando la data di inizio verranno eliminate tutte le transazioni non segnalate/bozze di segnalazione e verranno reimportate tutte le transazioni dalla nuova data di inizio. Ciò può causare transazioni duplicate.',
                 updateCard: 'Aggiorna carta',
                 unassignCard: 'Rimuovi assegnazione carta',
                 unassign: 'Rimuovi assegnazione',

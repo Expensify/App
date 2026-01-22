@@ -36,7 +36,6 @@ function SearchTransactionsChangeReport() {
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const {reports: allReports, transactions: allTransactions, transactionViolations} = getCollectionsFromSearchResults(currentSearchResults);
-
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -75,15 +74,7 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys]);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(
-            currentUserPersonalDetails,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
-            allBetas,
-            false,
-            shouldDismissEmptyReportsConfirmation,
-        );
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
