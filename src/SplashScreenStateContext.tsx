@@ -55,15 +55,5 @@ function useSplashScreenActions() {
     return useContext(SplashScreenActionsContext);
 }
 
-/**
- * @deprecated Use useSplashScreenState() or useSplashScreenActions() instead for better performance.
- * This hook is kept for backwards compatibility and will cause re-renders on any state change.
- */
-function useSplashScreenStateContext() {
-    const {splashScreenState} = useSplashScreenState();
-    const {setSplashScreenState} = useSplashScreenActions();
-    return {splashScreenState, setSplashScreenState};
-}
-
 export default SplashScreenStateContext;
-export {SplashScreenStateContextProvider, useSplashScreenStateContext, useSplashScreenState, useSplashScreenActions};
+export {SplashScreenStateContextProvider, useSplashScreenState, useSplashScreenActions};
