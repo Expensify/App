@@ -969,7 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '何かを検索…',
         buttonMySettings: 'マイ設定',
         fabNewChat: 'チャットを開始',
-        fabNewChatExplained: 'チャットを開始 (フローティングアクション)',
+        fabNewChatExplained: 'アクションメニューを開く',
         fabScanReceiptExplained: '領収書をスキャン',
         chatPinned: 'ピン留めされたチャット',
         draftedMessage: '下書きメッセージ',
@@ -1446,9 +1446,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: '日当経費は他のワークスペースのレポートに移動できません。ワークスペース間で日当レートが異なる可能性があるためです。',
         changeApprover: {
             title: '承認者を変更',
-            subtitle: 'このレポートの承認者を変更する方法を選択してください。',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `すべてのレポートの承認者を恒久的に変更するには、<a href="${workflowSettingLink}">ワークフロー設定</a>から行うこともできます。`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `このレポートの承認者を変更するには、オプションを選択してください。（すべてのレポートに対して恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
@@ -3119,6 +3118,7 @@ ${
         errorMessageInvalidPhone: `かっこやハイフンを使わずに有効な電話番号を入力してください。米国外にいる場合は、国コードを含めて入力してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）。`,
         errorMessageInvalidEmail: '無効なメールアドレス',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} のメンバーです`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} の管理者です`,
     },
     onfidoStep: {
         acceptTerms: 'Expensifyウォレットの有効化リクエストを続行することにより、あなたは次の内容を読み、理解し、承諾したことを確認します',
@@ -4997,6 +4997,25 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     title: '旅行を予約または管理',
                     subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
                     ctaText: '予約または管理',
+                },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: '出張予約',
+                        subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。',
+                        manageTravelLabel: '出張を管理',
+                    },
+                    centralInvoicingSection: {
+                        title: '中央請求書管理',
+                        subtitle: 'すべての出張費を購入時に都度支払うのではなく、月次請求書にまとめて管理しましょう。',
+                        learnHow: '詳しく見る。',
+                        subsections: {
+                            currentTravelSpendLabel: '現在の出張費用',
+                            currentTravelSpendCta: '残高を支払う',
+                            currentTravelLimitLabel: '現在の出張上限',
+                            settlementAccountLabel: '決済口座',
+                            settlementFrequencyLabel: '清算頻度',
+                        },
+                    },
                 },
             },
             expensifyCard: {
@@ -7917,6 +7936,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             resetDomainInfo: `この操作は<strong>永久的</strong>であり、次のデータが削除されます：<br/> <ul><li>会社カードの接続およびそれらのカードからの未報告の経費</li> <li>SAML とグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：関連付けられているメールアドレスを<a href="#">連絡先方法</a>から削除することで、このドメインをドメイン一覧から消去できます。`,
         },
         members: {title: 'メンバー', findMember: 'メンバーを検索'},
+        domainAdmins: 'ドメイン管理者',
     },
     gps: {
         tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
@@ -7938,6 +7958,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        locationServicesRequiredModal: {
+            title: '位置情報へのアクセスが必要です',
+            confirm: '設定を開く',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
+        },
+        fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
