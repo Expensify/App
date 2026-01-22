@@ -48,6 +48,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 <ToggleSettingOptionRow
                     title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
+                    shouldPlaceSubtitleBelowSwitch
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     isActive={autoAddTripName}
                     onToggle={toggleAutoAddTripName}
