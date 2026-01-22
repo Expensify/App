@@ -12042,6 +12042,7 @@ describe('actions/IOU', () => {
                     currentUserEmail,
                     {}, // transactionViolations
                     [], // policyRecentlyUsedCurrencies
+                    [CONST.BETAS.ALL], // allBetas
                     undefined, // quickAction
                     testPersonalDetails,
                 );
@@ -12110,6 +12111,7 @@ describe('actions/IOU', () => {
                     currentUserEmail,
                     {},
                     [],
+                    [CONST.BETAS.ALL], // allBetas
                     undefined,
                     testPersonalDetails,
                 );
@@ -12148,6 +12150,7 @@ describe('actions/IOU', () => {
                     currentUserEmail,
                     {},
                     [],
+                    [CONST.BETAS.ALL], // allBetas
                     undefined,
                     {}, // empty personalDetails
                 );
@@ -12178,7 +12181,7 @@ describe('actions/IOU', () => {
 
             // Should not throw even with undefined personalDetails
             expect(() => {
-                convertBulkTrackedExpensesToIOU([], targetReportID, false, currentUserAccountID, currentUserEmail, {}, [], undefined, undefined);
+                convertBulkTrackedExpensesToIOU([], targetReportID, false, currentUserAccountID, currentUserEmail, {}, [], [CONST.BETAS.ALL], undefined, undefined);
             }).not.toThrow();
         });
     });
