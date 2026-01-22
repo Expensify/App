@@ -74,6 +74,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUseUserSkeletonView,
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
+    shouldShowRightCaret = false,
     shouldStopPropagation = false,
     shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
@@ -123,10 +124,10 @@ function BaseSelectionList<TItem extends ListItem>({
                 if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
-                if (isItemDisabled) {
+                if (isItemDisabled || item?.isDisabledCheckbox) {
                     acc.disabledIndexes.push(idx);
 
-                    if (!item?.isDisabledCheckbox) {
+                    if (isItemDisabled) {
                         acc.disabledArrowKeyIndexes.push(idx);
                     }
                 }
@@ -343,7 +344,6 @@ function BaseSelectionList<TItem extends ListItem>({
                 <ListItemRenderer
                     ListItem={ListItem}
                     selectRow={selectRow}
-                    keyForList={item.keyForList}
                     showTooltip={shouldShowTooltips}
                     item={{
                         shouldAnimateInHighlight: isItemHighlighted,
@@ -352,7 +352,6 @@ function BaseSelectionList<TItem extends ListItem>({
                     }}
                     setFocusedIndex={setFocusedIndex}
                     index={index}
-                    normalizedIndex={index}
                     isFocused={isItemFocused}
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
@@ -375,6 +374,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
                     shouldStopMouseLeavePropagation={false}
+                    shouldShowRightCaret={shouldShowRightCaret}
                 />
             </View>
         );
@@ -388,6 +388,28 @@ function BaseSelectionList<TItem extends ListItem>({
             return listEmptyContent;
         }
     };
+
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // The function scrolls to the focused input to prevent keyboard occlusion.
+    // It ensures the entire list item is visible, not just the input field.
+    // Added specifically for SplitExpensePage
+    const scrollToFocusedInput = useCallback((item: TItem) => {
+        if (!listRef.current) {
+            return;
+        }
+
+        // Clear any existing timer before starting a new one
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+        }
+
+        // Delay scrolling by 300ms to allow the keyboard to open.
+        // This ensures FlashList calculates the correct window size.
+        setTimeout(() => {
+            listRef.current?.scrollToItem({item, viewPosition: 1, animated: true, viewOffset: 4});
+        }, CONST.ANIMATED_TRANSITION);
+    }, []);
 
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
@@ -431,7 +453,7 @@ function BaseSelectionList<TItem extends ListItem>({
             return;
         }
         setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
 
     const prevSearchValue = usePrevious(textInputOptions?.value);
@@ -499,10 +521,11 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, focusTextInput}), [
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,
         scrollAndHighlightItem,
         scrollToIndex,
+        scrollToFocusedInput,
         updateFocusedIndex,
     ]);
 
