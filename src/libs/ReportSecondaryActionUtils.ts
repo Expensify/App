@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Beta, ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
@@ -537,9 +537,9 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, allBetas: OnyxEntry<Beta[]>, reportActions?: ReportAction[]): boolean {
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, reportActions?: ReportAction[]): boolean {
     // We can't move the iou report to the workspace if both users from the iou report create the expense
-    if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report, allBetas)) {
+    if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report)) {
         return false;
     }
 
@@ -791,7 +791,6 @@ function getSecondaryReportActions({
     reportMetadata,
     policies,
     isChatReportArchived = false,
-    allBetas,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -801,7 +800,6 @@ function getSecondaryReportActions({
     originalTransaction: OnyxEntry<Transaction>;
     violations: OnyxCollection<TransactionViolation[]>;
     bankAccountList: OnyxEntry<BankAccountList>;
-    allBetas: OnyxEntry<Beta[]>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
@@ -908,7 +906,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
-    if (isChangeWorkspaceAction(report, policies, allBetas, reportActions)) {
+    if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
