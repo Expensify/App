@@ -31,9 +31,28 @@ import {dismissModalAndOpenReportInInboxTab} from '.';
 
 type SendMoneyParamsData = {
     params: SendMoneyParams;
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
+    optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
+    >;
+    successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
+    >;
+    failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    >;
 };
 
 /**
@@ -100,7 +119,7 @@ function getSendMoneyParams({
             receipt,
         },
     });
-    const optimisticTransactionData: OnyxUpdate = {
+    const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: optimisticTransaction,
@@ -124,7 +143,7 @@ function getSendMoneyParams({
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
-    const optimisticChatReportData: OnyxUpdate = isNewChat
+    const optimisticChatReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = isNewChat
         ? {
               onyxMethod: Onyx.METHOD.SET,
               key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -145,7 +164,7 @@ function getSendMoneyParams({
                   lastVisibleActionCreated: reportPreviewAction.created,
               },
           };
-    const optimisticQuickActionData: OnyxUpdate = {
+    const optimisticQuickActionData: OnyxUpdate<typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE> = {
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
         value: {
@@ -154,7 +173,7 @@ function getSendMoneyParams({
             isFirstQuickAction: isEmptyObject(quickAction),
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
         value: {
@@ -166,12 +185,12 @@ function getSendMoneyParams({
             },
         },
     };
-    const optimisticTransactionThreadData: OnyxUpdate = {
+    const optimisticTransactionThreadData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
         value: optimisticTransactionThread,
     };
-    const optimisticIOUReportActionsData: OnyxUpdate = {
+    const optimisticIOUReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
@@ -182,14 +201,14 @@ function getSendMoneyParams({
             },
         },
     };
-    const optimisticChatReportActionsData: OnyxUpdate = {
+    const optimisticChatReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [reportPreviewAction.reportActionID]: reportPreviewAction,
         },
     };
-    const optimisticTransactionThreadReportActionsData: OnyxUpdate | undefined = optimisticCreatedActionForTransactionThread
+    const optimisticTransactionThreadReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> | undefined = optimisticCreatedActionForTransactionThread
         ? {
               onyxMethod: Onyx.METHOD.MERGE,
               key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
@@ -225,7 +244,7 @@ function getSendMoneyParams({
     > = [];
 
     // Add optimistic personal details for recipient
-    let optimisticPersonalDetailListData: OnyxUpdate | null = null;
+    let optimisticPersonalDetailListData: OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> | null = null;
     const optimisticPersonalDetailListAction = isNewChat
         ? {
               [recipientAccountID]: {
@@ -406,8 +425,16 @@ function getSendMoneyParams({
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
+    > = [
         optimisticChatReportData,
         optimisticQuickActionData,
         optimisticIOUReportData,

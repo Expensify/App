@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -45,12 +46,14 @@ function BaseListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
+    shouldShowRightCaret = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const pressableRef = useRef<View>(null);
 
@@ -109,7 +112,7 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={item.text ?? ''}
+                accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
                 role={getButtonRole(true)}
                 isNested
                 hoverDimmingValue={1}
@@ -167,6 +170,17 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {rightHandSideComponentRender()}
+                    {shouldShowRightCaret && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
+                            <Icon
+                                src={icons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
+                            />
+                        </View>
+                    )}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>

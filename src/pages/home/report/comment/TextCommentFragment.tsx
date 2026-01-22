@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, isEmojiOnSeparateLine, splitTextWithEmojis} from '@libs/EmojiUtils';
+import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
@@ -90,15 +90,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             if (!htmlContent.includes('<emoji>')) {
                 htmlContent = Parser.replace(htmlContent, {filterRules: ['emoji'], shouldEscapeText: false});
             }
-            const lines = htmlContent.split(/<br\s*\/?>/i);
-            const processedLines = lines.map((line) => {
-                if (isEmojiOnSeparateLine(line)) {
-                    return line.replace('<emoji>', '<emoji ismedium oneline >');
-                }
-                return line.replace('<emoji>', '<emoji ismedium>');
-            });
-
-            htmlContent = processedLines.join('<br />');
+            htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji ismedium>');
         }
 
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;

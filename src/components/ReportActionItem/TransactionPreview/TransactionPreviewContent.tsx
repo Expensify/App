@@ -84,6 +84,8 @@ function TransactionPreviewContent({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserDetails.email ?? '';
+    const currentUserAccountID = currentUserDetails.accountID;
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
@@ -102,10 +104,11 @@ function TransactionPreviewContent({
                 ...transactionPreviewCommonArguments,
                 areThereDuplicates,
                 isReportAPolicyExpenseChat,
-                currentUserEmail: currentUserDetails.email ?? '',
-                currentUserAccountID: currentUserDetails.accountID,
+                currentUserEmail,
+                currentUserAccountID,
+                reportActions,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserDetails.email, currentUserDetails.accountID],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -123,11 +126,11 @@ function TransactionPreviewContent({
                 shouldShowRBR,
                 violationMessage,
                 reportActions,
-                currentUserEmail: currentUserDetails.email ?? '',
-                currentUserAccountID: currentUserDetails.accountID,
+                currentUserEmail,
+                currentUserAccountID,
                 originalTransaction,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserDetails.email, currentUserDetails.accountID, originalTransaction],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

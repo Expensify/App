@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -19,6 +19,8 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import type {ScrollViewProps} from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
@@ -49,6 +51,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {
+    getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
     isPendingDeletePolicy,
@@ -147,7 +150,9 @@ function WorkspacesListPage() {
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {canBeMissing: true});
     const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -172,6 +177,30 @@ function WorkspacesListPage() {
 
     const policyToDelete = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`];
 
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
+        (e) => {
+            // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
+            // We should ignore this case.
+            if (e.nativeEvent.layoutMeasurement.height === 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+    const flatlistRef = useRef<FlatList | null>(null);
+    useLayoutEffect(() => {
+        const scrollOffset = getScrollOffset(route);
+        if (!scrollOffset || !flatlistRef.current) {
+            return;
+        }
+        flatlistRef.current?.scrollToOffset({
+            offset: scrollOffset,
+            animated: false,
+        });
+    }, [getScrollOffset, route]);
+
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policyToDelete?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
@@ -179,7 +208,6 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     const prevPolicyToDelete = usePrevious(policyToDelete);
@@ -218,6 +246,7 @@ function WorkspacesListPage() {
             bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
+            personalPolicyID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
@@ -245,13 +274,7 @@ function WorkspacesListPage() {
     };
 
     const confirmModalPrompt = () => {
-        const exporters = [
-            policyToLeave?.connections?.intacct?.config?.export?.exporter,
-            policyToLeave?.connections?.quickbooksDesktop?.config?.export?.exporter,
-            policyToLeave?.connections?.quickbooksOnline?.config?.export?.exporter,
-            policyToLeave?.connections?.xero?.config?.export?.exporter,
-            policyToLeave?.connections?.netsuite?.options?.config?.exporter,
-        ];
+        const exporters = getConnectionExporters(policyToLeave);
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = policyToLeave?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
@@ -426,7 +449,7 @@ function WorkspacesListPage() {
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
                     pendingAction={item.pendingAction}
-                    errorRowStyles={styles.ph5}
+                    errorRowStyles={[styles.ph5, styles.mt3]}
                     onClose={item.dismissError}
                     errors={item.errors}
                     style={styles.mb2}
@@ -588,7 +611,6 @@ function WorkspacesListPage() {
             if (!domain || !domain.accountID || !domain.email) {
                 return domainItems;
             }
-
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
             domainItems.push({
                 listItemType: 'domain',
@@ -598,11 +620,12 @@ function WorkspacesListPage() {
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
+                errors: allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`]?.errors,
             });
 
             return domainItems;
         }, []);
-    }, [navigateToDomain, allDomains, adminAccess]);
+    }, [allDomains, allDomainErrors, adminAccess, navigateToDomain]);
 
     useEffect(() => {
         const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
@@ -736,7 +759,7 @@ function WorkspacesListPage() {
                 shouldUseNarrowLayout && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }
@@ -762,6 +785,10 @@ function WorkspacesListPage() {
                         ListHeaderComponent={listHeaderComponent}
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
+                        onScroll={onScroll}
+                        // Render all items on first mount to restore scroll position correctly.
+                        // Lists are small, so this won’t impact performance.
+                        initialNumToRender={data.length}
                     />
                 )}
             </View>

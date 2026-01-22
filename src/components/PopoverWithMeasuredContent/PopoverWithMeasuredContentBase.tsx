@@ -226,6 +226,8 @@ function PopoverWithMeasuredContentBase({
     );
 }
 
+PopoverWithMeasuredContentBase.displayName = 'PopoverWithMeasuredContentBase';
+
 export default React.memo(PopoverWithMeasuredContentBase, (prevProps, nextProps) => {
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
         return true;

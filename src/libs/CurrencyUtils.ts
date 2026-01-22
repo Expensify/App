@@ -42,7 +42,7 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
 }
 
 /**
- * Get localized currency symbol for currency (ISO 4217) Code
+ * Get localized currency symbol for currency(ISO 4217) Code
  */
 function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
     const parts = formatToParts(locale, 0, {
@@ -200,40 +200,6 @@ function isValidCurrencyCode(currencyCode: string): boolean {
     return !!currency;
 }
 
-function sanitizeCurrencyCode(currencyCode: string): string {
-    return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
-}
-
-/**
- * Checks if a "symbol" is effectively just the ISO currency code (e.g. "TZS").
- */
-function isCurrencyCodeLikeSymbol(symbol?: string, currencyCode?: string): boolean {
-    if (!symbol || !currencyCode) {
-        return false;
-    }
-
-    const normalizedSymbol = symbol.trim().toUpperCase();
-    const normalizedCode = currencyCode.trim().toUpperCase();
-
-    return normalizedSymbol === normalizedCode;
-}
-
-/**
- * Returns a preferred currency symbol for display:
- * - Uses the symbol from CURRENCY_LIST when it exists and is not code-like.
- * - Otherwise falls back to the localized Intl-derived currency value (existing behavior).
- */
-function getPreferredCurrencySymbol(currencyCode: string = CONST.CURRENCY.USD, preferredLocale?: Locale | undefined): string | undefined {
-    const symbolFromList = getCurrencySymbol(currencyCode);
-
-    if (symbolFromList && !isCurrencyCodeLikeSymbol(symbolFromList, currencyCode)) {
-        return symbolFromList;
-    }
-
-    const locale = preferredLocale ?? IntlStore.getCurrentLocale();
-    return getLocalizedCurrencySymbol(locale, currencyCode);
-}
-
 function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
     if (!currencies || !countryCode) {
         return CONST.CURRENCY.USD;
@@ -260,7 +226,4 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
-    sanitizeCurrencyCode,
-    getPreferredCurrencySymbol,
-    isCurrencyCodeLikeSymbol,
 };

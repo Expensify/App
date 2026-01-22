@@ -22,12 +22,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import Navigation from '@libs/Navigation/Navigation';
-import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
-import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,8 +100,6 @@ function VerifiedBankAccountFlowEntryPoint({
     const [reimbursementAccountOptionPressed] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED, {canBeMissing: true});
     const isAccountValidated = account?.validated ?? false;
 
-    const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
 
     const removeExistingBankAccountDetails = () => {
@@ -211,11 +207,6 @@ function VerifiedBankAccountFlowEntryPoint({
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     isCentralPane
                 >
-                    {!!plaidDesktopMessage && !isNonUSDWorkspace && (
-                        <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween]}>
-                            <TextLink onPress={() => openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
-                        </View>
-                    )}
                     {!!personalBankAccounts.length && (
                         <View style={[styles.flexRow, styles.mt4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
                             <Icon

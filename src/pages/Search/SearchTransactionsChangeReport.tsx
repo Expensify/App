@@ -35,6 +35,7 @@ function SearchTransactionsChangeReport() {
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -76,16 +77,17 @@ function SearchTransactionsChangeReport() {
         const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
-            changeTransactionsReport(
-                selectedTransactionsKeys,
+            changeTransactionsReport({
+                transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                session?.email ?? '',
-                optimisticReport,
-                policyForMovingExpenses,
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
+                newReport: optimisticReport,
+                policy: policyForMovingExpenses,
                 reportNextStep,
-                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
-            );
+                policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
+                allTransactions,
+            });
             clearSelectedTransactions();
         });
         Navigation.goBack();
@@ -99,23 +101,6 @@ function SearchTransactionsChangeReport() {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy && selectedTransactionsKeys.length > 0) {
-            const firstTransactionID = selectedTransactionsKeys.at(0);
-            if (firstTransactionID) {
-                Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.EDIT,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: firstTransactionID,
-                        reportID: selectedTransactions[firstTransactionID]?.reportID,
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
-                    {forceReplace: true},
-                );
-            }
-            return;
-        }
-
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
             return;
@@ -134,16 +119,17 @@ function SearchTransactionsChangeReport() {
 
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
-        changeTransactionsReport(
-            selectedTransactionsKeys,
+        changeTransactionsReport({
+            transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            session?.email ?? '',
-            destinationReport,
-            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            newReport: destinationReport,
+            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
-            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-        );
+            policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+            allTransactions,
+        });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -156,7 +142,13 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionsKeys, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport({
+            transactionIDs: selectedTransactionsKeys,
+            isASAPSubmitBetaEnabled,
+            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            allTransactions,
+        });
         clearSelectedTransactions();
         Navigation.goBack();
     };

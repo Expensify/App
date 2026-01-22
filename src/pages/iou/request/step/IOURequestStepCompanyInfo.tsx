@@ -16,7 +16,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import {getIOURequestPolicyID, sendInvoice} from '@userActions/IOU';
+import {getIOURequestPolicyID} from '@userActions/IOU';
+import {sendInvoice} from '@userActions/IOU/SendInvoice';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -45,6 +46,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const policy = usePolicy(policyID);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
@@ -86,6 +88,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyName: values.companyName,
             companyWebsite,
             policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
         });
     };
 

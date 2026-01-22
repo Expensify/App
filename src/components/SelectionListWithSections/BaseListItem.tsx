@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -48,6 +49,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
 }: BaseListItemProps<TItem>) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -105,7 +107,7 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={item.text ?? ''}
+                accessibilityLabel={[item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
                 role={getButtonRole(true)}
                 isNested
                 hoverDimmingValue={1}
@@ -166,7 +168,7 @@ function BaseListItem<TItem extends ListItem>({
                     {shouldShowRightCaret && (
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={icons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
                                 isButtonIcon

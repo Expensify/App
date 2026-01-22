@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -10,15 +9,16 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 // eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
+import {Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -53,7 +53,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, isControlPolicy, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import {
+    getConnectionExporters,
+    getMemberAccountIDsForWorkspace,
+    isControlPolicy,
+    isDeletedPolicyEmployee,
+    isExpensifyTeam,
+    isPaidGroupPolicy,
+    isPolicyAdmin as isPolicyAdminUtils,
+} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -90,7 +98,7 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table', 'FallbackAvatar']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -101,7 +109,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
-    const textInputRef = useRef<TextInput>(null);
+    const textInputRef = useRef<BaseTextInputRef>(null);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
@@ -136,7 +144,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
@@ -156,17 +164,30 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const confirmModalPrompt = useMemo(() => {
         const approverEmail = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
-        if (!approverEmail) {
-            const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
-            return translate('workspace.people.removeMembersPrompt', {
-                count: selectedEmployees.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], currentUserAccountID}).at(0)?.displayName ?? ''),
+
+        if (approverEmail) {
+            const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
+            return translate('workspace.people.removeMembersWarningPrompt', {
+                memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+                ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
             });
         }
-        const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
-        return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
-            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+
+        const exporters = getConnectionExporters(policy);
+        const userExporter = selectedEmployees.find((selectedEmployee) => exporters.includes(selectedEmployee));
+
+        if (userExporter) {
+            const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
+            return translate('workspace.people.removeMemberPromptExporter', {
+                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber}),
+                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+            });
+        }
+
+        const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
+        return translate('workspace.people.removeMembersPrompt', {
+            count: selectedEmployees.length,
+            memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], currentUserAccountID}).at(0)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, currentUserAccountID]);
     /**
@@ -186,7 +207,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return;
         }
         setRemoveMembersConfirmModalVisible(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [accountIDs]);
 
     useEffect(() => {
@@ -414,6 +435,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                 role={policyEmployee.role}
                                 owner={policy?.owner}
                                 login={details.login}
+                                badgeStyles={[styles.alignSelfEnd]}
                             />
                         </View>
                     </>
@@ -426,7 +448,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 ),
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: details.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -452,12 +474,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.flex1,
         styles.pr3,
         styles.alignSelfStart,
+        styles.alignSelfEnd,
         isControlPolicyWithWideLayout,
         StyleUtils,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
         policyOwner,
         currentUserLogin,
+        icons.FallbackAvatar,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
@@ -743,6 +767,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         </>
     );
 
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: shouldUseNarrowLayout ? headerMessage : undefined,
+            ref: textInputRef,
+        }),
+        [headerMessage, shouldUseNarrowLayout],
+    );
+
     return (
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -806,32 +838,30 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
                     <SelectionListWithModal
+                        data={filteredData}
                         ref={selectionListRef}
-                        canSelectMultiple={canSelectMultiple}
-                        sections={[{data: filteredData, isDisabled: false}]}
-                        selectedItems={selectedEmployees}
                         ListItem={TableListItem}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                        onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
-                        shouldUseUserSkeletonView
-                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
                         onSelectRow={openMemberDetails}
-                        shouldSingleExecuteRowSelect={!isPolicyAdmin}
-                        onCheckboxPress={(item) => toggleUser(item.login)}
+                        selectedItems={selectedEmployees}
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress={isPolicyAdmin}
                         onSelectAll={filteredData.length > 0 ? () => toggleAllUsers(filteredData) : undefined}
-                        onDismissError={dismissError}
-                        showLoadingPlaceholder={isLoading}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5], listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : [styles.pr3]}}
+                        onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
+                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        textInputRef={textInputRef}
-                        listHeaderContent={headerContent}
-                        shouldShowListEmptyContent={false}
+                        onCheckboxPress={(item) => toggleUser(item.login)}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
+                        customListHeaderContent={headerContent}
+                        textInputOptions={textInputOptions}
+                        showLoadingPlaceholder={isLoading}
+                        onDismissError={dismissError}
+                        showListEmptyContent={false}
                         showScrollIndicator={false}
-                        addBottomSafeAreaPadding
+                        shouldUseUserSkeletonView
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 </>

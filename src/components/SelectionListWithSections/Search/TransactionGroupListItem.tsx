@@ -63,6 +63,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     violations,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -98,6 +99,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -113,6 +115,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             currentUserEmail: currentUserDetails.email ?? '',
             translate,
             formatPhoneNumber,
+            bankAccountList,
             isActionLoadingSet,
         }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
@@ -129,6 +132,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         selectedTransactionIDsSet,
         currentUserDetails.email,
         isActionLoadingSet,
+        bankAccountList,
     ]);
 
     const selectedItemsLength = useMemo(() => {
@@ -291,6 +295,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isIndeterminate={isIndeterminate}
                         isHovered={hovered}
                         onDEWModalOpen={onDEWModalOpen}
+                        isDEWBetaEnabled={isDEWBetaEnabled}
                         onDownArrowClick={onExpandIconPress}
                         isExpanded={isExpanded}
                     />
@@ -311,12 +316,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
             canSelectMultiple,
             isSelectAllChecked,
             isIndeterminate,
-            onExpandIconPress,
+            onDEWModalOpen,
+            isDEWBetaEnabled,
+            groupBy,
             isExpanded,
+            onExpandIconPress,
             isFocused,
             searchType,
-            groupBy,
-            onDEWModalOpen,
             onSelectRow,
             transactionPreviewData,
         ],

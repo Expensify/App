@@ -180,6 +180,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
@@ -201,7 +202,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         shouldShowRightIcon
                         onPress={() => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
-                            if (hasVisibleTags) {
+                            if (hasVisibleTags && isMultiLevelTags) {
                                 setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
                             } else {
                                 Navigation.navigate(
