@@ -12,7 +12,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import type {PaymentMethodType} from '@components/KYCWall/types';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -287,7 +287,7 @@ function SearchPage({route}: SearchPageProps) {
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
             });
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             clearSelectedTransactions(undefined, true);
@@ -318,7 +318,7 @@ function SearchPage({route}: SearchPageProps) {
                 confirmText: translate('search.exportSearchResults.title'),
                 cancelText: translate('common.cancel'),
             });
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -395,7 +395,7 @@ function SearchPage({route}: SearchPageProps) {
                 confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
                 shouldShowCancelButton: false,
             });
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
@@ -447,7 +447,7 @@ function SearchPage({route}: SearchPageProps) {
                 cancelText: translate('common.cancel'),
                 danger: true,
             });
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             // Translations copy for delete modal depends on amount of selected items,

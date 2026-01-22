@@ -143,7 +143,7 @@ import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
-import {ModalActions} from './Modal/Global/ModalContext';
+import {ConfirmModalActions} from './Modal/Global/ConfirmModalWrapper';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
@@ -424,7 +424,7 @@ function MoneyReportHeader({
             }
 
             showExportProgressModal().then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 clearSelectedTransactions(undefined, true);
@@ -596,7 +596,7 @@ function MoneyReportHeader({
             shouldShowCancelButton: false,
         });
 
-        if (result.action === ModalActions.CONFIRM) {
+        if (result.action === ConfirmModalActions.CONFIRM) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         }
     };
@@ -1214,7 +1214,7 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
@@ -1238,7 +1238,7 @@ function MoneyReportHeader({
                     danger: true,
                 });
 
-                if (result.action !== ModalActions.CONFIRM || !chatReport) {
+                if (result.action !== ConfirmModalActions.CONFIRM || !chatReport) {
                     return;
                 }
                 cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
@@ -1383,7 +1383,7 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     if (transactionThreadReportID) {
@@ -1419,7 +1419,7 @@ function MoneyReportHeader({
                     cancelText: translate('common.cancel'),
                     danger: true,
                 });
-                if (result.action !== ModalActions.CONFIRM) {
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
@@ -1457,7 +1457,7 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
@@ -1546,32 +1546,31 @@ function MoneyReportHeader({
         };
     }, []);
 
-    const showDeleteModal = useCallback(() => {
-        showConfirmModal({
+    const showDeleteModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
             title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
             prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
-                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                Navigation.goBack(backToRoute);
-            }
-            // It has been handled like the rest of the delete cases. It will be refactored along with other cases.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => handleDeleteTransactions());
         });
+        if (action !== ConfirmModalActions.CONFIRM) {
+            return;
+        }
+        if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
+            const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+            Navigation.goBack(backToRoute);
+        }
+        // It has been handled like the rest of the delete cases. It will be refactored along with other cases.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => handleDeleteTransactions());
     }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID]);
 
-    const showExportAgainModal = useCallback(() => {
+    const showExportAgainModal = useCallback(async () => {
         if (!connectedIntegration) {
             return;
         }
-        showConfirmModal({
+        const {action} = await showConfirmModal({
             title: translate('workspace.exportAgainModal.title'),
             prompt: translate('workspace.exportAgainModal.description', {
                 connectionName: connectedIntegration ?? connectedIntegrationFallback,
@@ -1579,13 +1578,12 @@ function MoneyReportHeader({
             }),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                setExportModalStatus(null);
-                return;
-            }
-            confirmExport();
         });
+        if (action !== ConfirmModalActions.CONFIRM) {
+            setExportModalStatus(null);
+            return;
+        }
+        confirmExport();
     }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
 
     useEffect(() => {
