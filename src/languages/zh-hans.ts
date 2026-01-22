@@ -2491,8 +2491,8 @@ ${amount}，商户：${merchant} - ${date}`,
     },
     onboarding: {
         welcome: '欢迎！',
-        welcomeSignOffTitleManageTeam: '完成以上任务后，我们就可以探索更多功能，比如审批工作流和规则！',
-        welcomeSignOffTitle: '很高兴见到你！',
+        welcomeSignOffTitleManageTeam: '',
+        welcomeSignOffTitle: '',
         explanationModal: {
             title: '欢迎使用 Expensify',
             description: '一款应用即可以聊天般的速度处理您的商务和个人支出。试用一下，并告诉我们您的想法。更多精彩功能即将上线！',
@@ -2823,7 +2823,7 @@ ${
                 '# 让我们开始为你进行设置\n\n👋 你好，我是你的 Expensify 设置专员。我已经为你创建了一个工作区，来帮助管理你的收据和报销。为了充分利用你的 30 天免费试用，请按照下面剩余的设置步骤进行操作！',
             onboardingChatSplitMessage: '与朋友分摊账单，就像发消息一样简单。操作方法如下。',
             onboardingAdminMessage: '了解如何以管理员身份管理您团队的工作区，并提交您自己的报销。',
-            onboardingLookingAroundMessage: 'Expensify 最广为人知的是报销、出行和企业银行卡管理，但我们的功能远不止于此。告诉我你感兴趣的内容，我会帮你开始使用。',
+            onboardingLookingAroundMessage: '',
             onboardingTestDriveReceiverMessage: '*您已获得 3 个月的免费使用！请从下方开始。*',
         },
         workspace: {
