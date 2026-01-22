@@ -1331,7 +1331,7 @@ function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
     currentUserAccountID: number,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
@@ -1758,16 +1758,9 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    const userToInvite = createOption(
-        [optimisticAccountID],
-        personalDetailsExtended,
-        null,
-        currentUserAccountID,
-        {
-            showChatPreviewLine,
-        },
-        undefined,
-    );
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, currentUserAccountID, {
+        showChatPreviewLine,
+    });
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2388,11 +2381,11 @@ function getValidOptions(
             {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
             searchString ?? '',
             loginList,
+            currentUserEmail,
+            currentUserAccountID,
             countryCode,
             {
                 excludeLogins: loginsToExclude,
-                currentUserEmail,
-                currentUserAccountID,
                 shouldAcceptName,
                 searchInputValue,
             },
@@ -2752,7 +2745,7 @@ function getFirstKeyForList(data?: Option[] | null) {
 }
 
 function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUserAccountID: number) {
-    if (currentUserAccountID !== undefined && item.accountID === currentUserAccountID) {
+    if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
     }
     return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
@@ -2855,10 +2848,12 @@ function filterUserToInvite(
     options: Omit<Options, 'userToInvite'>,
     searchValue: string,
     loginList: OnyxEntry<Login>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    config: FilterUserToInviteConfig,
+    config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}} = config;
+    const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
     }
@@ -2883,6 +2878,8 @@ function filterUserToInvite(
         loginsToExclude,
         countryCode,
         loginList,
+        currentUserEmail,
+        currentUserAccountID,
         ...config,
     });
 }
@@ -2937,6 +2934,8 @@ function filterOptions(options: Options, searchInputValue: string, countryCode: 
         },
         searchValue,
         loginList,
+        currentUserEmail,
+        currentUserAccountID,
         countryCode,
         {
             ...config,

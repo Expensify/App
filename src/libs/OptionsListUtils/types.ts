@@ -258,8 +258,6 @@ type PreviewConfig = {
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
-    currentUserEmail: string;
-    currentUserAccountID: number;
 };
 
 type OrderOptionsConfig =
