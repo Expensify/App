@@ -332,7 +332,7 @@ function SearchAutocompleteList({
 
         if (!autocomplete && ranges.length > 0) {
             const lastRange = ranges.at(ranges.length - 1);
-            if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(lastRange.key as SearchFilterKey)) {
+            if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(lastRange.key)) {
                 const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
                 const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
 
