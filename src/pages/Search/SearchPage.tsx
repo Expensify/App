@@ -995,7 +995,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowDeleteOption =
             !isOffline &&
-            (selectedReports.length
+            (selectedReports.length && queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE
                 ? selectedReports.every((selectedReport) => {
                       const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
                       if (!fullReport) {
