@@ -6,6 +6,8 @@ import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisti
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+// This import is needed to initialize the Onyx connections that call handlePreexistingReport
+import '@src/libs/PreexistingReportHandler';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
@@ -24,6 +26,8 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
+    await Onyx.clear();
+    await waitForBatchedUpdates();
     SequentialQueue.pause();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
