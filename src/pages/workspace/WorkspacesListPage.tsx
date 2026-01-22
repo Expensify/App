@@ -150,6 +150,7 @@ function WorkspacesListPage() {
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {canBeMissing: true});
     const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
@@ -448,7 +449,7 @@ function WorkspacesListPage() {
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
                     pendingAction={item.pendingAction}
-                    errorRowStyles={styles.ph5}
+                    errorRowStyles={[styles.ph5, styles.mt3]}
                     onClose={item.dismissError}
                     errors={item.errors}
                     style={styles.mb2}
@@ -610,7 +611,6 @@ function WorkspacesListPage() {
             if (!domain || !domain.accountID || !domain.email) {
                 return domainItems;
             }
-
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
             domainItems.push({
                 listItemType: 'domain',
@@ -620,11 +620,12 @@ function WorkspacesListPage() {
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
+                errors: allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`]?.errors,
             });
 
             return domainItems;
         }, []);
-    }, [navigateToDomain, allDomains, adminAccess]);
+    }, [allDomains, allDomainErrors, adminAccess, navigateToDomain]);
 
     useEffect(() => {
         const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
@@ -758,7 +759,7 @@ function WorkspacesListPage() {
                 shouldUseNarrowLayout && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }
