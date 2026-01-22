@@ -573,7 +573,7 @@ function duplicateExpenseTransaction({
                 existingTransaction: {
                     ...(params.transactionParams ?? {}),
                     comment: transaction.comment,
-                    iouRequestType: transaction.iouRequestType,
+                    iouRequestType: transaction.iouRequestType ?? transaction.transactionType,
                     modifiedCreated: '',
                     reportID: '1',
                     transactionID: '1',
