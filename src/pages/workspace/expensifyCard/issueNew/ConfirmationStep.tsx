@@ -111,6 +111,8 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
+    const expirationDateTitle =
+        data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
 
     return (
         <InteractiveStepWrapper
@@ -156,6 +158,14 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
+                {!!expirationDateTitle && (
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.card.issueNewCard.expirationDate')}
+                        title={expirationDateTitle}
+                        shouldShowRightIcon
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS)}
+                    />
+                )}
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardName')}
                     title={data?.cardTitle}

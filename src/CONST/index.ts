@@ -738,6 +738,7 @@ const CONST = {
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         NEW_DOT_HOME: 'newDotHome',
+        SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3505,10 +3506,11 @@ const CONST = {
             SMART: 'smart',
             MONTHLY: 'monthly',
             FIXED: 'fixed',
+            SINGLE_USE: 'singleUse',
         },
         LIMIT_VALUE: 21474836,
-        STEP_NAMES: ['1', '2', '3', '4', '5'],
-        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4', '5'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
@@ -3517,6 +3519,7 @@ const CONST = {
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
             INVITE_NEW_MEMBER: 'InviteNewMember',
+            EXPIRY_OPTIONS: 'ExpiryOptions',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',

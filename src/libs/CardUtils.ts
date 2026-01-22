@@ -283,6 +283,8 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.fixedAmount';
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
             return 'workspace.card.issueNewCard.monthly';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE:
+            return 'workspace.card.issueNewCard.singleUse';
         default:
             return '';
     }

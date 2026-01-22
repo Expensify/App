@@ -1338,6 +1338,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
                             path: ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.route,
                         },
+                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_EXPIRY_OPTIONS]: {
+                            path: ROUTES.EXPENSIFY_CARD_EXPIRY_OPTIONS.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: {

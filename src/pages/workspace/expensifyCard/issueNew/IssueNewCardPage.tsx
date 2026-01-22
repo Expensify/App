@@ -22,6 +22,7 @@ import ConfirmationStep from './ConfirmationStep';
 import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitStep from './LimitStep';
 import LimitTypeStep from './LimitTypeStep';
+import SetExpiryOptionsStep from './SetExpiryOptionsStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
@@ -36,8 +37,9 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT]: 3,
-        [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
-        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
+        [CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS]: 4,
+        [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 5,
+        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 6,
     };
 
     const stepIndex = STEP_INDEXES[issueNewCard.currentStep];
@@ -96,6 +98,14 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 return (
                     <CardNameStep
                         policyID={policyID}
+                        stepNames={stepNames}
+                        startStepIndex={startStepIndex}
+                    />
+                );
+            case CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS:
+                return (
+                    <SetExpiryOptionsStep
+                        policy={policy}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
                     />

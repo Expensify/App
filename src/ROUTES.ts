@@ -2394,6 +2394,18 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/limit-type`, backTo),
     },
+    EXPENSIFY_CARD_EXPIRY_OPTIONS: {
+        route: 'settings/:policyID/expensify-card/:cardID/edit/expiry-options',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/expiry-options`, backTo),
+    },
+    WORKSPACE_EXPENSIFY_CARD_EXPIRY_OPTIONS: {
+        route: 'workspaces/:policyID/expensify-card/:cardID/edit/expiry-options',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}/edit/expiry-options`, backTo),
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'workspaces/:policyID/expensify-card/issue-new',
 
