@@ -2,24 +2,8 @@ import {useRoute} from '@react-navigation/native';
 import type {ComponentType} from 'react';
 import {useEffect, useRef} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PageConfig, SubPageProps, UseSubPageProps} from './types';
-
-function findPageIndex<TProps extends SubPageProps>(pages: Array<PageConfig<TProps>>, pageName?: string): number {
-    if (!pageName) {
-        return 0;
-    }
-
-    const index = pages.findIndex((page) => page.pageName === pageName);
-    return index !== -1 ? index : 0;
-}
-
-function findLastPageIndex<TProps extends SubPageProps>(pages: Array<PageConfig<TProps>>, skipPages: string[] = []): number {
-    let lastIndex = pages.length - 1;
-    while (lastIndex >= 0 && skipPages.includes(pages.at(lastIndex)?.pageName ?? '')) {
-        lastIndex -= 1;
-    }
-    return lastIndex;
-}
+import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
+import type {SubPageProps, UseSubPageProps} from './types';
 
 /**
  * @param pages - array of objects with pageName and component to display in each page
@@ -119,6 +103,7 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
     const currentPage = pages.at(pageIndex);
 
     return {
+        // Type assertion for component type - pageIndex defaults to 0 via findPageIndex, so currentPage should exist for non-empty pages array
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         CurrentPage: currentPage?.component as ComponentType<SubPageProps & TProps>,
         isEditing,

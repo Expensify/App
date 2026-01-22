@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {findPageIndex} from '@libs/SubPageUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,21 +43,13 @@ const formPages = [
     {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation},
 ];
 
-function findPageIndex(pages: typeof formPages, pageName?: string): number {
-    if (!pageName) {
-        return 0;
-    }
-    const index = pages.findIndex((page) => page.pageName === pageName);
-    return index !== -1 ? index : 0;
-}
-
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
-    const startFrom = useMemo(() => findPageIndex(formPages, getInitialSubPage(values)), [values]);
+    const startFrom = useMemo(() => findPageIndex<CustomSubPageProps>(formPages, getInitialSubPage(values)), [values]);
 
     const handleFinishStep = useCallback(() => {
         if (!values) {
@@ -74,7 +67,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
             return;
         }
 

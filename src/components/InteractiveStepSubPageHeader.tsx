@@ -1,12 +1,12 @@
 import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import {Checkmark} from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 
@@ -26,6 +26,7 @@ const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelected}: InteractiveStepSubPageHeaderProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
@@ -34,6 +35,13 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelect
 
     const lastStepIndex = stepNames.length - 1;
 
+    const handleStepPress = (isLockedStep: boolean, index: number) => {
+        if (isLockedStep || !onStepSelected) {
+            return;
+        }
+        onStepSelected(index);
+    };
+
     return (
         <View style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}>
             {stepNames.map((stepName, index) => {
@@ -41,13 +49,6 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelect
                 const isLockedStep = currentStepIndex < index;
                 const isLockedLine = currentStepIndex < index + 1;
                 const hasConnectingLine = index < lastStepIndex;
-
-                const handleStepPress = () => {
-                    if (isLockedStep || !onStepSelected) {
-                        return;
-                    }
-                    onStepSelected(index);
-                };
 
                 return (
                     <View
@@ -62,14 +63,14 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelect
                                 !onStepSelected && styles.cursorDefault,
                             ]}
                             disabled={isLockedStep || !onStepSelected}
-                            onPress={handleStepPress}
+                            onPress={() => handleStepPress(isLockedStep, index)}
                             accessible
                             accessibilityLabel={stepName}
                             role={CONST.ROLE.BUTTON}
                         >
                             {isCompletedStep ? (
                                 <Icon
-                                    src={Checkmark}
+                                    src={icons.Checkmark}
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                     fill={colors.white}
