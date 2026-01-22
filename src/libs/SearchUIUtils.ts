@@ -371,6 +371,45 @@ type GetSectionsParams = {
 };
 
 /**
+ * Creates a top search menu item with common structure for TOP_SPENDERS and TOP_CATEGORIES
+ */
+function createTopSearchMenuItem(
+    key: SearchKey,
+    translationPath: TranslationPaths,
+    icon: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank'>,
+    groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
+): SearchTypeMenuItem {
+    const searchQuery = buildQueryStringFromFilterFormValues(
+        {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            groupBy,
+            dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+        },
+        {
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        },
+    );
+
+    return {
+        key,
+        translationPath,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        icon,
+        searchQuery,
+        get searchQueryJSON() {
+            return buildSearchQueryJSON(this.searchQuery);
+        },
+        get hash() {
+            return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+        },
+        get similarSearchHash() {
+            return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+        },
+    };
+}
+
+/**
  * Returns a list of all possible searches in the LHN, along with their query & hash.
  * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
  * contains the conditionals for rendering each of these.
@@ -604,58 +643,18 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            translationPath: 'search.topSpenders',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.User,
-            searchQuery: buildQueryStringFromFilterFormValues(
-                {
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                },
-                {
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                },
-            ),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: {
-            key: CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            translationPath: 'search.topCategories',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Folder,
-            searchQuery: buildQueryStringFromFilterFormValues(
-                {
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                },
-                {
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                },
-            ),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: createTopSearchMenuItem(
+            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+            'search.topSpenders',
+            Expensicons.User,
+            CONST.SEARCH.GROUP_BY.FROM
+        ),
+        [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: createTopSearchMenuItem(
+            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+            'search.topCategories',
+            Expensicons.Folder,
+            CONST.SEARCH.GROUP_BY.CATEGORY
+        ),
     };
 }
 
@@ -2949,19 +2948,18 @@ function createTypeMenuSections(
             menuItems: [],
         };
 
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]) {
-            insightsSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS],
-                emptyState: {
-                    title: 'search.searchResults.emptyResults.title',
-                    subtitle: 'search.searchResults.emptyResults.subtitle',
-                },
-            });
-        }
+        const insightsSearchKeys = [
+            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+        ];
 
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]) {
+        for (const key of insightsSearchKeys) {
+            if (!suggestedSearchesVisibility[key]) {
+                continue;
+            }
+
             insightsSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES],
+                ...suggestedSearches[key],
                 emptyState: {
                     title: 'search.searchResults.emptyResults.title',
                     subtitle: 'search.searchResults.emptyResults.subtitle',
