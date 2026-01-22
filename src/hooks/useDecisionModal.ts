@@ -3,7 +3,6 @@ import type {DecisionModalAction} from '@components/Modal/Global/DecisionModalWr
 import type {ModalStateChangePayload} from '@components/Modal/Global/ModalContext';
 import {useModal} from '@components/Modal/Global/ModalContext';
 
-
 type DecisionModalOptions = Omit<React.ComponentProps<typeof DecisionModalWrapper>, 'closeModal'>;
 
 const useDecisionModal = () => {

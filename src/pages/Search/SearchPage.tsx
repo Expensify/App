@@ -103,7 +103,16 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactions, clearAllSelectedTransactions, clearSelectedTransactionsByHash, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
+    const {
+        selectedTransactions,
+        clearAllSelectedTransactions,
+        clearSelectedTransactionsByHash,
+        selectedReports,
+        lastSearchType,
+        setLastSearchType,
+        areAllMatchingItemsSelected,
+        selectAllMatchingItems,
+    } = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
