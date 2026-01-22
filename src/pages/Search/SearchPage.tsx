@@ -847,6 +847,11 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {

@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import useOnyx from 'react-native-onyx/dist/useOnyx';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
@@ -26,37 +26,34 @@ function StatementCloseDateStep({policyID, workspaceAccountID}: StatementCloseDa
 
     const isPlaid = !!addNewCard?.data?.publicToken;
 
-    const submit = useCallback(
-        (statementPeriodEnd: StatementPeriodEnd | undefined, statementPeriodEndDay: StatementPeriodEndDay | undefined) => {
-            if (isPlaid) {
-                setAddNewCompanyCardStepAndData({
-                    step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
-                    // Fallback to null to clear old value (if any) because `undefined` is a no-op in Onyx.merge
-                    data: {statementPeriodEnd: statementPeriodEnd ?? null, statementPeriodEndDay: statementPeriodEndDay ?? null},
-                });
-                return;
-            }
+    const submit = (statementPeriodEnd: StatementPeriodEnd | undefined, statementPeriodEndDay: StatementPeriodEndDay | undefined) => {
+        if (isPlaid) {
+            setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
+                // Fallback to null to clear old value (if any) because `undefined` is a no-op in Onyx.merge
+                data: {statementPeriodEnd: statementPeriodEnd ?? null, statementPeriodEndDay: statementPeriodEndDay ?? null},
+            });
+            return;
+        }
 
-            if (addNewCard?.data.feedDetails) {
-                addNewCompanyCardsFeed(
-                    policyID,
-                    workspaceAccountID,
-                    addNewCard.data.feedType,
-                    addNewCard.data.feedDetails,
-                    cardFeeds,
-                    statementPeriodEnd,
-                    statementPeriodEndDay,
-                    lastSelectedFeed,
-                );
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-            }
-        },
-        [policyID, workspaceAccountID, addNewCard?.data.feedType, addNewCard?.data.feedDetails, cardFeeds, lastSelectedFeed, isPlaid],
-    );
+        if (addNewCard?.data.feedDetails) {
+            addNewCompanyCardsFeed(
+                policyID,
+                workspaceAccountID,
+                addNewCard.data.feedType,
+                addNewCard.data.feedDetails,
+                cardFeeds,
+                statementPeriodEnd,
+                statementPeriodEndDay,
+                lastSelectedFeed,
+            );
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        }
+    };
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         setAddNewCompanyCardStepAndData({step: isPlaid ? CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_DETAILS});
-    }, [isPlaid]);
+    };
 
     return (
         <WorkspaceCompanyCardStatementCloseDateSelectionList

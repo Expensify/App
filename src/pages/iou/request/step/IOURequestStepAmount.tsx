@@ -11,13 +11,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -84,6 +85,7 @@ function IOURequestStepAmount({
 
     const selfDMReport = useSelfDMReport();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
@@ -100,6 +102,7 @@ function IOURequestStepAmount({
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
@@ -176,19 +179,6 @@ function IOURequestStepAmount({
         Navigation.goBack(backTo);
     };
 
-    const navigateToConfirmationPage = () => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
-        }
-    };
-
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
@@ -211,7 +201,8 @@ function IOURequestStepAmount({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policy, reportAttributesDerived);
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
@@ -247,6 +238,7 @@ function IOURequestStepAmount({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        allBetas,
                     });
                     return;
                 }
@@ -271,6 +263,7 @@ function IOURequestStepAmount({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        allBetas,
                     });
                     return;
                 }
@@ -280,7 +273,7 @@ function IOURequestStepAmount({
                 setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
-                navigateToConfirmationPage();
+                navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
             });
             return;
         }
