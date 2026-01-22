@@ -80,4 +80,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: "/triage-bug ISSUE_URL: ${{ env.ISSUE_URL }}"
           claude_args: |
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(curl:*https://github.com/user-attachments/assets/*),Bash(rm screenshot*),Bash(sleep:*)"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh api:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(git rev-parse:*),Bash(curl*github.com/user-attachments/assets*),Bash(rm screenshot*),Bash(sleep:*)"
