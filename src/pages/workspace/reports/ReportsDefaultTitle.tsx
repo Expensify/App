@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -45,26 +46,8 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         translate('workspace.reports.customNameTotalExample'),
     ] as const satisfies string[];
 
-    // Create fallback title field when policy fieldList is empty (matches OldDot behavior)
-    const titleField = useMemo(() => {
-        const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-        if (policyTitleField) {
-            return policyTitleField;
-        }
-
-        const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
-        if (isPolicyFieldListEmpty) {
-            return {
-                fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
-                name: 'title',
-                type: CONST.REPORT_FIELD_TYPES.TEXT,
-                defaultValue: CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME,
-                deletable: true,
-            };
-        }
-
-        return undefined;
-    }, [policy?.fieldList]);
+    // Get title field with fallback when policy fieldList is empty (matches OldDot behavior)
+    const titleField = getTitleFieldWithFallback(policy);
 
     const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
     const [reportTitle, setReportTitle] = useState(() => customNameDefaultValue);

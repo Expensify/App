@@ -17,6 +17,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {
     getReportFieldKey,
+    getTitleFieldWithFallback,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport,
     isPaidGroupPolicyExpenseReport,
@@ -43,26 +44,12 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
-    const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
     let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     let policyField = policy?.fieldList?.[fieldKey] ?? reportField;
 
-    // If the title field is missing, create a fallback so that it can still be edited and matches the OldDot behavior.
-    if (isTitleField && isPolicyFieldListEmpty && !reportField && !policyField) {
-        const fallbackTitleField: PolicyReportField = {
-            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
-            name: 'title',
-            type: CONST.REPORT_FIELD_TYPES.TEXT,
-            target: 'expense',
-            defaultValue: CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME,
-            deletable: true,
-            values: [],
-            disabledOptions: [],
-            orderWeight: 0,
-            keys: [],
-            externalIDs: [],
-            isTax: false,
-        };
+    // If the title field is missing, use fallback so that it can still be edited and matches the OldDot behavior.
+    if (isTitleField && !reportField && !policyField) {
+        const fallbackTitleField = getTitleFieldWithFallback(policy);
         reportField = fallbackTitleField;
         policyField = fallbackTitleField;
     }

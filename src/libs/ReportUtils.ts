@@ -4377,6 +4377,40 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
 }
 
 /**
+ * Gets the title field from a policy, with fallback to default when fieldList is empty (matches OldDot behavior).
+ * This consolidates the logic for checking if a policy has a title field and providing a fallback.
+ *
+ * @param policy - The policy to get the title field from
+ * @returns The title field from the policy, the fallback field if fieldList is empty, or undefined
+ */
+function getTitleFieldWithFallback(policy: OnyxEntry<Policy>): PolicyReportField | undefined {
+    const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    if (policyTitleField) {
+        return policyTitleField;
+    }
+
+    const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+    if (isPolicyFieldListEmpty) {
+        return {
+            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            name: 'title',
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            defaultValue: CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME,
+            deletable: true,
+            target: 'expense',
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 0,
+            isTax: false,
+        };
+    }
+
+    return undefined;
+}
+
+/**
  * Get the key for a report field
  */
 function getReportFieldKey(reportFieldId: string | undefined) {
@@ -13363,6 +13397,7 @@ export {
     isBusinessInvoiceRoom,
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
+    getTitleFieldWithFallback,
     getReportFieldsByPolicyID,
     getGroupChatDraft,
     getChatListItemReportName,

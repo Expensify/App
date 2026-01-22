@@ -31,6 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -88,26 +89,8 @@ function WorkspaceReportFieldsPage({
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
-    // Create fallback title field when policy fieldList is empty (matches OldDot behavior)
-    const titleField = useMemo(() => {
-        const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-        if (policyTitleField) {
-            return policyTitleField;
-        }
-
-        const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
-        if (isPolicyFieldListEmpty) {
-            return {
-                fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
-                name: 'title',
-                type: CONST.REPORT_FIELD_TYPES.TEXT,
-                defaultValue: CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME,
-                deletable: true,
-            };
-        }
-
-        return undefined;
-    }, [policy?.fieldList]);
+    // Get title field with fallback when policy fieldList is empty (matches OldDot behavior)
+    const titleField = getTitleFieldWithFallback(policy);
 
     const reportFieldsSections: ReportFieldForList[] = policy?.fieldList
         ? Object.entries(policy.fieldList)
