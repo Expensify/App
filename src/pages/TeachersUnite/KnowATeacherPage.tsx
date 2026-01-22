@@ -103,6 +103,7 @@ function KnowATeacherPage() {
                         accessibilityLabel={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete='given-name'
                     />
                 </View>
                 <View style={styles.mv4}>
@@ -114,6 +115,7 @@ function KnowATeacherPage() {
                         accessibilityLabel={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete='family-name'
                     />
                 </View>
                 <View>

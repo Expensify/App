@@ -121,6 +121,7 @@ function IntroSchoolPrincipalPage() {
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete='given-name'
                     />
                 </View>
                 <View style={styles.mv4}>
@@ -132,6 +133,7 @@ function IntroSchoolPrincipalPage() {
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete='family-name'
                     />
                 </View>
                 <View>
@@ -144,6 +146,7 @@ function IntroSchoolPrincipalPage() {
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
+                        autoComplete='email'
                     />
                 </View>
             </FormProvider>
