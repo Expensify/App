@@ -319,7 +319,7 @@ describe('SettlementButton', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.payElsewhere', {formattedAmount: '$100.00'}))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.payElsewhere', '$100.00'))).toBeTruthy();
         });
 
         it('displays "Pay $100.00" by default', async () => {
@@ -341,7 +341,7 @@ describe('SettlementButton', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.settlePayment', {formattedAmount: '$100.00'}))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.settlePayment', '$100.00'))).toBeTruthy();
         });
     });
 
@@ -519,7 +519,7 @@ describe('SettlementButton', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.queryByText(translateLocal('common.wallet'))).toBeNull();
-                expect(screen.queryByText(translateLocal('iou.settleWallet', {formattedAmount: ''}))).toBeNull();
+                expect(screen.queryByText(translateLocal('iou.settleWallet', ''))).toBeNull();
             });
 
             it('shows policy name when last payment method references a policy', async () => {
@@ -775,7 +775,7 @@ describe('SettlementButton', () => {
 
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.getByText(translateLocal('iou.settlePayment', {formattedAmount: '$100.00'}))).toBeTruthy();
+                expect(screen.getByText(translateLocal('iou.settlePayment', '$100.00'))).toBeTruthy();
             });
 
             it('shows bank account from formattedPaymentMethods when achAccount has no account number but hasIntentToPay', async () => {
@@ -881,7 +881,7 @@ describe('SettlementButton', () => {
 
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.getByText(translateLocal('iou.settlePayment', {formattedAmount: '$100.00'}))).toBeTruthy();
+                expect(screen.getByText(translateLocal('iou.settlePayment', '$100.00'))).toBeTruthy();
             });
 
             it('shows business bank label for invoice with business bank account and hasIntentToPay', async () => {
@@ -1059,7 +1059,7 @@ describe('SettlementButton', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.payElsewhere', {formattedAmount: ''}))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.payElsewhere', ''))).toBeTruthy();
         });
 
         it('shows no subtitle when shouldHidePaymentOptions and onlyShowPayElsewhere are true', async () => {
@@ -1159,11 +1159,11 @@ describe('SettlementButton', () => {
             expect(screen.getByText(translateLocal('paymentMethodList.bankAccountLastFour', '9876'))).toBeTruthy();
             expect(screen.queryByText(translateLocal('common.wallet'))).toBeNull();
 
-            const payButton = screen.getByText(translateLocal('iou.settlePayment', {formattedAmount: '$100.00'}));
+            const payButton = screen.getByText(translateLocal('iou.settlePayment', '$100.00'));
             fireEvent.press(payButton);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('iou.settleWallet', {formattedAmount: ''}))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.settleWallet', ''))).toBeNull();
         });
     });
 });
