@@ -9589,7 +9589,16 @@ function reasonForReportToBeInOptionList({
 
     // Hide chats between two users that haven't been commented on from the LNH
     const isSelfDMWithVisiblePreference = isSelfDM(report) && !isHiddenForCurrentUser(report);
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isTripRoom(report) && !isSystemChat(report) && !isSelfDMWithVisiblePreference && canHideReport) {
+    if (
+        excludeEmptyChats &&
+        isEmptyChat &&
+        isChatReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTripRoom(report) &&
+        !isSystemChat(report) &&
+        !isSelfDMWithVisiblePreference &&
+        canHideReport
+    ) {
         return null;
     }
 
