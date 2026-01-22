@@ -4,6 +4,11 @@ import type {ModalProps} from './ModalContext';
 
 type HoldOrRejectEducationalModalWrapperProps = ModalProps;
 
+// This wrapper bridges the HoldOrRejectEducationalModal API with the global modal system, providing handlers for the onClose and onConfirm callbacks.
+// TODO after all HoldOrRejectEducationalModal instances migrate to use showHoldEducationalModal:
+// - Update HoldOrRejectEducationalModal (and its base FeatureTrainingModal) to accept closeModal directly
+// - Remove HoldOrRejectEducationalModalWrapper
+
 function HoldOrRejectEducationalModalWrapper({closeModal}: HoldOrRejectEducationalModalWrapperProps) {
     const handleConfirm = () => {
         closeModal({action: 'CONFIRMED'});

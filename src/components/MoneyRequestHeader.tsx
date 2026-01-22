@@ -301,7 +301,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     shouldEnableNewFocusManagement: true,
                 });
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 if (result.action === ConfirmModalActions.CONFIRM) {
                     if (!parentReportAction || !transaction) {
                         throw new Error('Data missing');

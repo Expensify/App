@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import {getArchiveReason} from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import useHoldEducationalModal from '@hooks/useHoldEducationalModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -39,7 +39,6 @@ import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransacti
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
-import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -80,7 +79,6 @@ import {
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isOpenExpenseReport,
-    isProcessingReport,
     isReportOwner,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
@@ -100,13 +98,11 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
-import variables from '@styles/variables';
 import {
     approveMoneyRequest,
     canApproveIOU,
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
-    dismissRejectUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
     markRejectViolationAsResolved,
@@ -125,10 +121,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type IconAsset from '@src/types/utils/IconAsset';
 import ActivityIndicator from './ActivityIndicator';
 import AnimatedSubmitButton from './AnimatedSubmitButton';
-import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
@@ -136,8 +130,6 @@ import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
@@ -146,7 +138,6 @@ import Modal from './Modal';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
-import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import type {PopoverMenuItem} from './PopoverMenu';
@@ -294,9 +285,6 @@ function MoneyReportHeader({
         canBeMissing: true,
     });
 
-    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
-
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
@@ -379,10 +367,7 @@ function MoneyReportHeader({
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
-    const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const getCanIOUBePaid = useCallback(
@@ -393,15 +378,10 @@ function MoneyReportHeader({
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
-        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
-    > | null>(null);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
-
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const {showEducationalModalIfNeeded} = useHoldEducationalModal();
 
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
 
@@ -423,7 +403,6 @@ function MoneyReportHeader({
             }
 
             showExportProgressModal().then((result) => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
@@ -596,8 +575,6 @@ function MoneyReportHeader({
             shouldShowCancelButton: false,
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (result.action === ConfirmModalActions.CONFIRM) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         }
@@ -660,62 +637,6 @@ function MoneyReportHeader({
         [activePolicyExpenseChat, activePolicyID, allPolicyCategories, defaultExpensePolicy, introSelected, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies],
     );
 
-    const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
-        <Icon
-            src={src}
-            height={variables.iconSizeSmall}
-            width={variables.iconSizeSmall}
-            fill={theme.icon}
-        />
-    );
-
-    const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
-        if (shouldShowMarkAsResolved) {
-            return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.reject.rejectedStatus')};
-        }
-
-        if (isPayAtEndExpense) {
-            if (!isArchivedReport) {
-                return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.bookingPendingDescription')};
-            }
-            if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
-                return {icon: getStatusIcon(expensifyIcons.Box), description: translate('iou.bookingArchivedDescription')};
-            }
-        }
-
-        if (hasOnlyHeldExpenses) {
-            return {icon: getStatusIcon(expensifyIcons.Stopwatch), description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')};
-        }
-
-        if (hasDuplicates) {
-            return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport))};
-        }
-
-        // Show the broken connection violation message only if it's part of transactionViolations (i.e., visible to the user).
-        // This prevents displaying an empty message.
-        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            return {
-                icon: getStatusIcon(expensifyIcons.Hourglass),
-                description: (
-                    <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID}
-                        report={moneyRequestReport}
-                        policy={policy}
-                    />
-                ),
-            };
-        }
-        if (hasAllPendingRTERViolations) {
-            return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
-        }
-        if (hasOnlyPendingTransactions) {
-            return {icon: getStatusIcon(expensifyIcons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
-        }
-        if (hasScanningReceipt) {
-            return {icon: getStatusIcon(expensifyIcons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
-        }
-    };
-
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
         const duplicateTransaction = transactionsList.find((reportTransaction) =>
             isDuplicate(
@@ -732,36 +653,6 @@ function MoneyReportHeader({
         }
 
         return getThreadReportIDsForTransactions(allReportActions, [duplicateTransaction]).at(0);
-    };
-
-    const statusBarProps = getStatusBarProps();
-
-    const dismissModalAndUpdateUseHold = () => {
-        setIsHoldEducationalModalVisible(false);
-        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !network?.shouldFailAllRequests);
-        if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction);
-        }
-    };
-
-    const dismissRejectModalBasedOnAction = () => {
-        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
-            dismissRejectUseExplanation();
-            if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(requestParentReportAction);
-            }
-        } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
-            dismissRejectUseExplanation();
-            if (moneyRequestReport?.reportID) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
-            }
-        } else {
-            dismissRejectUseExplanation();
-            if (requestParentReportAction) {
-                rejectMoneyRequestReason(requestParentReportAction);
-            }
-        }
-        setRejectModalAction(null);
     };
 
     const primaryAction = useMemo(() => {
@@ -1216,7 +1107,6 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
@@ -1252,7 +1142,7 @@ function MoneyReportHeader({
             icon: expensifyIcons.Stopwatch,
             value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.HOLD,
-            onSelected: () => {
+            onSelected: async () => {
                 if (!requestParentReportAction) {
                     throw new Error('Parent action does not exist');
                 }
@@ -1262,15 +1152,11 @@ function MoneyReportHeader({
                     return;
                 }
 
-                const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                // Show educational modal if needed (checks NVP internally)
+                await showEducationalModalIfNeeded(isReportSubmitter, isChatReportDM);
 
-                if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction);
-                } else if (isReportSubmitter) {
-                    setIsHoldEducationalModalVisible(true);
-                } else {
-                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
-                }
+                // Proceed with action
+                changeMoneyRequestHoldStatus(requestParentReportAction);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD]: {
@@ -1386,7 +1272,6 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
@@ -1461,7 +1346,6 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
@@ -1476,18 +1360,18 @@ function MoneyReportHeader({
             icon: expensifyIcons.ThumbsDown,
             value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REJECT,
-            onSelected: () => {
+            onSelected: async () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
                     return;
                 }
 
-                if (dismissedRejectUseExplanation) {
-                    if (requestParentReportAction) {
-                        rejectMoneyRequestReason(requestParentReportAction);
-                    }
-                } else {
-                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                // Show educational modal if needed
+                await showEducationalModalIfNeeded(false, isChatReportDM);
+
+                // Proceed with action
+                if (requestParentReportAction) {
+                    rejectMoneyRequestReason(requestParentReportAction);
                 }
             },
             shouldShow: transactions.length === 1,
@@ -1611,18 +1495,20 @@ function MoneyReportHeader({
             if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
                 return {
                     ...option,
-                    onSelected: () => {
-                        if (dismissedRejectUseExplanation) {
-                            option.onSelected?.();
-                        } else {
-                            setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
+                    onSelected: async () => {
+                        // Show educational modal if needed
+                        await showEducationalModalIfNeeded(false, isChatReportDM);
+
+                        // Proceed with bulk reject - navigate to bulk reject page
+                        if (moneyRequestReport?.reportID) {
+                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
                         }
                     },
                 };
             }
             return option;
         });
-    }, [originalSelectedTransactionsOptions, showDeleteModal, dismissedRejectUseExplanation]);
+    }, [originalSelectedTransactionsOptions, showDeleteModal, showEducationalModalIfNeeded, isChatReportDM, moneyRequestReport?.reportID]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
@@ -1662,7 +1548,7 @@ function MoneyReportHeader({
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
-    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
+    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || isReportInSearch;
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -1740,10 +1626,14 @@ function MoneyReportHeader({
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                         {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
                         {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton />}
-                        {!!statusBarProps && (
+                        {!showNextStepBar && !showNextStepSkeleton && (
                             <MoneyRequestHeaderStatusBar
-                                icon={statusBarProps.icon}
-                                description={statusBarProps.description}
+                                transactionID={transaction?.transactionID}
+                                reportID={moneyRequestReport?.reportID}
+                                policyID={policy?.id}
+                                parentReport={moneyRequestReport}
+                                email={email}
+                                accountID={accountID}
                             />
                         )}
                     </View>
@@ -1794,18 +1684,6 @@ function MoneyReportHeader({
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissModalAndUpdateUseHold}
-                    onConfirm={dismissModalAndUpdateUseHold}
-                />
-            )}
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
