@@ -5720,16 +5720,31 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         CONST.IOU.ACTION.SUBMIT,
         isLinkedTrackedExpenseReportArchived,
     );
-    optimisticData?.push(...(convertTrackedExpenseInformation.optimisticData ?? []), {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-        value: {
-            parentReportActionID: iouParams.reportActionID,
-            parentReportID: iouParams.reportID,
-        },
-    });
+    optimisticData?.push(...(convertTrackedExpenseInformation.optimisticData ?? []));
     successData?.push(...(convertTrackedExpenseInformation.successData ?? []));
     failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
+
+    if (transactionThreadReportID) {
+        const transactionThreadReport = getReportOrDraftReport(transactionThreadReportID);
+
+        optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            value: {
+                parentReportActionID: iouParams.reportActionID,
+                parentReportID: iouParams.reportID,
+            },
+        });
+
+        failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            value: {
+                parentReportActionID: transactionThreadReport?.parentReportActionID,
+                parentReportID: transactionThreadReport?.parentReportID,
+            },
+        });
+    }
 
     if (workspaceParams) {
         const params = {
