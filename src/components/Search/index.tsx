@@ -576,6 +576,10 @@ function Search({
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                         reportAction: transactionItem.reportAction,
                         isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
+                        report: transactionItem.report,
+                        transactionID: transactionItem.transactionID,
+                        managedCard: transactionItem.managedCard,
+                        comment: transactionItem.comment,
                     };
                 }
             }
@@ -630,6 +634,10 @@ function Search({
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     reportAction: transactionItem.reportAction,
                     isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
+                    report: transactionItem.report,
+                    transactionID: transactionItem.transactionID,
+                    managedCard: transactionItem.managedCard,
+                    comment: transactionItem.comment,
                 };
             }
         }
