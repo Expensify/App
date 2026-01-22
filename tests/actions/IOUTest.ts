@@ -8362,6 +8362,61 @@ describe('actions/IOU', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it('updates report totals across multiple transactions in the same report', () => {
+            const firstTransactionID = 'transaction-4';
+            const secondTransactionID = 'transaction-5';
+            const iouReportID = 'iou-4';
+            const policy = createRandomPolicy(4, CONST.POLICY.TYPE.TEAM);
+
+            const iouReport: Report = {
+                ...createRandomReport(4, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -2600,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`]: {
+                    ...createRandomTransaction(4),
+                    transactionID: firstTransactionID,
+                    reportID: iouReportID,
+                    amount: -1300,
+                    currency: CONST.CURRENCY.USD,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`]: {
+                    ...createRandomTransaction(5),
+                    transactionID: secondTransactionID,
+                    reportID: iouReportID,
+                    amount: -1300,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([firstTransactionID, secondTransactionID], {amount: 1000}, policy, reports, transactions, {});
+
+            const getOptimisticTotal = (callIndex: number) => {
+                const onyxData = writeSpy.mock.calls.at(callIndex)?.[2] as {optimisticData: Array<{key: string; value?: {total?: number}}>};
+                const reportUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+                return reportUpdate?.value?.total;
+            };
+
+            expect(getOptimisticTotal(0)).toBe(-2300);
+            expect(getOptimisticTotal(1)).toBe(-2000);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
         it('supports negative amount updates for expense reports', () => {
             const transactionID = 'transaction-3';
             const transactionThreadReportID = 'thread-3';

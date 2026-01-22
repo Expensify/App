@@ -4082,6 +4082,57 @@ function calculateDiffAmount(
     return null;
 }
 
+function getUpdatedMoneyRequestReportData(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
+    updatedTransaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    isTransactionOnHold: boolean,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    actorAccountID?: number,
+) {
+    const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+    const isTotalIndeterminate = calculatedDiffAmount === null;
+    const diff = calculatedDiffAmount ?? 0;
+
+    let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
+    if (!iouReport) {
+        updatedMoneyRequestReport = null;
+    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+        // For expense report, the amount is negative, so we should subtract total from diff
+        updatedMoneyRequestReport = {
+            ...iouReport,
+            total: iouReport.total - diff,
+        };
+        if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
+            updatedMoneyRequestReport.nonReimbursableTotal -= diff;
+        }
+        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
+            updatedMoneyRequestReport.nonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
+        }
+        if (!isTransactionOnHold) {
+            if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
+                updatedMoneyRequestReport.unheldTotal -= diff;
+            }
+            if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
+                updatedMoneyRequestReport.unheldNonReimbursableTotal -= diff;
+            }
+            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
+                updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
+            }
+        }
+
+        // Recalculate reportName after all totals are updated
+        const updatedReportName = recalculateOptimisticReportName(updatedMoneyRequestReport, policy);
+        if (updatedReportName) {
+            updatedMoneyRequestReport.reportName = updatedReportName;
+        }
+    } else {
+        updatedMoneyRequestReport = updateIOUOwnerAndTotal(iouReport, actorAccountID ?? CONST.DEFAULT_NUMBER_ID, diff, getCurrency(transaction), false, true, isTransactionOnHold);
+    }
+
+    return {updatedMoneyRequestReport, isTotalIndeterminate};
+}
+
 type GetUpdateMoneyRequestParamsType = {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -4263,54 +4314,15 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     }
 
     // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-    const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
-    // If calculatedDiffAmount is null it means we cannot calculate the new iou report total from front-end due to currency differences.
-    const isTotalIndeterminate = calculatedDiffAmount === null;
-    const diff = calculatedDiffAmount ?? 0;
-
-    let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
-    if (!iouReport) {
-        updatedMoneyRequestReport = null;
-    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
-        // For expense report, the amount is negative, so we should subtract total from diff
-        updatedMoneyRequestReport = {
-            ...iouReport,
-            total: iouReport.total - diff,
-        };
-        if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
-            updatedMoneyRequestReport.nonReimbursableTotal -= diff;
-        }
-        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
-            updatedMoneyRequestReport.nonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
-        }
-        if (!isTransactionOnHold) {
-            if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
-                updatedMoneyRequestReport.unheldTotal -= diff;
-            }
-            if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
-                updatedMoneyRequestReport.unheldNonReimbursableTotal -= diff;
-            }
-            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
-                updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
-            }
-        }
-
-        // Recalculate reportName after all totals are updated
-        const updatedReportName = recalculateOptimisticReportName(updatedMoneyRequestReport, policy);
-        if (updatedReportName) {
-            updatedMoneyRequestReport.reportName = updatedReportName;
-        }
-    } else {
-        updatedMoneyRequestReport = updateIOUOwnerAndTotal(
-            iouReport,
-            updatedReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
-            diff,
-            getCurrency(transaction),
-            false,
-            true,
-            isTransactionOnHold,
-        );
-    }
+    // If the diff is indeterminate we cannot calculate the new iou report total from front-end due to currency differences.
+    const {updatedMoneyRequestReport, isTotalIndeterminate} = getUpdatedMoneyRequestReportData(
+        iouReport,
+        updatedTransaction,
+        transaction,
+        isTransactionOnHold,
+        policy,
+        updatedReportAction?.actorAccountID,
+    );
 
     optimisticData.push(
         {
@@ -14452,6 +14464,8 @@ function updateMultipleMoneyRequests(
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     reportActions: OnyxCollection<OnyxTypes.ReportActions>,
 ) {
+    // Track running totals per report so multiple edits in the same report compound correctly.
+    const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
     for (const transactionID of transactionIDs) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
@@ -14459,7 +14473,8 @@ function updateMultipleMoneyRequests(
         }
 
         const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? null;
-        const isFromExpenseReport = isExpenseReport(iouReport);
+        const baseIouReport = iouReport?.reportID ? (optimisticReportsByID[iouReport.reportID] ?? iouReport) : iouReport;
+        const isFromExpenseReport = isExpenseReport(baseIouReport);
 
         const transactionReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
         const reportAction = getIOUActionForTransactionID(Object.values(transactionReportActions), transactionID);
@@ -14569,6 +14584,7 @@ function updateMultipleMoneyRequests(
             isFromExpenseReport,
             policy,
         });
+        const isTransactionOnHold = isOnHold(transaction);
 
         // Optimistic transaction update
         optimisticData.push({
@@ -14585,6 +14601,43 @@ function updateMultipleMoneyRequests(
         // Build optimistic modified expense report action
         const optimisticReportAction = buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
 
+        const {updatedMoneyRequestReport, isTotalIndeterminate} = getUpdatedMoneyRequestReportData(
+            baseIouReport,
+            updatedTransaction,
+            transaction,
+            isTransactionOnHold,
+            policy,
+            optimisticReportAction?.actorAccountID,
+        );
+
+        if (updatedMoneyRequestReport) {
+            if (updatedMoneyRequestReport.reportID) {
+                optimisticReportsByID[updatedMoneyRequestReport.reportID] = updatedMoneyRequestReport as OnyxTypes.Report;
+            }
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                    value: {...updatedMoneyRequestReport, ...(isTotalIndeterminate && {pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
+                    value: getOutstandingChildRequest(updatedMoneyRequestReport),
+                },
+            );
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                value: {pendingAction: null, ...(isTotalIndeterminate && {pendingFields: {total: null}})},
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                value: {...iouReport, ...(isTotalIndeterminate && {pendingFields: {total: null}})},
+            });
+        }
+
         // Optimistic report action
         if (transactionThreadReportID) {
             optimisticData.push({
@@ -14597,6 +14650,20 @@ function updateMultipleMoneyRequests(
                     },
                 },
             });
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: {
+                    lastReadTime: optimisticReportAction.created,
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: {
+                    lastReadTime: transactionThread?.lastReadTime,
+                },
+            });
         }
 
         // Success data - clear pending fields
@@ -14607,6 +14674,16 @@ function updateMultipleMoneyRequests(
                 pendingFields: clearedPendingFields,
             },
         });
+
+        if (transactionThreadReportID) {
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [modifiedExpenseReportActionID]: {pendingAction: null},
+                },
+            });
+        }
 
         // Failure data - revert transaction
         failureData.push({
