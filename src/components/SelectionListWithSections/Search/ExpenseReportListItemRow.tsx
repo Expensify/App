@@ -77,10 +77,8 @@ function ExpenseReportListItemRow({
             return false;
         }
 
-        // Check if all transactions are scanning
         const allScanning = item.transactions.every((transaction) => isTransactionScanning(transaction as Parameters<typeof isTransactionScanning>[0]));
 
-        // Show "Scanning..." only if all are scanning
         return allScanning;
     })();
 
