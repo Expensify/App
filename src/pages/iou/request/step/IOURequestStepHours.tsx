@@ -14,7 +14,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
