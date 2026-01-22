@@ -968,7 +968,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '何かを検索…',
         buttonMySettings: 'マイ設定',
         fabNewChat: 'チャットを開始',
-        fabNewChatExplained: 'チャットを開始 (フローティングアクション)',
+        fabNewChatExplained: 'アクションメニューを開く',
         fabScanReceiptExplained: '領収書をスキャン',
         chatPinned: 'ピン留めされたチャット',
         draftedMessage: '下書きメッセージ',
