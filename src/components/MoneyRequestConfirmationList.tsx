@@ -403,7 +403,7 @@ function MoneyRequestConfirmationList({
 
         const distanceWithNewUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distance, unit));
         setMoneyRequestDistance(transactionID, distanceWithNewUnit, true);
-    });
+    }, [distance, isReadOnly, shouldUpdateDistance, transactionID, unit]);
 
     let amountToBeUsed = iouAmount;
 
