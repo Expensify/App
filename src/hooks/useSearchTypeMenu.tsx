@@ -40,7 +40,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
     const {typeMenuSections, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactionsByHash} = useSearchContext();
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -73,7 +73,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
         flattenedMenuItems,
         similarSearchHash,
-        clearSelectedTransactions,
+        clearSelectedTransactions: clearSelectedTransactionsByHash,
         shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
     });
 

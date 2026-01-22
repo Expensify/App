@@ -375,7 +375,8 @@ function MoneyReportHeader({
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
-    const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} = useSearchContext();
+    const {selectedTransactionIDs, removeTransaction, clearAllSelectedTransactions, clearSelectedTransactionsByHash, currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} =
+        useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
     const {showEducationalModalIfNeeded} = useHoldEducationalModal();
 
@@ -402,7 +403,7 @@ function MoneyReportHeader({
                 if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
-                clearSelectedTransactions(undefined, true);
+                clearSelectedTransactionsByHash(undefined, true);
             });
             queueExportSearchWithTemplate({
                 templateName,
@@ -413,7 +414,7 @@ function MoneyReportHeader({
                 policyID,
             });
         },
-        [moneyRequestReport, showExportProgressModal, clearSelectedTransactions],
+        [moneyRequestReport, showExportProgressModal, clearSelectedTransactionsByHash],
     );
 
     const isOnSearch = route.name.toLowerCase().startsWith('search');
@@ -1431,10 +1432,8 @@ function MoneyReportHeader({
         if (!transactionThreadReportID) {
             return;
         }
-        clearSelectedTransactions(true);
-        // We don't need to run the effect on change of clearSelectedTransactions since it can cause the infinite loop.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionThreadReportID]);
+        clearAllSelectedTransactions();
+    }, [transactionThreadReportID, clearAllSelectedTransactions]);
 
     useEffect(() => {
         if (!hasFinishedPDFDownload || !canTriggerAutomaticPDFDownload.current) {
@@ -1542,7 +1541,7 @@ function MoneyReportHeader({
             <HeaderWithBackButton
                 title={translate('common.selectMultiple')}
                 onBackButtonPress={() => {
-                    clearSelectedTransactions(true);
+                    clearAllSelectedTransactions();
                     turnOffMobileSelectionMode();
                 }}
             />

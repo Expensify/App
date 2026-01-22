@@ -80,7 +80,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactionsByHash} = useSearchContext();
 
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
@@ -88,7 +88,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
         flattenedMenuItems,
         similarSearchHash,
-        clearSelectedTransactions,
+        clearSelectedTransactions: clearSelectedTransactionsByHash,
         shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
     });
 
@@ -256,7 +256,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                                             const onPress = singleExecution(() => {
-                                                clearSelectedTransactions();
+                                                clearSelectedTransactionsByHash();
                                                 setSearchContext(false);
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });

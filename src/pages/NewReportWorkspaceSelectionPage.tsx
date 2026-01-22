@@ -53,7 +53,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
-    const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions, selectedTransactionIDs, clearAllSelectedTransactions, clearSelectedTransactionsByHash} = useSearchContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
@@ -146,10 +146,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
 
                     if (selectedTransactionIDs.length) {
-                        clearSelectedTransactions(true);
+                        clearAllSelectedTransactions();
                     }
                     if (selectedTransactionsKeys.length) {
-                        clearSelectedTransactions();
+                        clearSelectedTransactionsByHash();
                     }
                 });
 
@@ -172,7 +172,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             backTo,
             allTransactions,
             activePolicyID,
-            clearSelectedTransactions,
+            clearAllSelectedTransactions,
+            clearSelectedTransactionsByHash,
         ],
     );
 

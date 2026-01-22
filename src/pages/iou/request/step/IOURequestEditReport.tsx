@@ -35,7 +35,7 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode} = route.params;
 
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearAllSelectedTransactions} = useSearchContext();
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
@@ -76,7 +76,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allTransactions,
             });
             turnOffMobileSelectionMode();
-            clearSelectedTransactions(true);
+            clearAllSelectedTransactions();
         });
 
         Navigation.dismissToSuperWideRHP();
@@ -96,7 +96,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
-        clearSelectedTransactions(true);
+        clearAllSelectedTransactions();
         Navigation.dismissToSuperWideRHP();
     };
 

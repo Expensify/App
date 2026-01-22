@@ -103,7 +103,7 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
+    const {selectedTransactions, clearAllSelectedTransactions, clearSelectedTransactionsByHash, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
@@ -279,9 +279,9 @@ function SearchPage({route}: SearchPageProps) {
             if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
-            clearSelectedTransactions(undefined, true);
+            clearSelectedTransactionsByHash(undefined, true);
         },
-        [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs, showConfirmModal, translate, clearSelectedTransactions],
+        [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs, showConfirmModal, translate, clearSelectedTransactionsByHash],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -321,7 +321,7 @@ function SearchPage({route}: SearchPageProps) {
                 transactionIDList: selectedTransactionsKeys,
             });
             selectAllMatchingItems(false);
-            clearSelectedTransactions();
+            clearSelectedTransactionsByHash();
             return;
         }
 
@@ -337,7 +337,7 @@ function SearchPage({route}: SearchPageProps) {
             },
             translate,
         );
-        clearSelectedTransactions(undefined, true);
+        clearSelectedTransactionsByHash(undefined, true);
     }, [
         isOffline,
         areAllMatchingItemsSelected,
@@ -349,7 +349,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedReports,
         queryJSON,
         selectAllMatchingItems,
-        clearSelectedTransactions,
+        clearSelectedTransactionsByHash,
         setIsDownloadErrorModalVisible,
     ]);
 
@@ -400,7 +400,7 @@ function SearchPage({route}: SearchPageProps) {
         );
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            clearSelectedTransactions();
+            clearSelectedTransactionsByHash();
         });
     }, [
         isOffline,
@@ -413,7 +413,7 @@ function SearchPage({route}: SearchPageProps) {
         showConfirmModal,
         translate,
         hash,
-        clearSelectedTransactions,
+        clearSelectedTransactionsByHash,
     ]);
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
@@ -444,10 +444,10 @@ function SearchPage({route}: SearchPageProps) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
-                clearSelectedTransactions();
+                clearSelectedTransactionsByHash();
             });
         });
-    }, [isOffline, showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactions]);
+    }, [isOffline, showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactionsByHash]);
 
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
@@ -561,11 +561,11 @@ function SearchPage({route}: SearchPageProps) {
 
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                clearSelectedTransactions();
+                clearSelectedTransactionsByHash();
             });
         },
         [
-            clearSelectedTransactions,
+            clearSelectedTransactionsByHash,
             hash,
             isOffline,
             lastPaymentMethods,
@@ -771,7 +771,7 @@ function SearchPage({route}: SearchPageProps) {
                             submitMoneyRequestOnSearch(hash, [item as Report], [policy]);
                         }
                     }
-                    clearSelectedTransactions();
+                    clearSelectedTransactionsByHash();
                 },
             });
         }
@@ -844,7 +844,7 @@ function SearchPage({route}: SearchPageProps) {
                     unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
-                        clearSelectedTransactions();
+                        clearSelectedTransactionsByHash();
                     });
                 },
             });
@@ -985,7 +985,7 @@ function SearchPage({route}: SearchPageProps) {
         policies,
         integrationsExportTemplates,
         csvExportLayouts,
-        clearSelectedTransactions,
+        clearSelectedTransactionsByHash,
         beginExportWithTemplate,
         bulkPayButtonOptions,
         onBulkPaySelected,

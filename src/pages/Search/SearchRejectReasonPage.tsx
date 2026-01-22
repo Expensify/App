@@ -46,9 +46,9 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
             const urlToNavigateBack = rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports);
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
-                context.clearSelectedTransactions(true);
+                context.clearAllSelectedTransactions();
             } else {
-                context.clearSelectedTransactions();
+                context.clearSelectedTransactionsByHash();
             }
             Navigation.dismissToSuperWideRHP();
             if (urlToNavigateBack) {

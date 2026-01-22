@@ -26,7 +26,7 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactionsByHash} = useSearchContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -88,7 +88,7 @@ function SearchTransactionsChangeReport() {
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 allTransactions,
             });
-            clearSelectedTransactions();
+            clearSelectedTransactionsByHash();
         });
         Navigation.goBack();
     };
@@ -132,7 +132,7 @@ function SearchTransactionsChangeReport() {
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            clearSelectedTransactions();
+            clearSelectedTransactionsByHash();
         });
 
         Navigation.goBack();
@@ -149,7 +149,7 @@ function SearchTransactionsChangeReport() {
             email: session?.email ?? '',
             allTransactions,
         });
-        clearSelectedTransactions();
+        clearSelectedTransactionsByHash();
         Navigation.goBack();
     };
 

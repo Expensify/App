@@ -228,7 +228,7 @@ function Search({
         setCurrentSearchQueryJSON,
         setSelectedTransactions,
         selectedTransactions,
-        clearSelectedTransactions,
+        clearSelectedTransactionsByHash,
         shouldTurnOffSelectionMode,
         setShouldShowFiltersBarLoading,
         lastSearchType,
@@ -277,10 +277,10 @@ function Search({
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
-        clearSelectedTransactions(hash);
+        clearSelectedTransactionsByHash(hash);
         setCurrentSearchHashAndKey(hash, searchKey);
         setCurrentSearchQueryJSON(queryJSON);
-    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
+    }, [hash, searchKey, clearSelectedTransactionsByHash, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
 
     useFocusEffect(clearTransactionsAndSetHashAndKey);
 
@@ -299,8 +299,8 @@ function Search({
         if (prevValidGroupBy === validGroupBy) {
             return;
         }
-        clearSelectedTransactions();
-    }, [validGroupBy, prevValidGroupBy, clearSelectedTransactions]);
+        clearSelectedTransactionsByHash();
+    }, [validGroupBy, prevValidGroupBy, clearSelectedTransactionsByHash]);
 
     useEffect(() => {
         if (!isFocused) {
@@ -647,10 +647,10 @@ function Search({
             if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
                 return;
             }
-            clearSelectedTransactions();
+            clearSelectedTransactionsByHash();
             turnOffMobileSelectionMode();
         },
-        [isFocused, clearSelectedTransactions, hash, currentSearchHash],
+        [isFocused, clearSelectedTransactionsByHash, hash, currentSearchHash],
     );
 
     // When selectedTransactions is updated, we confirm that selection is refreshed
@@ -949,7 +949,7 @@ function Search({
         const totalSelected = Object.keys(selectedTransactions).length;
 
         if (totalSelected > 0) {
-            clearSelectedTransactions();
+            clearSelectedTransactionsByHash();
             return;
         }
 
@@ -990,7 +990,7 @@ function Search({
         filteredData,
         selectedTransactions,
         setSelectedTransactions,
-        clearSelectedTransactions,
+        clearSelectedTransactionsByHash,
         transactions,
         outstandingReportsByPolicyID,
         searchResults?.data,
@@ -1082,7 +1082,7 @@ function Search({
     }
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
-        clearSelectedTransactions();
+        clearSelectedTransactionsByHash();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
         // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.

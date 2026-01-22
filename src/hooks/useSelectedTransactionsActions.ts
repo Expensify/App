@@ -69,7 +69,7 @@ function useSelectedTransactionsActions({
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
+    const {selectedTransactionIDs, clearAllSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
@@ -140,7 +140,7 @@ function useSelectedTransactionsActions({
 
     const handleDeleteTransactions = () => {
         const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
-        clearSelectedTransactions(true);
+        clearAllSelectedTransactions();
         setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
     };
@@ -217,7 +217,7 @@ function useSelectedTransactionsActions({
                         }
                         unholdRequest(transactionID, action?.childReportID, policy);
                     }
-                    clearSelectedTransactions(true);
+                    clearAllSelectedTransactions();
                 },
             });
         }
@@ -263,7 +263,7 @@ function useSelectedTransactionsActions({
                             },
                             translate,
                         );
-                        clearSelectedTransactions(true);
+                        clearAllSelectedTransactions();
                     },
                 },
             ];

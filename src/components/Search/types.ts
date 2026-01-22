@@ -143,11 +143,10 @@ type SearchContextProps = SearchContextData & {
         (selectedTransactionIDs: string[], unused?: undefined): void;
         (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
-    /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
-    clearSelectedTransactions: {
-        (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
-        (clearIDs: true, unused?: undefined): void;
-    };
+    /** Clear all selected transactions - use this to clear selections without hash checks */
+    clearAllSelectedTransactions: () => void;
+    /** Clear selected transactions by search hash - includes logic to check if hash matches current search */
+    clearSelectedTransactionsByHash: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
     removeTransaction: (transactionID: string | undefined) => void;
     shouldShowFiltersBarLoading: boolean;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;

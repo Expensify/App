@@ -198,7 +198,7 @@ function MoneyRequestReportTransactionList({
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
 
-    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, setSelectedTransactions, clearAllSelectedTransactions} = useSearchContext();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -247,16 +247,16 @@ function MoneyRequestReportTransactionList({
                 if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                     return;
                 }
-                clearSelectedTransactions(true);
+                clearAllSelectedTransactions();
             };
-        }, [clearSelectedTransactions]),
+        }, [clearAllSelectedTransactions]),
     );
 
     const reportID = report?.reportID;
 
     useEffect(() => {
-        clearSelectedTransactions(true);
-        // We don't want to run the effect on change of clearSelectedTransactions since it can cause an infinite loop.
+        clearAllSelectedTransactions();
+        // We don't want to run the effect on change of clearAllSelectedTransactions since it can cause an infinite loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID]);
 
@@ -477,7 +477,7 @@ function MoneyRequestReportTransactionList({
                             <Checkbox
                                 onPress={() => {
                                     if (selectedTransactionIDs.length !== 0) {
-                                        clearSelectedTransactions(true);
+                                        clearAllSelectedTransactions();
                                     } else {
                                         setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                     }

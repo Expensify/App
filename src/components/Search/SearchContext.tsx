@@ -34,7 +34,8 @@ const defaultSearchContext: SearchContextProps = {
     setCurrentSearchQueryJSON: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
-    clearSelectedTransactions: () => {},
+    clearAllSelectedTransactions: () => {},
+    clearSelectedTransactionsByHash: () => {},
     setShouldShowFiltersBarLoading: () => {},
     shouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
@@ -130,14 +131,15 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const clearSelectedTransactions: SearchContextProps['clearSelectedTransactions'] = useCallback(
-        (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
-            if (typeof searchHashOrClearIDsFlag === 'boolean') {
-                setSelectedTransactions([]);
-                return;
-            }
+    // Clear all selected transactions - stable, no dependencies on searchContextData
+    const clearAllSelectedTransactions = useCallback(() => {
+        setSelectedTransactions([]);
+    }, [setSelectedTransactions]);
 
-            if (searchHashOrClearIDsFlag === searchContextData.currentSearchHash) {
+    // Clear selected transactions by search hash - has searchContextData dependencies
+    const clearSelectedTransactionsByHash = useCallback(
+        (searchHash?: number, shouldTurnOffSelectionMode = false) => {
+            if (searchHash === searchContextData.currentSearchHash) {
                 return;
             }
 
@@ -160,7 +162,6 @@ function SearchContextProvider({children}: ChildrenProps) {
             searchContextData.selectedReports.length,
             searchContextData.selectedTransactions,
             searchContextData.shouldTurnOffSelectionMode,
-            setSelectedTransactions,
         ],
     );
 
@@ -211,7 +212,8 @@ function SearchContextProvider({children}: ChildrenProps) {
             setCurrentSearchHashAndKey,
             setCurrentSearchQueryJSON,
             setSelectedTransactions,
-            clearSelectedTransactions,
+            clearAllSelectedTransactions,
+            clearSelectedTransactionsByHash,
             shouldShowFiltersBarLoading,
             setShouldShowFiltersBarLoading,
             lastSearchType,
@@ -229,7 +231,8 @@ function SearchContextProvider({children}: ChildrenProps) {
             setCurrentSearchHashAndKey,
             setCurrentSearchQueryJSON,
             setSelectedTransactions,
-            clearSelectedTransactions,
+            clearAllSelectedTransactions,
+            clearSelectedTransactionsByHash,
             shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowSelectAllMatchingItems,

@@ -40,10 +40,10 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
                 putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, ancestors);
-                context.clearSelectedTransactions(true);
+                context.clearAllSelectedTransactions();
             } else {
                 holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, allTransactions, allReportActions);
-                context.clearSelectedTransactions();
+                context.clearSelectedTransactionsByHash();
             }
 
             Navigation.goBack();

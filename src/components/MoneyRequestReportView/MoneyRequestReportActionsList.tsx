@@ -182,7 +182,7 @@ function MoneyRequestReportActionsList({
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
-    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, setSelectedTransactions, clearAllSelectedTransactions, clearSelectedTransactionsByHash} = useSearchContext();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
@@ -691,7 +691,7 @@ function MoneyRequestReportActionsList({
                                 isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                                 onPress={() => {
                                     if (selectedTransactionIDs.length !== 0) {
-                                        clearSelectedTransactions(true);
+                                        clearAllSelectedTransactions();
                                     } else {
                                         setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                     }
@@ -701,7 +701,7 @@ function MoneyRequestReportActionsList({
                                 style={[styles.userSelectNone, styles.alignItemsCenter]}
                                 onPress={() => {
                                     if (isSelectAllChecked) {
-                                        clearSelectedTransactions(true);
+                                        clearAllSelectedTransactions();
                                     } else {
                                         setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                     }
@@ -819,7 +819,7 @@ function MoneyRequestReportActionsList({
             <ConfirmModal
                 onConfirm={() => {
                     setIsExportWithTemplateModalVisible(false);
-                    clearSelectedTransactions(undefined, true);
+                    clearSelectedTransactionsByHash(undefined, true);
                 }}
                 onCancel={() => setIsExportWithTemplateModalVisible(false)}
                 isVisible={isExportWithTemplateModalVisible}

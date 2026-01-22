@@ -14165,9 +14165,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
     const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
     if (isUserOnSearchPage) {
-        params?.searchContext?.clearSelectedTransactions?.(undefined, true);
+        params?.searchContext?.clearSelectedTransactionsByHash?.(undefined, true);
     } else {
-        params?.searchContext?.clearSelectedTransactions?.(true);
+        params?.searchContext?.clearAllSelectedTransactions?.();
     }
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {

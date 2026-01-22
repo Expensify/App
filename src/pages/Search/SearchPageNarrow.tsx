@@ -77,7 +77,7 @@ function SearchPageNarrow({
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
+    const {clearSelectedTransactionsByHash, selectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     // Controls the visibility of the educational tooltip based on user scrolling.
@@ -96,10 +96,10 @@ function SearchPageNarrow({
             return false;
         }
         topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-        clearSelectedTransactions();
+        clearSelectedTransactionsByHash();
         turnOffMobileSelectionMode();
         return true;
-    }, [isMobileSelectionModeEnabled, clearSelectedTransactions, topBarOffset, StyleUtils.searchHeaderDefaultOffset]);
+    }, [isMobileSelectionModeEnabled, clearSelectedTransactionsByHash, topBarOffset, StyleUtils.searchHeaderDefaultOffset]);
 
     useHandleBackButton(handleBackButtonPress);
 
@@ -243,7 +243,7 @@ function SearchPageNarrow({
                             title={translate('common.selectMultiple')}
                             onBackButtonPress={() => {
                                 topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                clearSelectedTransactions();
+                                clearSelectedTransactionsByHash();
                                 turnOffMobileSelectionMode();
                             }}
                         />
