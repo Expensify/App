@@ -1996,7 +1996,6 @@ const translations: TranslationDeepObject<typeof en> = {
         use2fa: '2 要素認証コードを使用',
     },
     twoFactorAuthForm: {
-        twoFactorAuthCode: '二要素認証コード',
         error: {
             pleaseFillTwoFactorAuth: '2 要素認証コードを入力してください',
             incorrect2fa: '二要素認証コードが正しくありません。もう一度お試しください。',

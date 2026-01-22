@@ -1996,7 +1996,6 @@ const translations: TranslationDeepObject<typeof en> = {
         use2fa: 'Użyj kodu uwierzytelniania dwuskładnikowego',
     },
     twoFactorAuthForm: {
-        twoFactorAuthCode: 'Kod uwierzytelniania dwuskładnikowego',
         error: {
             pleaseFillTwoFactorAuth: 'Wprowadź swój kod uwierzytelniania dwuskładnikowego',
             incorrect2fa: 'Nieprawidłowy kod uwierzytelniania dwuskładnikowego. Spróbuj ponownie.',

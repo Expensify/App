@@ -2000,7 +2000,6 @@ const translations: TranslationDeepObject<typeof en> = {
         use2fa: 'Usa il codice di autenticazione a due fattori',
     },
     twoFactorAuthForm: {
-        twoFactorAuthCode: 'Codice di autenticazione a due fattori',
         error: {
             pleaseFillTwoFactorAuth: 'Inserisci il tuo codice di autenticazione a due fattori',
             incorrect2fa: 'Codice di autenticazione a due fattori non corretto. Riprova.',

@@ -1995,7 +1995,6 @@ const translations = {
         use2fa: 'Use two-factor authentication code',
     },
     twoFactorAuthForm: {
-        twoFactorAuthCode: 'Two-factor authentication code',
         error: {
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
             incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',

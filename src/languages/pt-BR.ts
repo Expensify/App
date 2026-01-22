@@ -1995,7 +1995,6 @@ const translations: TranslationDeepObject<typeof en> = {
         use2fa: 'Usar código de autenticação em duas etapas',
     },
     twoFactorAuthForm: {
-        twoFactorAuthCode: 'Código de autenticação de dois fatores',
         error: {
             pleaseFillTwoFactorAuth: 'Insira seu código de autenticação em duas etapas',
             incorrect2fa: 'Código de autenticação em duas etapas incorreto. Tente novamente.',

@@ -1969,7 +1969,6 @@ const translations: TranslationDeepObject<typeof en> = {
         use2fa: '使用双重身份验证代码',
     },
     twoFactorAuthForm: {
-        twoFactorAuthCode: '双因素认证码',
         error: {
             pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码',
             incorrect2fa: '两步验证代码不正确。请重试。',

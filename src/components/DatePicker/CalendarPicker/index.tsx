@@ -193,7 +193,7 @@ function CalendarPicker({
                     hoverDimmingValue={1}
                     disabled={years.length <= 1}
                     testID="currentYearButton"
-                    accessibilityLabel={`${currentYearView}, ${translate('yearPickerPage.selectYear')}`}
+                    accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
                     role={CONST.ROLE.BUTTON}
                 >
                     <Text
