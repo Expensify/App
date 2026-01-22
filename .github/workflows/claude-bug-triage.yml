@@ -44,17 +44,25 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Validate issue has Bug label
+      - name: Validate issue has Bug label and no DeployBlocker
         id: validate
         run: |
-          # If triggered by label event, we know the label was just added
+          LABELS=$(gh issue view "$ISSUE_URL" --json labels --jq '.labels[].name')
+
+          # Skip if DeployBlocker or DeployBlockerCash label is present
+          if echo "$LABELS" | grep -qE "^DeployBlocker$|^DeployBlockerCash$"; then
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping bug triage - issue has DeployBlocker label"
+            exit 0
+          fi
+
+          # For label events, we know Bug was just added
           if [[ "${{ github.event_name }}" == "issues" ]]; then
             echo "valid=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # For manual dispatch, verify the label exists
-          LABELS=$(gh issue view "$ISSUE_URL" --json labels --jq '.labels[].name')
+          # For manual dispatch, verify Bug label exists
           if echo "$LABELS" | grep -q "Bug"; then
             echo "valid=true" >> "$GITHUB_OUTPUT"
           else
