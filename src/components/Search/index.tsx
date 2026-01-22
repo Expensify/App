@@ -808,7 +808,7 @@ function Search({
             setSelectedTransactions(updatedTransactions, filteredData);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data, email],
+        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
     );
 
     const onSelectRow = useCallback(
@@ -1067,15 +1067,16 @@ function Search({
     }, [
         validGroupBy,
         isExpenseReportType,
-        filteredData,
         selectedTransactions,
         setSelectedTransactions,
+        filteredData,
+        updateSelectAllMatchingItemsState,
         clearSelectedTransactions,
         transactions,
-        outstandingReportsByPolicyID,
-        searchResults?.data,
         email,
         accountID,
+        outstandingReportsByPolicyID,
+        searchResults?.data,
     ]);
 
     const onLayout = useCallback(() => {

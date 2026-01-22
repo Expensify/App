@@ -370,17 +370,17 @@ function SearchPage({route}: SearchPageProps) {
         clearSelectedTransactions(undefined, true);
     }, [
         isOffline,
-        areAllMatchingItemsSelected,
-        showConfirmModal,
-        translate,
-        selectedTransactionsKeys,
         status,
-        hash,
         selectedReports,
+        areAllMatchingItemsSelected,
         queryJSON,
-        selectAllMatchingItems,
+        selectedTransactionsKeys,
+        translate,
         clearSelectedTransactions,
-        setIsDownloadErrorModalVisible,
+        currentSearchResults?.data,
+        showConfirmModal,
+        hash,
+        selectAllMatchingItems,
     ]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
@@ -511,7 +511,20 @@ function SearchPage({route}: SearchPageProps) {
                 clearSelectedTransactions();
             });
         });
-    }, [isOffline, showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactions]);
+    }, [
+        isOffline,
+        hash,
+        showConfirmModal,
+        deleteModalTitle,
+        deleteModalPrompt,
+        translate,
+        allTransactions,
+        allTransactionViolations,
+        selectedTransactions,
+        currentUserPersonalDetails.email,
+        bankAccountList,
+        clearSelectedTransactions,
+    ]);
 
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
@@ -1243,7 +1256,7 @@ function SearchPage({route}: SearchPageProps) {
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 
         return {count: numberOfExpense, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
