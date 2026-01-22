@@ -534,7 +534,6 @@ describe('getSecondaryAction', () => {
             violations,
             bankAccountList: {},
             policy,
-            allBetas: [CONST.BETAS.ALL],
         });
 
         // Then APPROVE should be included because DEW approval is not in progress
@@ -579,7 +578,6 @@ describe('getSecondaryAction', () => {
             violations,
             bankAccountList: {},
             policy,
-            allBetas: [CONST.BETAS.ALL],
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
         });
 
@@ -993,7 +991,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            allBetas: [CONST.BETAS.ALL],
         });
 
         // Then UNAPPROVE should not be included because DEW policies restrict unapprove to admins only
@@ -1027,7 +1024,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            allBetas: [CONST.BETAS.ALL],
         });
 
         // Then UNAPPROVE should be included because admins can unapprove on DEW policies
