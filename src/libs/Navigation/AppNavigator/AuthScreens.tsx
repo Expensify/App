@@ -1,8 +1,10 @@
 import type {RouteProp} from '@react-navigation/native';
+import {useNavigationState} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
@@ -11,7 +13,7 @@ import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
@@ -33,7 +35,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -143,7 +145,7 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {toggleSearch} = useSearchRouterContext();
+    const {toggleSearch} = useSearchRouterActions();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
@@ -156,6 +158,13 @@ function AuthScreens() {
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
         useContext(WideRHPContext);
+
+    // Check if the user is currently on a 2FA setup screen
+    // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
+    const isIn2FASetupFlow = useNavigationState((state) => {
+        const focusedScreenName = getDeepestFocusedScreenName(state);
+        return isTwoFactorSetupScreen(focusedScreenName);
+    });
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
@@ -266,7 +275,7 @@ function AuthScreens() {
             shortcutsOverviewShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isOnboardingFlow()) {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                         return;
                     }
 
@@ -288,7 +297,7 @@ function AuthScreens() {
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.callFunctionIfActionIsAllowed(() => {
-                    if (Navigation.isOnboardingFlow()) {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                         return;
                     }
                     toggleSearch();
@@ -302,7 +311,7 @@ function AuthScreens() {
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                if (Navigation.isOnboardingFlow()) {
+                if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                     return;
                 }
                 Session.callFunctionIfActionIsAllowed(() => Modal.close(() => Navigation.navigate(ROUTES.NEW)))();
@@ -484,6 +493,7 @@ function AuthScreens() {
     return (
         <ComposeProviders
             components={[
+                CurrencyListContextProvider,
                 OptionsListContextProvider,
                 SidebarOrderedReportsContextProvider,
                 SearchContextProvider,
@@ -662,13 +672,6 @@ function AuthScreens() {
                         }}
                     />
                 )}
-                {shouldShowRequire2FAPage && (
-                    <RootStack.Screen
-                        name={SCREENS.REQUIRE_TWO_FACTOR_AUTH}
-                        options={{...rootNavigatorScreenOptions.fullScreen, gestureEnabled: false}}
-                        component={RequireTwoFactorAuthenticationPage}
-                    />
-                )}
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_JOIN_USER}
                     options={{
@@ -708,6 +711,8 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
+            {/* Full-screen 2FA enforcement overlay - blocks all interaction until 2FA is set up */}
+            {shouldShowRequire2FAPage && !isIn2FASetupFlow && <RequireTwoFactorAuthenticationPage />}
             <SearchRouterModal />
             <OpenAppFailureModal />
             <PriorityModeController />
