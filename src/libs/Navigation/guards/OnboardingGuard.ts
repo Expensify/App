@@ -10,7 +10,7 @@ import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -115,12 +115,6 @@ Onyx.connectWithoutView({
 
 /**
  * OnboardingGuard handles ONLY the core NewDot onboarding flow
- *
- * This guard is responsible for:
- * - Redirecting users to onboarding when they haven't completed it
- * - Allowing navigation within onboarding screens
- * - Handling both HybridApp and standalone onboarding cases
- *
  */
 const OnboardingGuard: NavigationGuard = {
     name: 'OnboardingGuard',
@@ -175,7 +169,7 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         // 6. CHECK IF USER HAS COMPLETED ONBOARDING
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) && onboarding?.testDriveModalDismissed !== false;
+        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
 
         // 7. SKIP ONBOARDING FOR SPECIAL CASES
         const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
@@ -225,7 +219,7 @@ const OnboardingGuard: NavigationGuard = {
         if (!CONFIG.IS_HYBRID_APP && !isOnboardingCompleted) {
             // Skip onboarding if user is part of a group workspace or was invited
             const shouldSkipOnboarding =
-                hasNonPersonalPolicy || // User is part of a group workspace
+                hasNonPersonalPolicy ?? // User is part of a group workspace
                 wasInvitedToNewDot; // User was invited to NewDot
 
             if (shouldSkipOnboarding) {
