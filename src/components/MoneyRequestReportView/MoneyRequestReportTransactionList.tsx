@@ -184,7 +184,7 @@ function MoneyRequestReportTransactionList({
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
     const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
-    const shouldShowBreakdown = useMemo(() => shouldShowExpenseReportBreakDown || !!billableTotal || !!taxTotal, [shouldShowExpenseReportBreakDown, billableTotal, taxTotal]);
+    const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || !!taxTotal;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
