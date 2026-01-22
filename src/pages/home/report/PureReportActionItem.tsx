@@ -521,7 +521,7 @@ function PureReportActionItem({
     reportNameValuePairsOriginalID,
     reportMetadata,
 }: PureReportActionItemProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
@@ -713,7 +713,7 @@ function PureReportActionItem({
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
             popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
-                actionSheetAwareScrollViewContext.transitionActionSheetState({
+                transitionActionSheetState({
                     type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
                     payload: {
                         popoverHeight: 0,
@@ -725,7 +725,7 @@ function PureReportActionItem({
                 callback();
             });
         },
-        [actionSheetAwareScrollViewContext],
+        [transitionActionSheetState],
     );
 
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);

@@ -1,4 +1,4 @@
-import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 
 function ActionSheetAwareScrollView() {
     return null;
@@ -8,4 +8,12 @@ export default ActionSheetAwareScrollView;
 
 const renderScrollComponent = undefined;
 
-export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
+export {
+    renderScrollComponent,
+    ActionSheetAwareScrollViewProvider,
+    Actions,
+    ActionSheetAwareScrollViewStateContext,
+    ActionSheetAwareScrollViewActionsContext,
+    useActionSheetAwareScrollViewState,
+    useActionSheetAwareScrollViewActions,
+};

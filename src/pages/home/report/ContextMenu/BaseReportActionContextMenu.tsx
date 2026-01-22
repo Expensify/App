@@ -134,7 +134,7 @@ function BaseReportActionContextMenu({
     disabledActions = [],
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const icons = useMemoizedLazyExpensifyIcons([
         'Download',
@@ -391,7 +391,7 @@ function BaseReportActionContextMenu({
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),
-                            transitionActionSheetState: actionSheetAwareScrollViewContext.transitionActionSheetState,
+                            transitionActionSheetState,
                             openContextMenu: () => setShouldKeepOpen(true),
                             interceptAnonymousUser,
                             openOverflowMenu,

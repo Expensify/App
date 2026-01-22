@@ -1,11 +1,11 @@
-import {useContext, useEffect} from 'react';
+import {useEffect} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import type Reanimated from 'react-native-reanimated';
 import {useAnimatedReaction, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {AnimatedRef} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {Actions, ActionSheetAwareScrollViewContext, States} from './ActionSheetAwareScrollViewContext';
+import {Actions, States, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 
 const KeyboardState = {
     UNKNOWN: 0,
@@ -71,7 +71,8 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
     // Similar to using `global` in worklet but it's just a local object
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
     const {windowHeight} = useWindowDimensions();
-    const {currentActionSheetState, transitionActionSheetStateWorklet: transition, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
+    const {currentActionSheetState} = useActionSheetAwareScrollViewState();
+    const {transitionActionSheetStateWorklet: transition, resetStateMachine} = useActionSheetAwareScrollViewActions();
 
     // Reset state machine when component unmounts
     // eslint-disable-next-line arrow-body-style
