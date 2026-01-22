@@ -1894,6 +1894,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     let iouAction = iou.action;
+    let iouReport = iou.report;
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
@@ -1910,6 +1911,14 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             reportActionID: iou.action.reportActionID,
         });
         iouAction = optimisticIOUReportAction;
+        iouReport = {
+            ...iouReport,
+            ...(!isScanRequest || isTestReceipt
+                ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}
+                : undefined),
+            hasOutstandingChildRequest: false,
+            lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
+        };
 
         optimisticData.push(
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -2246,7 +2255,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
-        iouReport: iou.report,
+        iouReport,
         iouAction,
         policy,
         transactionThreadReportID: transactionThreadReport?.reportID,
