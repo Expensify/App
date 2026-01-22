@@ -26,15 +26,9 @@ import {setSearchContext} from '@libs/actions/Search';
 import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {
-    buildQueryStringFromFilterFormValues,
-    buildSearchQueryJSON,
-    buildSearchQueryString,
-    buildUserReadableQueryString,
-    shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery,
-} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getActiveSearchItemIndex, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -221,32 +215,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [expensifyIcons.Bookmark, styles.sectionMenuItem],
     );
 
-    const [activeItemIndex, isExploreSection] = useMemo(() => {
-        // If we have a suggested search, then none of the menu items are active
-        if (isSavedSearchActive) {
-            return [-1, false];
-        }
-
-        let isMatchedIndex = flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-        if (isMatchedIndex === -1) {
-            isMatchedIndex = flattenedMenuItems.findIndex((item) => {
-                if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                    return item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES;
-                }
-                if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-                    return item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS;
-                }
-                if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
-                    return item.key === CONST.SEARCH.SEARCH_KEYS.CHATS;
-                }
-                return false;
-            });
-        }
-        const matchedItemKey = isMatchedIndex !== -1 ? flattenedMenuItems.at(isMatchedIndex)?.key : undefined;
-        const isExploreSection1 =
-            !!matchedItemKey && ([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.CHATS] as string[]).includes(matchedItemKey);
-        return [isMatchedIndex, isExploreSection1];
-    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type]);
+    const [activeItemIndex, isExploreSectionActive] = useMemo(
+        () => getActiveSearchItemIndex(flattenedMenuItems, similarSearchHash, isSavedSearchActive, queryJSON?.type),
+        [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
+    );
 
     return (
         <>
@@ -287,26 +259,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                 setSearchContext(false);
                                                 let queryString = item.searchQuery;
 
-                                                if (isExploreSection && section.translationPath === 'common.explore') {
-                                                    const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
-                                                        ...searchAdvancedFiltersForm,
-                                                        ...{type: item.type},
-                                                    };
-
-                                                    // If the type has changed, reset the columns
-                                                    if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
-                                                        updatedFilterFormValues.columns = [];
-                                                    }
-
-                                                    // Preserve the current sortBy and sortOrder from queryJSON when updating filters
-                                                    const updatedQueryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
-                                                        sortBy: queryJSON?.sortBy,
-                                                        sortOrder: queryJSON?.sortOrder,
-                                                    });
-
-                                                    // We need to normalize the updatedQueryString using buildSearchQueryString.
-                                                    const updatedQueryJSON = buildSearchQueryJSON(updatedQueryString);
-                                                    queryString = buildSearchQueryString(updatedQueryJSON);
+                                                if (isExploreSectionActive && section.translationPath === 'common.explore') {
+                                                    queryString = updateQueryStringOnSearchTypeChange(item.type, searchAdvancedFiltersForm, queryJSON);
                                                 }
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
                                             });
