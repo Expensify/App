@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import DecisionModal from '@components/DecisionModal';
 import type {ModalProps} from './ModalContext';
 
@@ -8,7 +9,7 @@ const DecisionModalActions = {
     CLOSE: 'CLOSE',
 } as const;
 
-type DecisionModalAction = typeof DecisionModalActions.FIRST_OPTION | typeof DecisionModalActions.SECOND_OPTION | typeof DecisionModalActions.CLOSE;
+type DecisionModalAction = ValueOf<typeof DecisionModalActions>;
 
 type DecisionModalWrapperProps = ModalProps<DecisionModalAction> & Omit<React.ComponentProps<typeof DecisionModal>, 'isVisible' | 'onClose' | 'onModalHide'>;
 
@@ -53,3 +54,4 @@ function DecisionModalWrapper({closeModal, ...props}: DecisionModalWrapperProps)
 
 export default DecisionModalWrapper;
 export {DecisionModalActions};
+export type {DecisionModalAction};

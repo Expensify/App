@@ -9,13 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {
+    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
-    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,15 +48,7 @@ type MoneyRequestHeaderStatusBarProps = {
     shouldStyleFlexGrow?: boolean;
 };
 
-function MoneyRequestHeaderStatusBar({
-    transactionID,
-    reportID,
-    policyID,
-    parentReport,
-    email,
-    accountID,
-    shouldStyleFlexGrow = true,
-}: MoneyRequestHeaderStatusBarProps) {
+function MoneyRequestHeaderStatusBar({transactionID, reportID, policyID, parentReport, email, accountID, shouldStyleFlexGrow = true}: MoneyRequestHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();

@@ -1,10 +1,10 @@
-import {useModal} from '@components/Modal/Global/ModalContext';
 import HoldOrRejectEducationalModalWrapper from '@components/Modal/Global/HoldOrRejectEducationalModalWrapper';
 import HoldSubmitterEducationalModalWrapper from '@components/Modal/Global/HoldSubmitterEducationalModalWrapper';
-import useOnyx from '@hooks/useOnyx';
+import {useModal} from '@components/Modal/Global/ModalContext';
 import {dismissRejectUseExplanation} from '@libs/actions/IOU';
 import {setNameValuePair} from '@libs/actions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 const useHoldEducationalModal = () => {
     const context = useModal();

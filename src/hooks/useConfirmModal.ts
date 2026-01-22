@@ -1,8 +1,7 @@
 import ConfirmModalWrapper, {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
+import type {ConfirmModalAction} from '@components/Modal/Global/ConfirmModalWrapper';
 import type {ModalStateChangePayload} from '@components/Modal/Global/ModalContext';
 import {useModal} from '@components/Modal/Global/ModalContext';
-
-type ConfirmModalAction = typeof ConfirmModalActions.CONFIRM | typeof ConfirmModalActions.CLOSE;
 
 type ConfirmModalOptions = Omit<React.ComponentProps<typeof ConfirmModalWrapper>, 'closeModal'>;
 
@@ -16,7 +15,7 @@ const useConfirmModal = () => {
                 shouldHandleNavigationBack: true,
                 ...options,
             },
-        }) as Promise<ModalStateChangePayload<ConfirmModalAction>>;
+        });
     };
 
     return {

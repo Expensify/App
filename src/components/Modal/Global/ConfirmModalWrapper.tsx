@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -11,7 +12,7 @@ const ConfirmModalActions = {
     CLOSE: 'CLOSE',
 } as const;
 
-type ConfirmModalAction = typeof ConfirmModalActions.CONFIRM | typeof ConfirmModalActions.CLOSE;
+type ConfirmModalAction = ValueOf<typeof ConfirmModalActions>;
 
 type ConfirmModalWrapperProps = ModalProps<ConfirmModalAction> & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
 
@@ -64,3 +65,4 @@ function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
 
 export default ConfirmModalWrapper;
 export {ConfirmModalActions};
+export type {ConfirmModalAction};

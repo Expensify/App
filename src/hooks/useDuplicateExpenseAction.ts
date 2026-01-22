@@ -49,16 +49,7 @@ const useDuplicateExpenseAction = (accountID: number) => {
                 });
             }
         },
-        [
-            activePolicyExpenseChat,
-            allPolicyCategories,
-            defaultExpensePolicy,
-            isASAPSubmitBetaEnabled,
-            introSelected,
-            activePolicyID,
-            quickAction,
-            policyRecentlyUsedCurrencies,
-        ],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies],
     );
 
     return {

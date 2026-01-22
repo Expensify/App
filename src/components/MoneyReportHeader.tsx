@@ -597,8 +597,8 @@ function MoneyReportHeader({
         });
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    if (result.action === ConfirmModalActions.CONFIRM) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (result.action === ConfirmModalActions.CONFIRM) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         }
     };
