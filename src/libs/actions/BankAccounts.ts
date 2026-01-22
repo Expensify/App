@@ -1451,7 +1451,7 @@ function openBankAccountSharePage() {
 function initiateBankAccountUnlock(bankAccountID: number) {
     const authToken = NetworkStore.getAuthToken();
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1468,6 +1468,7 @@ function initiateBankAccountUnlock(bankAccountID: number) {
                 key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
                 value: {
                     errors: null,
+                    isLoading: false,
                     isSuccess: true,
                     bankAccountIDToUnlock: null,
                 },
@@ -1478,6 +1479,7 @@ function initiateBankAccountUnlock(bankAccountID: number) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
                 value: {
+                    isLoading: false,
                     isSuccess: false,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },

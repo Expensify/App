@@ -6,6 +6,8 @@ type InitiatingBankAccountUnlock = {
     bankAccountIDToUnlock: number;
     /** Is request successful */
     isSuccess: boolean;
+    /** Is request being processed */
+    isLoading: boolean;
     /** Errors */
     errors: Errors;
 };

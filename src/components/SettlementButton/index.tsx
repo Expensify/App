@@ -5,8 +5,8 @@ import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import ConfirmModal from '@components/ConfirmModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -560,7 +560,8 @@ function SettlementButton({
                 policy={lastPaymentPolicy}
                 anchorAlignment={kycWallAnchorAlignment}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-                currency={currency}>
+                currency={currency}
+            >
                 {(triggerKYCFlow, buttonRef) => (
                     <ButtonWithDropdownMenu<string>
                         onOptionsMenuShow={onPaymentOptionsShow}
@@ -569,20 +570,21 @@ function SettlementButton({
                         shouldAlwaysShowDropdownMenu={isInvoiceReport && !onlyShowPayElsewhere}
                         customText={customText}
                         menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
-                        isSplitButton={shouldUseSplitButton }
+                        isSplitButton={shouldUseSplitButton}
                         isDisabled={isDisabled}
-                        shouldStayNormalOnDisable={shouldStayNormalOnDisable}isLoading={isLoading}
+                        shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+                        isLoading={isLoading}
                         defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                         onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
-                        success={!hasOnlyHeldExpenses}extraSmall={extraSmall}
+                        success={!hasOnlyHeldExpenses}
+                        extraSmall={extraSmall}
                         secondLineText={secondaryText}
                         pressOnEnter={pressOnEnter}
                         options={paymentButtonOptions}
                         onOptionSelected={(option) => {
                             if (paymentButtonOptions.length === 1) {
                                 return;
-
-                        }
+                            }
                             handlePaymentSelection(undefined, option.value, triggerKYCFlow);
                         }}
                         style={style}
@@ -595,7 +597,8 @@ function SettlementButton({
                         anchorAlignment={paymentMethodDropdownAnchorAlignment}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         useKeyboardShortcuts={useKeyboardShortcuts}
-                        shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}sentryLabel={sentryLabel}
+                        shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}
+                        sentryLabel={sentryLabel}
                     />
                 )}
             </KYCWall>
