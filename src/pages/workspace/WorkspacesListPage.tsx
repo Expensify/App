@@ -55,6 +55,7 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -446,6 +447,17 @@ function WorkspacesListPage() {
                 });
             }
 
+            const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+            const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
+            const accessibilityLabel = [
+                `${translate('workspace.common.workspace')}: ${item.title}`,
+                isDefault ? translate('common.default') : '',
+                `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
+                `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
+            ]
+                .filter(Boolean)
+                .join(', ');
+
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
@@ -459,7 +471,7 @@ function WorkspacesListPage() {
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel="row"
+                        accessibilityLabel={accessibilityLabel}
                         style={[styles.mh5]}
                         disabled={item.disabled}
                         onPress={item.action}
@@ -512,6 +524,7 @@ function WorkspacesListPage() {
             icons,
             expensifyIcons.Building,
             expensifyIcons.Exit,
+            personalDetails,
         ],
     );
 
