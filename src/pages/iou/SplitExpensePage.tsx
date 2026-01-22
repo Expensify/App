@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -312,16 +312,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </View>
     );
 
-    const warningMessage = useMemo(() => {
-        const difference = sumOfSplitExpenses - transactionDetailsAmount;
-        let warning = '';
-        if (difference < 0) {
-            warning = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
-        } else if (difference > 0) {
-            warning = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
-        }
-        return warning;
-    }, [sumOfSplitExpenses, transactionDetailsAmount]);
+    const difference = sumOfSplitExpenses - transactionDetailsAmount;
+    let warningMessage = '';
+    if (difference < 0) {
+        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
+    } else if (difference > 0) {
+        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+    }
 
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
