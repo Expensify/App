@@ -76,7 +76,7 @@ Your company's SAML SSO configuration may have an issue affecting your account o
 **Who to contact**
 - **Reach out to your IT team** to confirm SSO settings and ask them to follow the relevant steps to [Troubleshoot SAML SSO Login](https://help.expensify.com/articles/new-expensify/domains/Troubleshoot-SAML-SSO-Login)
 
-[More about SSO logins →](https://help.expensify.com/articles/new-expensify/domains/Managing-Single-Sign-On-(SSO)-in-Expensify)
+[More about SSO logins](https://help.expensify.com/articles/new-expensify/domains/Managing-Single-Sign-On-(SSO)-in-Expensify)
 
 ---
 
