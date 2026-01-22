@@ -1,10 +1,2 @@
-import {useContext} from 'react';
-import {ExpensifyCardContext} from './ExpensifyCardContextProvider';
-
-/**
- * Hook to display revealed expensify card data and pass it between screens.
-
- */
-const useExpensifyCardContext = () => useContext(ExpensifyCardContext);
-
-export default useExpensifyCardContext;
+// Deprecated shim kept temporarily for backwards compatibility; prefer useExpensifyCardState/useExpensifyCardActions directly
+export {useExpensifyCardState as default} from './ExpensifyCardContextProvider';
