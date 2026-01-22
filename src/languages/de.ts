@@ -971,7 +971,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Etwas suchen …',
         buttonMySettings: 'Meine Einstellungen',
         fabNewChat: 'Chat starten',
-        fabNewChatExplained: 'Chat starten (Schwebende Aktion)',
+        fabNewChatExplained: 'Aktionsmenü öffnen',
         fabScanReceiptExplained: 'Beleg scannen (Schwebende Aktion)',
         chatPinned: 'Chat angeheftet',
         draftedMessage: 'Entwurfsnachricht',

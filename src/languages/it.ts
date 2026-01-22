@@ -970,7 +970,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Trova qualcosa...',
         buttonMySettings: 'Le mie impostazioni',
         fabNewChat: 'Avvia chat',
-        fabNewChatExplained: 'Avvia chat (Azione flottante)',
+        fabNewChatExplained: 'Apri menu azioni',
         fabScanReceiptExplained: 'Scansiona ricevuta (Azione flottante)',
         chatPinned: 'Chat fissata',
         draftedMessage: 'Messaggio in bozza',
