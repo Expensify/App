@@ -322,21 +322,27 @@ function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrE
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
 }
 
+/**
+ * Actions that clear a DEW_APPROVE_FAILED error (approval succeeded or report was retracted/reopened).
+ */
+function isActionThatSupersedesDEWApproveFailure(action: ReportAction): boolean {
+    return isApprovedAction(action) || isForwardedAction(action) || isRetractedAction(action) || isReopenedAction(action);
+}
+
 function getMostRecentActiveDEWApproveFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
     const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
 
-    // Find the most recent DEW_APPROVE_FAILED and APPROVED/FORWARDED actions
     let mostRecentDewApproveFailedAction: ReportAction | undefined;
-    let mostRecentApprovalAction: ReportAction | undefined;
+    let mostRecentSupersedingAction: ReportAction | undefined;
 
     for (const action of actionsArray) {
         if (isDynamicExternalWorkflowApproveFailedAction(action)) {
             if (!mostRecentDewApproveFailedAction || (action.created && mostRecentDewApproveFailedAction.created && action.created > mostRecentDewApproveFailedAction.created)) {
                 mostRecentDewApproveFailedAction = action;
             }
-        } else if (isApprovedAction(action) || isForwardedAction(action)) {
-            if (!mostRecentApprovalAction || (action.created && mostRecentApprovalAction.created && action.created > mostRecentApprovalAction.created)) {
-                mostRecentApprovalAction = action;
+        } else if (isActionThatSupersedesDEWApproveFailure(action)) {
+            if (!mostRecentSupersedingAction || (action.created && mostRecentSupersedingAction.created && action.created > mostRecentSupersedingAction.created)) {
+                mostRecentSupersedingAction = action;
             }
         }
     }
@@ -345,8 +351,8 @@ function getMostRecentActiveDEWApproveFailedAction(reportActions: OnyxEntry<Repo
         return undefined;
     }
 
-    // Return the DEW action if there's no approval action, or if DEW_APPROVE_FAILED is more recent
-    if (!mostRecentApprovalAction || mostRecentDewApproveFailedAction.created > mostRecentApprovalAction.created) {
+    // Return the DEW action if there's no superseding action, or if DEW_APPROVE_FAILED is more recent
+    if (!mostRecentSupersedingAction || mostRecentDewApproveFailedAction.created > mostRecentSupersedingAction.created) {
         return mostRecentDewApproveFailedAction;
     }
 
