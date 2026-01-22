@@ -4,14 +4,15 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type Transaction from '@src/types/onyx/Transaction';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
-import {getReportTransactions} from './ReportUtils';
-import {getCurrency, getTagArrayFromName} from './TransactionUtils';
+import {getReportTransactions, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
+import {getCurrency, getTagArrayFromName, isMerchantMissing, isScanRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -323,6 +324,32 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
+/**
+ * Checks if merchant is required and missing for a transaction.
+ * Merchant is required for policy expense chats, expense requests, or when any participant is a policy expense chat.
+ * For scan requests, merchant is not required unless it's a split bill being edited.
+ *
+ * @param transaction - The transaction to check
+ * @param report - The report associated with the transaction
+ * @param isEditingSplitBill - Whether this is editing a split bill
+ * @returns true if merchant is required and missing, false otherwise
+ */
+function shouldRequireMerchant(transaction: OnyxInputOrEntry<Transaction> | undefined, report: OnyxInputOrEntry<Report> | undefined, isEditingSplitBill = false): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    // Check if merchant is required based on report type and participants
+    const isMerchantRequired = !!(isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat));
+
+    // For scan requests, merchant is not required unless it's a split bill being edited
+    if (isScanRequest(transaction) && !isEditingSplitBill) {
+        return false;
+    }
+
+    return isMerchantRequired && isMerchantMissing(transaction);
+}
+
 function navigateToConfirmationPage(
     iouType: IOUType,
     transactionID: string,
@@ -371,5 +398,6 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    shouldRequireMerchant,
     navigateToConfirmationPage,
 };
