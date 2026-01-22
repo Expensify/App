@@ -2277,6 +2277,26 @@ describe('TripReservationUtils', () => {
             expect(result.at(0)?.reservation.legId).toBe(0);
             expect(result.at(1)?.reservation.legId).toBe(1);
         });
+
+        it('should correctly extract the seat number from the seats array', () => {
+            const result = getAirReservations(airReservationPnrData, airReservationTravelers);
+
+            // The first leg has a seat assigned ("12A")
+            expect(result.at(0)?.reservation.seatNumber).toBe('12A');
+
+            // The second leg has no seat assigned (empty string)
+            expect(result.at(1)?.reservation.seatNumber).toBe('');
+        });
+
+        it('should not serialize the entire seat object as the seat number', () => {
+            const result = getAirReservations(airReservationPnrData, airReservationTravelers);
+
+            // Verify the seat number is just the value, not a JSON object
+            const seatNumber = result.at(0)?.reservation.seatNumber;
+            expect(seatNumber).not.toContain('{');
+            expect(seatNumber).not.toContain('amount');
+            expect(seatNumber).not.toContain('legIdx');
+        });
     });
     describe('getReservationsFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
