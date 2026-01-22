@@ -541,7 +541,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldMinimizeMenuButton: false,
             footerActionButtons,
             customAttachmentContent,
-            attachmentViewContainerStyles: [styles.mv3, styles.ph2],
+            attachmentViewContainerStyles: [styles.pv5, styles.ph2],
         }),
         [
             source,
@@ -558,7 +558,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             onDownloadAttachment,
             footerActionButtons,
             customAttachmentContent,
-            styles.mv3,
+            styles.pv5,
             styles.ph2,
         ],
     );

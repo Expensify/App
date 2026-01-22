@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -7,7 +7,7 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import LoadingIndicator from '@components/LoadingIndicator';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import variables from '@styles/variables';
@@ -34,10 +34,11 @@ type ReceiptCropViewProps = {
 };
 
 type CornerPosition = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+type EdgePosition = 'top' | 'bottom' | 'left' | 'right';
 
 function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequired}: ReceiptCropViewProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
 
     // Image dimensions
     const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
@@ -57,6 +58,16 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
     const cropY = useSharedValue(0);
     const cropWidth = useSharedValue(0);
     const cropHeight = useSharedValue(0);
+
+    // Track previous values to detect changes and recalculate crop on resize
+    const prevDisplayValuesRef = useRef<{
+        displayWidth: number;
+        displayHeight: number;
+        scaleX: number;
+        scaleY: number;
+        imageOffsetX: number;
+        imageOffsetY: number;
+    } | null>(null);
 
     const isCropInitialized = imageSize.width > 0 && imageSize.height > 0 && containerSize.width > 0 && containerSize.height > 0;
 
@@ -129,8 +140,90 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
                 cropWidth.set(displayWidth);
                 cropHeight.set(displayHeight);
             }
+            // Store initial values
+            prevDisplayValuesRef.current = {
+                displayWidth,
+                displayHeight,
+                scaleX,
+                scaleY,
+                imageOffsetX,
+                imageOffsetY,
+            };
         }
     }, [displayWidth, displayHeight, scaleX, scaleY, imageOffsetX, imageOffsetY, initialCrop, cropX, cropY, cropWidth, cropHeight]);
+
+    // Update crop rectangle when container/image dimensions change (e.g., window resize)
+    useEffect(() => {
+        if (!displayWidth || !displayHeight || !scaleX || !scaleY) {
+            return;
+        }
+
+        // Only update if crop is already initialized and dimensions have changed
+        if (cropWidth.get() === 0 && cropHeight.get() === 0) {
+            return;
+        }
+
+        const prev = prevDisplayValuesRef.current;
+        if (!prev) {
+            return;
+        }
+
+        // Check if dimensions actually changed
+        const hasChanged =
+            prev.displayWidth !== displayWidth ||
+            prev.displayHeight !== displayHeight ||
+            prev.scaleX !== scaleX ||
+            prev.scaleY !== scaleY ||
+            prev.imageOffsetX !== imageOffsetX ||
+            prev.imageOffsetY !== imageOffsetY;
+
+        if (!hasChanged) {
+            return;
+        }
+
+        // Get current crop rectangle in display coordinates
+        const currentCropX = cropX.get();
+        const currentCropY = cropY.get();
+        const currentCropWidth = cropWidth.get();
+        const currentCropHeight = cropHeight.get();
+
+        // Convert current crop from old display coordinates to image coordinates
+        const imageX = (currentCropX - prev.imageOffsetX) * prev.scaleX;
+        const imageY = (currentCropY - prev.imageOffsetY) * prev.scaleY;
+        const imageWidth = currentCropWidth * prev.scaleX;
+        const imageHeight = currentCropHeight * prev.scaleY;
+
+        // Convert back to new display coordinates
+        const newCropX = imageOffsetX + imageX / scaleX;
+        const newCropY = imageOffsetY + imageY / scaleY;
+        const newCropWidth = imageWidth / scaleX;
+        const newCropHeight = imageHeight / scaleY;
+
+        // Update crop rectangle
+        cropX.set(newCropX);
+        cropY.set(newCropY);
+        cropWidth.set(newCropWidth);
+        cropHeight.set(newCropHeight);
+
+        // Update stored values
+        prevDisplayValuesRef.current = {
+            displayWidth,
+            displayHeight,
+            scaleX,
+            scaleY,
+            imageOffsetX,
+            imageOffsetY,
+        };
+
+        // Notify parent of the updated crop (in image coordinates)
+        const crop: CropRect = {
+            x: imageX,
+            y: imageY,
+            width: imageWidth,
+            height: imageHeight,
+        };
+        onCropChange?.(crop);
+    }, [displayWidth, displayHeight, scaleX, scaleY, imageOffsetX, imageOffsetY, cropX, cropY, cropWidth, cropHeight, onCropChange]);
 
     const onContainerLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -162,6 +255,89 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
 
         return Math.max(min, Math.min(max, value));
     }, []);
+
+    /**
+     * Create gesture handler for an edge
+     */
+    const createEdgeGesture = useCallback(
+        (edge: EdgePosition) => {
+            return Gesture.Pan()
+                .runOnJS(true)
+                .onChange((event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
+                    'worklet';
+
+                    const currentX = cropX.get();
+                    const currentY = cropY.get();
+                    const currentWidth = cropWidth.get();
+                    const currentHeight = cropHeight.get();
+
+                    let newX = currentX;
+                    let newY = currentY;
+                    let newWidth = currentWidth;
+                    let newHeight = currentHeight;
+
+                    const minSize = variables.cornerHandleSize * 2;
+                    const imgDisplayWidth = displayWidthSV.get();
+                    const imgDisplayHeight = displayHeightSV.get();
+                    const imageLeft = imageOffsetXSV.get();
+                    const imageRight = imageLeft + imgDisplayWidth;
+                    const imageTop = imageOffsetYSV.get();
+                    const imageBottom = imageTop + imgDisplayHeight;
+
+                    switch (edge) {
+                        case 'top':
+                            newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                            newHeight = currentHeight - (newY - currentY);
+                            break;
+                        case 'bottom':
+                            newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                            break;
+                        case 'left':
+                            newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                            newWidth = currentWidth - (newX - currentX);
+                            break;
+                        case 'right':
+                            newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    // Ensure crop rectangle stays within image bounds
+                    if (newX < imageLeft) {
+                        const diff = imageLeft - newX;
+                        newX = imageLeft;
+                        newWidth -= diff;
+                    }
+                    if (newX + newWidth > imageRight) {
+                        newWidth = imageRight - newX;
+                    }
+                    if (newY < imageTop) {
+                        const diff = imageTop - newY;
+                        newY = imageTop;
+                        newHeight -= diff;
+                    }
+                    if (newY + newHeight > imageBottom) {
+                        newHeight = imageBottom - newY;
+                    }
+
+                    cropX.set(newX);
+                    cropY.set(newY);
+                    cropWidth.set(newWidth);
+                    cropHeight.set(newHeight);
+
+                    const crop: CropRect = {
+                        x: (newX - imageOffsetX) * scaleX,
+                        y: (newY - imageOffsetY) * scaleY,
+                        width: newWidth * scaleX,
+                        height: newHeight * scaleY,
+                    };
+
+                    onCropChange?.(crop);
+                });
+        },
+        [cropX, cropY, cropWidth, cropHeight, displayWidthSV, displayHeightSV, imageOffsetXSV, imageOffsetYSV, imageOffsetX, scaleX, imageOffsetY, scaleY, onCropChange, clamp],
+    );
 
     /**
      * Create gesture handler for a corner
@@ -253,64 +429,128 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
     );
 
     const borderStyle = useAnimatedStyle(() => {
-        return {
-            ...styles.pAbsolute,
-            left: cropX.get(),
-            top: cropY.get(),
-            width: cropWidth.get(),
-            height: cropHeight.get(),
-            borderWidth: variables.cropBorderWidth,
-            borderColor: theme.success,
-        };
+        'worklet';
+
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).border;
     });
 
-    const topLeftCornerStyle = useAnimatedStyle(() => ({
-        ...styles.pAbsolute,
-        left: cropX.get() - variables.cornerHandleSize / 2,
-        top: cropY.get() - variables.cornerHandleSize / 2,
-        width: variables.cornerHandleSize,
-        height: variables.cornerHandleSize,
-        borderRadius: variables.cornerHandleSize / 2,
-        backgroundColor: theme.success,
-        borderWidth: 2,
-        borderColor: theme.white,
-    }));
+    const topLeftCornerStyle = useAnimatedStyle(() => {
+        'worklet';
 
-    const topRightCornerStyle = useAnimatedStyle(() => ({
-        ...styles.pAbsolute,
-        left: cropX.get() + cropWidth.get() - variables.cornerHandleSize / 2,
-        top: cropY.get() - variables.cornerHandleSize / 2,
-        width: variables.cornerHandleSize,
-        height: variables.cornerHandleSize,
-        borderRadius: variables.cornerHandleSize / 2,
-        backgroundColor: theme.success,
-        borderWidth: 2,
-        borderColor: theme.white,
-    }));
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).cornerTopLeft;
+    });
 
-    const bottomLeftCornerStyle = useAnimatedStyle(() => ({
-        ...styles.pAbsolute,
-        left: cropX.get() - variables.cornerHandleSize / 2,
-        top: cropY.get() + cropHeight.get() - variables.cornerHandleSize / 2,
-        width: variables.cornerHandleSize,
-        height: variables.cornerHandleSize,
-        borderRadius: variables.cornerHandleSize / 2,
-        backgroundColor: theme.success,
-        borderWidth: 2,
-        borderColor: theme.white,
-    }));
+    const topLeftCornerVisualStyle = useAnimatedStyle(() => {
+        'worklet';
 
-    const bottomRightCornerStyle = useAnimatedStyle(() => ({
-        ...styles.pAbsolute,
-        left: cropX.get() + cropWidth.get() - variables.cornerHandleSize / 2,
-        top: cropY.get() + cropHeight.get() - variables.cornerHandleSize / 2,
-        width: variables.cornerHandleSize,
-        height: variables.cornerHandleSize,
-        borderRadius: variables.cornerHandleSize / 2,
-        backgroundColor: theme.success,
-        borderWidth: 2,
-        borderColor: theme.white,
-    }));
+        return StyleUtils.getCropViewStyles().cornerVisual;
+    });
+
+    const topRightCornerStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).cornerTopRight;
+    });
+
+    const topRightCornerVisualStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles().cornerVisual;
+    });
+
+    const bottomLeftCornerStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).cornerBottomLeft;
+    });
+
+    const bottomLeftCornerVisualStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles().cornerVisual;
+    });
+
+    const bottomRightCornerStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).cornerBottomRight;
+    });
+
+    const bottomRightCornerVisualStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles().cornerVisual;
+    });
+
+    // Edge handle styles - thicker tap target while keeping visual size
+    const topEdgeStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).edgeTop;
+    });
+
+    const bottomEdgeStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).edgeBottom;
+    });
+
+    const leftEdgeStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).edgeLeft;
+    });
+
+    const rightEdgeStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return StyleUtils.getCropViewStyles({
+            cropX: cropX.get(),
+            cropY: cropY.get(),
+            cropWidth: cropWidth.get(),
+            cropHeight: cropHeight.get(),
+        }).edgeRight;
+    });
 
     const overlayTopStyle = useAnimatedStyle(() => {
         'worklet';
@@ -320,14 +560,12 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const imgDisplayWidth = displayWidthSV.get();
         const cropTop = cropY.get();
 
-        return {
-            ...styles.pAbsolute,
-            left: imageLeft,
-            top: imageTop,
-            width: imgDisplayWidth,
-            height: Math.max(0, cropTop - imageTop),
-            backgroundColor: theme.transparentWhite,
-        };
+        return StyleUtils.getCropViewStyles({
+            imageLeft,
+            imageTop,
+            imgDisplayWidth,
+            cropTop,
+        }).overlayTop;
     });
 
     const overlayBottomStyle = useAnimatedStyle(() => {
@@ -340,14 +578,13 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const cropBottom = cropY.get() + cropHeight.get();
         const imageBottom = imageTop + imgDisplayHeight;
 
-        return {
-            ...styles.pAbsolute,
-            left: imageLeft,
-            top: cropBottom,
-            width: imgDisplayWidth,
-            height: Math.max(0, imageBottom - cropBottom),
-            backgroundColor: theme.transparentWhite,
-        };
+        return StyleUtils.getCropViewStyles({
+            imageLeft,
+            imageTop,
+            imgDisplayWidth,
+            cropBottom,
+            imageBottom,
+        }).overlayBottom;
     });
 
     const overlayLeftStyle = useAnimatedStyle(() => {
@@ -358,14 +595,12 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const cropTop = cropY.get();
         const cropHeightValue = cropHeight.get();
 
-        return {
-            ...styles.pAbsolute,
-            left: imageLeft,
-            top: cropTop,
-            width: Math.max(0, cropLeft - imageLeft),
-            height: cropHeightValue,
-            backgroundColor: theme.transparentWhite,
-        };
+        return StyleUtils.getCropViewStyles({
+            imageLeft,
+            cropLeft,
+            cropTop,
+            cropHeight: cropHeightValue,
+        }).overlayLeft;
     });
 
     const overlayRightStyle = useAnimatedStyle(() => {
@@ -378,18 +613,18 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const cropTop = cropY.get();
         const cropHeightValue = cropHeight.get();
 
-        return {
-            ...styles.pAbsolute,
-            left: cropRight,
-            top: cropTop,
-            width: Math.max(0, imageRight - cropRight),
-            height: cropHeightValue,
-            backgroundColor: theme.transparentWhite,
-        };
+        return StyleUtils.getCropViewStyles({
+            imageLeft,
+            imgDisplayWidth,
+            cropRight,
+            imageRight,
+            cropTop,
+            cropHeight: cropHeightValue,
+        }).overlayRight;
     });
 
     return (
-        <GestureHandlerRootView style={[styles.flex1, styles.w100, styles.mv3]}>
+        <GestureHandlerRootView style={[styles.flex1, styles.w100]}>
             <Animated.View
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.w100]}
                 onLayout={onContainerLayout}
@@ -429,17 +664,40 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
                             pointerEvents="none"
                         />
 
+                        {/* Edge handles */}
+                        <GestureDetector gesture={createEdgeGesture('top')}>
+                            <Animated.View style={topEdgeStyle} />
+                        </GestureDetector>
+                        <GestureDetector gesture={createEdgeGesture('bottom')}>
+                            <Animated.View style={bottomEdgeStyle} />
+                        </GestureDetector>
+                        <GestureDetector gesture={createEdgeGesture('left')}>
+                            <Animated.View style={leftEdgeStyle} />
+                        </GestureDetector>
+                        <GestureDetector gesture={createEdgeGesture('right')}>
+                            <Animated.View style={rightEdgeStyle} />
+                        </GestureDetector>
+
+                        {/* Corner handles */}
                         <GestureDetector gesture={createCornerGesture('topLeft')}>
-                            <Animated.View style={topLeftCornerStyle} />
+                            <Animated.View style={topLeftCornerStyle}>
+                                <Animated.View style={topLeftCornerVisualStyle} />
+                            </Animated.View>
                         </GestureDetector>
                         <GestureDetector gesture={createCornerGesture('topRight')}>
-                            <Animated.View style={topRightCornerStyle} />
+                            <Animated.View style={topRightCornerStyle}>
+                                <Animated.View style={topRightCornerVisualStyle} />
+                            </Animated.View>
                         </GestureDetector>
                         <GestureDetector gesture={createCornerGesture('bottomLeft')}>
-                            <Animated.View style={bottomLeftCornerStyle} />
+                            <Animated.View style={bottomLeftCornerStyle}>
+                                <Animated.View style={bottomLeftCornerVisualStyle} />
+                            </Animated.View>
                         </GestureDetector>
                         <GestureDetector gesture={createCornerGesture('bottomRight')}>
-                            <Animated.View style={bottomRightCornerStyle} />
+                            <Animated.View style={bottomRightCornerStyle}>
+                                <Animated.View style={bottomRightCornerVisualStyle} />
+                            </Animated.View>
                         </GestureDetector>
                     </>
                 )}

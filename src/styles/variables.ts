@@ -145,9 +145,11 @@ export default {
     checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
     cornerHandleSize: 12,
+    cornerTapTargetSize: 40,
+    edgeHandleTapTargetThickness: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
-    cropBorderWidth: 2,
+    cropBorderWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
     emptySelectionListIconWidth: 120,
