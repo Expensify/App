@@ -302,7 +302,11 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
+type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
+
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+type ReportNameValuePairsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${string}`;
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
 
@@ -788,6 +792,23 @@ function isGroupEntry(key: string): key is SearchGroupKey {
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX);
 }
 
+/**
+ * @private
+ */
+function isPolicyEntry(key: string): key is PolicyKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
+}
+
+/**
+ * @private
+ */
+function isReportNameValuePairsEntry(key: string): key is ReportNameValuePairsKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+}
+
+/**
+ * @private
+ */
 function isViolationEntry(key: string): key is ViolationKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 }
@@ -1408,9 +1429,8 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 function getReportsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Report> {
     const reports: Record<string, OnyxTypes.Report> = {};
     for (const key of Object.keys(data)) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            reports[key] = (data as any)[key] as OnyxTypes.Report;
+        if (isReportEntry(key)) {
+            reports[key] = data[key];
         }
     }
     return reports;
@@ -1423,9 +1443,8 @@ function getReportsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollecti
 function getPoliciesFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Policy> {
     const policies: Record<string, OnyxTypes.Policy> = {};
     for (const key of Object.keys(data)) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.POLICY)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            policies[key] = (data as any)[key] as OnyxTypes.Policy;
+        if (isPolicyEntry(key)) {
+            policies[key] = data[key];
         }
     }
     return policies;
@@ -1438,9 +1457,8 @@ function getPoliciesFromData(data: OnyxTypes.SearchResults['data']): OnyxCollect
 function getTransactionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Transaction> {
     const transactions: Record<string, OnyxTypes.Transaction> = {};
     for (const key of Object.keys(data)) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            transactions[key] = (data as any)[key] as OnyxTypes.Transaction;
+        if (isTransactionEntry(key)) {
+            transactions[key] = data[key];
         }
     }
     return transactions;
@@ -1453,9 +1471,8 @@ function getTransactionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCol
 function getReportNameValuePairsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.ReportNameValuePairs> {
     const reportNameValuePairs: Record<string, OnyxTypes.ReportNameValuePairs> = {};
     for (const key of Object.keys(data)) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            reportNameValuePairs[key] = (data as any)[key] as OnyxTypes.ReportNameValuePairs;
+        if (isReportNameValuePairsEntry(key)) {
+            reportNameValuePairs[key] = data[key];
         }
     }
     return reportNameValuePairs;
@@ -1468,9 +1485,8 @@ function getReportNameValuePairsFromData(data: OnyxTypes.SearchResults['data']):
 function getReportActionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.ReportActions> {
     const reportActions: Record<string, OnyxTypes.ReportActions> = {};
     for (const key of Object.keys(data)) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            reportActions[key] = (data as any)[key] as OnyxTypes.ReportActions;
+        if (isReportActionEntry(key)) {
+            reportActions[key] = data[key];
         }
     }
     return reportActions;
