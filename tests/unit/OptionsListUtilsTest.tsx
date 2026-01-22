@@ -1275,7 +1275,7 @@ describe('OptionsListUtils', () => {
             const selectedPerson = PERSONAL_DETAILS['3'];
             const selectedReport = REPORTS['3'] as unknown as OptionData;
 
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, loginList, {
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, allPolicies, {}, nvpDismissedProductTraining, loginList, {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 selectedOptions: [selectedPerson, selectedReport],
             });
