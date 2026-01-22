@@ -5130,8 +5130,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     `Wählen Sie das ${integration}-Konto, in das die Transaktionen exportiert werden sollen. Wählen Sie eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.`,
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsanfangsdatum',
-                changeTransactionStartDateWarning:
-                    'Durch das Ändern des Startdatums werden alle nicht gemeldeten/entworfenen Berichtstransaktionen entfernt und alle Transaktionen ab dem neuen Startdatum erneut importiert. Dies kann zu doppelten Transaktionen führen.',
                 updateCard: 'Karte aktualisieren',
                 unassignCard: 'Karte zuweisen aufheben',
                 unassign: 'Zuweisung aufheben',

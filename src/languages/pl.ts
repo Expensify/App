@@ -5099,8 +5099,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     `Wybierz konto ${integration}, do którego mają być eksportowane transakcje. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data początkowa transakcji',
-                changeTransactionStartDateWarning:
-                    'Zmiana daty rozpoczęcia spowoduje usunięcie wszystkich nieraportowanych lub transakcji w wersji roboczej i ponowne zaimportowanie wszystkich transakcji od nowej daty rozpoczęcia. Może to spowodować duplikaty transakcji.',
                 updateCard: 'Zaktualizuj kartę',
                 unassignCard: 'Cofnij przypisanie karty',
                 unassign: 'Cofnij przypisanie',

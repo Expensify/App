@@ -69,7 +69,7 @@ function SubmitDetailsPage({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -158,7 +158,6 @@ function SubmitDetailsPage({
                 activePolicyID,
                 introSelected,
                 quickAction,
-                allBetas,
             });
         } else {
             requestMoney({
@@ -192,7 +191,6 @@ function SubmitDetailsPage({
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 transactionViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                allBetas,
                 quickAction,
             });
         }

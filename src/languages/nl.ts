@@ -5107,8 +5107,6 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd. Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.`,
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Startdatum transactie',
-                changeTransactionStartDateWarning:
-                    'Als u de startdatum wijzigt, worden alle niet-gerapporteerde/conceptrapporttransacties verwijderd en worden alle transacties vanaf de nieuwe startdatum opnieuw geïmporteerd. Dit kan dubbele transacties veroorzaken.',
                 updateCard: 'Kaart bijwerken',
                 unassignCard: 'Kaart ontkoppelen',
                 unassign: 'Toewijzen verwijderen',
