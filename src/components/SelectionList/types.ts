@@ -12,6 +12,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Component to render for each list item */
     ListItem: ValidListItem;
 
+    /** Key of the item to focus initially */
+    initiallyFocusedItemKey?: string;
+
     /** Called when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
@@ -106,9 +109,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Reference to the SelectionList component */
         ref?: React.Ref<SelectionListHandle<TItem>>;
-
-        /** Key of the item to focus initially */
-        initiallyFocusedItemKey?: string;
 
         /** Called when "Select All" button is pressed */
         onSelectAll?: () => void;

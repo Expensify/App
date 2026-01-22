@@ -192,7 +192,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
             (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index);
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        setHasKeyBeenPressed,
         isFocused,
         onArrowUpDownCallback,
     });
@@ -449,7 +449,7 @@ function BaseSelectionList<TItem extends ListItem>({
     );
 
     useSelectedItemFocusSync({
-        items: data,
+        data,
         initiallyFocusedItemKey,
         isItemSelected,
         focusedIndex,
@@ -459,7 +459,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     useSearchFocusSync({
         searchValue: textInputOptions?.value,
-        items: data,
+        data,
         selectedOptionsCount: dataDetails.selectedOptions.length,
         isItemSelected,
         canSelectMultiple,

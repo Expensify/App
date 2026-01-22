@@ -2,18 +2,18 @@ import {useEffect} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import usePrevious from '@hooks/usePrevious';
 
-type UseSearchFocusSyncParams<TItem extends ListItem> = {
+type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** The current search value from text input */
     searchValue: string | undefined;
 
     /** Array of items (filtered data) */
-    items: TItem[];
+    data: TData[];
 
     /** Count of currently selected options */
     selectedOptionsCount: number;
 
     /** Function to check if an item is selected */
-    isItemSelected: (item: TItem) => boolean;
+    isItemSelected: (item: TData) => boolean;
 
     /** Whether multiple items can be selected */
     canSelectMultiple: boolean;
@@ -35,19 +35,19 @@ type UseSearchFocusSyncParams<TItem extends ListItem> = {
  * - Scrolling to selected item when search is cleared
  * - Setting focus to first item when filtering
  */
-function useSearchFocusSync<TItem extends ListItem>({
+function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
     searchValue,
-    items,
+    data,
     selectedOptionsCount,
     isItemSelected,
     canSelectMultiple,
     shouldUpdateFocusedIndex,
     scrollToIndex,
     setFocusedIndex,
-}: UseSearchFocusSyncParams<TItem>) {
+}: UseSearchFocusSyncParams<TItem, TData>) {
     const prevSearchValue = usePrevious(searchValue);
     const prevSelectedOptionsCount = usePrevious(selectedOptionsCount);
-    const prevItemsLength = usePrevious(items.length);
+    const prevItemsLength = usePrevious(data.length);
 
     useEffect(() => {
         const searchChanged = prevSearchValue !== searchValue;
@@ -58,13 +58,13 @@ function useSearchFocusSync<TItem extends ListItem>({
         // 1. Input value is the same or
         // 2. Data length is 0 or
         // 3. Selection changed via user interaction (not filtering), so focus is handled externally
-        if ((!searchChanged && !selectedOptionsChanged) || items.length === 0 || selectionChangedByClicking) {
+        if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || selectionChangedByClicking) {
             return;
         }
 
         const hasSearchBeenCleared = prevSearchValue && !searchValue;
         if (hasSearchBeenCleared) {
-            const foundSelectedItemIndex = items.findIndex(isItemSelected);
+            const foundSelectedItemIndex = data.findIndex(isItemSelected);
 
             if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
                 scrollToIndex(foundSelectedItemIndex);
@@ -78,13 +78,13 @@ function useSearchFocusSync<TItem extends ListItem>({
         // 2. If the user is just toggling options without changing the list content
         // Otherwise (e.g. when filtering/typing), focus on the first item (0)
         const isSearchIdle = !prevSearchValue && !searchValue;
-        const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevItemsLength === items.length) ? -1 : 0;
+        const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevItemsLength === data.length) ? -1 : 0;
 
         scrollToIndex(newSelectedIndex);
         setFocusedIndex(newSelectedIndex);
     }, [
         canSelectMultiple,
-        items,
+        data,
         selectedOptionsCount,
         prevItemsLength,
         prevSelectedOptionsCount,

@@ -1,15 +1,15 @@
 import {useEffect, useMemo} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
-type UseSelectedItemFocusSyncParams<TItem extends ListItem> = {
+type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Array of items to search in */
-    items: TItem[];
+    data: TData[];
 
     /** Key of the item to focus initially */
     initiallyFocusedItemKey: string | null | undefined;
 
     /** Function to check if an item is selected */
-    isItemSelected: (item: TItem) => boolean;
+    isItemSelected: (item: TData) => boolean;
 
     /** Current focused index */
     focusedIndex: number;
@@ -25,15 +25,15 @@ type UseSelectedItemFocusSyncParams<TItem extends ListItem> = {
  * Custom hook that syncs the focused index with the selected item.
  * When the selected item changes (and no search is active), updates the focused index.
  */
-function useSelectedItemFocusSync<TItem extends ListItem>({
-    items,
+function useSelectedItemFocusSync<TItem extends ListItem, TData = TItem>({
+    data,
     initiallyFocusedItemKey,
     isItemSelected,
     focusedIndex,
     searchValue,
     setFocusedIndex,
-}: UseSelectedItemFocusSyncParams<TItem>) {
-    const selectedItemIndex = useMemo(() => (initiallyFocusedItemKey ? items.findIndex(isItemSelected) : -1), [items, initiallyFocusedItemKey, isItemSelected]);
+}: UseSelectedItemFocusSyncParams<TItem, TData>) {
+    const selectedItemIndex = useMemo(() => (initiallyFocusedItemKey ? data.findIndex(isItemSelected) : -1), [data, initiallyFocusedItemKey, isItemSelected]);
 
     useEffect(() => {
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || searchValue) {

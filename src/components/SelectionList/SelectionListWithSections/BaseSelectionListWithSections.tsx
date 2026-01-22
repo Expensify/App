@@ -1,12 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import Footer from '@components/SelectionList/components/Footer';
 import TextInput from '@components/SelectionList/components/TextInput';
+import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@components/SelectionList/hooks/useFlattenedSections';
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
@@ -24,51 +26,47 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {FlattenedItem, ListItem, SectionHeader, SectionListItem, SelectionListWithSectionsProps} from './types';
+import type {FlattenedItem, ListItem, SectionHeader, SelectionListWithSectionsProps} from './types';
 
-function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): 'header' | 'row' {
-    return item?.type ?? 'row';
-}
-
-function isItemSelected<TItem extends ListItem>(item: TItem): boolean {
-    return item?.isSelected ?? false;
+function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
+    return item?.type ?? CONST.SECTION_LIST_ITEM_TYPE.ROW;
 }
 
 function BaseSelectionListWithSections<TItem extends ListItem>({
     sections,
-    ListItem,
-    onSelectRow,
     ref,
-    canSelectMultiple = false,
-    initiallyFocusedOptionKey,
-    customHeaderContent,
-    footerContent,
-    showLoadingPlaceholder = false,
-    rightHandSideComponent,
-    shouldShowTooltips = true,
-    onDismissError,
-    shouldPreventDefaultFocusOnSelectRow = false,
-    shouldSingleExecuteRowSelect = false,
+    ListItem,
     textInputOptions,
-    isLoadingNewOptions,
-    shouldShowTextInput,
-    listEmptyContent,
-    showListEmptyContent = true,
-    shouldScrollToFocusedIndex = true,
-    shouldDebounceScrolling = false,
-    style,
+    initiallyFocusedItemKey,
+    onSelectRow,
+    onDismissError,
     onScrollBeginDrag,
-    addBottomSafeAreaPadding,
-    disableKeyboardShortcuts = false,
-    shouldStopPropagation = false,
     onEndReached,
     onEndReachedThreshold,
+    customHeaderContent,
+    rightHandSideComponent,
+    listEmptyContent,
+    footerContent,
+    style,
+    addBottomSafeAreaPadding,
+    isLoadingNewOptions,
+    canSelectMultiple = false,
+    showLoadingPlaceholder = false,
+    showListEmptyContent = true,
+    shouldShowTooltips = true,
+    disableKeyboardShortcuts = false,
     disableMaintainingScrollPosition = false,
-    shouldUpdateFocusedIndex = false,
+    shouldShowTextInput,
     shouldIgnoreFocus = false,
+    shouldStopPropagation = false,
+    shouldDebounceScrolling = false,
+    shouldUpdateFocusedIndex = false,
+    shouldScrollToFocusedIndex = true,
+    shouldSingleExecuteRowSelect = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
+    const isScreenFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
     const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
@@ -79,90 +77,41 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
 
-    const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
-    const hasFooter = !!footerContent;
+    const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
-    const {flattenedData, headerIndices, itemsOnly, selectedItems} = useMemo(() => {
-        const data: Array<FlattenedItem<TItem>> = [];
-        const selectedOptions: TItem[] = [];
-        const disabledArrowKeyIndexes: number[] = [];
-        const headers: number[] = [];
-        const items: Array<FlattenedItem<TItem>> = [];
-        let itemIndex = 0;
+    const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
 
-        for (const section of sections) {
-            if (section.title) {
-                headers.push(data.length);
-                data.push({
-                    type: 'header',
-                    title: section.title,
-                    keyForList: `header-${section.title}`,
-                    isDisabled: true,
-                });
-            }
-
-            for (const item of section.data ?? []) {
-                const itemWithIndex = {
-                    ...item,
-                    type: 'row',
-                    flatIndex: itemIndex,
-                } as SectionListItem<TItem>;
-                data.push(itemWithIndex);
-                items.push(itemWithIndex);
-
-                if (itemWithIndex.isSelected) {
-                    selectedOptions.push(itemWithIndex);
-                }
-
-                const isItemDisabled = section.isDisabled === true || (!!item?.isDisabled && !isItemSelected(item));
-                if (isItemDisabled) {
-                    disabledArrowKeyIndexes.push(itemIndex);
-                }
-
-                itemIndex++;
-            }
-        }
-
-        return {flattenedData: data, headerIndices: headers, itemsOnly: items, selectedItems: selectedOptions};
-    }, [sections]);
-
-    const initialFocusedIndex = useMemo(() => itemsOnly.findIndex((item) => item.keyForList === initiallyFocusedOptionKey), [itemsOnly, initiallyFocusedOptionKey]);
-
-    const setHasKeyBeenPressed = useCallback(() => {
+    const setHasKeyBeenPressed = () => {
         if (hasKeyBeenPressed.current) {
             return;
         }
         hasKeyBeenPressed.current = true;
-    }, []);
+    };
 
-    const scrollToIndex = useCallback(
-        (index: number) => {
-            // Bounds check: ensure index is valid for current data
-            if (index < 0 || index >= itemsOnly.length) {
-                return;
-            }
-            const item = itemsOnly.at(index);
-            if (!listRef.current || !item) {
-                return;
-            }
-            try {
-                listRef.current.scrollToIndex({index});
-            } catch (error) {
-                // FlashList may throw if layout for this index doesn't exist yet
-                // This can happen when data changes rapidly (e.g., during search filtering)
-                // The layout will be computed on next render, so we can safely ignore this
-            }
-        },
-        [itemsOnly],
-    );
+    const scrollToIndex = (index: number) => {
+        if (index < 0 || index >= flattenedData.length) {
+            return;
+        }
+        const item = flattenedData.at(index);
+        if (!listRef.current || !item || getItemType(item) === CONST.SECTION_LIST_ITEM_TYPE.HEADER) {
+            return;
+        }
+        try {
+            listRef.current.scrollToIndex({index});
+        } catch (error) {
+            // FlashList may throw if layout for this index doesn't exist yet
+            // This can happen when data changes rapidly (e.g., during search filtering)
+            // The layout will be computed on next render, so we can safely ignore this
+        }
+    };
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
-        maxIndex: itemsOnly.length - 1,
-        disabledIndexes: headerIndices,
-        isActive: isFocused,
+        maxIndex: flattenedData.length - 1,
+        disabledIndexes,
+        isActive: isScreenFocused,
         onFocusedIndexChange: (index: number) => {
             if (!shouldScrollToFocusedIndex) {
                 return;
@@ -170,45 +119,40 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
             (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index);
         },
-        // eslint-disable-next-line react-hooks/refs
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
-        isFocused,
+        setHasKeyBeenPressed,
+        isFocused: isScreenFocused,
     });
 
-    const focusedItem = useMemo(() => {
+    const getFocusedItem = (): TItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
             return;
         }
         const item = flattenedData.at(focusedIndex);
-        if (!item || (item.isDisabled && !isItemSelected(item))) {
+        if (!item || shouldTreatItemAsDisabled(item)) {
             return;
         }
         return item as TItem;
-    }, [flattenedData, focusedIndex]);
+    };
 
-    const selectRow = useCallback(
-        (item: TItem, indexToFocus?: number) => {
-            if (!isFocused) {
-                return;
-            }
-            if (canSelectMultiple) {
-                if (shouldShowTextInput) {
-                    textInputOptions?.onChangeText?.('');
-                }
-            }
-            if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-                setFocusedIndex(indexToFocus);
-            }
-            onSelectRow(item);
+    const selectRow = (item: TItem, indexToFocus?: number) => {
+        if (!isScreenFocused) {
+            return;
+        }
+        if (canSelectMultiple && shouldShowTextInput) {
+            textInputOptions?.onChangeText?.('');
+        }
+        if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+            setFocusedIndex(indexToFocus);
+        }
+        onSelectRow(item);
 
-            if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
-                innerTextInputRef.current.focus();
-            }
-        },
-        [isFocused, canSelectMultiple, shouldUpdateFocusedIndex, onSelectRow, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow, textInputOptions, setFocusedIndex],
-    );
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+            innerTextInputRef.current.focus();
+        }
+    };
 
     const selectFocusedItem = () => {
+        const focusedItem = getFocusedItem();
         if (!focusedItem) {
             return;
         }
@@ -232,21 +176,21 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER || CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectFocusedItem, {
         captureOnInputs: true,
-        shouldBubble: !focusedItem,
+        shouldBubble: !getFocusedItem(),
         shouldStopPropagation,
-        isActive: !disableKeyboardShortcuts && isFocused && focusedIndex >= 0 && !disableEnterShortcut,
+        isActive: !disableKeyboardShortcuts && isScreenFocused && focusedIndex >= 0 && !disableEnterShortcut,
     });
 
-    const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
+    const textInputKeyPress = (event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             focusedItemRef?.focus();
         }
-    }, []);
+    };
 
     useSelectedItemFocusSync({
-        items: itemsOnly,
-        initiallyFocusedItemKey: initiallyFocusedOptionKey,
+        data: flattenedData,
+        initiallyFocusedItemKey,
         isItemSelected,
         focusedIndex,
         searchValue: textInputOptions?.value,
@@ -255,7 +199,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     useSearchFocusSync({
         searchValue: textInputOptions?.value,
-        items: itemsOnly,
+        data: flattenedData,
         selectedOptionsCount: selectedItems.length,
         isItemSelected,
         canSelectMultiple,
@@ -265,6 +209,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     });
 
     const textInputComponent = () => {
+        if (!shouldShowTextInput) {
+            return null;
+        }
         return (
             <TextInput
                 ref={innerTextInputRef}
@@ -292,74 +239,56 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
     };
 
-    const renderItem = useCallback(
-        ({item, index}: ListRenderItemInfo<FlattenedItem<TItem>>) => {
-            if (!item) {
-                return null;
-            }
-            if (getItemType(item) === 'header') {
+    const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<TItem>>) => {
+        if (!item) {
+            return null;
+        }
+
+        switch (getItemType(item)) {
+            case CONST.SECTION_LIST_ITEM_TYPE.HEADER:
                 return (
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{(item as SectionHeader).title}</Text>
                     </View>
                 );
+            case CONST.SECTION_LIST_ITEM_TYPE.ROW: {
+                const isItemFocused = index === focusedIndex;
+                const isDisabled = !!item.isDisabled;
+
+                return (
+                    <ListItemRenderer
+                        ListItem={ListItem}
+                        selectRow={selectRow}
+                        showTooltip={shouldShowTooltips}
+                        item={item as TItem}
+                        index={index}
+                        normalizedIndex={index}
+                        isFocused={isItemFocused}
+                        isDisabled={isDisabled}
+                        canSelectMultiple={canSelectMultiple}
+                        shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                        onDismissError={onDismissError}
+                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                        rightHandSideComponent={rightHandSideComponent}
+                        setFocusedIndex={setFocusedIndex}
+                        singleExecution={singleExecution}
+                        shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                        shouldHighlightSelectedItem
+                        shouldIgnoreFocus={shouldIgnoreFocus}
+                        wrapperStyle={style?.listItemWrapperStyle}
+                        titleStyles={style?.listItemTitleStyles}
+                    />
+                );
             }
-
-            const flatIndex = (item as SectionListItem<TItem>).flatIndex ?? index;
-            const isItemFocused = flatIndex === focusedIndex;
-            const isDisabled = !!item.isDisabled;
-
-            return (
-                <ListItemRenderer
-                    ListItem={ListItem}
-                    selectRow={selectRow}
-                    showTooltip={shouldShowTooltips}
-                    item={item as TItem}
-                    index={index}
-                    normalizedIndex={flatIndex}
-                    isFocused={isItemFocused}
-                    isDisabled={isDisabled}
-                    canSelectMultiple={canSelectMultiple}
-                    shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                    onDismissError={onDismissError}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    rightHandSideComponent={rightHandSideComponent}
-                    setFocusedIndex={setFocusedIndex}
-                    singleExecution={singleExecution}
-                    shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                    shouldHighlightSelectedItem
-                    shouldIgnoreFocus={shouldIgnoreFocus}
-                    wrapperStyle={style?.listItemWrapperStyle}
-                    titleStyles={style?.listItemTitleStyles}
-                />
-            );
-        },
-        [
-            focusedIndex,
-            ListItem,
-            selectRow,
-            shouldShowTooltips,
-            canSelectMultiple,
-            shouldSingleExecuteRowSelect,
-            onDismissError,
-            shouldPreventDefaultFocusOnSelectRow,
-            rightHandSideComponent,
-            setFocusedIndex,
-            singleExecution,
-            shouldIgnoreFocus,
-            style?.listItemWrapperStyle,
-            style?.listItemTitleStyles,
-            styles.optionsListSectionHeader,
-            styles.justifyContentCenter,
-            styles.ph5,
-            styles.textLabelSupporting,
-        ],
-    );
+            default:
+                return null;
+        }
+    };
 
     return (
-        <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
+        <View style={[styles.flex1, addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent()}
-            {itemsOnly.length === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
+            {itemsCount === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
@@ -368,7 +297,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         data={flattenedData}
                         renderItem={renderItem}
                         ref={listRef}
-                        extraData={itemsOnly.length}
+                        extraData={flattenedData.length}
                         getItemType={getItemType}
                         initialScrollIndex={initialFocusedIndex}
                         keyExtractor={(item) => item.keyForList}
@@ -384,10 +313,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     />
                 </>
             )}
-            <Footer<TItem>
-                footerContent={footerContent}
-                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            />
+            {!!footerContent && (
+                <Footer<TItem>
+                    footerContent={footerContent}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                />
+            )}
         </View>
     );
 }

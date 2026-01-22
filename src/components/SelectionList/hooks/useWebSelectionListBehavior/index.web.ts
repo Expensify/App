@@ -2,25 +2,7 @@ import {useEffect, useState} from 'react';
 import {isMobileChrome} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-
-type UseWebSelectionListBehaviorOptions = {
-    /** Whether to track hover style state (only used by flat SelectionList) */
-    shouldTrackHoverStyle?: boolean;
-};
-
-type UseWebSelectionListBehaviorResult = {
-    /** Whether the current focus should be ignored (touch event on mobile chrome) */
-    shouldIgnoreFocus: boolean;
-
-    /** Whether scrolling should be debounced (during keyboard navigation) */
-    shouldDebounceScrolling: boolean;
-
-    /** Whether hover style should be disabled (only when shouldTrackHoverStyle is true) */
-    shouldDisableHoverStyle: boolean;
-
-    /** Setter for hover style state (only when shouldTrackHoverStyle is true) */
-    setShouldDisableHoverStyle: React.Dispatch<React.SetStateAction<boolean>>;
-};
+import type {UseWebSelectionListBehaviorOptions, UseWebSelectionListBehaviorResult} from './types';
 
 /**
  * Custom hook that handles common web-specific behaviors for SelectionList components:

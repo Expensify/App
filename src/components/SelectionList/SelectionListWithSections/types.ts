@@ -24,9 +24,6 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Array of sections to display in the list */
     sections: Array<Section<TItem>>;
 
-    /** Key of the item to focus initially */
-    initiallyFocusedOptionKey?: string | null;
-
     /** Custom content to display in the header */
     customHeaderContent?: ReactNode;
 };
