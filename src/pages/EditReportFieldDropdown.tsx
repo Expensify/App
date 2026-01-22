@@ -1,9 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -74,16 +73,21 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     }, [fieldOptions, localeCompare, debouncedSearchValue, fieldValue, recentlyUsedOptions, translate]);
 
     const selectedOptionKey = useMemo(() => (sections.at(0)?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
+
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+        headerMessage,
+    };
+
     return (
         <SelectionList
-            textInputValue={searchValue}
-            textInputLabel={translate('common.search')}
             sections={sections ?? []}
-            onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            onChangeText={setSearchValue}
-            headerMessage={headerMessage}
             ListItem={RadioListItem}
+            textInputOptions={textInputOptions}
+            onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
+            initiallyFocusedItemKey={selectedOptionKey}
             rightHandSideComponent={itemRightSideComponent}
         />
     );

@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
-    return {...option, reportID: `${option.reportID}`, selected: true};
+    return {...option, reportID: `${option.reportID}`, selected: true, keyForList: `${option.reportID}`};
 }
 
 const optionsMatch = (opt1: Option, opt2: Option) => {
