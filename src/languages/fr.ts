@@ -5046,6 +5046,25 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     subtitle: 'Utilisez Expensify Travel pour obtenir les meilleures offres de voyage et gérez toutes vos dépenses professionnelles en un seul endroit.',
                     ctaText: 'Réserver ou gérer',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Réservation de voyage',
+                        subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer les déplacements sur cet espace de travail.',
+                        manageTravelLabel: 'Gérer les déplacements',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Facturation centralisée',
+                        subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle plutôt que de payer au moment de l’achat.',
+                        learnHow: 'Découvrez comment.',
+                        subsections: {
+                            currentTravelSpendLabel: 'Dépenses de voyage actuelles',
+                            currentTravelSpendCta: 'Payer le solde',
+                            currentTravelLimitLabel: 'Limite de déplacement actuelle',
+                            settlementAccountLabel: 'Compte de règlement',
+                            settlementFrequencyLabel: 'Fréquence de règlement',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Carte Expensify',

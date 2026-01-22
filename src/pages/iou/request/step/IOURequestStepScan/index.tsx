@@ -92,6 +92,7 @@ function IOURequestStepScan({
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -352,6 +353,7 @@ function IOURequestStepScan({
                 locationPermissionGranted,
                 receiverPolicy,
                 chatReceiverPolicy,
+                allBetas,
             });
         },
         [
@@ -386,6 +388,7 @@ function IOURequestStepScan({
             activePolicyID,
             receiverPolicy,
             chatReceiverPolicy,
+            allBetas,
         ],
     );
 

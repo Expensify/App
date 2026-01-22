@@ -5039,6 +5039,25 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     subtitle: 'Nutzen Sie Expensify Travel für die besten Reiseangebote und verwalten Sie alle Ihre Geschäftsausgaben an einem Ort.',
                     ctaText: 'Buchen oder verwalten',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Reisebuchung',
+                        subtitle: 'Glückwunsch! Du kannst jetzt in diesem Workspace Reisen buchen und verwalten.',
+                        manageTravelLabel: 'Reisen verwalten',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Zentrale Rechnungsstellung',
+                        subtitle: 'Zentralisieren Sie alle Reisekosten in einer monatlichen Rechnung, anstatt zum Zeitpunkt des Kaufs zu bezahlen.',
+                        learnHow: "So funktioniert's.",
+                        subsections: {
+                            currentTravelSpendLabel: 'Aktuelle Reisekosten',
+                            currentTravelSpendCta: 'Saldo bezahlen',
+                            currentTravelLimitLabel: 'Aktuelles Reiselimit',
+                            settlementAccountLabel: 'Ausgleichskonto',
+                            settlementFrequencyLabel: 'Abrechnungshäufigkeit',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',

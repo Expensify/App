@@ -4694,6 +4694,25 @@ ${amount} para ${merchant} - ${date}`,
                     subtitle: 'Usa Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de empresa en un solo lugar.',
                     ctaText: 'Reservar o gestionar',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Reserva de viajes',
+                        subtitle: '¡Felicidades! Todo está listo para reservar y gestionar viajes en este espacio de trabajo.',
+                        manageTravelLabel: 'Gestionar viajes',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Facturación centralizada',
+                        subtitle: 'Centraliza todos los gastos de viaje en una factura mensual en lugar de pagar en el momento de la compra.',
+                        learnHow: 'Aprende cómo.',
+                        subsections: {
+                            currentTravelSpendLabel: 'Gasto actual en viajes',
+                            currentTravelSpendCta: 'Pagar saldo',
+                            currentTravelLimitLabel: 'Límite actual de viajes',
+                            settlementAccountLabel: 'Cuenta de liquidación',
+                            settlementFrequencyLabel: 'Frecuencia de liquidación',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
