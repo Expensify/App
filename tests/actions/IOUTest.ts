@@ -2362,6 +2362,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 policyRecentlyUsedCurrencies: [],
                 selfTourViewed: true,
+                allBetas: [CONST.BETAS.ALL],
                 quickAction: undefined,
             });
             // Verify that the iouReport is created successfully when selfTourViewed is true
