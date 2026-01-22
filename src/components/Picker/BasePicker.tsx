@@ -159,6 +159,10 @@ function BasePicker<TPickerValue>({
 
     const hasError = !!errorText;
 
+    const currentOS = getOperatingSystem();
+    const isMobileOS = currentOS === CONST.OS.IOS || currentOS === CONST.OS.ANDROID;
+    const pickerTabIndex = isMobileOS ? -1 : 0;
+
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
@@ -207,7 +211,7 @@ function BasePicker<TPickerValue>({
                     }}
                     pickerProps={{
                         ref: picker,
-                        tabIndex: -1,
+                        tabIndex: pickerTabIndex,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
