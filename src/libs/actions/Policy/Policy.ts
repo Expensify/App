@@ -1725,7 +1725,7 @@ function updateGeneralSettings(policyID: string | undefined, name: string, curre
 
     const createWorkspaceRequest = persistedRequests.at(createWorkspaceRequestChangedIndex);
     if (createWorkspaceRequest && createWorkspaceRequestChangedIndex !== -1) {
-        const workspaceRequest: Request = {
+        const workspaceRequest: Request<any> = {
             ...createWorkspaceRequest,
             data: {
                 ...createWorkspaceRequest.data,

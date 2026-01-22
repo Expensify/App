@@ -32,11 +32,11 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
         };
 
         if (requestsToIgnoreLastUpdateID.has(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})) {
-            return OnyxUpdates.apply(responseToApply);
+            return OnyxUpdates.apply(responseToApply as any);
         }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
-        OnyxUpdates.saveUpdateInformation(responseToApply);
+        OnyxUpdates.saveUpdateInformation(responseToApply as any);
 
         // Ensure the queue is paused while the client resolves the gap in onyx updates so that updates are guaranteed to happen in a specific order.
         return Promise.resolve({

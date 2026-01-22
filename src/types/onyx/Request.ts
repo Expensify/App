@@ -74,12 +74,12 @@ type RequestData<TKey extends OnyxKey> = {
 /**
  * Represents the possible actions to take in case of a conflict in the request queue.
  */
-type ConflictData<TKey extends OnyxKey> = ConflictRequestReplace<TKey> | ConflictRequestDelete | ConflictRequestPush | ConflictRequestNoAction;
+type ConflictData<TKey extends OnyxKey | undefined> = ConflictRequestReplace<TKey> | ConflictRequestDelete<TKey> | ConflictRequestPush | ConflictRequestNoAction;
 
 /**
  * Model of a conflict request that has to be replaced in the request queue.
  */
-type ConflictRequestReplace<TKey extends OnyxKey> = {
+type ConflictRequestReplace<TKey extends OnyxKey | undefined> = {
     /**
      * The action to take in case of a conflict.
      */
@@ -93,13 +93,13 @@ type ConflictRequestReplace<TKey extends OnyxKey> = {
     /**
      * The new request to replace the existing request in the queue.
      */
-    request?: Request<TKey>;
+    request?: Request<TKey extends OnyxKey ? TKey : any>;
 };
 
 /**
  * Model of a conflict request that needs to be deleted from the request queue.
  */
-type ConflictRequestDelete = {
+type ConflictRequestDelete<TKey extends OnyxKey | undefined> = {
     /**
      * The action to take in case of a conflict.
      */
@@ -118,7 +118,7 @@ type ConflictRequestDelete = {
     /**
      * The next action to execute after the current conflict is resolved.
      */
-    nextAction?: ConflictData;
+    nextAction?: ConflictData<TKey>;
 };
 
 /**
@@ -144,11 +144,11 @@ type ConflictRequestNoAction = {
 /**
  * An object that has the request and the action to take in case of a conflict.
  */
-type ConflictActionData = {
+type ConflictActionData<TKey extends OnyxKey | undefined> = {
     /**
      * The action to take in case of a conflict.
      */
-    conflictAction: ConflictData;
+    conflictAction: ConflictData<TKey>;
 };
 
 /**
@@ -159,7 +159,7 @@ type RequestConflictResolver<TKey extends OnyxKey> = {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?: (persistedRequest: Request<TKey>[]) => ConflictActionData;
+    checkAndFixConflictingRequest?: (persistedRequest: Array<Request<TKey>>) => ConflictActionData<TKey>;
 
     /**
      * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads

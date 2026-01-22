@@ -1,3 +1,4 @@
+import {OnyxKey} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {showSupportalPermissionDenied} from '@userActions/App';
@@ -9,7 +10,7 @@ import type Middleware from './types';
  * Middleware that detects when a support token attempts an unauthorized command
  * and triggers a global modal while preventing retries for that request.
  */
-const SupportalPermission: Middleware = (responsePromise: Promise<Response | void>, request: Request) =>
+const SupportalPermission: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response | void>, request: Request<TKey>) =>
     responsePromise.then((response) => {
         const message = response?.message;
         const isUnauthorizedSupportalAction =

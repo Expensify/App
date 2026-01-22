@@ -1,25 +1,26 @@
 import {processWithMiddleware} from '@libs/Request';
 import type OnyxRequest from '@src/types/onyx/Request';
+import type { OnyxKey } from 'react-native-onyx';
 import {isAuthenticating, isOffline} from './NetworkStore';
 import {isRunning as sequentialQueueIsRunning} from './SequentialQueue';
 
 // Queue for network requests so we don't lose actions done by the user while offline
-let networkRequestQueue: OnyxRequest[] = [];
+let networkRequestQueue: Array<OnyxRequest<any>> = [];
 
 /**
  * Checks to see if a request can be made.
  */
-function canMakeRequest(request: OnyxRequest): boolean {
+function canMakeRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>): boolean {
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, BeginSignIn)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
     return request.data?.forceNetworkRequest === true || (!isAuthenticating() && !sequentialQueueIsRunning());
 }
 
-function push(request: OnyxRequest) {
+function push<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
     networkRequestQueue.push(request);
 }
 
-function replay(request: OnyxRequest) {
+function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
     push(request);
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -43,7 +44,7 @@ function process() {
     // - we are in the process of authenticating and the request is retryable (most are)
     // - the request does not have forceNetworkRequest === true (this will trigger it to process immediately)
     // - the request does not have shouldRetry === false (specified when we do not want to retry, defaults to true)
-    const requestsToProcessOnNextRun: OnyxRequest[] = [];
+    const requestsToProcessOnNextRun: Array<OnyxRequest<>> = [];
 
     for (const queuedRequest of networkRequestQueue) {
         // Check if we can make this request at all and if we can't see if we should save it for the next run or chuck it into the ether
@@ -73,7 +74,7 @@ function clear() {
     networkRequestQueue = networkRequestQueue.filter((request) => !request.data?.canCancel);
 }
 
-function getAll(): OnyxRequest[] {
+function getAll(): Array<OnyxRequest<any>> {
     return networkRequestQueue;
 }
 

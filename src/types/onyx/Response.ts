@@ -10,7 +10,7 @@ type Data = {
 };
 
 /** Model of server response */
-type Response = {
+type Response<TKey extends OnyxKey = OnyxKey> = {
     /** ID of the next update that needs to be fetched from the server */
     previousUpdateID?: number | string;
 
@@ -21,7 +21,7 @@ type Response = {
     jsonCode?: number | string;
 
     /** Collection of onyx updates (SET/MERGE/...) */
-    onyxData?: Array<OnyxUpdate<OnyxKey>>;
+    onyxData?: Array<OnyxUpdate<TKey>>;
 
     /** ID of the request that triggered this response */
     requestID?: string;

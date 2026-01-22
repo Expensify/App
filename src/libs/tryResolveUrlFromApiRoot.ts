@@ -29,7 +29,7 @@ function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType | ReceiptSou
     if (typeof url !== 'string') {
         return url;
     }
-    const apiRoot = getApiRoot({shouldUseSecure: false} as Request);
+    const apiRoot = getApiRoot({shouldUseSecure: false} as Request<any>);
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
 

@@ -357,7 +357,7 @@ describe('AvatarUtils', () => {
             const encodedImageFileName = encodeURIComponent(imageFileName);
             const absoluteEncodedImageFilePath = `/${encodedImageFileName}`;
 
-            const apiRoot = getApiRoot({shouldUseSecure: false} as Request);
+            const apiRoot = getApiRoot({shouldUseSecure: false} as Request<any>);
             const prodImageFileUrl = `${apiRoot}${imageFileName}`;
             const encodedProdImageFileUrl = `${apiRoot}${encodedImageFileName}`;
 

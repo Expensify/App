@@ -1,5 +1,5 @@
 import fastMerge from 'expensify-common/dist/fastMerge';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
@@ -66,7 +66,7 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     });
 }
 
-function isPaginatedRequest(request: Request | PaginatedRequest): request is PaginatedRequest {
+function isPaginatedRequest<TKey extends OnyxKey>(request: Request<TKey> | PaginatedRequest<TKey>): request is PaginatedRequest<TKey> {
     return 'isPaginated' in request && request.isPaginated;
 }
 

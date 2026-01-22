@@ -143,6 +143,14 @@ function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: 
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  */
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response>;
+
+function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData<TKey>,
+    conflictResolver?: RequestConflictResolver<TKey>,
+): Promise<void | Response>;
 
 function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
@@ -166,7 +174,7 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
     requestMatcher: RequestMatcher<TKey> = (request) => request.command === command,
 ): Promise<void | Response> {
     const conflictResolver = {
-        checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveDuplicationConflictAction(persistedRequests, requestMatcher),
+        checkAndFixConflictingRequest: (persistedRequests: Array<OnyxRequest<TKey>>) => resolveDuplicationConflictAction(persistedRequests, requestMatcher),
     };
 
     return write(command, apiCommandParameters, onyxData, conflictResolver);
@@ -182,7 +190,7 @@ function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePoli
     onyxData: OnyxData<TKey> = {},
 ): Promise<void | Response> {
     const conflictResolver = {
-        checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveEnableFeatureConflicts(command, persistedRequests, apiCommandParameters),
+        checkAndFixConflictingRequest: (persistedRequests: Array<OnyxRequest<TKey>>) => resolveEnableFeatureConflicts(command, persistedRequests, apiCommandParameters),
     };
 
     return write(command, apiCommandParameters, onyxData, conflictResolver);
@@ -222,11 +230,11 @@ function waitForWrites<TCommand extends ReadCommand | WriteCommand | SideEffectR
 /**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  */
-function read<TCommand extends ReadCommand, TKey extends OnyxKey>(
-    command: TCommand,
-    apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<TKey> = {} as OnyxData<TKey>,
-): void {
+function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): void;
+
+function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData<TKey>): void;
+
+function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData<TKey> = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
 
     // Apply optimistic updates of read requests immediately
@@ -261,7 +269,7 @@ function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE, TCom
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey>,
     config: PaginationConfig,
-    conflictResolver?: RequestConflictResolver,
+    conflictResolver?: RequestConflictResolver<TKey>,
 ): void;
 function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TKey extends OnyxKey>(
     type: TRequestType,

@@ -1,4 +1,4 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxKey} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -36,7 +36,7 @@ getEnvironment().then((envName) => {
  * Get the currently used API endpoint, unless forceProduction is set to true
  * (Non-production environments allow for dynamically switching the API)
  */
-function getApiRoot(request?: Request, forceProduction = false): string {
+function getApiRoot<TKey extends OnyxKey>(request?: Request<TKey>, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
 
     if (shouldUseStagingServer && forceProduction !== true) {
@@ -55,7 +55,7 @@ function getApiRoot(request?: Request, forceProduction = false): string {
  * Get the command url for the given request
  * @param - the name of the API command
  */
-function getCommandURL(request: Request): string {
+function getCommandURL<TKey extends OnyxKey>(request: Request<TKey>): string {
     // If request.command already contains ? then we don't need to append it
     return `${getApiRoot(request)}api/${request.command}${request.command.includes('?') ? '' : '?'}`;
 }

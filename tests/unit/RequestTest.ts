@@ -12,7 +12,7 @@ beforeEach(() => {
     Request.clearMiddlewares();
 });
 
-const request: OnyxTypes.Request = {
+const request: OnyxTypes.Request<any> = {
     command: 'MockCommand',
     data: {authToken: 'testToken'},
 };

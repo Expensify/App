@@ -1,31 +1,32 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
 import Pusher from './Pusher';
 import type {PingPongEvent} from './Pusher/types';
 
-type Callback = (data: OnyxUpdate[]) => Promise<void>;
+type Callback<TKey extends OnyxKey> = (data: Array<OnyxServerUpdate<TKey>>) => Promise<void>;
 
 // Keeps track of all the callbacks that need triggered for each event type
-const multiEventCallbackMapping: Record<string, Callback> = {};
+const multiEventCallbackMapping: Record<string, Callback<any>> = {};
 
 function getUserChannelName(accountID: string) {
     return `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}` as const;
 }
 
-function subscribeToMultiEvent(eventType: string, callback: Callback) {
+function subscribeToMultiEvent<TKey extends OnyxKey>(eventType: string, callback: Callback<TKey>) {
     multiEventCallbackMapping[eventType] = callback;
 }
 
-function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promise<void> {
+function triggerMultiEventHandler<TKey extends OnyxKey>(eventType: string, data: Array<OnyxServerUpdate<TKey>>): Promise<void> {
     if (!multiEventCallbackMapping[eventType]) {
         Log.warn('[PusherUtils] Received unexpected multi-event', {eventType});
         return Promise.resolve();
     }
-    return multiEventCallbackMapping[eventType](data);
+    return (multiEventCallbackMapping[eventType] as Callback<TKey>)(data);
 }
 
 /**

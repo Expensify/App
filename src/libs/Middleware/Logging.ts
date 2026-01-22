@@ -1,3 +1,4 @@
+import {OnyxKey} from 'react-native-onyx';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
@@ -34,7 +35,7 @@ function serializeLoggingData<T extends Record<string, unknown> | undefined>(log
     }
 }
 
-function logRequestDetails(message: string, request: Request, response?: Response | void) {
+function logRequestDetails<TKey extends OnyxKey>(message: string, request: Request<TKey>, response?: Response | void) {
     // Don't log about log or else we'd cause an infinite loop
     if (request.command === 'Log') {
         return;

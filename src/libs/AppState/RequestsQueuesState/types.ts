@@ -11,7 +11,7 @@ type MainQueueInfo = {
     queuedCommands?: string[];
 };
 
-type OngoingRequestInfo = Pick<Request, 'command' | 'persistWhenOngoing' | 'isRollback'>;
+type OngoingRequestInfo = Pick<Request<any>, 'command' | 'persistWhenOngoing' | 'isRollback'>;
 
 /**
  * Persisted requests state
