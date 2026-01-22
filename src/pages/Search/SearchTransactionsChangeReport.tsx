@@ -35,6 +35,7 @@ function SearchTransactionsChangeReport() {
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -80,6 +81,7 @@ function SearchTransactionsChangeReport() {
             changeTransactionsReport({
                 transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
+                allSnapshots,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
                 newReport: optimisticReport,
@@ -125,6 +127,7 @@ function SearchTransactionsChangeReport() {
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
             newReport: destinationReport,
+            allSnapshots,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -145,6 +148,7 @@ function SearchTransactionsChangeReport() {
         changeTransactionsReport({
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
+            allSnapshots,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
             allTransactions,

@@ -124,6 +124,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                allSnapshots: {},
                 newReport: report,
                 allTransactions,
             });
@@ -172,6 +173,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
+                allSnapshots: {},
                 allTransactions,
             });
             await waitForBatchedUpdates();
@@ -233,6 +235,7 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
+                allSnapshots: {},
                 reportNextStep: mockReportNextStep,
                 allTransactions,
             });
@@ -297,6 +300,7 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
+                allSnapshots: {},
                 reportNextStep: mockReportNextStep,
                 allTransactions,
             });
@@ -349,6 +353,7 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
+                allSnapshots: {},
                 reportNextStep: undefined,
                 allTransactions,
             });
@@ -412,6 +417,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                allSnapshots: {},
                 newReport: report,
                 allTransactions,
             });
@@ -468,6 +474,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
+                allSnapshots: {},
                 allTransactions,
             });
             await waitForBatchedUpdates();
@@ -519,6 +526,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: customAccountID,
                 email: customEmail,
+                allSnapshots: {},
                 newReport: report,
                 allTransactions,
             });
@@ -578,6 +586,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: expenseReport,
+                allSnapshots: {},
                 allTransactions,
             });
             await waitForBatchedUpdates();
@@ -635,6 +644,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                allSnapshots: {},
                 newReport: expenseReport,
                 allTransactions,
             });
@@ -700,6 +710,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                allSnapshots: {},
                 newReport: newExpenseReport,
                 allTransactions,
             });
@@ -765,6 +776,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: newExpenseReport,
+                allSnapshots: {},
                 allTransactions,
             });
             await waitForBatchedUpdates();
@@ -792,7 +804,7 @@ describe('Transaction', () => {
                 ...generateTransaction({
                     reportID: oldExpenseReport.reportID,
                 }),
-                amount: -100,
+                amount: -200,
                 reimbursable: false,
             };
             const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
@@ -821,6 +833,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                allSnapshots: {},
                 newReport: fakeReport,
                 allTransactions,
             });
@@ -840,7 +853,7 @@ describe('Transaction', () => {
             expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal - transaction.amount);
         });
 
-        it('should not update the old report total when the currency is different', async () => {
+        it('should reset the old report total to 0 when no expenses remain, even if the currencies differ', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -880,6 +893,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                allSnapshots: {},
                 newReport: fakeReport,
                 allTransactions,
             });
@@ -895,8 +909,8 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
         });
 
         it('should show "waiting for you to submit expense" next step message when moving expense to a new report ', async () => {
@@ -932,6 +946,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@gmail.com',
                 newReport: newOpenReport,
+                allSnapshots: {},
                 policy,
                 reportNextStep: undefined,
                 policyCategories,

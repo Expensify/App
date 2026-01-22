@@ -44,6 +44,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const session = useSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
 
@@ -69,6 +70,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
+                allSnapshots,
                 newReport,
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
@@ -89,6 +91,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         changeTransactionsReport({
             transactionIDs: selectedTransactionIDs,
             isASAPSubmitBetaEnabled,
+            allSnapshots,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
             allTransactions,
