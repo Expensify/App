@@ -81,6 +81,7 @@ function ProcessMoneyReportHoldMenu({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (full: boolean) => {
@@ -101,13 +102,14 @@ function ProcessMoneyReportHoldMenu({
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 moneyRequestReportNextStep,
+                allBetas,
                 full,
             );
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, moneyRequestReportNextStep, undefined, full, activePolicy, policy);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, moneyRequestReportNextStep, allBetas, undefined, full, activePolicy, policy);
         }
         onClose();
     };
