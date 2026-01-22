@@ -1,17 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, Section} from '@components/SelectionListWithSections/types';
@@ -20,7 +18,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +35,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearShareBankAccount, clearShareBankAccountErrors, getBankAccountFromID, shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccountErrors, getBankAccountFromID, shareBankAccount} from '@userActions/BankAccounts';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import {navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -46,6 +44,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import WorkspaceWorkflowsPayerSuccessPage from './WorkspaceWorkflowsPayerSuccessPage';
 
 type WorkspaceWorkflowsPayerPageOnyxProps = {
     /** All the personal details for everyone */
@@ -73,7 +72,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
     const isLoading = sharedBankAccountData?.isLoading ?? false;
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
     const [showShareModal, setShowShareModal] = useState<boolean>(false);
@@ -84,22 +82,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const ownerDetails = policy?.owner ? getPersonalDetailByEmail(policy?.owner) : undefined;
     const accountID = selectedPayer ? policyMemberEmailsToAccountIDs?.[selectedPayer] : '';
     const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
-
-    useEffect(() => {
-        if (!shouldShowSuccess || !policy?.id) {
-            return;
-        }
-        setWorkspacePayer(policy?.id, authorizedPayerEmail);
-    }, [authorizedPayerEmail, policy?.id, shouldShowSuccess]);
-
-    useEffect(() => {
-        return () => {
-            if (!shouldShowSuccess) {
-                return;
-            }
-            clearShareBankAccount();
-        };
-    }, [shouldShowSuccess]);
 
     const isDeletedPolicyEmployee = (policyEmployee: PolicyEmployee) =>
         !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
@@ -267,20 +249,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         subtitle={policyName}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {shouldShowSuccess ? (
-                        <ScrollView contentContainerStyle={styles.flexGrow1}>
-                            <ConfirmationPage
-                                heading={translate('walletPage.shareBankAccountSuccess')}
-                                description={translate('walletPage.shareBankAccountSuccessDescription')}
-                                illustration={illustrations.ShareBank}
-                                shouldShowButton
-                                descriptionStyle={[styles.ph4, styles.textSupporting]}
-                                illustrationStyle={styles.successBankSharedCardIllustration}
-                                onButtonPress={onButtonPress}
-                                buttonText={translate('common.buttonConfirm')}
-                                containerStyle={styles.h100}
-                            />
-                        </ScrollView>
+                    {shouldShowSuccess && selectedPayer ? (
+                        <WorkspaceWorkflowsPayerSuccessPage
+                            policyID={policy?.id}
+                            selectedPayer={selectedPayer}
+                        />
                     ) : (
                         <SelectionList
                             sections={sections}
