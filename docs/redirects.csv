@@ -823,7 +823,7 @@ https://help.expensify.com/new-expensify/hubs/connect-credit-cards/company-cards
 https://help.expensify.com/articles/expensify-classic/reports/Track-report-history.html,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
 https://help.expensify.com/articles/expensify-classic/reports/Report-statuses.html,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports#report-statuses
 https://help.expensify.com/articles/expensify-classic/reports/Edit-a-report.html,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
-https://help.expensify.com/articles/expensify-classic/domains/SAML-SSO.html,https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify
+https://help.expensify.com/articles/expensify-classic/domains/SAML-SSO.html,https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO.md
 https://help.expensify.com/articles/expensify-classic/get-paid-back/reports/Reimbursements.html,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments
 https://help.expensify.com/articles/expensify-classic/get-paid-back/expenses/Upload-Receipts.html,https://help.expensify.com/articles/expensify-classic/expenses/Add-an-expense#add-an-expense-with-smartscan
 https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/adding-payment-card-subscription-overview.html,https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription
@@ -892,5 +892,9 @@ https://help.expensify.com/classic,https://help.expensify.com/expensify-classic/
 https://help.expensify.com/articles/new-expensify/expensify-card/Enable-Expensify-Card-notifications,https://help.expensify.com/articles/new-expensify/expensify-card/Expensify-Card-Notifications
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts.md/Add-or-remove-a-business-bank-account,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account
 https://help.expensify.com/articles/Unlisted/Compliance-Documentation.md,https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security
-https://help.expensify.com/articles/new-expensify/workspaces/Verify-a-Domain,https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain
+https://help.expensify.com/articles/new-expensify/workspaces/Verify-a-Domain,https://help.expensify.com/articles/new-expensify/domains/Claim-and-Verify-a-Domain
+https://help.expensify.com/articles/new-expensify/workspaces/Set-Up-SAML-Single-Sign-On,https://help.expensify.com/articles/new-expensify/domains/Set-Up-SAML-SSO
 https://community.expensify.com/discussion/4751/how-to-add-an-ach-business-bank-account-to-reimburse-employees-us-only,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account
+https://community.expensify.com/discussion/5700/deep-dive-approval-workflow-overview/,https://help.expensify.com/articles/expensify-classic/reports/Create-a-report-approval-workflow
+https://community.expensify.com/discussion/5799/,https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#date-formats
+https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/,https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security
