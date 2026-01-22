@@ -6791,7 +6791,7 @@ function computeOptimisticReportName(
     const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
 
     // If there is no title field, use "New Report" as default (matches OldDot behavior)
-    const defaultValue = titleReportField?.defaultValue ?? 'New Report';
+    const defaultValue = titleReportField?.defaultValue ?? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
     return Formula.compute(defaultValue, formulaContext);
 }
 

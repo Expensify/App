@@ -9215,7 +9215,7 @@ describe('ReportUtils', () => {
             const expenseReport = buildOptimisticExpenseReport(chatReportID, policyID, 1, total, currency);
 
             // Then the report name should be "New Report" instead of the default name
-            expect(expenseReport.reportName).toBe('New Report');
+            expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
 
@@ -11528,7 +11528,7 @@ describe('ReportUtils', () => {
 
             // Then the report name should be "New Report"
             const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation);
-            expect(optimisticReport.reportName).toBe('New Report');
+            expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
         it('should set reportName to empty string when policy field list is empty and beta is not enabled', async () => {

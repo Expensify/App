@@ -54,7 +54,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             name: 'title',
             type: CONST.REPORT_FIELD_TYPES.TEXT,
             target: 'expense',
-            defaultValue: 'New Report',
+            defaultValue: CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME,
             deletable: true,
             values: [],
             disabledOptions: [],
@@ -110,7 +110,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     };
 
     const fieldValue = isReportFieldTitle
-        ? report.reportName || (isPolicyFieldListEmpty ? 'New Report' : '')
+        ? report.reportName || (isPolicyFieldListEmpty ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
         : reportField.value ?? reportField.defaultValue;
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {

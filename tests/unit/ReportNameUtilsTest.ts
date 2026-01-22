@@ -666,7 +666,7 @@ describe('ReportNameUtils', () => {
             const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithEmptyFieldList});
 
             // Then it should return "New Report"
-            expect(reportName).toBe('New Report');
+            expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
 });

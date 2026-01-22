@@ -319,7 +319,7 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
         if (report?.reportName !== undefined) {
             const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
             if (report.reportName === '' && isPolicyFieldListEmpty) {
-                return 'New Report';
+                return CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
             }
             return report.reportName;
         }

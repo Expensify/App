@@ -101,7 +101,7 @@ function WorkspaceReportFieldsPage({
                 fieldID: CONST.POLICY.FIELDS.FIELD_LIST_TITLE,
                 name: 'title',
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
-                defaultValue: 'New Report',
+                defaultValue: CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME,
                 deletable: true,
             };
         }
