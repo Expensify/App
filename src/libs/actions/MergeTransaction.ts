@@ -30,6 +30,7 @@ import {
     isCurrentUserSubmitter,
     isMoneyRequestReportEligibleForMerge,
     isReportManager,
+    isSelfDM,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getAmount, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
@@ -224,6 +225,10 @@ function getOnyxTargetTransactionData({
     let data: UpdateMoneyRequestData;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
+    const targetReportForMerge = mergeTransaction.reportID ? getReportOrDraftReport(mergeTransaction.reportID) : null;
+    const isTargetDM = targetReportForMerge ? isSelfDM(targetReportForMerge) : false;
+    const shouldUseTrackExpenseParams = isUnreportedExpense || isTargetDM;
+
     // Compare mergeTransaction with targetTransaction and remove fields with same values
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const filteredTransactionChanges = Object.fromEntries(
@@ -244,7 +249,7 @@ function getOnyxTargetTransactionData({
     const transactionChangesWithoutReportID = {...filteredTransactionChanges};
     delete transactionChangesWithoutReportID.reportID;
 
-    if (isUnreportedExpense) {
+    if (shouldUseTrackExpenseParams) {
         data = getUpdateTrackExpenseParams(
             targetTransaction.transactionID,
             targetTransactionThreadReport?.reportID,
@@ -398,7 +403,9 @@ function mergeTransactionRequest({
     ];
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
     // Only delete source report if it differs from target and has one transaction
-    const shouldDeleteSourceReport = sourceTransaction.reportID !== mergeTransaction.reportID && transactionsOfSourceReport.length === 1;
+    const sourceReport = getReportOrDraftReport(sourceTransaction.reportID);
+    const isSourceDM = sourceReport ? isSelfDM(sourceReport) : false;
+    const shouldDeleteSourceReport = sourceTransaction.reportID !== mergeTransaction.reportID && transactionsOfSourceReport.length === 1 && !isSourceDM;
 
     // Remove ACTIONABLE_TRACK_EXPENSE_WHISPER when target transaction is moved to expense report
     const isTargetUnreported = !targetTransaction.reportID || targetTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
