@@ -3042,8 +3042,6 @@ const CONST = {
     ],
 
     POLICY: {
-        // Used as a placeholder policyID for personal cards accessed from the wallet (not associated with any workspace)
-        EMPTY_POLICY_ID: '0',
         TYPE: {
             PERSONAL: 'personal',
 
