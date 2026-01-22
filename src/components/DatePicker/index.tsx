@@ -31,6 +31,7 @@ function DatePicker({
     formID,
     autoFocus = false,
     shouldHideClearButton = false,
+    autoComplete = 'off',
     forwardedFSClass,
     ref,
 }: DateInputWithPickerProps) {
@@ -177,6 +178,7 @@ function DatePicker({
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete={autoComplete}
                 />
             </View>
 
