@@ -4988,10 +4988,21 @@ function deleteAppReport(
     reportTransactions: Record<string, Transaction>,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    hash?: number,
 ) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
+    }
+
+    // Update search results to mark report as deleted when called from search
+    if (hash) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            data: {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            },
+        });
     }
     const optimisticData: Array<
         OnyxUpdate<
