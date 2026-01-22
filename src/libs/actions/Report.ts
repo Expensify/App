@@ -831,10 +831,11 @@ function updateChatName(reportID: string, oldReportName: string | undefined, rep
  * when updating or removing a report's avatar.
  *
  * @param reportID - The report ID of the policy room.
+ * @param oldAvatarUrl - The existing avatar URL before the update.
  * @param [file] - (Optional) The selected image file to update the avatar with.
  * If not provided, the existing avatar will be removed.
  */
-function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+function buildUpdateReportAvatarOnyxData(reportID: string, oldAvatarUrl: string | undefined, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -852,13 +853,12 @@ function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomR
         },
     ];
 
-    const fetchedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                avatarUrl: fetchedReport?.avatarUrl ?? null,
+                avatarUrl: oldAvatarUrl ?? null,
                 pendingFields: {
                     avatar: null,
                 },
@@ -884,8 +884,8 @@ function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomR
 /**
  * Updates the avatar for a group chat.
  */
-function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
-    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
+function updateGroupChatAvatar(reportID: string, oldAvatarUrl: string | undefined, file?: File | CustomRNImageManipulatorResult) {
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, oldAvatarUrl, file);
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
 }
@@ -893,9 +893,9 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
 /**
  * Updates the avatar for a policy room.
  */
-function updatePolicyRoomAvatar(reportID: string, currentUserAccountID: number, file?: File | CustomRNImageManipulatorResult) {
+function updatePolicyRoomAvatar(reportID: string, currentUserAccountID: number, oldAvatarUrl: string | undefined, file?: File | CustomRNImageManipulatorResult) {
     const avatarURL = file?.uri ?? '';
-    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, oldAvatarUrl, file);
 
     const optimisticAction = buildOptimisticRoomAvatarUpdatedReportAction(avatarURL);
     optimisticData.push({
