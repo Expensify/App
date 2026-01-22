@@ -96,6 +96,7 @@ type UpdateSplitTransactionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
 };
 
@@ -124,6 +125,7 @@ type SplitBillActionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 /**
@@ -153,6 +155,7 @@ function splitBill({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
+    allBetas,
     policyRecentlyUsedTags,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
@@ -182,6 +185,7 @@ function splitBill({
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        allBetas,
     });
 
     const parameters: SplitBillParams = {
@@ -243,6 +247,7 @@ function splitBillAndOpenReport({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
+    allBetas,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -271,6 +276,7 @@ function splitBillAndOpenReport({
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        allBetas,
     });
 
     const parameters: SplitBillParams = {
@@ -682,6 +688,7 @@ function completeSplitBill(
     isASAPSubmitBetaEnabled: boolean,
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
+    allBetas: OnyxEntry<OnyxTypes.Beta[]>,
     sessionEmail?: string,
 ) {
     if (!reportAction) {
@@ -802,7 +809,7 @@ function completeSplitBill(
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false);
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false, allBetas);
 
         // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
         const optimisticTransactionID = NumberUtils.rand64();
@@ -819,17 +826,16 @@ function completeSplitBill(
             );
 
             oneOnOneIOUReport = isPolicyExpenseChat
-                ? buildOptimisticExpenseReport(
-                      oneOnOneChatReport?.reportID,
-                      participant.policyID,
-                      sessionAccountID,
-                      splitAmount,
-                      currency ?? '',
-                      undefined,
-                      undefined,
-                      optimisticExpenseReportID,
+                ? buildOptimisticExpenseReport({
+                      chatReportID: oneOnOneChatReport?.reportID,
+                      policyID: participant.policyID,
+                      payeeAccountID: sessionAccountID,
+                      total: splitAmount,
+                      currency: currency ?? '',
+                      allBetas,
+                      optimisticIOUReportID: optimisticExpenseReportID,
                       reportTransactions,
-                  )
+                  })
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
             if (typeof oneOnOneIOUReport?.total === 'number') {
@@ -987,6 +993,7 @@ function updateSplitTransactions({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
+    allBetas,
     iouReportNextStep,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
@@ -1127,6 +1134,7 @@ function updateSplitTransactions({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            allBetas,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -1170,6 +1178,7 @@ function updateSplitTransactions({
             quickAction,
             shouldGenerateTransactionThreadReport: !isReverseSplitOperation,
             policyRecentlyUsedCurrencies,
+            allBetas,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<OnyxKey> = {};

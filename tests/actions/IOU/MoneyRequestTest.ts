@@ -88,6 +88,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            allBetas: [CONST.BETAS.ALL],
         };
 
         afterEach(() => {
@@ -291,6 +292,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
+            allBetas: [CONST.BETAS.ALL],
         };
 
         beforeEach(async () => {
@@ -521,6 +523,7 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 shouldHandleNavigation: true,
+                allBetas: baseParams.allBetas,
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
@@ -714,6 +717,7 @@ describe('MoneyRequest', () => {
             setDistanceRequestData: jest.fn(),
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
+            allBetas: [CONST.BETAS.ALL],
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -812,6 +816,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
+                allBetas: baseParams.allBetas,
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -873,6 +878,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
+                allBetas: baseParams.allBetas,
             });
         });
 
@@ -910,6 +916,7 @@ describe('MoneyRequest', () => {
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
+                    allBetas: baseParams.allBetas,
                 }),
             );
         });

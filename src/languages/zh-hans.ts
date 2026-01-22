@@ -956,7 +956,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
         fabNewChat: '开始聊天',
-        fabNewChatExplained: '开始聊天（浮动操作）',
+        fabNewChatExplained: '打开操作菜单',
         fabScanReceiptExplained: '扫描收据（浮动操作）',
         chatPinned: '聊天已置顶',
         draftedMessage: '已起草的消息',
@@ -4918,6 +4918,21 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     title: '预订或管理您的旅行',
                     subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
                     ctaText: '预订或管理',
+                },
+                travelInvoicing: {
+                    travelBookingSection: {title: '旅行预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', manageTravelLabel: '管理差旅'},
+                    centralInvoicingSection: {
+                        title: '集中开票',
+                        subtitle: '将所有差旅支出集中到月度发票中，而不是在购买时逐笔付款。',
+                        learnHow: '了解如何操作。',
+                        subsections: {
+                            currentTravelSpendLabel: '当前差旅行支出',
+                            currentTravelSpendCta: '支付余额',
+                            currentTravelLimitLabel: '当前出差限额',
+                            settlementAccountLabel: '结算账户',
+                            settlementFrequencyLabel: '结算频率',
+                        },
+                    },
                 },
             },
             expensifyCard: {
