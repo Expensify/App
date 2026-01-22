@@ -144,6 +144,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
     useEffect(() => {
+        // Guard prevents calling openReport for multi-transaction reports
+        if (visibleTransactions.length > 2) {
+            return;
+        }
+
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
             createTransactionThreadReport(report, iouAction);
