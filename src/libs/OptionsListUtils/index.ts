@@ -1081,9 +1081,8 @@ function getReportDisplayOption(
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
-        allPolicies,
         personalDetails ?? {},
+        allPolicies,
         !isEmptyObject(report) ? report : undefined,
         {
             showChatPreviewLine: false,
