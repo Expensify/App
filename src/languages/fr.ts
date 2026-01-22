@@ -7817,6 +7817,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             hasChildReportAwaitingAction: 'A un rapport enfant en attente d’action',
             hasMissingInvoiceBankAccount: 'N’a pas de compte bancaire de facture',
             hasUnresolvedCardFraudAlert: 'A une alerte de fraude de carte non résolue',
+            hasDEWApproveFailed: 'L’approbation DEW a échoué',
         },
         reasonRBR: {
             hasErrors: 'Contient des erreurs dans les données du rapport ou des actions de rapport',

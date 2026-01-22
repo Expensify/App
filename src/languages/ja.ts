@@ -7735,6 +7735,7 @@ ${reportName}
             hasChildReportAwaitingAction: '対応待ちの子レポートがあります',
             hasMissingInvoiceBankAccount: '請求書の銀行口座が未設定です',
             hasUnresolvedCardFraudAlert: '未解決のカード不正利用アラートがあります',
+            hasDEWApproveFailed: 'DEW承認に失敗しました',
         },
         reasonRBR: {
             hasErrors: 'レポートまたはレポートアクションのデータにエラーがあります',

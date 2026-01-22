@@ -7765,6 +7765,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             hasChildReportAwaitingAction: 'Ma raport podrzędny oczekujący na działanie',
             hasMissingInvoiceBankAccount: 'Brakujący rachunek bankowy faktury',
             hasUnresolvedCardFraudAlert: 'Ma nierozwiązane powiadomienie o oszustwie związanym z kartą',
+            hasDEWApproveFailed: 'Zatwierdzenie DEW nie powiodło się',
         },
         reasonRBR: {
             hasErrors: 'Zawiera błędy w danych raportu lub danych działań na raporcie',

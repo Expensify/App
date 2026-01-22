@@ -7767,6 +7767,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             hasChildReportAwaitingAction: 'Tem relatório filho aguardando ação',
             hasMissingInvoiceBankAccount: 'Está com conta bancária de fatura ausente',
             hasUnresolvedCardFraudAlert: 'Tem alerta de fraude de cartão não resolvido',
+            hasDEWApproveFailed: 'Aprovação DEW falhou',
         },
         reasonRBR: {
             hasErrors: 'Tem erros nos dados do relatório ou nas ações do relatório',

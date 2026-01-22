@@ -7797,6 +7797,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             hasChildReportAwaitingAction: 'Il report figlio è in attesa di azione',
             hasMissingInvoiceBankAccount: 'Non ha un conto bancario per la fattura',
             hasUnresolvedCardFraudAlert: 'Ha un avviso di frode sulla carta non risolto',
+            hasDEWApproveFailed: 'Approvazione DEW fallita',
         },
         reasonRBR: {
             hasErrors: 'Presenta errori nei dati del report o nelle azioni del report',

@@ -7777,6 +7777,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             hasChildReportAwaitingAction: 'Heeft kinderreportage in afwachting van actie',
             hasMissingInvoiceBankAccount: 'Heeft ontbrekende bankrekening voor factuur',
             hasUnresolvedCardFraudAlert: 'Heeft onopgeloste kaartfraudewaarschuwing',
+            hasDEWApproveFailed: 'DEW-goedkeuring mislukt',
         },
         reasonRBR: {
             hasErrors: 'Bevat fouten in rapport- of rapportactiedata',
