@@ -6639,7 +6639,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         value: recentServerValidatedWaypoints,
     });
 
-    if (isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction)) {
+    const isDistanceRequest = isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction);
+
+    if (isDistanceRequest) {
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -6774,7 +6776,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 optimisticReportID,
                 optimisticReportActionID,
-                policyID: policy?.id,
+                policyID: isDistanceRequest ? undefined : policy?.id,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 reimbursable,
