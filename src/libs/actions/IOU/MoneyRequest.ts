@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
@@ -15,9 +16,10 @@ import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, RecentWaypoint, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -453,6 +455,15 @@ function handleMoneyRequestStepScanParticipants({
     }
 }
 
+// TODO: remove `recentWaypoints` from this file [YET TO CREATE ISSUE]
+// `recentWaypoints` was moved here temporarily from `src/libs/actions/IOU/index.ts` during the `Deprecate Onyx.connect` refactor.
+// All uses of this variable should be replaced with `useOnyx`.
+let recentWaypoints: RecentWaypoint[] = [];
+Onyx.connect({
+    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+    callback: (val) => (recentWaypoints = val ?? []),
+});
+
 function handleMoneyRequestStepDistanceNavigation({
     iouType,
     report,
@@ -570,6 +581,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                recentWaypointsCollection: recentWaypoints,
             });
             return;
         }

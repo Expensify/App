@@ -76,7 +76,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
@@ -2482,7 +2482,12 @@ describe('actions/IOU', () => {
     });
 
     describe('createDistanceRequest', () => {
-        it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
+        it('does not trigger notifyNewAction when doing the money request in a money request report', async () => {
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
@@ -2499,11 +2504,17 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                recentWaypointsCollection: recentWaypoints,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', () => {
+        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
             createDistanceRequest({
                 report: {reportID: '123'},
                 participants: [],
@@ -2520,11 +2531,17 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                recentWaypointsCollection: recentWaypoints,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
 
         it('correctly sets quickAction', async () => {
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 iouType: CONST.IOU.TYPE.SPLIT,
@@ -2543,6 +2560,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
@@ -2563,6 +2581,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
                 policyRecentlyUsedCurrencies: [],
+                recentWaypointsCollection: recentWaypoints,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
@@ -2574,6 +2593,12 @@ describe('actions/IOU', () => {
         it('merges policyRecentlyUsedCurrencies into recently used currencies', async () => {
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
             await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
+
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
 
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
@@ -2594,6 +2619,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: initialCurrencies,
+                recentWaypointsCollection: recentWaypoints,
             });
 
             await waitForBatchedUpdates();
@@ -2623,6 +2649,12 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
+
             // When creating a distance request
             createDistanceRequest({
                 report: iouReport,
@@ -2644,6 +2676,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                recentWaypointsCollection: recentWaypoints,
             });
             waitForBatchedUpdates();
 
@@ -2681,6 +2714,12 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
+            let recentWaypoints: RecentWaypoint[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                callback: (val) => (recentWaypoints = val ?? []),
+            });
+
             // When creating a split distance request
             createDistanceRequest({
                 report: policyExpenseChat,
@@ -2703,6 +2742,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                recentWaypointsCollection: recentWaypoints,
             });
             waitForBatchedUpdates();
 

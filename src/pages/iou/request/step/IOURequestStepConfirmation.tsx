@@ -823,6 +823,8 @@ function IOURequestStepConfirmation({
         ],
     );
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     const createDistanceRequest = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string) => {
             if (!transaction) {
@@ -869,6 +871,7 @@ function IOURequestStepConfirmation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                recentWaypointsCollection: recentWaypoints,
             });
         },
         [
