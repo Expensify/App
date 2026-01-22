@@ -73,20 +73,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
             screenName: SCREENS.DOMAIN.SAML,
         },
-        // --- DEV only below this line
-        {
-            translationKey: 'domain.admins.title',
-            icon: icons.UserLock,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID)))),
-            screenName: SCREENS.DOMAIN.ADMINS,
-        },
-        {
-            translationKey: 'domain.members.title',
-            icon: icons.UserLock,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID)))),
-            screenName: SCREENS.DOMAIN.MEMBERS,
-        },
-        // --- DEV only above this line
     ];
 
     const fetchDomainData = useCallback(() => {
