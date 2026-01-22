@@ -239,18 +239,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             });
     }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
 
-    const shouldShowRotateReceiptButton = useMemo(
-        () =>
-            shouldShowReplaceReceiptButton &&
-            transaction &&
-            hasReceiptSource(transaction) &&
-            !isEReceipt &&
-            !transaction?.receipt?.isTestDriveReceipt &&
-            (receiptFilename ? Str.isImage(receiptFilename) : false),
-        [shouldShowReplaceReceiptButton, transaction, isEReceipt, receiptFilename],
-    );
-
-    const shouldShowCropReceiptButton = useMemo(
+    const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
             shouldShowReplaceReceiptButton &&
             transaction &&
@@ -443,13 +432,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             );
         }
 
-        if (!shouldShowRotateReceiptButton && !shouldShowCropReceiptButton && !shouldShowReplaceReceiptButton) {
+        if (!shouldShowRotateAndCropReceiptButton && !shouldShowReplaceReceiptButton) {
             return null;
         }
 
         return (
             <View style={[styles.flexRow, styles.gap4, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
-                {!!shouldShowRotateReceiptButton && (
+                {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
                         icon={Expensicons.Rotate}
                         onPress={rotateReceipt}
@@ -458,7 +447,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         isDisabled={isRotating}
                     />
                 )}
-                {!!shouldShowCropReceiptButton && (
+                {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
                         icon={Expensicons.Crop}
                         onPress={enterCropMode}
@@ -494,8 +483,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         cropRect,
         isCropSaving,
         translate,
-        shouldShowRotateReceiptButton,
-        shouldShowCropReceiptButton,
+        shouldShowRotateAndCropReceiptButton,
         shouldShowReplaceReceiptButton,
         rotateReceipt,
         isRotating,
