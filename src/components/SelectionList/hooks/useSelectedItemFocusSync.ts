@@ -40,6 +40,8 @@ function useSelectedItemFocusSync<TItem extends ListItem, TData = TItem>({
             return;
         }
         setFocusedIndex(selectedItemIndex);
+
+        // Only sync focus when selectedItemIndex changes, not when other dependencies update
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
 

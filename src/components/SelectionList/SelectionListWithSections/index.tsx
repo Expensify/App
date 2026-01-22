@@ -8,6 +8,7 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListWit
 
     return (
         <BaseSelectionList
+            // Props spreading is necessary here to pass through all SelectionList props while adding web-specific behavior
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
