@@ -52,7 +52,7 @@ import ImportContactButton from './ImportContactButton';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish?: (value?: string) => void;
+    onFinish?: (value?: string, participants?: Participant[]) => void;
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
@@ -92,7 +92,7 @@ const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUT
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onFinish = (_value?: string) => {},
+    onFinish = (_value?: string, _participants?: Participant[]) => {},
     onParticipantsAdded,
     iouType,
     action,
@@ -163,10 +163,10 @@ function MoneyRequestParticipantsSelector({
             onParticipantsAdded(newParticipants);
 
             if (!option.isSelfDM) {
-                onFinish();
+                onFinish(undefined, newParticipants);
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, policy, activeAdminWorkspaces],
     );
 
@@ -252,7 +252,6 @@ function MoneyRequestParticipantsSelector({
                 countryCode,
                 participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             availableOptions.personalDetails?.length,
@@ -505,7 +504,7 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const footerContentAbovePaginationComponent = useMemo(() => {
+    const importContactsButtonComponent = useMemo(() => {
         const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
         if (!shouldShowImportContactsButton) {
             return null;
@@ -516,10 +515,9 @@ function MoneyRequestParticipantsSelector({
                 icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
-                style={styles.mb3}
             />
         );
-    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (searchTerm.length || isSearchingForReports) {
@@ -581,7 +579,8 @@ function MoneyRequestParticipantsSelector({
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
-                footerContentAbovePagination={footerContentAbovePaginationComponent}
+                listHeaderContent={importContactsButtonComponent}
+                showSectionTitleWithListHeaderContent
                 headerMessage={header}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
