@@ -1,9 +1,9 @@
 name: Build and deploy apps for testing
 
 on:
-  pull_request:
-    types: [closed]
-    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
 
   workflow_dispatch:
     inputs:
@@ -36,15 +36,14 @@ on:
         default: true
 
 concurrency:
-  group: test-build-${{ github.event.pull_request.number || github.run_id }}
+  group: test-build-${{ github.sha || github.run_id }}
   cancel-in-progress: false
 
 jobs:
   prep:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     outputs:
-      APP_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
+      APP_REF: ${{ steps.getHeadRef.outputs.REF || steps.setAppRef.outputs.REF || 'main' }}
       APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
       MOBILE_PR_NUMBER: ${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}
     steps:
@@ -64,12 +63,19 @@ jobs:
           echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
           exit 1
 
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        if: ${{ github.event_name == 'push' }}
+        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        with:
+          github_token: ${{ github.token }}
+
       - name: Extract App PR number
         id: extractAppPRNumber
-        if: ${{ github.event_name == 'pull_request' || inputs.APP_PULL_REQUEST_URL != '' }}
+        if: ${{ github.event_name == 'push' || inputs.APP_PULL_REQUEST_URL != '' }}
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "PR_NUMBER=${{ steps.getMergedPullRequest.outputs.number }}" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.APP_PULL_REQUEST_URL }}" ]; then
             PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
             if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
@@ -102,6 +108,11 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Set App ref for push
+        id: setAppRef
+        if: ${{ github.event_name == 'push' }}
+        run: echo "REF=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
   getMobileExpensifyPR:
     runs-on: ubuntu-latest
@@ -194,7 +205,7 @@ jobs:
 
   web:
     name: Build and deploy Web
-    if: ${{ (github.event_name == 'pull_request' || inputs.WEB) && needs.prep.outputs.APP_PR_NUMBER }}
+    if: ${{ (github.event_name == 'push' || inputs.WEB) && needs.prep.outputs.APP_PR_NUMBER }}
     needs: [prep]
     runs-on: ubuntu-latest-xl
     env:
@@ -233,7 +244,7 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    if: ${{ github.event_name == 'pull_request' || inputs.ANDROID }}
+    if: ${{ github.event_name == 'push' || inputs.ANDROID }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
     env:
@@ -341,7 +352,7 @@ jobs:
 
   iosHybrid:
     name: Build and deploy iOS for testing
-    if: ${{ github.event_name == 'pull_request' || inputs.IOS }}
+    if: ${{ github.event_name == 'push' || inputs.IOS }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
