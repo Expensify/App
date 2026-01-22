@@ -1,14 +1,12 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {Freeze} from 'react-freeze';
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -19,7 +17,7 @@ import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
+import {rand64} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import {
     getCombinedReportActions,
@@ -69,8 +67,6 @@ type ReportActionsViewProps = {
     isReportTransactionThread?: boolean;
 };
 
-let listOldID = Math.round(Math.random() * 100);
-
 function ReportActionsView({
     report,
     parentReportAction,
@@ -103,16 +99,13 @@ function ReportActionsView({
     );
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
-    const prevReportActionID = usePrevious(reportActionID);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
-    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(false);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
@@ -133,19 +126,6 @@ function ReportActionsView({
         }
         updateLoadingInitialReportAction(report.reportID);
     }, [isOffline, report.reportID, reportActionID]);
-
-    // Change the list ID only for comment linking to get the positioning right
-    const listID = useMemo(() => {
-        if (!reportActionID && !prevReportActionID) {
-            // Keep the old list ID since we're not in the Comment Linking flow
-            return listOldID;
-        }
-        const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
-        listOldID = newID;
-
-        return newID;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -228,12 +208,7 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
-    const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const lastActionCreated = visibleReportActions.at(0)?.created;
-    const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
-        actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
-    const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
 
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
@@ -273,33 +248,6 @@ function ReportActionsView({
         markOpenReportEnd(report);
     }, [report]);
 
-    // Check if the first report action in the list is the one we're currently linked to
-    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
-
-    useEffect(() => {
-        let timerID: NodeJS.Timeout;
-
-        if (!isTheFirstReportActionIsLinked && reportActionID) {
-            setNavigatingToLinkedMessage(true);
-            // After navigating to the linked reportAction, apply this to correctly set
-            // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                // Using a short delay to ensure the view is updated after interactions
-                timerID = setTimeout(() => setNavigatingToLinkedMessage(false), 10);
-            });
-        } else {
-            setNavigatingToLinkedMessage(false);
-        }
-
-        return () => {
-            if (!timerID) {
-                return;
-            }
-            clearTimeout(timerID);
-        };
-    }, [isTheFirstReportActionIsLinked, reportActionID]);
-
     // Show skeleton while loading initial report actions when data is incomplete/missing and online
     const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
@@ -314,8 +262,6 @@ function ReportActionsView({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
-    // AutoScroll is disabled when we do linking to a specific reportAction
-    const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
             {/* Temp fix re-renderings of the not focused report, more info in https://github.com/Expensify/App/issues/33725#issuecomment-3768435794 */}
@@ -331,8 +277,6 @@ function ReportActionsView({
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     loadOlderChats={loadOlderChats}
                     loadNewerChats={loadNewerChats}
-                    listID={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                     hasCreatedActionAdded={shouldAddCreatedAction}
                 />
             </Freeze>
