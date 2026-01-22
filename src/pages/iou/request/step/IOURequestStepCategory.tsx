@@ -76,7 +76,8 @@ function IOURequestStepCategory({
 
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const policyData = usePolicyData(policy?.id);
-    const {currentSearchHash} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchHash} = state;
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;

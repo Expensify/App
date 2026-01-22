@@ -40,7 +40,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
     const {typeMenuSections, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {actions} = useSearchContext();
+    const {clearSelectedTransactions} = actions;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();

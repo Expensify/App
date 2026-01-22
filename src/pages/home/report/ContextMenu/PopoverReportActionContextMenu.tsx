@@ -325,7 +325,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const {currentSearchHash} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchHash} = state;
     const {deleteTransactions} = useDeleteTransactions({
         report,
         reportActions: reportActionRef.current ? [reportActionRef.current] : [],

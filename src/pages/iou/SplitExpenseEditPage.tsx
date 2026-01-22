@@ -43,7 +43,8 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentSearchResults} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchResults} = state;
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 

@@ -175,7 +175,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
 
-    const {removeTransaction} = useSearchContext();
+    const {actions} = useSearchContext();
+    const {removeTransaction} = actions;
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -308,7 +309,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
     });
-    const {currentSearchHash} = useSearchContext();
+    const {state: searchState} = useSearchContext();
+    const {currentSearchHash} = searchState;
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});

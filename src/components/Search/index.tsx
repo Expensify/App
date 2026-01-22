@@ -222,23 +222,28 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useContext(WideRHPContext);
+    // Using composition pattern - access state and actions separately
+    const {state, actions} = useSearchContext();
     const {
         currentSearchHash,
+        selectedTransactions,
+        shouldTurnOffSelectionMode,
+        lastSearchType,
+        showSelectAllMatchingItems,
+        areAllMatchingItemsSelected,
+        shouldResetSearchQuery,
+        shouldUseLiveData,
+    } = state;
+    const {
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,
         setSelectedTransactions,
-        selectedTransactions,
         clearSelectedTransactions,
-        shouldTurnOffSelectionMode,
         setShouldShowFiltersBarLoading,
-        lastSearchType,
         shouldShowSelectAllMatchingItems,
-        areAllMatchingItemsSelected,
         selectAllMatchingItems,
-        shouldResetSearchQuery,
         setShouldResetSearchQuery,
-        shouldUseLiveData,
-    } = useSearchContext();
+    } = actions;
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});

@@ -80,7 +80,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const {clearSelectedTransactions} = useSearchContext();
+    const {actions} = useSearchContext();
+    const {clearSelectedTransactions} = actions;
 
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 

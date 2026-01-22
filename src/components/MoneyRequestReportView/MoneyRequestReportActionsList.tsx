@@ -182,7 +182,9 @@ function MoneyRequestReportActionsList({
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
-    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {state, actions} = useSearchContext();
+    const {selectedTransactionIDs} = state;
+    const {setSelectedTransactions, clearSelectedTransactions} = actions;
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);

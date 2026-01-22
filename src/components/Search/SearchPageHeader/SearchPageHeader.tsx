@@ -44,7 +44,9 @@ function SearchPageHeader({
     latestBankItems,
 }: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions} = useSearchContext();
+    // Using composition pattern - access state separately
+    const {state} = useSearchContext();
+    const {selectedTransactions} = state;
     const {translate} = useLocalize();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});

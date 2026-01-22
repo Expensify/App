@@ -69,7 +69,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions} = useSearchContext();
+    const {state} = useSearchContext();
+    const {selectedTransactions} = state;
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 

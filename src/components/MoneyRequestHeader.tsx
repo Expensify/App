@@ -142,7 +142,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const reportID = report?.reportID;
-    const {removeTransaction, currentSearchHash} = useSearchContext();
+    const {state, actions} = useSearchContext();
+    const {currentSearchHash} = state;
+    const {removeTransaction} = actions;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});

@@ -36,7 +36,8 @@ function getTransaction(
 }
 
 function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
-    const {currentSearchHash, currentSearchResults} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchHash, currentSearchResults} = state;
 
     const [onyxTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.targetTransactionID)}`, {
         canBeMissing: true,

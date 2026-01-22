@@ -99,7 +99,8 @@ type SearchRouterProps = {
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {setShouldResetSearchQuery} = useSearchContext();
+    const {actions} = useSearchContext();
+    const {setShouldResetSearchQuery} = actions;
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const {areOptionsInitialized} = useOptionsList();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});

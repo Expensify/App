@@ -53,7 +53,9 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
-    const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {state, actions} = useSearchContext();
+    const {selectedTransactions, selectedTransactionIDs} = state;
+    const {clearSelectedTransactions} = actions;
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();

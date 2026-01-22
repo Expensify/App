@@ -69,7 +69,9 @@ function useSelectedTransactionsActions({
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
+    const {state, actions} = useSearchContext();
+    const {selectedTransactionIDs, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = state;
+    const {clearSelectedTransactions} = actions;
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});

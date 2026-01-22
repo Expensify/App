@@ -174,7 +174,8 @@ function MoneyRequestView({
 
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
-    const {currentSearchResults} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchResults} = state;
 
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});

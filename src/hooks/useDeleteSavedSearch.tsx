@@ -11,7 +11,8 @@ export default function useDeleteSavedSearch() {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [hashToDelete, setHashToDelete] = useState(0);
     const {translate} = useLocalize();
-    const {currentSearchHash} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchHash} = state;
 
     const showDeleteModal = (hash: number) => {
         setIsDeleteModalVisible(true);

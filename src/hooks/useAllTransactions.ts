@@ -9,7 +9,8 @@ import useOnyx from './useOnyx';
  * Hook that returns all transactions, filtered by current search results if a search data is available
  */
 function useAllTransactions() {
-    const {currentSearchResults} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchResults} = state;
     const [allTransactionsCollection] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
     const allTransactions = useMemo(() => {

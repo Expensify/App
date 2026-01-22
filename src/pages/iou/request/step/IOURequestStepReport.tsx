@@ -48,7 +48,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
-    const {removeTransaction, setSelectedTransactions} = useSearchContext();
+    const {actions} = useSearchContext();
+    const {removeTransaction, setSelectedTransactions} = actions;
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;

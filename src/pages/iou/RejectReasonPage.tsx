@@ -28,7 +28,8 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {translate} = useLocalize();
 
     const {transactionID, reportID, backTo} = route.params;
-    const {removeTransaction} = useSearchContext();
+    const {actions} = useSearchContext();
+    const {removeTransaction} = actions;
     const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false, selector: getReportPolicyID});
     const policy = usePolicy(reportPolicyID);
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});

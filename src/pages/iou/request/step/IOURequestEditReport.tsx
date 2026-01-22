@@ -35,7 +35,9 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode} = route.params;
 
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {state, actions} = useSearchContext();
+    const {selectedTransactionIDs} = state;
+    const {clearSelectedTransactions} = actions;
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});

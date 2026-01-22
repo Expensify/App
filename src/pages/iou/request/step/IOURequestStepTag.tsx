@@ -64,7 +64,8 @@ function IOURequestStepTag({
 
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
-    const {currentSearchHash} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchHash} = state;
     const {translate} = useLocalize();
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 

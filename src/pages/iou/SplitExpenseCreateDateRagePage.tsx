@@ -33,7 +33,8 @@ type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpense
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentSearchResults} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchResults} = state;
 
     const {reportID, transactionID, backTo} = route.params;
 

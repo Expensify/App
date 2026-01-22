@@ -102,7 +102,10 @@ function SearchFiltersBar({
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading, currentSearchResults} = useSearchContext();
+    // Using composition pattern - access state and actions separately
+    const {state, actions} = useSearchContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading, currentSearchResults} = state;
+    const {selectAllMatchingItems} = actions;
     const {currencyList, getCurrencySymbol} = useCurrencyList();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});

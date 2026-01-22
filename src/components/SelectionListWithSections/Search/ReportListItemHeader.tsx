@@ -211,7 +211,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchContext();
+    const {state} = useSearchContext();
+    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = state;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
