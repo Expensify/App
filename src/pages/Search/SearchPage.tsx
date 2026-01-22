@@ -446,9 +446,8 @@ function SearchPage({route}: SearchPageProps) {
         clearSelectedTransactions,
     ]);
 
-    const {expenseCount, isAllOneTransactionReports, uniqueReportCount} = useMemo(() => {
+    const {expenseCount, uniqueReportCount} = useMemo(() => {
         let expenses = 0;
-        let hasNonOneTransactionReport = false;
         const reportIDs = new Set<string>();
 
         for (const key of Object.keys(selectedTransactions)) {
@@ -457,21 +456,17 @@ function SearchPage({route}: SearchPageProps) {
                 continue;
             }
             if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-                hasNonOneTransactionReport = true;
                 reportIDs.add(selectedItem.reportID);
             } else {
                 expenses += 1;
                 reportIDs.add(selectedItem.reportID);
-                if (!selectedItem.isFromOneTransactionReport) {
-                    hasNonOneTransactionReport = true;
-                }
             }
         }
 
-        return {expenseCount: expenses, isAllOneTransactionReports: !hasNonOneTransactionReport && expenses > 0, uniqueReportCount: reportIDs.size};
+        return {expenseCount: expenses, uniqueReportCount: reportIDs.size};
     }, [selectedTransactions]);
 
-    const isDeletingOnlyExpenses = isAllOneTransactionReports;
+    const isDeletingOnlyExpenses = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && expenseCount > 0;
     const deleteCount = isDeletingOnlyExpenses ? expenseCount : uniqueReportCount;
     const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: deleteCount});
     const deleteModalPrompt = isDeletingOnlyExpenses ? translate('iou.deleteConfirmation', {count: expenseCount}) : translate('iou.deleteReportConfirmation', {count: deleteCount});
