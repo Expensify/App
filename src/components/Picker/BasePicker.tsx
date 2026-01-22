@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobile} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
 import type {BasePickerProps} from './types';
@@ -159,9 +160,7 @@ function BasePicker<TPickerValue>({
 
     const hasError = !!errorText;
 
-    const currentOS = getOperatingSystem();
-    const isMobileOS = currentOS === CONST.OS.IOS || currentOS === CONST.OS.ANDROID;
-    const pickerTabIndex = isMobileOS ? -1 : 0;
+    const pickerTabIndex = isMobile() ? -1 : 0;
 
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
