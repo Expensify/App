@@ -34,9 +34,12 @@ type DecisionModalProps = {
 
     /** Whether modal is visible */
     isVisible: boolean;
+
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
 };
 
-function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible}: DecisionModalProps) {
+function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible, onModalHide}: DecisionModalProps) {
     const styles = useThemeStyles();
 
     return (
@@ -45,6 +48,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            onModalHide={onModalHide}
         >
             <View style={[styles.m5]}>
                 <View>
