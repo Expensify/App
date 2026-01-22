@@ -9,9 +9,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmModal, {ConfirmModalActions} from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
@@ -167,7 +166,7 @@ function IOURequestStepWaypoint({
             shouldEnableNewFocusManagement: true,
             danger: true,
         });
-        if (result.action !== ModalActions.CONFIRM) {
+        if (result.action !== ConfirmModalActions.CONFIRM) {
             return;
         }
         deleteStopAndHideModal();

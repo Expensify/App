@@ -2,8 +2,7 @@ import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@se
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
-import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmModal, {ConfirmModalActions} from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -58,7 +57,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             shouldShowCancelButton: true,
             danger: true,
         });
-        if (confirmResult.action !== ModalActions.CONFIRM) {
+        if (confirmResult.action !== ConfirmModalActions.CONFIRM) {
             return;
         }
 
