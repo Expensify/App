@@ -26,6 +26,7 @@ import {
     getLastMessageTextForReport,
     getMemberInviteOptions,
     getPersonalDetailSearchTerms,
+    getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,
     getSearchOptions,
@@ -4072,6 +4073,267 @@ describe('OptionsListUtils', () => {
             expect(option.isInvoiceRoom).toBe(true);
             // personalDetails is used in computeReportName for invoice rooms
             expect(option.text).toBeDefined();
+        });
+    });
+
+    describe('getPolicyExpenseReportOption', () => {
+        it('should return option with policy expense chat details', async () => {
+            const reportID = '201';
+            const testPolicyID = 'policy201';
+            const ownerAccountID = 1001;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Test Policy Expense',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Test Workspace Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const testPersonalDetails = {
+                [ownerAccountID]: {
+                    accountID: ownerAccountID,
+                    displayName: 'Policy Owner',
+                    login: 'owner@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+                selected: true,
+            };
+
+            const option = getPolicyExpenseReportOption(participant, testPersonalDetails);
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Test Workspace Policy');
+            expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
+            expect(option.isSelected).toBe(true);
+        });
+
+        it('should use personalDetails to create option with participant info', async () => {
+            const reportID = '202';
+            const testPolicyID = 'policy202';
+            const ownerAccountID = 1002;
+            const memberAccountID = 1003;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Team Expense Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [memberAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Team Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'admin',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const testPersonalDetails = {
+                [ownerAccountID]: {
+                    accountID: ownerAccountID,
+                    displayName: 'Team Owner',
+                    login: 'teamowner@test.com',
+                },
+                [memberAccountID]: {
+                    accountID: memberAccountID,
+                    displayName: 'Team Member',
+                    login: 'teammember@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+            };
+
+            const option = getPolicyExpenseReportOption(participant, testPersonalDetails);
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Team Workspace');
+        });
+
+        it('should handle empty personalDetails gracefully', async () => {
+            const reportID = '203';
+            const testPolicyID = 'policy203';
+            const ownerAccountID = 1004;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Empty Details Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Workspace Without Details',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+            };
+
+            // Should not throw when personalDetails is empty
+            const option = getPolicyExpenseReportOption(participant, {});
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Workspace Without Details');
+        });
+
+        it('should handle undefined personalDetails gracefully', async () => {
+            const reportID = '204';
+            const testPolicyID = 'policy204';
+            const ownerAccountID = 1005;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Undefined Details Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Workspace Undefined Details',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+            };
+
+            // Should not throw when personalDetails is undefined
+            const option = getPolicyExpenseReportOption(participant, undefined);
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Workspace Undefined Details');
+        });
+
+        it('should preserve selected state from participant', async () => {
+            const reportID = '205';
+            const testPolicyID = 'policy205';
+            const ownerAccountID = 1006;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Selected State Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Selection Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const participantSelected = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+                selected: true,
+            };
+
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const participantNotSelected = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+                selected: false,
+            };
+
+            const optionSelected = getPolicyExpenseReportOption(participantSelected, {});
+
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, {});
+
+            expect(optionSelected.isSelected).toBe(true);
+            expect(optionSelected.selected).toBe(true);
+            expect(optionNotSelected.isSelected).toBe(false);
+            expect(optionNotSelected.selected).toBe(false);
         });
     });
 
