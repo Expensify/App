@@ -96,18 +96,20 @@ describe('replaceOptimisticReportWithActualReport', () => {
     it('should merge optimistic DM report into preexisting report without draft comment', async () => {
         const reportID = '1';
         const preexistingReportID = '2';
+        const optimisticAccountID = 1;
+        const existingAccountID = 2;
 
         // Create optimistic and preexisting reports
         const optimisticReport = createRandomReport(Number(reportID), undefined);
         optimisticReport.reportID = reportID;
         optimisticReport.preexistingReportID = preexistingReportID;
         optimisticReport.reportName = 'Optimistic Report';
-        optimisticReport.participants = {'1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+        optimisticReport.participants = {[optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
 
         const existingReport = createRandomReport(Number(preexistingReportID), undefined);
         existingReport.reportID = preexistingReportID;
         existingReport.reportName = 'Existing Report';
-        existingReport.participants = {'2': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+        existingReport.participants = {[existingAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
@@ -132,12 +134,13 @@ describe('replaceOptimisticReportWithActualReport', () => {
     it('should handle preexisting report when participants is undefined in existing report', async () => {
         const reportID = '1';
         const preexistingReportID = '2';
+        const accountID = 1;
 
         // Create optimistic report with participants
         const optimisticReport = createRandomReport(Number(reportID), undefined);
         optimisticReport.reportID = reportID;
         optimisticReport.preexistingReportID = preexistingReportID;
-        optimisticReport.participants = {'1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+        optimisticReport.participants = {[accountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
 
         // Create existing report without participants
         const existingReport = createRandomReport(Number(preexistingReportID), undefined);
