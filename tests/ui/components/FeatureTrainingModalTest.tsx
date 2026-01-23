@@ -28,9 +28,6 @@ jest.mock('@components/ImageSVG', () => {
     return (props: ViewProps) => <View {...props} />;
 });
 
-jest.unmock('react-native-reanimated');
-jest.unmock('react-native-worklets');
-
 describe('FeatureTrainingModal', () => {
     beforeAll(() => {
         Onyx.init({
