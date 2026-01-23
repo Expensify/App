@@ -19,10 +19,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-TestHelper.setupGlobalFetchMock();
-
-jest.unmock('react-native-reanimated');
-jest.unmock('react-native-worklets');
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
