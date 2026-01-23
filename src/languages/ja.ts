@@ -5012,17 +5012,8 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     subtitle: '現在、Expensify Travelの有効化リクエストを確認中です。ご心配なく、準備ができ次第お知らせします。',
                     ctaText: 'リクエスト送信済み',
                 },
-                bookOrManageYourTrip: {
-                    title: '旅行を予約または管理',
-                    subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
-                    ctaText: '予約または管理',
-                },
-                settings: {
-                    autoAddTripName: {
-                        title: '出張名を自動追加',
-                        subtitle: '出張中に作成された経費の説明に、出張名を自動的に追加する',
-                    },
-                },
+                bookOrManageYourTrip: {title: '出張予約', subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。', ctaText: '出張を管理'},
+                settings: {autoAddTripName: {title: '経費に出張の詳細を追加', subtitle: 'Expensifyで予約した出張中の経費に、出張名を自動的に適用します。'}},
                 travelInvoicing: {
                     travelBookingSection: {
                         title: '出張予約',
@@ -5496,7 +5487,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 giveItNameInstruction: '他のカードと見分けがつくように、十分ユニークな名前にしてください。具体的な使用例が入っていると、なお良いです！',
                 cardName: 'カード名',
                 letsDoubleCheck: 'すべてが正しく見えるか、もう一度確認しましょう。',
-                willBeReady: 'このカードはすぐに利用できるようになります。',
+                willBeReady: 'このカードはすぐにご利用いただけます。',
                 cardholder: 'カード保有者',
                 cardType: 'カードの種類',
                 limit: '制限',

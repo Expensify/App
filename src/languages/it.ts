@@ -5043,14 +5043,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     ctaText: 'Richiesta inviata',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Prenota o gestisci il tuo viaggio',
-                    subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestisci tutte le tue spese aziendali in un unico posto.',
-                    ctaText: 'Prenota o gestisci',
+                    title: 'Prenotazione di viaggio',
+                    subtitle: 'Complimenti! Tutto pronto per prenotare e gestire i viaggi in questo spazio di lavoro.',
+                    ctaText: 'Gestisci viaggi',
                 },
                 settings: {
                     autoAddTripName: {
-                        title: 'Aggiungi automaticamente i nomi dei viaggi',
-                        subtitle: 'Aggiungi automaticamente i nomi dei viaggi alle descrizioni delle spese quando vengono create durante il viaggio',
+                        title: 'Aggiungi i dettagli del viaggio alle spese',
+                        subtitle: 'Applica automaticamente i nomi dei viaggi alle spese durante i viaggi prenotati con Expensify.',
                     },
                 },
                 travelInvoicing: {
@@ -5530,7 +5530,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 giveItNameInstruction: 'Rendila abbastanza unica da poterla distinguere dalle altre carte. Casi d’uso specifici sono ancora meglio!',
                 cardName: 'Nome carta',
                 letsDoubleCheck: 'Controlliamo ancora una volta che tutto sia corretto.',
-                willBeReady: "Questa carta sarà subito pronta all'uso.",
+                willBeReady: "Questa carta sarà pronta per l'uso immediatamente.",
                 cardholder: 'Titolare della carta',
                 cardType: 'Tipo di carta',
                 limit: 'Limite',

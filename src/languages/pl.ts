@@ -5026,14 +5026,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     ctaText: 'Prośba wysłana',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Zarezerwuj lub zarządzaj swoją podróżą',
-                    subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
-                    ctaText: 'Rezerwuj lub zarządzaj',
+                    title: 'Rezerwacja podróży',
+                    subtitle: 'Gratulacje! Wszystko gotowe, aby rezerwować i zarządzać podróżami w tym obszarze roboczym.',
+                    ctaText: 'Zarządzaj podróżami',
                 },
                 settings: {
                     autoAddTripName: {
-                        title: 'Automatyczne dodawanie nazw podróży',
-                        subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków tworzonych w trakcie podróży',
+                        title: 'Dodaj szczegóły podróży do wydatków',
+                        subtitle: 'Automatycznie stosuj nazwy podróży do wydatków podczas podróży zarezerwowanych za pomocą Expensify.',
                     },
                 },
                 travelInvoicing: {
@@ -5512,7 +5512,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 giveItNameInstruction: 'Uczyń go na tyle unikalnym, aby dało się go odróżnić od innych kart. Jeszcze lepiej, jeśli opisujesz konkretne przypadki użycia!',
                 cardName: 'Nazwa karty',
                 letsDoubleCheck: 'Sprawdźmy jeszcze raz, czy wszystko wygląda poprawnie.',
-                willBeReady: 'Ta karta będzie gotowa do użycia od razu.',
+                willBeReady: 'Ta karta będzie od razu gotowa do użycia.',
                 cardholder: 'Posiadacz karty',
                 cardType: 'Typ karty',
                 limit: 'Limit',

@@ -4930,17 +4930,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     subtitle: '我们正在审查您启用 Expensify Travel 的请求。别担心，准备就绪时我们会通知您。',
                     ctaText: '请求已发送',
                 },
-                bookOrManageYourTrip: {
-                    title: '预订或管理您的旅行',
-                    subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
-                    ctaText: '预订或管理',
-                },
-                settings: {
-                    autoAddTripName: {
-                        title: '自动添加行程名称',
-                        subtitle: '在差旅期间创建报销时，自动将行程名称添加到报销描述',
-                    },
-                },
+                bookOrManageYourTrip: {title: '差旅预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', ctaText: '管理差旅'},
+                settings: {autoAddTripName: {title: '将行程详情添加到报销中', subtitle: '在通过 Expensify 预订的行程中，自动将行程名称应用到相关报销中。'}},
                 travelInvoicing: {
                     travelBookingSection: {title: '旅行预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', manageTravelLabel: '管理差旅'},
                     centralInvoicingSection: {
@@ -5403,7 +5394,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 giveItNameInstruction: '让它足够独特，以便与其他卡片区分开来。提供具体的使用场景会更好！',
                 cardName: '卡片名称',
                 letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
-                willBeReady: '此卡将立即可用。',
+                willBeReady: '此卡将可立即使用。',
                 cardholder: '持卡人',
                 cardType: '卡类型',
                 limit: '限制',
