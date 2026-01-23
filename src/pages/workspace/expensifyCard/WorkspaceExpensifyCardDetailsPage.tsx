@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
-import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Hourglass} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -51,13 +51,10 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const defaultFundID = useDefaultFundID(policyID);
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const {showDecisionModal} = useDecisionModal();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -93,6 +90,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             deactivateCardAction(defaultFundID, card);
+        });
+    };
+
+    const showOfflineModal = async () => {
+        await showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
         });
     };
 
@@ -225,7 +230,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         icon={Expensicons.Trashcan}
                         title={translate('workspace.expensifyCard.deactivate')}
                         style={styles.mb1}
-                        onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
+                        onPress={() => (isOffline ? showOfflineModal() : setIsDeactivateModalVisible(true))}
                     />
                     <ConfirmModal
                         title={translate('workspace.card.deactivateCardModal.deactivateCard')}
@@ -238,14 +243,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         cancelText={translate('common.cancel')}
                         danger
                         onModalHide={() => shouldGoBack.current && Navigation.goBack()}
-                    />
-                    <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isOfflineModalVisible}
-                        onClose={() => setIsOfflineModalVisible(false)}
                     />
                 </ScrollView>
             </ScreenWrapper>

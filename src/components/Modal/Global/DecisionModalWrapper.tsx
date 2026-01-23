@@ -11,7 +11,7 @@ const DecisionModalActions = {
 
 type DecisionModalAction = ValueOf<typeof DecisionModalActions>;
 
-type DecisionModalWrapperProps = ModalProps<DecisionModalAction> & Omit<React.ComponentProps<typeof DecisionModal>, 'isVisible' | 'onClose' | 'onModalHide'>;
+type DecisionModalWrapperProps = ModalProps<DecisionModalAction> & Omit<React.ComponentProps<typeof DecisionModal>, 'isVisible' | 'onClose' | 'onModalHide' | 'onFirstOptionSubmit' | 'onSecondOptionSubmit'>;
 
 function DecisionModalWrapper({closeModal, ...props}: DecisionModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
