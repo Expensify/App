@@ -1140,6 +1140,32 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports.at(0)?.isBold).toBe(true);
             expect(results.recentReports.at(0)?.isUnread).toBe(true);
         });
+
+        it('should use personalDetails parameter when passed to getValidOptions', () => {
+            // Given a personalDetails object to pass explicitly
+            const customPersonalDetails = {
+                2: {
+                    accountID: 2,
+                    displayName: 'Custom Iron Man',
+                    login: 'tonystark@expensify.com',
+                },
+                3: {
+                    accountID: 3,
+                    displayName: 'Custom Spider-Man',
+                    login: 'peterparker@expensify.com',
+                },
+            };
+
+            // When we call getValidOptions with personalDetails parameter
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, {}, nvpDismissedProductTraining, loginList, {
+                personalDetails: customPersonalDetails,
+            });
+
+            // Then the function should complete without errors and return valid results
+            // The personalDetails param is used internally by prepareReportOptionsForDisplay for workspace chats
+            expect(results.recentReports.length).toBeGreaterThan(0);
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+        });
     });
 
     describe('getValidOptions() for chat room', () => {

@@ -90,6 +90,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
+                personalDetails,
             },
             countryCode,
         );
@@ -112,6 +113,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         betas,
         action,
         countryCode,
+        personalDetails,
     ]);
 
     const chatOptions = useMemo(() => {
