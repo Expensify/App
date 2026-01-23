@@ -31,6 +31,7 @@ const mockSearchContext = {
     areAllMatchingItemsSelected: false,
     showSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
+    shouldUseLiveData: false,
     setLastSearchType: jest.fn(),
     setCurrentSearchHashAndKey: jest.fn(),
     setCurrentSearchQueryJSON: jest.fn(),
@@ -167,9 +168,7 @@ describe('CategoryListItemHeader', () => {
             await waitForBatchedUpdatesWithAct();
 
             const checkbox = screen.getByRole('checkbox');
-            await act(async () => {
-                fireEvent.press(checkbox);
-            });
+            fireEvent.press(checkbox);
 
             expect(onCheckboxPress).toHaveBeenCalledWith(categoryItem);
         });
@@ -179,8 +178,7 @@ describe('CategoryListItemHeader', () => {
             renderCategoryListItemHeader(categoryItem, {canSelectMultiple: true, isSelectAllChecked: true});
             await waitForBatchedUpdatesWithAct();
 
-            const checkbox = screen.getByRole('checkbox');
-            expect(checkbox.props.accessibilityState.checked).toBe(true);
+            expect(screen.getByRole('checkbox')).toBeChecked();
         });
     });
 

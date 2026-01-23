@@ -1,7 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {SearchQueryJSON} from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
@@ -2425,11 +2424,11 @@ describe('SearchUIUtils', () => {
             }) as [TransactionCategoryGroupListItemType[], number];
 
             // Each category section should have a transactionsQueryJSON with a hash
-            result.forEach((item) => {
+            for (const item of result) {
                 expect(item.transactionsQueryJSON).toBeDefined();
                 expect(item.transactionsQueryJSON?.hash).toBeDefined();
                 expect(typeof item.transactionsQueryJSON?.hash).toBe('number');
-            });
+            }
         });
 
         it('should handle Unicode characters in category names', () => {
