@@ -125,6 +125,9 @@ type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
 
+    /** Text to be announced by screen reader */
+    accessibilityLabel?: string;
+
     /** Alternate text to display */
     alternateText?: string | null;
 
@@ -869,6 +872,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom content to display in the header of list component. */
     listHeaderContent?: React.JSX.Element | null;
+
+    /** By default, when `listHeaderContent` is passed, the section title will not be rendered. This flag allows the section title to still be rendered in certain cases. */
+    showSectionTitleWithListHeaderContent?: boolean;
 
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
