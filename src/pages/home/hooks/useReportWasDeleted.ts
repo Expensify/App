@@ -1,6 +1,7 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { OnyxEntry } from 'react-native-onyx';
 import type * as OnyxTypes from '@src/types/onyx';
+
 
 type ReportWasDeletedResult = {
     /** Whether the report was deleted (was accessible, now is not) */
@@ -38,6 +39,7 @@ function useReportWasDeleted(
         if (isRouteChanged) {
             prevReportIDFromRouteRef.current = reportIDFromRoute;
             wasEverAccessibleRef.current = false;
+            // state update is guarded by a route change check, preventing infinite re-render loops
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setWasDeleted(false);
             setParentReportID(undefined);
@@ -45,6 +47,7 @@ function useReportWasDeleted(
 
         if (isReportAccessible) {
             wasEverAccessibleRef.current = true;
+            // guarded by route checks to verify if the navigated report exists
             setWasDeleted(false);
             setParentReportID(currentParentReportID);
         }
