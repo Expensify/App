@@ -138,14 +138,14 @@ function SearchEditMultiplePage() {
         }
 
         if (Object.keys(changes).length === 0) {
-            Navigation.dismissModal();
+            Navigation.dismissToPreviousRHP();
             return;
         }
 
         updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy, allReports, allTransactions, allReportActions);
         clearSelectedTransactions(true);
 
-        Navigation.dismissModal();
+        Navigation.dismissToPreviousRHP();
     };
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
