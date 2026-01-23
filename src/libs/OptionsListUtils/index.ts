@@ -1003,6 +1003,7 @@ function getReportOption(
     participant: Participant,
     privateIsArchived: string | undefined,
     policy: OnyxEntry<Policy>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     reportDrafts?: OnyxCollection<Report>,
 ): OptionData {
@@ -1011,7 +1012,7 @@ function getReportOption(
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
+        personalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
         {
             showChatPreviewLine: false,
@@ -1026,7 +1027,7 @@ function getReportOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, currentUserAccountID, privateIsArchived);
+        option.text = computeReportName(report, undefined, undefined, undefined, undefined, personalDetails, undefined, currentUserAccountID, privateIsArchived);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1036,7 +1037,7 @@ function getReportOption(
 
         if (report?.policyID) {
             const submitToAccountID = getSubmitToAccountID(policy, report);
-            const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+            const submitsToAccountDetails = personalDetails?.[submitToAccountID];
             const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
             if (subtitle) {
@@ -1102,7 +1103,11 @@ function getReportDisplayOption(
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(participant: Participant | SearchOptionData, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): SearchOptionData {
+function getPolicyExpenseReportOption(
+    participant: Participant | SearchOptionData,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+): SearchOptionData {
     const expenseReport = reportUtilsIsPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
@@ -1111,7 +1116,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
+        personalDetails ?? {},
         !isEmptyObject(expenseReport) ? expenseReport : null,
         {
             showChatPreviewLine: false,
@@ -2009,6 +2014,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, po
         showRBR = true,
         shouldShowGBR = false,
         shouldUnreadBeBold = false,
+        personalDetails,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2079,7 +2085,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, po
             if (report?.policyID) {
                 const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
-                const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+                const submitsToAccountDetails = (personalDetails ?? allPersonalDetails)?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
                 if (subtitle) {
@@ -2158,6 +2164,7 @@ function getValidOptions(
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
         shouldAcceptName = false,
+        personalDetails,
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
@@ -2240,6 +2247,7 @@ function getValidOptions(
                 shouldSeparateSelfDMChat,
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
+                personalDetails,
             }).at(0);
         }
 
@@ -2253,6 +2261,7 @@ function getValidOptions(
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
+            personalDetails,
         });
 
         workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
@@ -2262,6 +2271,7 @@ function getValidOptions(
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
+            personalDetails,
         });
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
@@ -2377,6 +2387,7 @@ type SearchOptionsConfig = {
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
     loginList: OnyxEntry<Login>;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -2622,7 +2633,9 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                          return isReportPolicyExpenseChat
+                              ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived)
+                              : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2648,7 +2661,9 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                      return isReportPolicyExpenseChat
+                          ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived)
+                          : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
