@@ -3093,6 +3093,16 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('searchUserInServer', () => {
+        it('should return the same result with or without uppercase input.', () => {
+            Report.searchUserInServer('test');
+            Report.searchUserInServer('TEST');
+            const upperCaseRequest = PersistedRequests.getAll().at(0);
+            const lowerCaseRequest = PersistedRequests.getAll().at(1);
+            expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
+        });
+    });
+
     it('should not overwrite testDriveModalDismissed when it is already true', async () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
