@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {getReportTransactions, isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {doesReportContainRequestsFromMultipleUsers, getReportOrDraftReport, isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -23,7 +23,6 @@ import type {
     PrivatePersonalDetails,
     ReportMetadata,
     ReportNameValuePairs,
-    Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {
@@ -2159,23 +2158,6 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
 }
 
 /**
- * Helpers to check whether the non-deleted transactions of an expense report come from both sides by verifying the sign of the transaction amount.
- */
-function hasTransactionsFromBothSides(reportID: string | undefined) {
-    const reportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const getTransactionAmount = (transaction?: Transaction) => Number(transaction?.modifiedAmount || transaction?.amount || 0);
-
-    const firstNonZeroTransaction = reportTransactions.find((transaction) => getTransactionAmount(transaction) !== 0);
-    if (reportTransactions.length === 0 || !firstNonZeroTransaction) {
-        return false;
-    }
-
-    const firstNonZeroTransactionAmount = getTransactionAmount(firstNonZeroTransaction);
-    return reportTransactions.some((transaction) => firstNonZeroTransactionAmount * getTransactionAmount(transaction) < 0);
-}
-
-/**
  * Helper method to determine if the provided accountID has submitted an expense on the specified report.
  *
  * @param reportID
@@ -2190,7 +2172,8 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
     const reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
         // In case the reportActions of the report have not been loaded, we will check based on the transactions.
-        return hasTransactionsFromBothSides(reportID);
+        const report = getReportOrDraftReport(reportID);
+        return doesReportContainRequestsFromMultipleUsers(report, true);
     }
 
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID && !isDeletedAction(action));

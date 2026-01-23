@@ -1026,6 +1026,10 @@ describe('ReportActionsUtils', () => {
 
         it('should return true for a report that has transactions from both sides when reportActions are unloaded', async () => {
             const unloadedActionsReportID = '5';
+            const iouReport = {
+                type: CONST.REPORT.TYPE.IOU,
+                reportID: unloadedActionsReportID,
+            };
             const transactionFromCurrentUser = {
                 ...createRandomTransaction(1),
                 reportID: unloadedActionsReportID,
@@ -1038,6 +1042,7 @@ describe('ReportActionsUtils', () => {
             };
 
             // When: there are non-deleted transactions from both
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
 
