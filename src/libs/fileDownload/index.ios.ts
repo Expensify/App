@@ -45,7 +45,7 @@ function downloadFile(fileUrl: string, fileName: string) {
     }).fetch('GET', fileUrl);
 }
 
-const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
+const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void | Promise<void>) => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,

@@ -5,7 +5,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
@@ -19,6 +18,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useDecisionModal from '@hooks/useDecisionModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -122,7 +122,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedPerDiem, setSelectedPerDiem] = useState<SubRateData[]>([]);
     const [deletePerDiemConfirmModalVisible, setDeletePerDiemConfirmModalVisible] = useState(false);
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const {showDecisionModal} = useDecisionModal();
     const policyID = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyID);
@@ -251,6 +251,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
     }, [policyID]);
 
+    const showDownloadFailureModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
     const openSubRateDetails = (rate: PolicyOption) => {
         if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleSubRate(rate);
@@ -302,15 +310,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    close(() =>
-                        downloadPerDiemCSV(
-                            policyID,
-                            () => {
-                                setIsDownloadFailureModalVisible(true);
-                            },
-                            translate,
-                        ),
-                    );
+                    close(() => downloadPerDiemCSV(policyID, showDownloadFailureModal, translate));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
             });
@@ -328,6 +328,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         expensifyIcons.Gear,
         expensifyIcons.Table,
         expensifyIcons.Download,
+        showDownloadFailureModal,
     ]);
 
     const getHeaderButtons = () => {
@@ -516,15 +517,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     shouldShowCancelButton={false}
                     onCancel={() => setIsOfflineModalVisible(false)}
                     shouldHandleNavigationBack
-                />
-                <DecisionModal
-                    title={translate('common.downloadFailedTitle')}
-                    prompt={translate('common.downloadFailedDescription')}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                    secondOptionText={translate('common.buttonConfirm')}
-                    isVisible={isDownloadFailureModalVisible}
-                    onClose={() => setIsDownloadFailureModalVisible(false)}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

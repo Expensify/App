@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -66,7 +66,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 confirmText: translate('workspace.exportAgainModal.confirmText'),
                 cancelText: translate('workspace.exportAgainModal.cancelText'),
             });
-            if (result.action === ModalActions.CONFIRM) {
+            if (result.action === ConfirmModalActions.CONFIRM) {
                 confirmExport(type);
             }
         },

@@ -6,7 +6,7 @@ import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCar
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -99,7 +99,7 @@ function ReceiptView({route}: ReceiptViewProps) {
             cancelText: translate('common.cancel'),
             danger: true,
         });
-        if (result.action !== ModalActions.CONFIRM) {
+        if (result.action !== ConfirmModalActions.CONFIRM) {
             return;
         }
         deleteReceipt();

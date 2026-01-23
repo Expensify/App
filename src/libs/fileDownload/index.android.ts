@@ -97,7 +97,7 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
     });
 }
 
-const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void): Promise<void> => {
+const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void | Promise<void>): Promise<void> => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,

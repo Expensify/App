@@ -10,7 +10,7 @@ type FileDownload = (
     shouldOpenExternalLink?: boolean,
     formData?: FormData,
     requestType?: RequestType,
-    onDownloadFailed?: () => void,
+    onDownloadFailed?: () => void | Promise<void>,
     shouldUnlink?: boolean,
 ) => Promise<void>;
 type ImageResolution = {width: number; height: number};

@@ -8,7 +8,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
@@ -1325,7 +1325,7 @@ function IOURequestStepConfirmation({
             cancelText: translate('common.cancel'),
             danger: true,
         });
-        if (result.action !== ModalActions.CONFIRM) {
+        if (result.action !== ConfirmModalActions.CONFIRM) {
             return;
         }
         removeCurrentTransaction();

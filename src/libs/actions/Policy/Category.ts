@@ -1309,7 +1309,7 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
     API.write(WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
-function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void | Promise<void>, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
         policyID,
     });

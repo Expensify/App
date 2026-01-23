@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -26,18 +27,21 @@ type DecisionModalProps = {
     /** onSubmit callback fired after clicking on second button */
     onSecondOptionSubmit: () => void;
 
-    /** Is the window width narrow, like on a mobile device? */
-    isSmallScreenWidth: boolean;
-
     /** Callback for closing modal */
     onClose: () => void;
 
     /** Whether modal is visible */
     isVisible: boolean;
+
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
 };
 
-function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible}: DecisionModalProps) {
+function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, onClose, isVisible, onModalHide}: DecisionModalProps) {
     const styles = useThemeStyles();
+
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     return (
         <Modal
@@ -45,6 +49,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            onModalHide={onModalHide}
         >
             <View style={[styles.m5]}>
                 <View>

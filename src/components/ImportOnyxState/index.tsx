@@ -1,4 +1,6 @@
-import React, {useState} from 'react';
+import React from 'react';
+import useDecisionModal from '@hooks/useDecisionModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
@@ -13,8 +15,9 @@ import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
 
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const {showDecisionModal} = useDecisionModal();
+    const {translate} = useLocalize();
 
     const handleFileRead = (file: FileObject) => {
         if (!file.uri) {
@@ -46,18 +49,16 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             })
             .catch((error) => {
                 console.error('Error importing state:', error);
-                setIsErrorModalVisible(true);
+                showDecisionModal({
+                    title: translate('initialSettingsPage.troubleshoot.invalidFile'),
+                    prompt: translate('initialSettingsPage.troubleshoot.invalidFileDescription'),
+                    secondOptionText: translate('common.ok'),
+                });
             })
             .finally(() => {
                 setIsLoading(false);
             });
     };
 
-    return (
-        <BaseImportOnyxState
-            onFileRead={handleFileRead}
-            isErrorModalVisible={isErrorModalVisible}
-            setIsErrorModalVisible={setIsErrorModalVisible}
-        />
-    );
+    return <BaseImportOnyxState onFileRead={handleFileRead} />;
 }
