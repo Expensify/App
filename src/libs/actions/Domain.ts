@@ -14,6 +14,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain, DomainSecurityGroup} from '@src/types/onyx';
+import type {SecurityGroupsData} from '@src/types/onyx/Domain';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
@@ -790,18 +791,10 @@ function clearDomainErrors(domainAccountID: number) {
 }
 
 /** Sends a request to remove a user from a domain and close their account */
-function closeUserAccount(
-    domainAccountID: number,
-    domain: string,
-    accountID: number,
-    targetEmail: string,
-    securityGroupIDs: Array<`${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}`> = [],
-    securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {},
-    overrideProcessingReports = false,
-) {
+function closeUserAccount(domainAccountID: number, domain: string, accountID: number, targetEmail: string, securityGroupsData: SecurityGroupsData, overrideProcessingReports = false) {
     const optimisticValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
     const failureValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
-    for (const groupID of securityGroupIDs) {
+    for (const groupID of securityGroupsData.keys) {
         optimisticValue[groupID] = {
             shared: {
                 [accountID]: null,
@@ -809,7 +802,7 @@ function closeUserAccount(
         };
         failureValue[groupID] = {
             shared: {
-                [accountID]: securityGroups?.[groupID]?.shared?.[accountID] ?? null,
+                [accountID]: securityGroupsData.securityGroups?.[groupID]?.shared?.[accountID] ?? null,
             },
         };
     }

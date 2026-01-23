@@ -135,7 +135,10 @@ describe('actions/Domain', () => {
             },
         };
 
-        closeUserAccount(domainAccountID, domainName, accountID, targetEmail, securityGroupIDs, securityGroups);
+        closeUserAccount(domainAccountID, domainName, accountID, targetEmail, {
+            keys: securityGroupIDs,
+            securityGroups,
+        });
 
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -195,7 +198,10 @@ describe('actions/Domain', () => {
                 shared: {[accountID]: 'read'},
             },
         };
-        closeUserAccount(domainAccountID, domainName, accountID, targetEmail, securityGroupIDs, securityGroups);
+        closeUserAccount(domainAccountID, domainName, accountID, targetEmail, {
+            keys: securityGroupIDs,
+            securityGroups,
+        });
 
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -223,7 +229,17 @@ describe('actions/Domain', () => {
         const accountID = 456;
         const targetEmail = 'user@test.com';
 
-        closeUserAccount(domainAccountID, domainName, accountID, targetEmail, [], {}, true);
+        closeUserAccount(
+            domainAccountID,
+            domainName,
+            accountID,
+            targetEmail,
+            {
+                keys: [],
+                securityGroups: {},
+            },
+            true,
+        );
 
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, {domain: domainName, targetEmail, overrideProcessingReports: true}, expect.any(Object));
 

@@ -29,9 +29,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    // using isSmallScreenWidth here because DecisionModal expects isSmallScreen instead of shouldUseNarrowLayout
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -61,6 +59,9 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     }
 
     const handleCloseAccount = async (force: boolean) => {
+        if (!securityGroupsData) {
+            return;
+        }
         setIsModalVisible(false);
         const result = await showConfirmModal({
             title: translate('domain.members.closeAccount'),
@@ -74,7 +75,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             setIsModalVisible(true);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData?.keys ?? [], securityGroupsData?.securityGroups, force);
+        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData, force);
         Navigation.dismissModal();
     };
 
@@ -105,7 +106,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             <DecisionModal
                 title={translate('domain.members.closeAccount')}
                 prompt={translate('domain.members.closeAccountInfo')}
-                isSmallScreenWidth={isSmallScreenWidth}
+                isSmallScreenWidth={shouldUseNarrowLayout}
                 onSecondOptionSubmit={handleSafeCloseAccount}
                 onFirstOptionSubmit={handleForceCloseAccount}
                 secondOptionText={translate('domain.members.safeCloseAccount')}
