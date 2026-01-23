@@ -45,10 +45,6 @@ describe('WorkspaceListPage', () => {
         jest.clearAllMocks();
     });
 
-    afterAll(() => {
-        Onyx.clear();
-    });
-
     it('should not show new workspace button when the restrict creation policy in the group domain is enabled', async () => {
         const TEST_DOMAIN = 'domain.com';
         const TEST_SECURITY_GROUP_ID = 'test-id';
