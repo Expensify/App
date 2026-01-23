@@ -25,7 +25,7 @@ function WorkspaceWorkflowsPayerSuccessPage({policyID, selectedPayer}: Workspace
     const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
 
     useEffect(() => {
-        if (policyID) {
+        if (!policyID) {
             return;
         }
         setWorkspacePayer(policyID, selectedPayer);
