@@ -455,6 +455,12 @@ type OriginalMessagePolicyChangeLog = {
     /** New value for max expense amount for violations */
     newMaxExpenseAmount?: number;
 
+    /** Old value for max expense age (days) */
+    oldMaxExpenseAge?: number;
+
+    /** New value for max expense age (days) */
+    newMaxExpenseAge?: number;
+
     /** Old default billable value */
     oldDefaultBillable?: string;
 

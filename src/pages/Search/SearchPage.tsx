@@ -79,7 +79,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -135,6 +135,7 @@ function SearchPage({route}: SearchPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isCustomReportNamesBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -240,6 +241,18 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+
+    // Peggy injects default sortBy/sortOrder at parse time, so queryJSON
+    // can differ from the URL’s raw query. When they diverge, we need to replace the URL
+    useEffect(() => {
+        if (!queryJSON || !route.params.q) {
+            return;
+        }
+        const normalizedQueryString = buildSearchQueryString(queryJSON);
+        if (normalizedQueryString !== route.params.q) {
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: normalizedQueryString}), {forceReplace: true});
+        }
+    }, [queryJSON, route.params.q]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -511,9 +524,13 @@ function SearchPage({route}: SearchPageProps) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber);
+                    // Get transactions for this report
+                    const reportTransactions = Object.values(allTransactions ?? {}).filter(
+                        (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
+                    );
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReportID, adminPolicy);
+                        moveIOUReportToPolicy(itemReportID, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
                     }
                 }
             }
@@ -571,6 +588,8 @@ function SearchPage({route}: SearchPageProps) {
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
             personalPolicyID,
+            allTransactions,
+            isCustomReportNamesBetaEnabled,
         ],
     );
 
@@ -829,6 +848,11 @@ function SearchPage({route}: SearchPageProps) {
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
                         return;
                     }
 
