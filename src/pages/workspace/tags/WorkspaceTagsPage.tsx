@@ -506,7 +506,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToTagsSettings, hasAccountingConnections, hasVisibleTags, navigateToImportSpreadsheet, isOffline, isMultiLevelTags, policyID, hasDependentTags, expensifyIcons, showDownloadFailureModal]);
+    }, [
+        translate,
+        navigateToTagsSettings,
+        hasAccountingConnections,
+        hasVisibleTags,
+        navigateToImportSpreadsheet,
+        isOffline,
+        isMultiLevelTags,
+        policyID,
+        hasDependentTags,
+        expensifyIcons,
+        showDownloadFailureModal,
+    ]);
 
     const getHeaderButtons = () => {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);

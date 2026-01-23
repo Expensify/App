@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect} from 'react';
 import useAssignCard from '@hooks/useAssignCard';
-import useDecisionModal from '@hooks/useDecisionModal';
 import useCardsList from '@hooks/useCardsList';
 import useCompanyCards from '@hooks/useCompanyCards';
+import useDecisionModal from '@hooks/useDecisionModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';

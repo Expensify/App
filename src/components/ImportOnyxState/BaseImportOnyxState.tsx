@@ -6,11 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-function BaseImportOnyxState({
-    onFileRead,
-}: {
-    onFileRead: (file: FileObject) => void;
-}) {
+function BaseImportOnyxState({onFileRead}: {onFileRead: (file: FileObject) => void}) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
