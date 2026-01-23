@@ -6649,6 +6649,7 @@ export {
     hasErrorInPrivateNotes,
     inviteToGroupChat,
     buildInviteToRoomOnyxData,
+    inviteToRoom,
     inviteToRoomAction,
     joinRoom,
     leaveGroupChat,
