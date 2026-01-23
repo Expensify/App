@@ -42,6 +42,9 @@ jobs:
       APP_REF: ${{ steps.getHeadRef.outputs.REF || steps.setAppRef.outputs.REF || 'main' }}
       APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
       MOBILE_PR_NUMBER: ${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}
+      BUILD_WEB: ${{ steps.detectOSBotifyPush.outputs.BUILD_WEB || 'true' }}
+      BUILD_MOBILE: ${{ steps.detectOSBotifyPush.outputs.BUILD_MOBILE || 'true' }}
+      POST_COMMENTS: ${{ steps.detectOSBotifyPush.outputs.POST_COMMENTS || 'true' }}
     steps:
       - name: Checkout
         # v4
@@ -59,32 +62,54 @@ jobs:
           echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
           exit 1
 
+      - name: Detect OSBotify automated push
+        id: detectOSBotifyPush
+        if: ${{ github.event_name == 'push' && github.actor == 'OSBotify' }}
+        run: |
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MESSAGE" == Update\ version\ to* ]]; then
+            echo "::notice::⏭️ OSBotify version bump detected. Skipping workflow."
+            echo "BUILD_MOBILE=false" >> "$GITHUB_OUTPUT"
+            echo "BUILD_WEB=false" >> "$GITHUB_OUTPUT"
+            echo "POST_COMMENTS=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$COMMIT_MESSAGE" == Update\ Mobile-Expensify\ submodule* ]]; then
+            echo "::notice::✅ OSBotify Mobile-Expensify submodule update detected. Building native only."
+            echo "BUILD_WEB=false" >> "$GITHUB_OUTPUT"
+            echo "POST_COMMENTS=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Get merged pull request
         id: getMergedPullRequest
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && github.actor != 'OSBotify' }}
         uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
         with:
           github_token: ${{ github.token }}
 
       - name: Extract App PR number
         id: extractAppPRNumber
-        if: ${{ github.event_name == 'push' || inputs.APP_PULL_REQUEST_URL != '' }}
+        if: ${{ (github.event_name == 'push' && github.actor != 'OSBotify') || (github.event_name == 'workflow_dispatch' && inputs.APP_PULL_REQUEST_URL != '') }}
         run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
-            MERGED_PR_NUMBER="${{ steps.getMergedPullRequest.outputs.number }}"
-            if [ -z "$MERGED_PR_NUMBER" ]; then
-              echo "::error::❌ No merged PR found on main for sha ${{ github.sha }}. Aborting build."
-              exit 1
-            fi
-            echo "PR_NUMBER=$MERGED_PR_NUMBER" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.APP_PULL_REQUEST_URL }}" ]; then
+          # Handle workflow_dispatch with App PR URL
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.APP_PULL_REQUEST_URL }}" ]; then
             PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
             if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
               echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/App/pull/12345)"
               exit 1
             fi
+            echo "::notice::✅ App PR number from input: $PR_NUMBER"
             echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          # Regular push - require merged PR
+          MERGED_PR_NUMBER="${{ steps.getMergedPullRequest.outputs.number }}"
+          if [ -z "$MERGED_PR_NUMBER" ]; then
+            echo "::error::❌ Could not find merged PR number for this commit."
+            exit 1
+          fi
+
+          echo "::notice::✅ Merged PR number found: $MERGED_PR_NUMBER"
+          echo "PR_NUMBER=$MERGED_PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Extract Mobile-Expensify PR number from URL
         id: extractMobilePRNumber
@@ -174,7 +199,8 @@ jobs:
   postGitHubCommentBuildStarted:
     name: Post build started comment
     runs-on: ubuntu-latest
-    needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
+    if: ${{ needs.prep.outputs.POST_COMMENTS == 'true' }}
+    needs: [prep, getMobileExpensifyPR]
     steps:
       - name: Add build start comment to Expensify/App PR
         if: ${{ needs.prep.outputs.APP_PR_NUMBER != '' }}
@@ -208,7 +234,7 @@ jobs:
 
   web:
     name: Build and deploy Web
-    if: ${{ (github.event_name == 'push' || inputs.WEB) && needs.prep.outputs.APP_PR_NUMBER }}
+    if: ${{ needs.prep.outputs.BUILD_WEB == 'true' && (github.event_name == 'push' || inputs.WEB) && needs.prep.outputs.APP_PR_NUMBER }}
     needs: [prep]
     runs-on: ubuntu-latest-xl
     env:
@@ -247,7 +273,7 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    if: ${{ github.event_name == 'push' || inputs.ANDROID }}
+    if: ${{ needs.prep.outputs.BUILD_MOBILE == 'true' && (github.event_name == 'push' || inputs.ANDROID) }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
     env:
@@ -264,7 +290,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
         run: |
           cd Mobile-Expensify
           git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
@@ -355,7 +381,7 @@ jobs:
 
   iosHybrid:
     name: Build and deploy iOS for testing
-    if: ${{ github.event_name == 'push' || inputs.IOS }}
+    if: ${{ needs.prep.outputs.BUILD_MOBILE == 'true' && (github.event_name == 'push' || inputs.IOS) }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
@@ -373,7 +399,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
         run: |
           cd Mobile-Expensify
           git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
@@ -477,7 +503,7 @@ jobs:
 
   postGithubComment:
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ always() && needs.prep.outputs.POST_COMMENTS == 'true' }}
     name: Post a GitHub comment with app download links for testing
     needs: [prep, getMobileExpensifyPR, web, androidHybrid, iosHybrid]
     steps:
