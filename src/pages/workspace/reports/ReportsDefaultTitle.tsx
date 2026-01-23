@@ -124,7 +124,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     addBottomSafeAreaPadding
                 >
                     <OfflineWithFeedback
-                        pendingAction={(titleField && 'pendingFields' in titleField ? titleField.pendingFields?.defaultValue : undefined) ?? policy?.pendingAction}
+                        pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
                         errors={titleFieldError}
                         errorRowStyles={styles.mh0}
                         onClose={clearTitleFieldError}
