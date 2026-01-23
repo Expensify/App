@@ -252,23 +252,13 @@ function EmptySearchViewContent({
         });
     };
 
-    const handleCreateExpense = () => {
+    const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
             if (shouldRedirectToExpensifyClassic) {
                 handleRedirectToExpensifyClassic();
                 return;
             }
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
-        });
-    };
-
-    const handleCreateInvoice = () => {
-        interceptAnonymousUser(() => {
-            if (shouldRedirectToExpensifyClassic) {
-                handleRedirectToExpensifyClassic();
-                return;
-            }
-            startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
+            startMoneyRequest(iouType, generateReportID());
         });
     };
 
@@ -467,7 +457,7 @@ function EmptySearchViewContent({
                                     : []),
                                 {
                                     buttonText: translate('iou.createExpense'),
-                                    buttonAction: handleCreateExpense,
+                                    buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
                                     success: true,
                                 },
                             ],
@@ -493,7 +483,7 @@ function EmptySearchViewContent({
                                 : []),
                             {
                                 buttonText: translate('workspace.invoices.sendInvoice'),
-                                buttonAction: handleCreateInvoice,
+                                buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
                                 success: true,
                             },
                         ],
