@@ -205,6 +205,7 @@ import type {
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
+    VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -2080,6 +2081,7 @@ function deleteReportComment(
     isReportArchived: boolean | undefined,
     isOriginalReportArchived: boolean | undefined,
     currentEmail: string,
+    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
@@ -2126,7 +2128,7 @@ function deleteReportComment(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
                 ReportActionsUtils.didMessageMentionCurrentUser(action, currentEmail) &&
-                ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
+                ReportActionsUtils.isReportActionVisible(action, reportID, undefined, visibleReportActionsDataParam),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }
@@ -2282,6 +2284,7 @@ function editReportComment(
     isOriginalParentReportArchived: boolean | undefined,
     currentUserLogin: string,
     videoAttributeCache?: Record<string, string>,
+    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
@@ -2314,7 +2317,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin);
+        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin, visibleReportActionsDataParam);
         return;
     }
 
