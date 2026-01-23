@@ -376,7 +376,8 @@ function SearchPage({route}: SearchPageProps) {
         queryJSON,
         selectAllMatchingItems,
         clearSelectedTransactions,
-        setIsDownloadErrorModalVisible,
+        showDownloadErrorModal,
+        showOfflineModal,
     ]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
