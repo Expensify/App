@@ -535,6 +535,10 @@ export default {
         paddingVertical: 24,
     },
 
+    pv8: {
+        paddingVertical: 32,
+    },
+
     pv10: {
         paddingVertical: 40,
     },
