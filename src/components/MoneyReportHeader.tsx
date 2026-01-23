@@ -1012,6 +1012,11 @@ function MoneyReportHeader({
                 success
                 text={translate('iou.unhold')}
                 onPress={() => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
 
                     const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
@@ -1312,6 +1317,11 @@ function MoneyReportHeader({
             onSelected: () => {
                 if (!requestParentReportAction) {
                     throw new Error('Parent action does not exist');
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
                 }
 
                 changeMoneyRequestHoldStatus(requestParentReportAction);

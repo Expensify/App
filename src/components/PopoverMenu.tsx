@@ -7,6 +7,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, Vie
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -319,6 +320,7 @@ function BasePopoverMenu({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -381,6 +383,7 @@ function BasePopoverMenu({
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
         const hasBackButtonText = !!previouslySelectedItem?.backButtonText;
+        const backButtonTitle = hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text;
 
         return (
             <MenuItem
@@ -389,7 +392,8 @@ function BasePopoverMenu({
                 iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
                 additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
-                title={hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text}
+                title={backButtonTitle}
+                accessibilityLabel={`${translate('common.goBack')}, ${backButtonTitle}`}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
                 shouldShowBasicTitle={hasBackButtonText}
                 shouldCheckActionAllowedOnPress={false}
@@ -437,6 +441,7 @@ function BasePopoverMenu({
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     icon={icon}
+                    role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
                     hasSubMenuItems={!!subMenuItems?.length}
