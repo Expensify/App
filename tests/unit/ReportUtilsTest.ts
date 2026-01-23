@@ -2790,11 +2790,10 @@ describe('ReportUtils', () => {
             });
         });
 
-        afterEach(async () => {
+        afterAll(async () => {
             await act(async () => {
                 await Onyx.clear();
             });
-            jest.clearAllMocks();
         });
 
         describe('return empty iou options if', () => {
@@ -5724,11 +5723,10 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policyTest);
         });
 
-        afterEach(async () => {
+        afterAll(async () => {
             await act(async () => {
                 await Onyx.clear();
             });
-            jest.clearAllMocks();
         });
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
