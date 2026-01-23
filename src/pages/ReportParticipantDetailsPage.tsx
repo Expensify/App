@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -51,19 +51,19 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const removeUser = useCallback(() => {
+    const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
         removeFromGroupChat(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
-    }, [backTo, report?.reportID, accountID]);
+    };
 
-    const navigateToProfile = useCallback(() => {
+    const navigateToProfile = () => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
-    }, [accountID]);
+    };
 
-    const openRoleSelectionModal = useCallback(() => {
+    const openRoleSelectionModal = () => {
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, route.params.backTo));
-    }, [accountID, report.reportID, route.params.backTo]);
+    };
 
     if (!member) {
         return <NotFoundPage />;
