@@ -8,6 +8,7 @@ import {
     getCompanyFeeds,
     getDefaultCardName,
     getDomainOrWorkspaceAccountID,
+    getFilteredCardList,
     getPlaidCountry,
     getPlaidInstitutionId,
     isCustomFeed,
@@ -24,6 +25,7 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
+import useCardsList from './useCardsList';
 import useCurrencyList from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
@@ -112,6 +114,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
         const {initialStep, cardToAssign} = initialAssignCardStep;
 
+        console.log(initialStep);
         setAssignCardStepAndData({currentStep: initialStep, cardToAssign});
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -119,6 +122,10 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
                 case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
                 case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
                     Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, feedName));
+                    break;
+                case CONST.COMPANY_CARD.STEP.CARD:
+                    console.log('here');
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute({policyID, feed: feedName, cardID}));
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:
@@ -154,6 +161,9 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const isFeedExpired = isSelectedFeedExpired(feedData);
     const plaidAccessToken = feedData?.plaidAccessToken;
     const hasImportedPlaidAccounts = useRef(false);
+    const [cardsList] = useCardsList(selectedFeed);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.[selectedFeed]?.accountList : undefined, workspaceCardFeeds);
 
     /**
      * Gets the initial step and card data for the assignment flow.
@@ -210,6 +220,13 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
 
             return {
                 initialStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                cardToAssign,
+            };
+        }
+
+        if (Object.keys(filteredCardList).length === 0) {
+            return {
+                initialStep: CONST.COMPANY_CARD.STEP.CARD,
                 cardToAssign,
             };
         }
