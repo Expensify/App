@@ -10,7 +10,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
 
 /**
- * PreexistingReportHandler
+ * replaceOptimisticReportWithActualReport
  *
  * This module handles a specific edge case in the Expensify app's offline-first architecture.
  *

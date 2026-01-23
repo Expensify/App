@@ -26,6 +26,8 @@ import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import {openReportFromDeepLink} from './libs/actions/Link';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import './libs/actions/replaceOptimisticReportWithActualReport';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken} from './libs/actions/Session';
 import * as User from './libs/actions/User';
@@ -41,8 +43,6 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribeToPushNotifications';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/PreexistingReportHandler';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
