@@ -114,9 +114,15 @@ export default createOnyxDerivedValueConfig({
             const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID);
 
             const specificUpdates = reportActionsUpdates?.[reportActionsKey];
-            const actionsToProcess = specificUpdates ? Object.entries(specificUpdates) : Object.entries(reportActions);
+            const actionIDsToProcess = specificUpdates ? Object.keys(specificUpdates) : Object.keys(reportActions);
 
-            for (const [actionID, action] of actionsToProcess) {
+            for (const actionID of actionIDsToProcess) {
+                if (specificUpdates && specificUpdates[actionID] === null) {
+                    delete reportVisibility[actionID];
+                    continue;
+                }
+                
+                const action = reportActions[actionID];
                 if (!action) {
                     delete reportVisibility[actionID];
                     continue;
