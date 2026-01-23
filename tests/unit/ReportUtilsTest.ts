@@ -2790,7 +2790,11 @@ describe('ReportUtils', () => {
             });
         });
 
-        afterAll(() => Onyx.clear());
+        afterAll(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+        });
 
         describe('return empty iou options if', () => {
             it('participants array contains excluded expensify iou emails', () => {
@@ -5719,7 +5723,11 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policyTest);
         });
 
-        afterAll(() => Onyx.clear());
+        afterAll(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+        });
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
             expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, undefined, undefined, false)).toBe(false);
