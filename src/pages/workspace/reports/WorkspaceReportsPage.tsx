@@ -143,7 +143,8 @@ function WorkspaceReportFieldsPage({
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
 
-    const reportTitlePendingFields = (titleField && 'pendingFields' in titleField ? titleField.pendingFields : undefined) ?? {};
+    const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const reportTitlePendingFields = policyTitleField?.pendingFields ?? {};
 
     const clearTitleFieldError = () => {
         clearPolicyTitleFieldError(policyID);
