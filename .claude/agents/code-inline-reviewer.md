@@ -831,11 +831,10 @@ async function submitForm(data: FormData) {
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
-  - A **new component** is being introduced
-  - The component is implemented by adding configuration (props, flags, conditional logic) to existing components
+  - A **new feature** is being introduced OR an **existing component's API is being expanded with new props**
+  - The change adds configuration properties (flags, conditional logic)
   - These configuration options control feature presence or behavior within the component
-  - The features could instead be expressed as child components
-  - The component's API is expanding with configuration options rather than staying stable
+  - These features could instead be expressed as composable child components
 
   **Features that should be expressed as child components:**
   - Optional UI elements that could be composed in
