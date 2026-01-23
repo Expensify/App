@@ -4632,6 +4632,18 @@ describe('actions/IOU', () => {
 
             const selectedTransactionIDs = [transaction1.transactionID, transaction2.transactionID];
             deleteMoneyRequest({
+                transactionID: transaction1.transactionID,
+                reportAction: moneyRequestAction1,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                transactionIDsPendingDeletion: [],
+                selectedTransactionIDs,
+                allTransactionViolationsParam: {},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+            });
+            deleteMoneyRequest({
                 transactionID: transaction2.transactionID,
                 reportAction: moneyRequestAction2,
                 transactions: {},
