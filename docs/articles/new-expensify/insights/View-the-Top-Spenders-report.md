@@ -39,36 +39,35 @@ Suggestion: Web navigation tabs with **Top spenders** selected under **Reports**
 
 ---
 
-## What the Top Spenders report shows
+## What information the Top Spenders report displays
 
-This report is powered by a saved search query using Expensify’s grouping and filtering engine. It shows:
+The Top Spenders report is powered by a saved search query using Expensify's grouping and filtering engine. The report shows:
 
 - The **top 10 expense submitters** from last month  
 - The **total amount spent** by each person  
 - The **number of expenses** each person submitted
 ---
 
-## How to read the Top Spenders report
+## How to interpret Top Spenders report data
 
-Each row represents an individual employee. Columns include:
+Each row represents an individual employee, sorted in descending order by amount. Columns include:
 
 - **Number of expenses submitted**
 - **Total amount spent**
-- Sorted in descending order by amount
 
-Click any row to view that person’s individual expenses.
+Click any row to view that member's individual expenses.
 
 ---
 
-## Can I customize the Top Spenders report?
+## Can you customize the Top Spenders report?
 
-No. This view is based on a locked suggested search and cannot be edited.
+No. The Top Spenders report is a pre-built suggested search so you can review spending activity at a glance.
 
 To create your own custom report: 
 
 1. Go to the **Reports** or **Expenses** tab.
 2. Use filters to adjust grouping and timeframes.
-3. Apply and save your own search.
+3. Apply filters and save your custom search.
 
 [Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#How-to-use-Reports-search-query-commands).
 
@@ -76,20 +75,19 @@ To create your own custom report:
 
 ## Ways to use the Top Spenders report
 
-Workspace Admins and finance teams use this report to:
+Workspace Admins and finance teams use the Top Spenders report to:
 
-- Flag high or unusual spenders for review
-- Identify cost-saving opportunities
-- Monitor employee-level spending trends
-- Prioritize follow-up with specific departments or individuals
+- Identify high or unusual spenders at a glance
+- Spot spending trends without exporting data
+- Make data-backed decisions quickly
 
 ---
 
 # FAQ
 
-## Can I export the Top Spenders report?
+## Can you export the Top Spenders report?
 
-No. This specific report isn’t exportable. To export expense data:
+No. The Top Spenders report isn’t exportable. To export expense data:
 
 1. Go to the **Reports** tab.
 2. Apply filters to create your own view.
@@ -109,4 +107,4 @@ Only Workspace Admins, Approvers, and Auditors can view a workspace's Top Spende
 
 ## How is the Top Spenders report calculated?
 
-The report uses expenses from the previous calendar month and groups them by submitter (employee). It shows the top 10 people by total amount spent.
+The Top Spenders report uses expenses from the previous calendar month and groups them by submitter (employee). It shows the top 10 people by total amount spent.
