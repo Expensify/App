@@ -300,6 +300,22 @@ function SearchPage({route}: SearchPageProps) {
             .map((policy) => policy.id);
     }, [policies]);
 
+    const showOfflineModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
+    const showDownloadErrorModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
     const handleBasicExport = useCallback(async () => {
         if (isOffline) {
             showOfflineModal();
@@ -1175,22 +1191,6 @@ function SearchPage({route}: SearchPageProps) {
         },
         [saveScrollOffset, route],
     );
-
-    const showOfflineModal = useCallback(async () => {
-        await showDecisionModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.offlinePrompt'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    }, [showDecisionModal, translate]);
-
-    const showDownloadErrorModal = useCallback(async () => {
-        await showDecisionModal({
-            title: translate('common.downloadFailedTitle'),
-            prompt: translate('common.downloadFailedDescription'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    }, [showDecisionModal, translate]);
 
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
