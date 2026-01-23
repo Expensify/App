@@ -461,7 +461,7 @@ function getAlternateText(
             lastActorDetails,
             isReportArchived,
             visibleReportActionsDataParam: visibleReportActionsData,
-            currentUserAccountID
+            currentUserAccountID,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -949,12 +949,20 @@ function createOption(
             lastActorDetails,
             isReportArchived: !!result.private_isArchived,
             visibleReportActionsDataParam: visibleReportActionsData,
-            currentUserAccountID
+            currentUserAccountID,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
-                : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, currentUserAccountID, lastActorDetails, visibleReportActionsData, translateFn);
+                : getAlternateText(
+                      result,
+                      {showChatPreviewLine, forcePolicyNamePreview},
+                      !!result.private_isArchived,
+                      currentUserAccountID,
+                      lastActorDetails,
+                      visibleReportActionsData,
+                      translateFn,
+                  );
 
         const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
         const computedReportName = computeReportName(
@@ -1297,7 +1305,7 @@ function createOptionList(
 
     if (reports) {
         for (const report of Object.values(reports)) {
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails,currentUserAccountID, reportAttributesDerived, visibleReportActionsData);
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, currentUserAccountID, reportAttributesDerived, visibleReportActionsData);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
@@ -1412,7 +1420,7 @@ function createFilteredOptionList(
     // Step 5: Process the limited set of reports (performance optimization)
     const reportOptions: Array<SearchOption<Report>> = [];
     for (const report of limitedReports) {
-        const {reportMapEntry, reportOption} = processReport(report, personalDetails, currentUserAccountID,reportAttributesDerived, visibleReportActionsData);
+        const {reportMapEntry, reportOption} = processReport(report, personalDetails, currentUserAccountID, reportAttributesDerived, visibleReportActionsData);
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1442,7 +1450,16 @@ function createFilteredOptionList(
 
               return {
                   item: personalDetail,
-                  ...createOption([accountID], personalDetails, reportMapForAccountIDs[accountID],currentUserAccountID, {showPersonalDetails: true}, reportAttributesDerived, undefined, visibleReportActionsData),
+                  ...createOption(
+                      [accountID],
+                      personalDetails,
+                      reportMapForAccountIDs[accountID],
+                      currentUserAccountID,
+                      {showPersonalDetails: true},
+                      reportAttributesDerived,
+                      undefined,
+                      visibleReportActionsData,
+                  ),
               };
           })
         : [];
@@ -1465,7 +1482,7 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, currentUserAccountID,config, reportAttributesDerived, undefined, visibleReportActionsData),
+        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, config, reportAttributesDerived, undefined, visibleReportActionsData),
     };
 }
 
@@ -1785,7 +1802,7 @@ function getUserToInviteOption({
         [optimisticAccountID],
         personalDetailsExtended,
         null,
-        currentUserAccountID
+        currentUserAccountID,
         {
             showChatPreviewLine,
         },
