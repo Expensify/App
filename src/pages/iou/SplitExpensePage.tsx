@@ -242,11 +242,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
     const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
+    const transactionTypeTranslationPath = {translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))};
     const splitExpensesArray = draftTransaction?.comment?.splitExpenses ?? [];
 
     const splitAmounts = splitExpensesArray.map((item) => Number(item.amount ?? 0));
     const adjustedPercentages = calculateSplitPercentagesFromAmounts(splitAmounts, transactionDetailsAmount);
-    const transactionTypeTranslationPath = {translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))};
 
     const options: SplitListItemType[] = splitExpensesArray.map((item, index): SplitListItemType => {
         const previewHeaderText: TranslationPathOrText[] = [transactionTypeTranslationPath];
