@@ -249,7 +249,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const shouldRenderHeaderAsChild = !shouldUseNarrowLayout || ((isFeedPending || isLoadingPage) && !showCards);
+    const shouldRenderHeaderAsChild = !shouldUseNarrowTableLayout || ((isFeedPending || isLoadingPage) && !showCards);
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
@@ -275,7 +275,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
     const headerButtonsComponent =
         showCards || isLoadingPage || isFeedPending ? (
-            <View style={shouldUseNarrowLayout && styles.mb5}>
+            <View style={shouldUseNarrowTableLayout && styles.mb5}>
                 <WorkspaceCompanyCardsTableHeaderButtons
                     isLoading={isLoadingPage}
                     policyID={policy?.id}
@@ -298,7 +298,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
-            ListHeaderComponent={shouldUseNarrowLayout ? headerButtonsComponent : undefined}
+            ListHeaderComponent={shouldUseNarrowTableLayout ? headerButtonsComponent : undefined}
         >
             {shouldRenderHeaderAsChild && headerButtonsComponent}
 
