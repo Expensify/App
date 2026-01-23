@@ -224,17 +224,6 @@ describe('useTodos', () => {
             expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(3);
             expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(2);
             expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toBe(1);
-
-            for (const id of SUBMIT_REPORT_IDS) {
-                expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toContain(id);
-            }
-            for (const id of APPROVE_REPORT_IDS) {
-                expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toContain(id);
-            }
-            for (const id of PAY_REPORT_IDS) {
-                expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY]).toContain(id);
-            }
-            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toContain(EXPORT_REPORT_ID);
         });
     });
 
@@ -315,9 +304,8 @@ describe('useTodos', () => {
         });
 
         it('should show 50+ when todo report count exceeds max limit', () => {
-            const reportsOverMax = Array.from({length: 55}, (_, i) => createMockReport(String(i + 1)));
             const reportCounts = {
-                [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: reportsOverMax.length,
+                [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 60,
                 [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
                 [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
                 [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
