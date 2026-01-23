@@ -1162,7 +1162,7 @@ function isReportActionVisible(
         return false;
     }
 
-    if (reportAction.pendingAction && Object.keys(reportAction.errors ?? {}).length > 0) {
+    if (reportAction.pendingAction) {
         return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
     }
 
