@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/dist/str';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -30,6 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {TravelProvisioning} from '@src/types/onyx';
 
 type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TCS>;
 
@@ -42,18 +43,17 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
-
-    const isLoading = travelProvisioning?.isLoading;
-    const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
-    const policyID = route.params.policyID;
-
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {canBeMissing: true});
 
-    const createTravelEnablementIssue = useCallback(() => {
+    const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
+    const isLoading = travelProvisioning?.isLoading;
+    const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
+    const policyID = route.params.policyID;
+
+    const createTravelEnablementIssue = () => {
         if (!conciergeReportID) {
             return;
         }
@@ -62,51 +62,56 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         addComment(conciergeReport, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
-    }, [translate, account?.primaryLogin, conciergeReportID, conciergeReport]);
-
-    useEffect(() => {
-        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
-            cleanupTravelProvisioningSession();
-        }
-
-        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
-            showConfirmModal({
-                title: translate('travel.verifyCompany.title'),
-                titleStyles: styles.textHeadlineH1,
-                titleContainerStyles: styles.mb2,
-                prompt: translate('travel.verifyCompany.message'),
-                promptStyles: styles.mb2,
-                confirmText: translate('travel.verifyCompany.confirmText'),
-                shouldShowCancelButton: false,
-                image: illustrations.RocketDude,
-                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
-            }).then(createTravelEnablementIssue);
-        }
-
-        if (travelProvisioning?.spotnanaToken) {
-            Navigation.closeRHPFlow();
-            cleanupTravelProvisioningSession();
-        }
-        if (travelProvisioning?.errors && !travelProvisioning?.error) {
-            setErrorMessage(getLatestErrorMessage(travelProvisioning));
-        }
-        // Only travelProvisioning and domain should trigger this effect. Other dependencies (translate, styles, StyleUtils, Navigation, etc.)
-        // are stable references that don't change between renders, so including them would cause unnecessary re-renders.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [travelProvisioning, domain]);
-
-    const toggleTravelTerms = () => {
-        setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);
     };
 
-    useEffect(() => {
-        if (!hasAcceptedTravelTerms) {
-            return;
-        }
+    const acceptTermsAndOpenTravelDot = () => {
+        asyncOpenURL(
+            acceptSpotnanaTerms(domain, policyID).then((response) => {
+                // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
+                const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);
+                const errorCode = (travelProvisioningData?.value as Partial<TravelProvisioning> | undefined)?.error;
 
-        setErrorMessage('');
-    }, [hasAcceptedTravelTerms]);
+                // Handle permission denied error
+                if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
+                    Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
+                    cleanupTravelProvisioningSession();
+                    return Promise.reject(new Error('Permission denied'));
+                }
+
+                // Handle verification required error - show modal and reject to close Safari window if open
+                if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
+                    showConfirmModal({
+                        title: translate('travel.verifyCompany.title'),
+                        titleStyles: styles.textHeadlineH1,
+                        titleContainerStyles: styles.mb2,
+                        prompt: translate('travel.verifyCompany.message'),
+                        promptStyles: styles.mb2,
+                        confirmText: translate('travel.verifyCompany.confirmText'),
+                        shouldShowCancelButton: false,
+                        image: illustrations.RocketDude,
+                        imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+                    }).then(createTravelEnablementIssue);
+                    return Promise.reject(new Error('Verification required'));
+                }
+
+                // Handle general API failure
+                if (response?.jsonCode !== 200) {
+                    return Promise.reject(new Error('Request failed'));
+                }
+
+                // Handle success - build URL, cleanup, and return URL for asyncOpenURL to open
+                if (response?.spotnanaToken) {
+                    const travelDotURL = buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
+                    Navigation.closeRHPFlow();
+                    cleanupTravelProvisioningSession();
+                    return travelDotURL;
+                }
+
+                return Promise.reject(new Error('No token received'));
+            }),
+            (travelDotURL) => travelDotURL ?? '',
+        );
+    };
 
     // Add beta support for FullPageNotFound that is universal across travel pages
     return (
@@ -128,35 +133,14 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         <CheckboxWithLabel
                             style={styles.mt6}
                             accessibilityLabel={translate('travel.termsAndConditions.label')}
-                            onInputChange={toggleTravelTerms}
+                            onInputChange={() => setHasAcceptedTravelTerms((prev) => !prev)}
                             label={translate('travel.termsAndConditions.label')}
                         />
                     </View>
-
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.continue')}
                         isDisabled={!hasAcceptedTravelTerms}
-                        onSubmit={() => {
-                            if (!hasAcceptedTravelTerms) {
-                                setErrorMessage(translate('travel.termsAndConditions.error'));
-                                return;
-                            }
-                            if (errorMessage) {
-                                setErrorMessage('');
-                            }
-
-                            asyncOpenURL(
-                                acceptSpotnanaTerms(domain, policyID).then((response) => {
-                                    if (response?.jsonCode !== 200) {
-                                        return Promise.reject();
-                                    }
-                                    if (response?.spotnanaToken) {
-                                        return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
-                                    }
-                                }),
-                                (travelDotURL) => travelDotURL ?? '',
-                            );
-                        }}
+                        onSubmit={acceptTermsAndOpenTravelDot}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
                         containerStyles={[styles.mh0, styles.mt5]}
