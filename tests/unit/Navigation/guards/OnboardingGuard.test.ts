@@ -55,6 +55,18 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('ALLOW');
         });
 
+        it('should allow when app is still loading Onyx data', () => {
+            const loadingContext: GuardContext = {
+                isAuthenticated: true,
+                isLoading: true,
+                currentUrl: '',
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, mockAction, loadingContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+
         it('should allow unauthenticated users', () => {
             const unauthContext: GuardContext = {
                 isAuthenticated: false,

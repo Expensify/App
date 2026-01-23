@@ -130,8 +130,7 @@ const OnboardingGuard: NavigationGuard = {
     },
 
     evaluate: (state: NavigationState | undefined, action: NavigationAction, context: GuardContext): GuardResult => {
-        // Handle case where state is not yet initialized
-        if (!state?.routes?.length) {
+        if (!state?.routes?.length || context.isLoading) {
             return {type: 'ALLOW'};
         }
 
