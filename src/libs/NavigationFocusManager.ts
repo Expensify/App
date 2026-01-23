@@ -20,6 +20,60 @@ import type {State} from './Navigation/types';
 import Log from './Log';
 
 /**
+ * Scoring weights for element matching during focus restoration.
+ * Higher score = higher confidence the candidate is the correct element.
+ * Used by findMatchingElement() to identify elements after screen remount.
+ *
+ * Pattern: Follows the MATCH_RANK constant object pattern from
+ * src/libs/filterArrayByMatch.ts for consistent codebase style.
+ *
+ * These values were chosen to satisfy the following matching requirements:
+ *
+ * MUST PASS (unique identifiers):
+ *   - data-testid alone (50) - explicitly unique, developer-set
+ *
+ * SHOULD PASS (combined signals):
+ *   - aria-label + role (10+5=15) - two semantic attributes
+ *   - aria-label + text (10+30=40) - semantic + content
+ *   - text + role (30+5=35) - content + semantic
+ *
+ * EDGE CASE (currently passes, may cause false positives):
+ *   - text-prefix alone (30) - risky for elements with similar prefixes
+ *     e.g., "Workspace Settings - Acme" vs "Workspace Settings - Beta"
+ *
+ * MUST FAIL (too weak):
+ *   - aria-label alone (10) - single weak signal
+ *   - role alone (5) - too generic, many elements share roles
+ *
+ * Threshold: 15 (aria-label + role is the minimum acceptable combination)
+ *
+ * Note: These values are intuitive estimates, not empirically tuned.
+ * Future improvement: Consider requiring text-prefix to combine with
+ * another signal to reduce false positive risk.
+ */
+const ELEMENT_MATCH_SCORE = {
+    /** aria-label exact match - often unique for interactive elements */
+    ARIA_LABEL: 10,
+    /** role attribute match - weak signal, many elements share roles */
+    ROLE: 5,
+    /** data-testid exact match - explicitly unique, highest confidence */
+    DATA_TESTID: 50,
+    /** Text content prefix match (first N chars) - fuzzy matching */
+    TEXT_PREFIX: 30,
+    /** Text content exact match - full text identical */
+    TEXT_EXACT: 40,
+} as const;
+
+/** Minimum score required to consider an element a valid match */
+const MIN_MATCH_SCORE = 15;
+
+/** Max characters stored for text content preview */
+const TEXT_CONTENT_PREVIEW_LENGTH = 100;
+
+/** Characters to compare for fuzzy text prefix matching */
+const TEXT_CONTENT_PREFIX_LENGTH = 20;
+
+/**
  * Element identification info for restoring focus after screen remount.
  * Unlike storing DOM element references (which become invalid after unmount),
  * this stores attributes that can be used to find the equivalent element
@@ -31,7 +85,7 @@ type ElementIdentifier = {
     tagName: string;
     ariaLabel: string | null;
     role: string | null;
-    /** First 100 chars of textContent for unique identification (e.g., workspace name) */
+    /** First TEXT_CONTENT_PREVIEW_LENGTH chars of textContent for unique identification (e.g., workspace name) */
     textContentPreview: string;
     dataTestId: string | null;
 };
@@ -68,7 +122,7 @@ function extractElementIdentifier(element: HTMLElement): ElementIdentifier {
         tagName: element.tagName,
         ariaLabel: element.getAttribute('aria-label'),
         role: element.getAttribute('role'),
-        textContentPreview: (element.textContent ?? '').slice(0, 100).trim(),
+        textContentPreview: (element.textContent ?? '').slice(0, TEXT_CONTENT_PREVIEW_LENGTH).trim(),
         dataTestId: element.getAttribute('data-testid'),
     };
 }
@@ -76,6 +130,13 @@ function extractElementIdentifier(element: HTMLElement): ElementIdentifier {
 /**
  * Find an element in the current DOM that matches the stored identifier.
  * Uses a scoring system to find the best match.
+ *
+ * Design rationale: The ideal solution would be stable `data-testid` attributes on all
+ * focusable elements (e.g., `workspace-row-{workspaceId}`), enabling deterministic matching.
+ * However, retrofitting stable IDs across every focusable element in the app is a massive
+ * undertaking. This fingerprinting approach provides a pragmatic alternative that works
+ * generically without requiring component-level changes, covering the majority of focus
+ * restoration cases while gracefully degrading (no restore) when no match is found.
  */
 function findMatchingElement(identifier: ElementIdentifier): HTMLElement | null {
     // Query for elements with matching tagName
@@ -93,26 +154,26 @@ function findMatchingElement(identifier: ElementIdentifier): HTMLElement | null 
 
         // Match aria-label (high weight - often unique for list items)
         if (identifier.ariaLabel && candidate.getAttribute('aria-label') === identifier.ariaLabel) {
-            score += 10;
+            score += ELEMENT_MATCH_SCORE.ARIA_LABEL;
         }
 
         // Match role
         if (identifier.role && candidate.getAttribute('role') === identifier.role) {
-            score += 5;
+            score += ELEMENT_MATCH_SCORE.ROLE;
         }
 
         // Match data-testid (highest weight if available)
         if (identifier.dataTestId && candidate.getAttribute('data-testid') === identifier.dataTestId) {
-            score += 50;
+            score += ELEMENT_MATCH_SCORE.DATA_TESTID;
         }
 
         // Match textContent (critical for list items like workspace rows)
-        // Use startsWith for robustness against minor content changes
-        const candidateText = (candidate.textContent ?? '').slice(0, 100).trim();
-        if (identifier.textContentPreview && candidateText.startsWith(identifier.textContentPreview.slice(0, 20))) {
-            score += 30;
-        } else if (identifier.textContentPreview && candidateText === identifier.textContentPreview) {
-            score += 40;
+        // Check exact match first (higher score), then prefix match for robustness
+        const candidateText = (candidate.textContent ?? '').slice(0, TEXT_CONTENT_PREVIEW_LENGTH).trim();
+        if (identifier.textContentPreview && candidateText === identifier.textContentPreview) {
+            score += ELEMENT_MATCH_SCORE.TEXT_EXACT;
+        } else if (identifier.textContentPreview && candidateText.startsWith(identifier.textContentPreview.slice(0, TEXT_CONTENT_PREFIX_LENGTH))) {
+            score += ELEMENT_MATCH_SCORE.TEXT_PREFIX;
         }
 
         if (score > bestScore) {
@@ -123,7 +184,7 @@ function findMatchingElement(identifier: ElementIdentifier): HTMLElement | null 
 
     // Require minimum score to avoid false positives
     // aria-label match (10) + either role (5) or textContent prefix (30)
-    if (bestScore >= 15) {
+    if (bestScore >= MIN_MATCH_SCORE) {
         return bestMatch;
     }
 
