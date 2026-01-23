@@ -57,6 +57,7 @@ function useReportWasDeleted(
         if (!wasEverAccessibleRef.current || currentReportID || isOptimisticDelete || userLeavingStatus) {
             return;
         }
+        // guarded by if to prevent rerenders
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setWasDeleted(true);
     }, [currentReportID, isOptimisticDelete, userLeavingStatus]);
