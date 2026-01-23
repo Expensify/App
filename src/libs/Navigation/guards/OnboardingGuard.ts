@@ -1,5 +1,5 @@
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
+import {findFocusedRoute, getPathFromState} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import type CONST from '@src/CONST';
@@ -96,6 +97,28 @@ Onyx.connectWithoutView({
 });
 
 /**
+ * Helper to get the correct onboarding route based on current progress
+ */
+function getOnboardingRoute(): Route {
+    return getOnboardingInitialPath({
+        onboardingValuesParam: onboarding,
+        isUserFromPublicDomain: !!account?.isFromPublicDomain,
+        hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+        currentOnboardingCompanySize: onboardingCompanySize,
+        currentOnboardingPurposeSelected: onboardingPurposeSelected,
+        onboardingInitialPath,
+        onboardingValues: onboarding,
+    }) as Route;
+}
+
+const getTargetRoute = (action: NavigationAction) => {
+    if (action.type === 'NAVIGATE' && 'payload' in action && action.payload && typeof action.payload === 'object' && 'name' in action.payload) {
+        return action.payload.name as string;
+    }
+    return null;
+};
+
+/**
  * OnboardingGuard handles ONLY the core NewDot onboarding flow
  */
 const OnboardingGuard: NavigationGuard = {
@@ -112,15 +135,7 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        // Get the target route from the action
-        const getTargetRoute = () => {
-            if (action.type === 'NAVIGATE' && 'payload' in action && action.payload && typeof action.payload === 'object' && 'name' in action.payload) {
-                return action.payload.name as string;
-            }
-            return null;
-        };
-
-        const targetRoute = getTargetRoute();
+        const targetRoute = getTargetRoute(action);
         const focusedRoute = findFocusedRoute(state);
 
         // Early exit: Allow if navigating to or currently on onboarding
@@ -128,8 +143,20 @@ const OnboardingGuard: NavigationGuard = {
         const isCurrentlyOnOnboarding = isOnboardingFlowName(focusedRoute?.name);
 
         if (isNavigatingToOnboarding || isCurrentlyOnOnboarding) {
-            Log.info('[OnboardingGuard] Allowing navigation - already in onboarding flow');
-            return {type: 'ALLOW'};
+            const onboardingRoute = getOnboardingRoute();
+            const currentPath = getPathFromState(state, linkingConfig.config);
+
+            if (currentPath === onboardingRoute) {
+                Log.info('[OnboardingGuard] Allowing, current path martches onboarding route');
+                return {type: 'ALLOW'};
+            }
+
+            Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {onboardingRoute});
+
+            return {
+                type: 'REDIRECT',
+                route: onboardingRoute,
+            };
         }
 
         // Only redirect authenticated users
@@ -158,25 +185,14 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        // Need onboarding - redirect
-        const onboardingRoute = getOnboardingInitialPath({
-            onboardingValuesParam: onboarding,
-            isUserFromPublicDomain: !!account?.isFromPublicDomain,
-            hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-            currentOnboardingCompanySize: onboardingCompanySize,
-            currentOnboardingPurposeSelected: onboardingPurposeSelected,
-            onboardingInitialPath,
-            onboardingValues: onboarding,
-        });
+        // User needs onboarding - calculate the correct step and redirect
+        const onboardingRoute = getOnboardingRoute();
 
-        Log.info('[OnboardingGuard] Redirecting to onboarding', false, {
-            targetRoute,
-            onboardingRoute,
-        });
+        Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {onboardingRoute});
 
         return {
             type: 'REDIRECT',
-            route: onboardingRoute as Route,
+            route: onboardingRoute,
         };
     },
 };
