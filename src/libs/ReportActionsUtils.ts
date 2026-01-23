@@ -2459,13 +2459,13 @@ function isPolicyChangeLogDeleteMemberMessage(
 function getWorkspaceDescriptionUpdatedMessage(translate: LocalizedTranslate, action: ReportAction) {
     const {oldDescription, newDescription} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION>) ?? {};
     const message =
-        typeof oldDescription === 'string' && newDescription ? translate('workspaceActions.updateWorkspaceDescription', {newDescription, oldDescription}) : getReportActionText(action);
+        typeof oldDescription === 'string' && newDescription ? translate('workspaceActions.updateWorkspaceDescription', newDescription, oldDescription) : getReportActionText(action);
     return message;
 }
 
 function getWorkspaceCurrencyUpdateMessage(translate: LocalizedTranslate, action: ReportAction) {
     const {oldCurrency, newCurrency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY>) ?? {};
-    const message = oldCurrency && newCurrency ? translate('workspaceActions.updatedWorkspaceCurrencyAction', {oldCurrency, newCurrency}) : getReportActionText(action);
+    const message = oldCurrency && newCurrency ? translate('workspaceActions.updatedWorkspaceCurrencyAction', oldCurrency, newCurrency) : getReportActionText(action);
     return message;
 }
 
@@ -2509,15 +2509,11 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
     const decodedOptionName = getDecodedCategoryName(categoryName ?? '');
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
-        return translate('workspaceActions.addCategory', {
-            categoryName: decodedOptionName,
-        });
+        return translate('workspaceActions.addCategory', decodedOptionName);
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY && categoryName) {
-        return translate('workspaceActions.deleteCategory', {
-            categoryName: decodedOptionName,
-        });
+        return translate('workspaceActions.deleteCategory', decodedOptionName);
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
@@ -2526,41 +2522,28 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
         }
 
         if (updatedField === 'enabled') {
-            return translate('workspaceActions.updateCategory', {
-                oldValue: !!oldValue,
-                categoryName: decodedOptionName,
-            });
+            return translate('workspaceActions.updateCategory', decodedOptionName, !!oldValue);
         }
 
         if (updatedField === 'areCommentsRequired' && typeof oldValue === 'boolean') {
-            return translate('workspaceActions.updateAreCommentsRequired', {
-                oldValue,
-                categoryName: decodedOptionName,
-            });
+            return translate('workspaceActions.updateAreCommentsRequired', decodedOptionName, oldValue);
         }
 
         if (updatedField === 'Payroll Code' && typeof oldValue === 'string' && typeof newValue === 'string') {
-            return translate('workspaceActions.updateCategoryPayrollCode', {
-                oldValue,
-                categoryName: decodedOptionName,
-                newValue,
-            });
+            return translate('workspaceActions.updateCategoryPayrollCode', decodedOptionName, newValue, oldValue);
         }
 
         if (updatedField === 'GL Code' && typeof oldValue === 'string' && typeof newValue === 'string') {
-            return translate('workspaceActions.updateCategoryGLCode', {
-                oldValue,
-                categoryName: decodedOptionName,
-                newValue,
-            });
+            return translate('workspaceActions.updateCategoryGLCode', decodedOptionName, newValue, oldValue);
         }
 
         if (updatedField === 'maxExpenseAmount' && (typeof oldValue === 'string' || typeof oldValue === 'number')) {
-            return translate('workspaceActions.updateCategoryMaxExpenseAmount', {
-                oldAmount: Number(oldValue) ? convertAmountToDisplayString(Number(oldValue), currency) : undefined,
-                newAmount: Number(newValue ?? 0) ? convertAmountToDisplayString(Number(newValue), currency) : undefined,
-                categoryName: decodedOptionName,
-            });
+            return translate(
+                'workspaceActions.updateCategoryMaxExpenseAmount',
+                decodedOptionName,
+                Number(newValue ?? 0) ? convertAmountToDisplayString(Number(newValue), currency) : undefined,
+                Number(oldValue) ? convertAmountToDisplayString(Number(oldValue), currency) : undefined,
+            );
         }
 
         if (updatedField === 'expenseLimitType' && typeof newValue === 'string' && typeof oldValue === 'string') {
@@ -2585,19 +2568,12 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
                 }
                 return translate('workspace.rules.categoryRules.requireReceiptsOverList.default', formatAmount());
             };
-            return translate('workspaceActions.updateCategoryMaxAmountNoReceipt', {
-                categoryName: decodedOptionName,
-                oldValue: getTranslation(oldValue),
-                newValue: getTranslation(newValue),
-            });
+            return translate('workspaceActions.updateCategoryMaxAmountNoReceipt', decodedOptionName, getTranslation(newValue), getTranslation(oldValue));
         }
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
-        return translate('workspaceActions.setCategoryName', {
-            oldName: getDecodedCategoryName(oldName),
-            newName: getDecodedCategoryName(newName),
-        });
+        return translate('workspaceActions.setCategoryName', getDecodedCategoryName(oldName), getDecodedCategoryName(newName));
     }
 
     return getReportActionText(action);
@@ -2685,10 +2661,7 @@ function getWorkspaceTagUpdateMessage(translate: LocalizedTranslate, action: Rep
 function getTagListNameUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME>) ?? {};
     if (newName && oldName) {
-        return translate('workspaceActions.updateTagListName', {
-            oldName,
-            newName,
-        });
+        return translate('workspaceActions.updateTagListName', oldName, newName);
     }
     return getReportActionText(action);
 }
@@ -2729,40 +2702,24 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
     if (customUnitName && customUnitRateName && updatedField === 'rate' && typeof oldValue === 'string' && typeof newValue === 'string') {
-        return translate('workspaceActions.updatedCustomUnitRate', {
-            customUnitName,
-            customUnitRateName,
-            updatedField,
-            oldValue,
-            newValue,
-        });
+        return translate('workspaceActions.updatedCustomUnitRate', customUnitName, customUnitRateName, updatedField, newValue, oldValue);
     }
 
     if (customUnitRateName && updatedField === 'taxRateExternalID' && typeof newValue === 'string' && newTaxPercentage) {
-        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', {
-            customUnitRateName,
-            newValue,
-            newTaxPercentage,
-            oldTaxPercentage,
-            oldValue: oldValue as string | undefined,
-        });
+        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue as string | undefined);
     }
 
     if (customUnitRateName && updatedField === 'taxClaimablePercentage' && typeof newValue === 'number' && customUnitRateName) {
-        return translate('workspaceActions.updatedCustomUnitTaxClaimablePercentage', {
+        return translate(
+            'workspaceActions.updatedCustomUnitTaxClaimablePercentage',
             customUnitRateName,
-            newValue: parseFloat(parseFloat(newValue ?? 0).toFixed(2)),
-            oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue ?? 0).toFixed(2)) : undefined,
-        });
+            parseFloat(parseFloat(newValue ?? 0).toFixed(2)),
+            typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue ?? 0).toFixed(2)) : undefined,
+        );
     }
 
     if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
-        return translate('workspaceActions.updatedCustomUnitRateEnabled', {
-            customUnitName,
-            customUnitRateName,
-            oldValue,
-            newValue,
-        });
+        return translate('workspaceActions.updatedCustomUnitRateEnabled', customUnitName, customUnitRateName, newValue);
     }
 
     return getReportActionText(action);
