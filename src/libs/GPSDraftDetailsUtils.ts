@@ -57,10 +57,13 @@ function getGPSCoordinates(gpsDraftDetails: GpsDraftDetails | undefined): string
     return gpsDraftDetails?.gpsPoints ? JSON.stringify(gpsDraftDetails.gpsPoints.map((val) => ({lng: val.long, lat: val.lat}))) : undefined;
 }
 
+function calculateGPSDistance(distanceInMeters: number, unit: Unit): number {
+    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit));
+}
+
 function getGPSConvertedDistance(gpsDraftDetails: GpsDraftDetails | undefined, unit: Unit): number {
     const distanceInMeters = gpsDraftDetails?.distanceInMeters ?? 0;
-    const convertedDistance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
-    return roundToTwoDecimalPlaces(convertedDistance);
+    return calculateGPSDistance(distanceInMeters, unit);
 }
 
 async function addressFromGpsPoint(gpsPoint: {lat: number; long: number}): Promise<string | null> {
@@ -84,4 +87,4 @@ function coordinatesToString(gpsPoint: {lat: number; long: number}): string {
     return `${gpsPoint.lat},${gpsPoint.long}`;
 }
 
-export {getGPSRoutes, getGPSWaypoints, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString};
+export {getGPSRoutes, getGPSWaypoints, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString, calculateGPSDistance};

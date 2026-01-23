@@ -36,11 +36,11 @@ import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {calculateGPSDistance} from '@libs/GPSDraftDetailsUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
@@ -394,16 +394,18 @@ function MoneyRequestConfirmationList({
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
 
-    // Update distance when recipients changed and have different distance unit
-    const shouldUpdateDistance = isGPSDistanceRequest && prevUnit !== unit;
+    // Update GPS distance whenever the current distance unit differs from the one that was used
+    // to calculate the distance stored in transaction.comment.customUnit.quantity
+    const gpsDistance = transaction?.comment?.customUnit?.quantity;
+    const gpsDistanceWithCurrentDistanceUnit = calculateGPSDistance(distance, unit);
+    const shouldUpdateGpsDistance = gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
     useEffect(() => {
-        if (!shouldUpdateDistance || !transactionID || isReadOnly) {
+        if (!shouldUpdateGpsDistance || !transactionID || isReadOnly) {
             return;
         }
 
-        const distanceWithNewUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distance, unit));
-        setMoneyRequestDistance(transactionID, distanceWithNewUnit, true);
-    }, [distance, isReadOnly, shouldUpdateDistance, transactionID, unit]);
+        setMoneyRequestDistance(transactionID, gpsDistanceWithCurrentDistanceUnit, true);
+    }, [shouldUpdateGpsDistance, transactionID, isReadOnly, gpsDistanceWithCurrentDistanceUnit]);
 
     let amountToBeUsed = iouAmount;
 
