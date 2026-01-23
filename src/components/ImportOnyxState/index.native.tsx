@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useLocalize from '@hooks/useLocalize';
@@ -31,44 +31,41 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const {showDecisionModal} = useDecisionModal();
     const {translate} = useLocalize();
 
-    const showErrorModal = useCallback(async () => {
+    const showErrorModal = async () => {
         await showDecisionModal({
             title: translate('initialSettingsPage.troubleshoot.invalidFile'),
             prompt: translate('initialSettingsPage.troubleshoot.invalidFileDescription'),
             secondOptionText: translate('common.ok'),
         });
-    }, [showDecisionModal, translate]);
+    };
 
-    const handleFileRead = useCallback(
-        (file: FileObject) => {
-            if (!file.uri) {
-                return;
-            }
+    const handleFileRead = (file: FileObject) => {
+        if (!file.uri) {
+            return;
+        }
 
-            setIsLoading(true);
-            readOnyxFile(file.uri)
-                .then((fileContent: string) => {
-                    rollbackOngoingRequest();
-                    const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
-                    const currentUserSessionCopy = {...session};
-                    setPreservedUserSession(currentUserSessionCopy);
-                    setShouldForceOffline(true);
-                    return importState(transformedState);
-                })
-                .then(() => {
-                    setIsUsingImportedState(true);
-                    Navigation.navigate(ROUTES.HOME);
-                })
-                .catch((error) => {
-                    console.error('Error importing state:', error);
-                    showErrorModal();
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
-        },
-        [session, setIsLoading, showErrorModal],
-    );
+        setIsLoading(true);
+        readOnyxFile(file.uri)
+            .then((fileContent: string) => {
+                rollbackOngoingRequest();
+                const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
+                const currentUserSessionCopy = {...session};
+                setPreservedUserSession(currentUserSessionCopy);
+                setShouldForceOffline(true);
+                return importState(transformedState);
+            })
+            .then(() => {
+                setIsUsingImportedState(true);
+                Navigation.navigate(ROUTES.HOME);
+            })
+            .catch((error) => {
+                console.error('Error importing state:', error);
+                showErrorModal();
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    };
 
     return <BaseImportOnyxState onFileRead={handleFileRead} />;
 }
