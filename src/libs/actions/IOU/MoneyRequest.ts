@@ -33,9 +33,9 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
     setMultipleMoneyRequestParticipantsFromReport,
-    startSplitBill,
     trackExpense,
 } from './index';
+import {startSplitBill} from './Split';
 
 type CreateTransactionParams = {
     transactions: Transaction[];
@@ -229,7 +229,7 @@ function getMoneyRequestParticipantOptions(
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
+        return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived);
     });
 }
 
