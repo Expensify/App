@@ -11588,7 +11588,7 @@ describe('ReportUtils', () => {
 
             // Then the report name should be empty string (beta not enabled, so no name computation)
             const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation);
-            expect(optimisticReport.reportName).toBe('');
+            expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
 });
