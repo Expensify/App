@@ -24,11 +24,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
+type ColumnItem = {
+    text: string;
+    value: SearchCustomColumnIds;
+    keyForList: SearchCustomColumnIds;
+    isSelected: boolean;
+    isDisabled: boolean;
+    isDragDisabled: boolean;
+    leftElement: React.JSX.Element;
+};
+
 function SearchColumnsPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
@@ -53,6 +63,18 @@ function SearchColumnsPage() {
         CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
     ]);
 
+    const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
+        const selected = columnsToSort.filter((col) => col.isSelected);
+        const unselected = columnsToSort
+            .filter((col) => !col.isSelected)
+            .sort((a, b) => {
+                const textA = translate(getSearchColumnTranslationKey(a.value));
+                const textB = translate(getSearchColumnTranslationKey(b.value));
+                return localeCompare(textA, textB);
+            });
+        return [...selected, ...unselected];
+    };
+
     const defaultColumns = allCustomColumns.map((columnId) => ({
         columnId,
         isSelected: defaultCustomColumns.has(columnId),
@@ -73,28 +95,30 @@ function SearchColumnsPage() {
 
     const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
 
-    const allColumnsList = columns.map(({columnId, isSelected}) => {
-        const isRequired = requiredColumns.has(columnId);
-        const isEffectivelySelected = isRequired || isSelected;
-        const isDragDisabled = !isEffectivelySelected;
-        return {
-            text: translate(getSearchColumnTranslationKey(columnId)),
-            value: columnId,
-            keyForList: columnId,
-            isSelected: isEffectivelySelected,
-            isDisabled: isRequired,
-            isDragDisabled,
-            leftElement: (
-                <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
-                    <Icon
-                        src={icons.DragHandles}
-                        fill={theme.icon}
-                        additionalStyles={isDragDisabled && styles.opacitySemiTransparent}
-                    />
-                </View>
-            ),
-        };
-    });
+    const allColumnsList = sortColumns(
+        columns.map(({columnId, isSelected}) => {
+            const isRequired = requiredColumns.has(columnId);
+            const isEffectivelySelected = isRequired || isSelected;
+            const isDragDisabled = !isEffectivelySelected;
+            return {
+                text: translate(getSearchColumnTranslationKey(columnId)),
+                value: columnId,
+                keyForList: columnId,
+                isSelected: isEffectivelySelected,
+                isDisabled: isRequired,
+                isDragDisabled,
+                leftElement: (
+                    <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
+                        <Icon
+                            src={icons.DragHandles}
+                            fill={theme.icon}
+                            additionalStyles={isDragDisabled && styles.opacitySemiTransparent}
+                        />
+                    </View>
+                ),
+            };
+        }),
+    );
 
     const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
@@ -119,7 +143,19 @@ function SearchColumnsPage() {
 
             const newIsSelected = !columnToUpdate.isSelected;
 
-            return prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: newIsSelected} : col));
+            if (newIsSelected) {
+                const selected = prevColumns.filter((col) => col.isSelected);
+                const unselected = prevColumns.filter((col) => !col.isSelected && col.columnId !== updatedColumnId);
+                const unselectedSorted = unselected.sort((a, b) => {
+                    const textA = translate(getSearchColumnTranslationKey(a.columnId));
+                    const textB = translate(getSearchColumnTranslationKey(b.columnId));
+                    return localeCompare(textA, textB);
+                });
+                return [...selected, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];
+            }
+
+            const updatedColumns = prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
+            return updatedColumns;
         });
     };
 
