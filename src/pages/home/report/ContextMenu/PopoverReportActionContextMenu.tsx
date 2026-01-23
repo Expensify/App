@@ -343,11 +343,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         ancestorsRef.current = ancestors;
     }, [originalReport, ancestors]);
     /** Opens the Confirm delete action modal */
-    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
+    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = async (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         reportIDRef.current = reportID;
         reportActionRef.current = reportAction ?? null;
 
-        showConfirmModal({
+        const result = await showConfirmModal({
             title: translate('reportActionContextMenu.deleteAction', {action: reportAction}),
             prompt: translate('reportActionContextMenu.deleteConfirmation', {action: reportAction}),
             confirmText: translate('common.delete'),
@@ -357,43 +357,42 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             onModalHide: () => {
                 clearActiveReportAction();
             },
-        }).then((result) => {
-            if (result.action === ModalActions.CONFIRM) {
-                onConfirm();
-                const currentReportAction = reportActionRef.current;
-                if (isMoneyRequestAction(currentReportAction)) {
-                    const originalMessage = getOriginalMessage(currentReportAction);
-                    if (isTrackExpenseAction(currentReportAction)) {
-                        deleteTrackExpense({
-                            chatReportID: reportIDRef.current,
-                            chatReport: report,
-                            transactionID: originalMessage?.IOUTransactionID,
-                            reportAction: currentReportAction,
-                            iouReport,
-                            chatIOUReport: chatReport,
-                            transactions: duplicateTransactions,
-                            violations: duplicateTransactionViolations,
-                            isSingleTransactionView: undefined,
-                            isChatReportArchived: isReportArchived,
-                            isChatIOUReportArchived,
-                            allTransactionViolationsParam: allTransactionViolations,
-                        });
-                    } else if (originalMessage?.IOUTransactionID) {
-                        deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
-                    }
-                } else if (isReportPreviewAction(currentReportAction)) {
-                    deleteAppReport(currentReportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
-                } else if (currentReportAction) {
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        deleteReportComment(reportIDRef.current, currentReportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
-                    });
-                }
-
-                DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, currentReportAction?.reportActionID);
-            } else {
-                onCancel();
-            }
         });
+        if (result.action === ModalActions.CONFIRM) {
+            onConfirm();
+            const currentReportAction = reportActionRef.current;
+            if (isMoneyRequestAction(currentReportAction)) {
+                const originalMessage = getOriginalMessage(currentReportAction);
+                if (isTrackExpenseAction(currentReportAction)) {
+                    deleteTrackExpense({
+                        chatReportID: reportIDRef.current,
+                        chatReport: report,
+                        transactionID: originalMessage?.IOUTransactionID,
+                        reportAction: currentReportAction,
+                        iouReport,
+                        chatIOUReport: chatReport,
+                        transactions: duplicateTransactions,
+                        violations: duplicateTransactionViolations,
+                        isSingleTransactionView: undefined,
+                        isChatReportArchived: isReportArchived,
+                        isChatIOUReportArchived,
+                        allTransactionViolationsParam: allTransactionViolations,
+                    });
+                } else if (originalMessage?.IOUTransactionID) {
+                    deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+                }
+            } else if (isReportPreviewAction(currentReportAction)) {
+                deleteAppReport(currentReportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
+            } else if (currentReportAction) {
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    deleteReportComment(reportIDRef.current, currentReportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
+                });
+            }
+
+            DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, currentReportAction?.reportActionID);
+        } else {
+            onCancel();
+        }
     };
 
     const hideDeleteModal = () => {

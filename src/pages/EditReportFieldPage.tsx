@@ -78,24 +78,23 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         Navigation.goBack(backTo);
     };
 
-    const handleReportFieldDelete = () => {
-        showConfirmModal({
+    const handleReportFieldDelete = async () => {
+        const result = await showConfirmModal({
             title: translate('workspace.reportFields.delete'),
             prompt: translate('workspace.reportFields.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
             shouldEnableNewFocusManagement: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                goBack();
-                setTimeout(() => {
-                    deleteReportField(report.reportID, reportField);
-                }, CONST.ANIMATED_TRANSITION);
-            });
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            goBack();
+            setTimeout(() => {
+                deleteReportField(report.reportID, reportField);
+            }, CONST.ANIMATED_TRANSITION);
         });
     };
 

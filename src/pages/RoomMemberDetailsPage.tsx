@@ -54,21 +54,20 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
     const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
 
-    const handleRemoveUser = useCallback(() => {
-        showConfirmModal({
+    const handleRemoveUser = useCallback(async () => {
+        const result = await showConfirmModal({
             danger: true,
             title: translate('workspace.people.removeRoomMemberButtonTitle'),
             prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            removeFromRoom(report?.reportID, [accountID]);
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.goBack(backTo);
-            });
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeFromRoom(report?.reportID, [accountID]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.goBack(backTo);
         });
     }, [showConfirmModal, translate, displayName, report.reportID, accountID, backTo]);
 

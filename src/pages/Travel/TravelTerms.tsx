@@ -64,9 +64,10 @@ function TravelTerms({route}: TravelTermsPageProps) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };
 
-    const acceptTermsAndOpenTravelDot = () => {
+    const acceptTermsAndOpenTravelDot = async () => {
         asyncOpenURL(
-            acceptSpotnanaTerms(domain, policyID).then((response) => {
+            (async () => {
+                const response = await acceptSpotnanaTerms(domain, policyID);
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);
                 const errorCode = (travelProvisioningData?.value as Partial<TravelProvisioning> | undefined)?.error;
@@ -75,12 +76,12 @@ function TravelTerms({route}: TravelTermsPageProps) {
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
                     Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
                     cleanupTravelProvisioningSession();
-                    return Promise.reject(new Error('Permission denied'));
+                    throw new Error('Permission denied');
                 }
 
                 // Handle verification required error - show modal and reject to close Safari window if open
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
-                    showConfirmModal({
+                    await showConfirmModal({
                         title: translate('travel.verifyCompany.title'),
                         titleStyles: styles.textHeadlineH1,
                         titleContainerStyles: styles.mb2,
@@ -90,13 +91,14 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         shouldShowCancelButton: false,
                         image: illustrations.RocketDude,
                         imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
-                    }).then(createTravelEnablementIssue);
-                    return Promise.reject(new Error('Verification required'));
+                    });
+                    createTravelEnablementIssue();
+                    throw new Error('Verification required');
                 }
 
                 // Handle general API failure
                 if (response?.jsonCode !== 200) {
-                    return Promise.reject(new Error('Request failed'));
+                    throw new Error('Request failed');
                 }
 
                 // Handle success - build URL, cleanup, and return URL for asyncOpenURL to open
@@ -107,8 +109,8 @@ function TravelTerms({route}: TravelTermsPageProps) {
                     return travelDotURL;
                 }
 
-                return Promise.reject(new Error('No token received'));
-            }),
+                throw new Error('No token received');
+            })(),
             (travelDotURL) => travelDotURL ?? '',
         );
     };
@@ -140,7 +142,9 @@ function TravelTerms({route}: TravelTermsPageProps) {
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.continue')}
                         isDisabled={!hasAcceptedTravelTerms}
-                        onSubmit={acceptTermsAndOpenTravelDot}
+                        onSubmit={() => {
+                            acceptTermsAndOpenTravelDot();
+                        }}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
                         containerStyles={[styles.mh0, styles.mt5]}

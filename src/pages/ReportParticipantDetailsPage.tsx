@@ -52,21 +52,20 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
 
-    const handleRemoveUser = useCallback(() => {
-        showConfirmModal({
+    const handleRemoveUser = useCallback(async () => {
+        const result = await showConfirmModal({
             danger: true,
             title: translate('workspace.people.removeGroupMemberButtonTitle'),
             prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            removeFromGroupChat(report?.reportID, [accountID]);
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.goBack(backTo);
-            });
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        removeFromGroupChat(report?.reportID, [accountID]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.goBack(backTo);
         });
     }, [showConfirmModal, translate, displayName, report.reportID, accountID, backTo]);
 
