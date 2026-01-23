@@ -227,6 +227,6 @@ export default function useTodos() {
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: reportsToApprove.length,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: reportsToPay.length,
             [CONST.SEARCH.SEARCH_KEYS.EXPORT]: reportsToExport.length,
-        }
+        },
     };
 }

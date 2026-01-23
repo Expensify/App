@@ -2508,20 +2508,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                {},
-                undefined,
-                {},
-                mockSavedSearches,
-                false,
-                undefined,
-                false,
-                {},
-                reportCounts,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2531,20 +2518,7 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                {},
-                undefined,
-                {},
-                mockSavedSearches,
-                false,
-                undefined,
-                false,
-                {},
-                reportCounts,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
