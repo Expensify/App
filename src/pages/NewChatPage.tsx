@@ -233,6 +233,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
+    const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
 
     useImperativeHandle(ref, () => ({
@@ -262,7 +263,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
-        undefined,
+        allPersonalDetails,
         undefined,
         undefined,
         reportAttributesDerived,

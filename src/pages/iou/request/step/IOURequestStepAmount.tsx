@@ -88,7 +88,6 @@ function IOURequestStepAmount({
     const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
@@ -215,7 +214,9 @@ function IOURequestStepAmount({
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
+                return participantAccountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
@@ -251,7 +252,6 @@ function IOURequestStepAmount({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                        allBetas,
                     });
                     return;
                 }
@@ -276,7 +276,6 @@ function IOURequestStepAmount({
                         introSelected,
                         activePolicyID,
                         quickAction,
-                        allBetas,
                     });
                     return;
                 }
