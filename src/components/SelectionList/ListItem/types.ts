@@ -29,6 +29,9 @@ type ListItem<K extends string | number = string> = {
     /** Alternate text to display */
     alternateText?: string | null;
 
+    /** Accessibility label for screen readers */
+    accessibilityLabel?: string;
+
     /** Key used internally by React */
     keyForList: K;
 
