@@ -683,6 +683,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             {FabCreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
+                shouldHandleNavigationBack
                 shouldEnableMaxHeight={false}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
