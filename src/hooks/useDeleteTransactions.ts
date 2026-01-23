@@ -1,7 +1,8 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {deleteMoneyRequest, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
+import {deleteMoneyRequest, getIOURequestPolicyID, initSplitExpenseItemData} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {updateSplitTransactions} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
@@ -35,7 +36,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
 
@@ -150,7 +150,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     currentUserPersonalDetails,
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    allBetas,
                     quickAction,
                     iouReportNextStep,
                 });
@@ -199,7 +198,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             policy,
             policyCategories,
             policyRecentlyUsedCurrencies,
-            allBetas,
             quickAction,
             report,
             reportActions,
