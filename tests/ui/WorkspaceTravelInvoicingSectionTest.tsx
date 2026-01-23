@@ -95,7 +95,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the fallback component should be visible (BookOrManageYourTrip)
-            expect(screen.getByText('Book or manage your trip')).toBeTruthy();
+            expect(screen.getByText('Travel booking')).toBeTruthy();
         });
 
         it('should show BookOrManageYourTrip when paymentBankAccountID is not set', async () => {
@@ -117,7 +117,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the fallback component should be visible
-            expect(screen.getByText('Book or manage your trip')).toBeTruthy();
+            expect(screen.getByText('Travel booking')).toBeTruthy();
         });
     });
 
