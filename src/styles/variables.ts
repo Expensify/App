@@ -104,6 +104,8 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    receiptPreviewMaxWidth: 440,
+    receiptPreviewMaxHeight: 440,
     superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,

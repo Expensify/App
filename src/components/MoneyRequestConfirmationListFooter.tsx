@@ -2,12 +2,10 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, {memo, useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import WavePatternDark from '@assets/images/waves-pattern-dark.svg';
-import WavePatternLight from '@assets/images/waves-pattern-light.svg';
 import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -58,9 +56,6 @@ import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from './Icon';
-import RESIZE_MODES from './Image/resizeModes';
-import ImageSVG from './ImageSVG';
-import ImageWithLoading from './ImageWithLoading';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -304,12 +299,10 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow'] as const);
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const theme = useTheme();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
-    const theme = useTheme();
-    const receiptPreviewBackground = theme.colorScheme === CONST.COLOR_SCHEME.DARK ? WavePatternDark : WavePatternLight;
-
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -993,14 +986,46 @@ function MoneyRequestConfirmationListFooter({
     }, [firstDay, lastDay, translate, tripDays, icons]);
 
     const shouldRestrictHeight = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
+    const [receiptContainerWidth, setReceiptContainerWidth] = useState<number | null>(null);
+    const [receiptAspectRatio, setReceiptAspectRatio] = useState<number | null>(null);
+
+    const handleReceiptLayout = useCallback((event: {nativeEvent: {layout: {width: number}}}) => {
+        const width = event.nativeEvent.layout.width;
+        if (!width) {
+            return;
+        }
+        setReceiptContainerWidth((previousWidth) => (width === previousWidth ? previousWidth : width));
+    }, []);
+
+    const handleReceiptLoad = useCallback((event?: {nativeEvent: {width: number; height: number}}) => {
+        const width = event?.nativeEvent.width ?? 0;
+        const height = event?.nativeEvent.height ?? 0;
+        if (!width || !height) {
+            return;
+        }
+        const ratio = width / height;
+        setReceiptAspectRatio((previousRatio) => (ratio === previousRatio ? previousRatio : ratio));
+    }, []);
+
+    const receiptSizeStyle = styles.expenseViewImageSmall;
+    let receiptHeightStyle: {width?: number; height?: number} | undefined;
+    if (shouldRestrictHeight) {
+        const horizontalMargin = typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
+        const availableWidth = receiptContainerWidth ?? variables.receiptPreviewMaxWidth;
+        const fallbackWidth = Math.min(Math.max(availableWidth - horizontalMargin * 2, 0), variables.receiptPreviewMaxWidth);
+        if (!receiptContainerWidth || !receiptAspectRatio) {
+            receiptHeightStyle = {width: fallbackWidth, height: variables.receiptPreviewMaxHeight};
+        } else {
+            const effectiveWidth = Math.min(Math.max(receiptContainerWidth - horizontalMargin * 2, 0), variables.receiptPreviewMaxWidth);
+            const minHeight = effectiveWidth / (16 / 9);
+            const calculatedHeight = effectiveWidth / receiptAspectRatio;
+            receiptHeightStyle = {width: effectiveWidth, height: Math.min(variables.receiptPreviewMaxHeight, Math.max(minHeight, calculatedHeight))};
+        }
+    }
 
     const receiptThumbnailContent = useMemo(() => {
-        const receiptPreviewSource = resolvedReceiptImage ?? resolvedThumbnail;
-        const shouldUsePatternBackground = shouldRestrictHeight && !isThumbnail && Str.isImage(receiptFilename);
-        const previewImageSource = typeof receiptPreviewSource === 'string' ? {uri: receiptPreviewSource} : receiptPreviewSource;
-
         return (
-            <View style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}>
+            <View style={[styles.moneyRequestImage, receiptSizeStyle, receiptHeightStyle]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -1047,35 +1072,19 @@ function MoneyRequestConfirmationListFooter({
                         disabledStyle={styles.cursorDefault}
                         style={[styles.h100, styles.flex1]}
                     >
-                        {shouldUsePatternBackground ? (
-                            <View style={[styles.flex1, styles.pRelative]}>
-                                <ImageSVG
-                                    src={receiptPreviewBackground}
-                                    style={StyleSheet.absoluteFillObject}
-                                    pointerEvents="none"
-                                    preserveAspectRatio="xMidYMid slice"
-                                />
-                                <ImageWithLoading
-                                    source={previewImageSource}
-                                    resizeMode={RESIZE_MODES.contain}
-                                    isAuthTokenRequired={shouldRequireAuthToken}
-                                    shouldShowOfflineIndicator={false}
-                                />
-                            </View>
-                        ) : (
-                            <ReceiptImage
-                                isThumbnail={isThumbnail}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                source={resolvedThumbnail || resolvedReceiptImage || ''}
-                                // AuthToken is required when retrieving the image from the server
-                                // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                                // So if we have a thumbnail, it means we're retrieving the image from the server
-                                isAuthTokenRequired={shouldRequireAuthToken}
-                                fileExtension={fileExtension}
-                                shouldUseThumbnailImage
-                                shouldUseInitialObjectPosition={isDistanceRequest}
-                            />
-                        )}
+                        <ReceiptImage
+                            isThumbnail={isThumbnail}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            source={resolvedThumbnail || resolvedReceiptImage || ''}
+                            // AuthToken is required when retrieving the image from the server
+                            // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                            // So if we have a thumbnail, it means we're retrieving the image from the server
+                            isAuthTokenRequired={shouldRequireAuthToken}
+                            fileExtension={fileExtension}
+                            shouldUseThumbnailImage
+                            shouldUseInitialObjectPosition={isDistanceRequest}
+                            onLoad={handleReceiptLoad}
+                        />
                     </PressableWithoutFocus>
                 )}
             </View>
@@ -1086,7 +1095,10 @@ function MoneyRequestConfirmationListFooter({
         styles.h100,
         styles.flex1,
         styles.expenseViewImageSmall,
-        styles.pRelative,
+        receiptSizeStyle,
+        receiptHeightStyle,
+        handleReceiptLayout,
+        handleReceiptLoad,
         shouldRestrictHeight,
         isLocalFile,
         receiptFilename,
@@ -1105,7 +1117,6 @@ function MoneyRequestConfirmationListFooter({
         action,
         iouType,
         shouldRequireAuthToken,
-        receiptPreviewBackground,
     ]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1183,7 +1194,10 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
-                <View style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, styles.flex1]}>
+                <View
+                    onLayout={handleReceiptLayout}
+                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3]}
+                >
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
                         : showReceiptEmptyState && (

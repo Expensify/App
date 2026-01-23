@@ -4437,7 +4437,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
-            maxWidth: 440,
+            maxWidth: variables.receiptPreviewMaxWidth,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
