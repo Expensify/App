@@ -1161,6 +1161,11 @@ function isReportActionVisible(
     if (!reportAction?.reportActionID) {
         return false;
     }
+
+    if (reportAction.pendingAction && Object.keys(reportAction.errors ?? {}).length > 0) {
+        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+    }
+
     if (visibleReportActions) {
         const staticVisibility = visibleReportActions[reportID]?.[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
