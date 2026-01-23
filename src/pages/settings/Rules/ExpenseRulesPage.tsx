@@ -108,17 +108,7 @@ function ExpenseRulesPage() {
 
     const toggleAllRules = () => {
         const someSelected = filteredRuleList.some((rule) => selectedRules.includes(rule.keyForList));
-        setSelectedRules(
-            someSelected
-                ? []
-                : filteredRuleList
-                      .map(({keyForList}) => {
-                          const index = Number(keyForList.slice(keyForList.indexOf('-') + 1));
-                          const rule = expenseRules.at(index);
-                          return rule ? getKeyForList(rule, index) : '';
-                      })
-                      .filter(Boolean),
-        );
+        setSelectedRules(someSelected ? [] : filteredRuleList.map(({keyForList}) => keyForList));
     };
 
     const navigateToNewRulePage = () => {

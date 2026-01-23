@@ -9,30 +9,31 @@ import StringUtils from './StringUtils';
 function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextProps['translate']): string {
     const changes: string[] = [];
 
-    const addRuleUpdate = (translationKey: TranslationPaths, translationKeyUpdate: TranslationPaths, value: string | boolean) => {
-        return changes.push(translate(changes.length > 0 ? translationKey : translationKeyUpdate, value as TranslationParameters<TranslationPaths>[0]));
+    const addChange = (translationKey: TranslationPaths, value: string | boolean) => {
+        const keyToUse = changes.length === 0 ? `${translationKey}Update` : translationKey;
+        changes.push(translate(keyToUse as TranslationPaths, value as TranslationParameters<TranslationPaths>[0]));
     };
 
     if (rule.billable) {
-        addRuleUpdate('expenseRulesPage.changes.billable', 'expenseRulesPage.changes.updateBillable', rule.billable === 'true');
+        addChange('expenseRulesPage.changes.billable', rule.billable === 'true');
     }
     if (rule.category) {
-        addRuleUpdate('expenseRulesPage.changes.category', 'expenseRulesPage.changes.updateCategory', getDecodedCategoryName(rule.category));
+        addChange('expenseRulesPage.changes.category', getDecodedCategoryName(rule.category));
     }
     if (rule.comment) {
-        addRuleUpdate('expenseRulesPage.changes.comment', 'expenseRulesPage.changes.updateComment', rule.comment);
+        addChange('expenseRulesPage.changes.comment', rule.comment);
     }
     if (rule.merchant) {
-        addRuleUpdate('expenseRulesPage.changes.merchant', 'expenseRulesPage.changes.updateMerchant', rule.merchant);
+        addChange('expenseRulesPage.changes.merchant', rule.merchant);
     }
     if (rule.reimbursable) {
-        addRuleUpdate('expenseRulesPage.changes.reimbursable', 'expenseRulesPage.changes.updateReimbursable', rule.reimbursable === 'true');
+        addChange('expenseRulesPage.changes.reimbursable', rule.reimbursable === 'true');
     }
     if (rule.tag) {
-        addRuleUpdate('expenseRulesPage.changes.tag', 'expenseRulesPage.changes.updateTag', getCleanedTagName(rule.tag));
+        addChange('expenseRulesPage.changes.tag', getCleanedTagName(rule.tag));
     }
     if (rule.tax?.field_id_TAX) {
-        addRuleUpdate('expenseRulesPage.changes.tax', 'expenseRulesPage.changes.updateTax', rule.tax.field_id_TAX.value);
+        addChange('expenseRulesPage.changes.tax', rule.tax.field_id_TAX.value);
     }
     if (rule.report) {
         changes.push(translate('expenseRulesPage.changes.report', rule.report));
