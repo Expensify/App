@@ -1477,6 +1477,13 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
+ * Check if there is a custom unit out of policy violation in transactionViolations.
+ */
+function hasCustomUnitOutOfPolicyViolation(transactionViolations?: TransactionViolations | null): boolean {
+    return !!transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+}
+
+/**
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(
@@ -2716,6 +2723,7 @@ export {
     hasDuplicateTransactions,
     hasBrokenConnectionViolation,
     hasSmartScanFailedOrNoRouteViolation,
+    hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
