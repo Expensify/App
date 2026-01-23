@@ -173,6 +173,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
 
             const pendingAction = pendingChatMember?.pendingAction ?? reportParticipants?.[accountID]?.pendingAction;
+            if (!isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
 
             result.push({
                 keyForList: `${accountID}`,
