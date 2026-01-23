@@ -570,16 +570,14 @@ function AdvancedSearchFilters() {
 
     const {currentType, typeFiltersKeys} = useAdvancedSearchFilters();
 
-    const currentQueryJSON = getCurrentSearchQueryJSON();
-    const queryString = useMemo(
-        () =>
-            buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
-                sortBy: currentQueryJSON?.sortBy,
-                sortOrder: currentQueryJSON?.sortOrder,
-                limit: currentQueryJSON?.limit,
-            }),
-        [searchAdvancedFilters, currentQueryJSON?.sortBy, currentQueryJSON?.sortOrder, currentQueryJSON?.limit],
-    );
+    const queryString = useMemo(() => {
+        const currentQueryJSON = getCurrentSearchQueryJSON();
+        return buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
+            sortBy: currentQueryJSON?.sortBy,
+            sortOrder: currentQueryJSON?.sortOrder,
+            limit: currentQueryJSON?.limit,
+        });
+    }, [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
