@@ -125,6 +125,7 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    computeOptimisticReportName,
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
@@ -170,7 +171,6 @@ import {
     isUnread,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
-    computeOptimisticReportName,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';

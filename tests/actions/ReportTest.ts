@@ -2845,7 +2845,6 @@ describe('actions/Report', () => {
         });
 
         describe('convertIOUReportToExpenseReport', () => {
-
             it('should set reportName to default formula when policy field list is empty and CUSTOM_REPORT_NAMES beta is enabled', () => {
                 // Given a policy with an empty field list
                 const policyID = '300';

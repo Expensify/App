@@ -6799,7 +6799,13 @@ function buildOptimisticInvoiceReport(
 /**
  * Computes the optimistic report name using the policy's title field formula, with a fallback to the default expense report name.
  */
-function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, policyID: string | undefined, reportTransactions: Record<string, Transaction>, isCustomReportNamesBetaEnabled?: boolean): string | null {
+function computeOptimisticReportName(
+    report: Report,
+    policy: OnyxEntry<Policy>,
+    policyID: string | undefined,
+    reportTransactions: Record<string, Transaction>,
+    isCustomReportNamesBetaEnabled?: boolean,
+): string | null {
     // Only compute optimistic report name if the user is on the CUSTOM_REPORT_NAMES beta
     const betaEnabled = isCustomReportNamesBetaEnabled !== undefined ? isCustomReportNamesBetaEnabled : Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, allBetas);
 

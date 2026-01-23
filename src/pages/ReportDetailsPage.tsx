@@ -811,7 +811,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const fieldKey = getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy) && isExpenseReport && isPaidGroupPolicy(policy);
+    const shouldShowEditableTitleField =
+        caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy) && isExpenseReport && isPaidGroupPolicy(policy);
 
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
