@@ -41,7 +41,7 @@ Onyx.connectWithoutView({
 let allReports: OnyxCollection<Report>;
 
 const allReportActions: OnyxCollection<ReportActions> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
         if (!key || !actions) {
