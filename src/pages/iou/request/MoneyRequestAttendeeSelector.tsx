@@ -79,9 +79,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 ...attendee,
                 reportID: CONST.DEFAULT_NUMBER_ID.toString(),
                 selected: true,
-                // Use || to fall back to displayName for name-only attendees (empty email)
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                login: attendee.email || attendee.displayName,
+                login: attendee.email ? attendee.email : attendee.displayName,
                 ...getPersonalDetailByEmail(attendee.email),
             })),
         [attendees],
@@ -249,7 +247,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [orderedAvailableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 shouldShow: true,
             });

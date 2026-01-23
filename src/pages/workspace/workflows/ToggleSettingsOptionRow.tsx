@@ -201,7 +201,7 @@ function ToggleSettingOptionRow({
                     </PressableWithoutFeedback>
                     <Switch
                         disabledAction={disabledAction}
-                        accessibilityLabel={switchAccessibilityLabel}
+                        accessibilityLabel={typeof subtitle === 'string' && subtitle ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel}
                         onToggle={(isOn) => {
                             shouldAnimateAccordionSection.set(true);
                             onToggle(isOn);

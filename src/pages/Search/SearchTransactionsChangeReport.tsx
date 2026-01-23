@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
 import {InteractionManager} from 'react-native';
-import {useSession} from '@components/OnyxListItemProvider';
+import type {OnyxCollection} from 'react-native-onyx';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -13,12 +13,13 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -28,6 +29,18 @@ type TransactionGroupListItem = ListItem & {
 function SearchTransactionsChangeReport() {
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const transactions = useMemo(
+        () =>
+            Object.values(selectedTransactions).reduce(
+                (transactionsCollection, transactionItem) => {
+                    // eslint-disable-next-line no-param-reassign
+                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction.transactionID}`] = transactionItem.transaction;
+                    return transactionsCollection;
+                },
+                {} as NonNullable<OnyxCollection<Transaction>>,
+            ),
+        [selectedTransactions],
+    );
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -35,13 +48,11 @@ function SearchTransactionsChangeReport() {
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
+    const personalDetails = usePersonalDetails();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -73,17 +84,9 @@ function SearchTransactionsChangeReport() {
         const report = getReportOrDraftReport(reportIDWithOwner);
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys]);
-
+    const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(
-            currentUserPersonalDetails,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
-            allBetas,
-            false,
-            shouldDismissEmptyReportsConfirmation,
-        );
+        const optimisticReport = createNewReport(targetOwnerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -95,7 +98,7 @@ function SearchTransactionsChangeReport() {
                 policy: policyForMovingExpenses,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
-                allTransactions,
+                allTransactions: transactions,
             });
             clearSelectedTransactions();
         });
@@ -137,7 +140,7 @@ function SearchTransactionsChangeReport() {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-            allTransactions,
+            allTransactions: transactions,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -156,7 +159,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
-            allTransactions,
+            allTransactions: transactions,
         });
         clearSelectedTransactions();
         Navigation.goBack();

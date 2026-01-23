@@ -81,7 +81,6 @@ function IOURequestStepDistanceOdometer({
     const [formError, setFormError] = useState<string>('');
     // Key to force TextInput remount when resetting state after tab switch
     const [inputKey, setInputKey] = useState<number>(0);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     // Track initial values for DiscardChangesConfirmation
     const initialStartReadingRef = useRef<string>('');
@@ -370,7 +369,7 @@ function IOURequestStepDistanceOdometer({
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, reportNameValuePairs?.private_isArchived, policy, derivedReports);
+                    : getReportOption(participant, reportNameValuePairs?.private_isArchived, policy, personalDetails, derivedReports);
             });
 
             if (shouldSkipConfirmation) {
@@ -417,7 +416,6 @@ function IOURequestStepDistanceOdometer({
                         introSelected,
                         activePolicyID,
                         quickAction,
-                        allBetas,
                     });
                     return;
                 }
@@ -448,7 +446,6 @@ function IOURequestStepDistanceOdometer({
                     transactionViolations,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    allBetas,
                 });
                 return;
             }
