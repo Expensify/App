@@ -1,6 +1,5 @@
 import type {ImageSourcePropType} from 'react-native';
 import Config from '@src/CONFIG';
-import type {Request} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {getApiRoot} from './ApiUtils';
 
@@ -29,7 +28,7 @@ function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType | ReceiptSou
     if (typeof url !== 'string') {
         return url;
     }
-    const apiRoot = getApiRoot({shouldUseSecure: false} as Request<any>);
+    const apiRoot = getApiRoot({shouldUseSecure: false});
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
 

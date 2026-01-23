@@ -3,7 +3,6 @@ import CONST from '@src/CONST';
 import {getValidatedImageSource, isValidExtension, isValidResolution, isValidSize, validateAvatarImage} from '@src/libs/AvatarUtils';
 import * as FileUtils from '@src/libs/fileDownload/FileUtils';
 import * as getImageResolution from '@src/libs/fileDownload/getImageResolution';
-import type {Request} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 jest.mock('@src/libs/fileDownload/FileUtils');
@@ -357,7 +356,7 @@ describe('AvatarUtils', () => {
             const encodedImageFileName = encodeURIComponent(imageFileName);
             const absoluteEncodedImageFilePath = `/${encodedImageFileName}`;
 
-            const apiRoot = getApiRoot({shouldUseSecure: false} as Request<any>);
+            const apiRoot = getApiRoot({shouldUseSecure: false});
             const prodImageFileUrl = `${apiRoot}${imageFileName}`;
             const encodedProdImageFileUrl = `${apiRoot}${encodedImageFileName}`;
 

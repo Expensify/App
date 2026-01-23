@@ -1,4 +1,5 @@
-import Onyx, {OnyxKey} from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -36,7 +37,7 @@ getEnvironment().then((envName) => {
  * Get the currently used API endpoint, unless forceProduction is set to true
  * (Non-production environments allow for dynamically switching the API)
  */
-function getApiRoot<TKey extends OnyxKey>(request?: Request<TKey>, forceProduction = false): string {
+function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request<TKey>, 'shouldUseSecure' | 'shouldSkipWebProxy' | 'command'>>, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
 
     if (shouldUseStagingServer && forceProduction !== true) {

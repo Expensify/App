@@ -20,7 +20,7 @@ Onyx.connectWithoutView({
  * @param updates Onyx updates to queue for later
  */
 function queueOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate<TKey>>): Promise<void> {
-    queuedOnyxUpdates = queuedOnyxUpdates.concat(updates);
+    queuedOnyxUpdates = queuedOnyxUpdates.concat(updates as Array<OnyxUpdate<any>>);
 
     return Promise.resolve();
 }

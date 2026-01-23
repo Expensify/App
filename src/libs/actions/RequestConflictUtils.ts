@@ -6,7 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictActionData} from '@src/types/onyx/Request';
+import type {ConflictActionData, GenericRequest} from '@src/types/onyx/Request';
 
 type RequestMatcher<TKey extends OnyxKey> = (request: OnyxRequest<TKey>) => boolean;
 
@@ -40,7 +40,7 @@ const enablePolicyFeatureCommand = [
 type EnablePolicyFeatureCommand = TupleToUnion<typeof enablePolicyFeatureCommand>;
 
 function createUpdateCommentMatcher(reportActionID: string) {
-    return function (request: OnyxRequest<any>) {
+    return function (request: GenericRequest) {
         return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
     };
 }
@@ -52,7 +52,7 @@ function createUpdateCommentMatcher(reportActionID: string) {
  * - If no match is found, it suggests adding the request to the list, indicating a 'push' action.
  * - If a match is found, it suggests updating the existing entry, indicating a 'replace' action at the found index.
  */
-function resolveDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, requestMatcher: RequestMatcher<TKey>): ConflictActionData<TKey> {
+function resolveDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, requestMatcher: RequestMatcher<TKey>): ConflictActionData {
     const index = persistedRequests.findIndex(requestMatcher);
     if (index === -1) {
         return {
@@ -70,7 +70,7 @@ function resolveDuplicationConflictAction<TKey extends OnyxKey>(persistedRequest
     };
 }
 
-function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData<TKey> {
+function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
     for (let index = 0; index < persistedRequests.length; index++) {
         const request = persistedRequests.at(index);
         if (request && request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
@@ -101,7 +101,7 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
     };
 }
 
-function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, reportActionID: string, originalReportID: string): ConflictActionData<TKey> {
+function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, reportActionID: string, originalReportID: string): ConflictActionData {
     const commentIndicesToDelete: number[] = [];
     const commentCouldBeThread: Record<string, number> = {};
     let addCommentFound = false;
@@ -164,7 +164,7 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
-): ConflictActionData<TKey> {
+): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
         if (request.command !== WRITE_COMMANDS.UPDATE_COMMENT || request.data?.reportActionID !== reportActionID) {
@@ -186,7 +186,7 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
         if (indicesToDelete.length === 0) {
             return {
                 conflictAction: nextAction,
-            } as ConflictActionData<TKey>;
+            } as ConflictActionData;
         }
     }
 
@@ -197,14 +197,14 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
             pushNewRequest: false,
             nextAction,
         },
-    } as ConflictActionData<TKey>;
+    } as ConflictActionData;
 }
 
 function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     command: EnablePolicyFeatureCommand,
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-): ConflictActionData<TKey> {
+): ConflictActionData {
     const deleteRequestIndex = persistedRequests.findIndex(
         (request) => request.command === command && request.data?.policyID === parameters.policyID && request.data?.enabled !== parameters.enabled,
     );
