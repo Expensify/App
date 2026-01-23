@@ -5072,6 +5072,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredOverlay: {
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
