@@ -21,6 +21,7 @@ import type {
     InvalidValueParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
+    MovedFromPersonalSpaceParams,
     MultifactorAuthenticationTranslationParams,
     NextStepParams,
     NotAllowedExtensionParams,
@@ -1247,7 +1248,7 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
+        movedFromPersonalSpace: ({reportName, workspaceName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
         error: {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',

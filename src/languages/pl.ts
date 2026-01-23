@@ -33,6 +33,7 @@ import type {
     InvalidValueParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
+    MovedFromPersonalSpaceParams,
     NextStepParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -1254,7 +1255,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `dla ${comment}` : 'wydatek'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Faktura raport nr ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} wysłano${comment ? `dla ${comment}` : ''}`,
-        movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `przeniósł wydatek z przestrzeni osobistej do ${workspaceName ?? `czat z ${reportName}`}`,
+        movedFromPersonalSpace: ({reportName, workspaceName}: MovedFromPersonalSpaceParams) => `przeniósł wydatek z przestrzeni osobistej do ${workspaceName ?? `czat z ${reportName}`}`,
         movedToPersonalSpace: 'przeniesiono wydatek do przestrzeni osobistej',
         error: {
             invalidCategoryLength: 'Nazwa kategorii przekracza 255 znaków. Skróć ją lub wybierz inną kategorię.',

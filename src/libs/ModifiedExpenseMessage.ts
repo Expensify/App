@@ -173,7 +173,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     if (isEmpty(policyName) && !reportName) {
         return translate('iou.changedTheExpense');
     }
-    return translate('iou.movedFromPersonalSpace', reportName, !isEmpty(policyName) ? policyName : undefined);
+    return translate('iou.movedFromPersonalSpace', {reportName, workspaceName: !isEmpty(policyName) ? policyName : undefined});
 }
 
 function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {

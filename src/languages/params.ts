@@ -112,6 +112,8 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
+type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
+
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
@@ -580,6 +582,7 @@ export type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    MovedFromPersonalSpaceParams,
     SubmittedToVacationDelegateParams,
     HeldRequestParams,
     SignUpNewFaceCodeParams,

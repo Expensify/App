@@ -1014,7 +1014,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadExpenseReportName: ({formattedAmount, comment}) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         invoiceReportName: ({linkedReportID}) => `Informe de facturación #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        movedFromPersonalSpace: (workspaceName, reportName) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
+        movedFromPersonalSpace: ({workspaceName, reportName}) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
         movedToPersonalSpace: 'movió el gasto a su espacio personal',
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
