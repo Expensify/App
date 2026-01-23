@@ -1,6 +1,7 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
+import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -16,10 +17,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getCurrentRoute: jest.fn(),
     },
 }));
-
-// Import after mocking Navigation
-// eslint-disable-next-line import/first
-import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
 
 describe('replaceOptimisticReportWithActualReport', () => {
     beforeAll(() => {
@@ -105,12 +102,12 @@ describe('replaceOptimisticReportWithActualReport', () => {
         optimisticReport.reportID = reportID;
         optimisticReport.preexistingReportID = preexistingReportID;
         optimisticReport.reportName = 'Optimistic Report';
-        optimisticReport.participants = {1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+        optimisticReport.participants = {'1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
 
         const existingReport = createRandomReport(Number(preexistingReportID), undefined);
         existingReport.reportID = preexistingReportID;
         existingReport.reportName = 'Existing Report';
-        existingReport.participants = {2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+        existingReport.participants = {'2': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
@@ -140,7 +137,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         const optimisticReport = createRandomReport(Number(reportID), undefined);
         optimisticReport.reportID = reportID;
         optimisticReport.preexistingReportID = preexistingReportID;
-        optimisticReport.participants = {1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+        optimisticReport.participants = {'1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
 
         // Create existing report without participants
         const existingReport = createRandomReport(Number(preexistingReportID), undefined);
