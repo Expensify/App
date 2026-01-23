@@ -6,14 +6,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
-import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
+import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 
-function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
+function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 

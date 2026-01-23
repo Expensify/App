@@ -636,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Totale non rimborsabile',
         originalAmount: 'Importo originale',
         insights: 'Analisi',
+        duplicateExpense: 'Spesa duplicata',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1476,6 +1477,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / ora`,
             amountTooLargeError: 'L’importo totale è troppo elevato. Riduci le ore o diminuisci la tariffa.',
         },
+        correctDistanceRateError: "Correggi l'errore nella tariffa della distanza e riprova.",
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
     },
     transactionMerge: {

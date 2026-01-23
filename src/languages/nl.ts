@@ -636,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
         insights: 'Inzichten',
+        duplicateExpense: 'Dubbele uitgave',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1475,6 +1476,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / uur`,
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
+        correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
     },
     transactionMerge: {

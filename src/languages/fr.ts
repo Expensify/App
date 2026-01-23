@@ -637,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Total non remboursable',
         originalAmount: 'Montant d’origine',
         insights: 'Analyses',
+        duplicateExpense: 'Note de frais en double',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1482,6 +1483,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / heure`,
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le tarif.',
         },
+        correctDistanceRateError: 'Corrigez l’erreur de taux de distance et réessayez.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
     },
     transactionMerge: {

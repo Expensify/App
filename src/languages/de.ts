@@ -635,6 +635,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Nicht erstattungsfähiger Gesamtbetrag',
         originalAmount: 'Ursprünglicher Betrag',
         insights: 'Einblicke',
+        duplicateExpense: 'Doppelte Ausgabe',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1479,6 +1480,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / Stunde`,
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
+        correctDistanceRateError: 'Beheben Sie den Fehler beim Entfernungssatz und versuchen Sie es erneut.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
     },
     transactionMerge: {
