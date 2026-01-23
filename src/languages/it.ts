@@ -5218,6 +5218,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
+            timeTracking: {title: 'Ora', subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',

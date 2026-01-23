@@ -5231,6 +5231,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Regeln',
                 subtitle: 'Belege verlangen, hohe Ausgaben kennzeichnen und mehr.',
             },
+            timeTracking: {title: 'Zeit', subtitle: 'Legen Sie einen abrechenbaren Stundensatz fest, damit Mitarbeitende für ihre Zeit bezahlt werden.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',

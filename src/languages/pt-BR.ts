@@ -5200,6 +5200,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 title: 'Regras',
                 subtitle: 'Exigir recibos, sinalizar gastos elevados e muito mais.',
             },
+            timeTracking: {title: 'Hora', subtitle: 'Defina uma taxa horária faturável para que os funcionários sejam pagos pelo tempo trabalhado.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',

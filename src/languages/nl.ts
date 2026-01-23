@@ -5207,6 +5207,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Regels',
                 subtitle: 'Vereis bonnetjes, markeer hoge uitgaven en meer.',
             },
+            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
