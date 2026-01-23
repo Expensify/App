@@ -43,11 +43,9 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 onPress={handleManageTravel}
                 shouldShowRightIcon
                 iconRight={Expensicons.NewWindow}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
             />
-
-            <View style={styles.mt5}>
-                <ToggleSettingOptionRow
+            <ToggleSettingOptionRow
                     title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
                     shouldPlaceSubtitleBelowSwitch
@@ -55,8 +53,8 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     isActive={autoAddTripName}
                     onToggle={toggleAutoAddTripName}
                     pendingAction={policy?.pendingFields?.travelSettings}
+                    wrapperStyle={styles.mt3}
                 />
-            </View>
         </Section>
     );
 }
