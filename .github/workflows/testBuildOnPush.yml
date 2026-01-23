@@ -1,43 +1,19 @@
-name: Build and deploy apps for testing
+name: Build and deploy apps for testing on push
 
 on:
-  workflow_dispatch:
-    inputs:
-      # If not specified, only build iOS and Android apps from the main branch of Expensify/App
-      APP_PULL_REQUEST_URL:
-        description: The Expensify/App pull request URL (e.g., https://github.com/Expensify/App/pull/12345). Defaults to main.
-        required: false
-        default: ''
-      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
-      MOBILE_EXPENSIFY_PULL_REQUEST_URL:
-        description: The Expensify/Mobile-Expensify pull request URL. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
-        required: false
-        default: ''
-      REVIEWED_CODE:
-        description: I reviewed this pull request and verified that it does not contain any malicious code.
-        type: boolean
-        required: true
-        default: false
-      WEB:
-        description: Should build web app?
-        type: boolean
-        default: true
-      IOS:
-        description: Should build iOS app?
-        type: boolean
-        default: true
-      ANDROID:
-        description: Should build android app?
-        type: boolean
-        default: true
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
 
 jobs:
   prep:
     runs-on: ubuntu-latest
     outputs:
-      APP_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
-      APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
-      MOBILE_PR_NUMBER: ${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}
+      APP_REF: ${{ github.sha }}
+      APP_PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.number }}
+      BUILD_WEB: ${{ steps.detectOSBotifyPush.outputs.BUILD_WEB || 'true' }}
+      BUILD_MOBILE: ${{ steps.detectOSBotifyPush.outputs.BUILD_MOBILE || 'true' }}
+      POST_COMMENTS: ${{ steps.detectOSBotifyPush.outputs.POST_COMMENTS || 'true' }}
     steps:
       - name: Checkout
         # v4
@@ -49,104 +25,39 @@ jobs:
           REQUIRE_APP_DEPLOYER: false
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
-      - name: Validate that the user reviewed the pull request before running a test build
-        if: ${{ !inputs.REVIEWED_CODE }}
-        run: |
-          echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
-          exit 1
-
-      - name: Extract App PR number from URL
-        id: extractAppPRNumber
-        if: ${{ inputs.APP_PULL_REQUEST_URL != '' }}
-        run: |
-          PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
-          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/App/pull/12345)"
-            exit 1
-          fi
-          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-
-      - name: Extract Mobile-Expensify PR number from URL
-        id: extractMobilePRNumber
-        if: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL != '' }}
-        run: |
-          PR_NUMBER=$(echo '${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
-          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/Mobile-Expensify/pull/12345)"
-            exit 1
-          fi
-          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-
-      - name: Check if App pull request number is correct
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        id: getHeadRef
-        run: |
-          set -e
-          if [ -z "${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}" ]; then
-            echo "REF=" >> "$GITHUB_OUTPUT"
-          else
-            echo "REF=$(gh pr view ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
-          fi
+      - name: Detect OSBotify automated push
+        id: detectOSBotifyPush
+        if: ${{ github.actor == 'OSBotify' }}
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          if [[ "$COMMIT_MESSAGE" == Update\ Mobile-Expensify\ submodule* ]]; then
+            echo "::notice::✅ OSBotify Mobile-Expensify submodule update detected. Building native only."
+            {
+              echo "BUILD_WEB=false"
+              echo "POST_COMMENTS=false"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::⏭️ OSBotify automated push detected but without Mobile-Expensify submodule update. Skipping workflow."
+            {
+              echo "BUILD_MOBILE=false"
+              echo "BUILD_WEB=false"
+              echo "POST_COMMENTS=false"
+            } >> "$GITHUB_OUTPUT"
+          fi
 
-  getMobileExpensifyPR:
-    runs-on: ubuntu-latest
-    needs: [prep]
-    outputs:
-      MOBILE_EXPENSIFY_PR: ${{ steps.mobileExpensifyPR.outputs.result }}
-    steps:
-      - name: Check if author specified Expensify/Mobile-Expensify PR
-        id: mobileExpensifyPR
-        # v7
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        if: ${{ github.actor != 'OSBotify' }}
+        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
         with:
-          github-token: ${{ github.token }}
-          result-encoding: string
-          script: |
-            if ('${{ needs.prep.outputs.MOBILE_PR_NUMBER }}') return '${{ needs.prep.outputs.MOBILE_PR_NUMBER }}';
-
-            if (!'${{ needs.prep.outputs.APP_PR_NUMBER }}') return '';
-
-            const pullRequest = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: '${{ needs.prep.outputs.APP_PR_NUMBER }}',
-            });
-            
-            const body = pullRequest.data.body;
-            const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
-            const found = body.match(regex)?.groups?.prNumber || "";
-
-            return found.trim();
-
-  getMobileExpensifyRef:
-      runs-on: ubuntu-latest
-      needs: [prep, getMobileExpensifyPR]
-      outputs:
-        MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
-      steps:
-        - name: Checkout
-          # v4
-          uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-
-        - name: Check if Expensify/Mobile-Expensify pull request number is correct
-          id: getHeadRef
-          run: |
-            set -e
-            if [[ -z "${{ needs.prep.outputs.MOBILE_PR_NUMBER }}" && -z "${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}" ]]; then
-              echo "REF=" >> "$GITHUB_OUTPUT"
-            else
-              echo "PR=${{ needs.prep.outputs.MOBILE_PR_NUMBER || needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}" >> "$GITHUB_OUTPUT"
-              echo "REF=$(gh pr view ${{ needs.prep.outputs.MOBILE_PR_NUMBER || needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
-            fi
-          env:
-            GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          github_token: ${{ github.token }}
 
   postGitHubCommentBuildStarted:
     name: Post build started comment
     runs-on: ubuntu-latest
-    needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
+    if: ${{ needs.prep.outputs.POST_COMMENTS == 'true' }}
+    needs: [prep]
     steps:
       - name: Add build start comment to Expensify/App PR
         if: ${{ needs.prep.outputs.APP_PR_NUMBER != '' }}
@@ -163,28 +74,13 @@ jobs:
               body: `🚧 @${{ github.actor }} has triggered a test Expensify/App build. You can view the [workflow run here](${workflowURL}).`
               });
 
-      - name: Add build start comment to Expensify/Mobile-Expensify PR
-        if: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR != '' }}
-        # v7
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
-        with:
-          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          script: |
-              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-              github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: 'Mobile-Expensify',
-              issue_number: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }},
-              body: `🚧 @${{ github.actor }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
-              });
-
   web:
     name: Build and deploy Web
-    if: ${{ inputs.WEB && needs.prep.outputs.APP_PR_NUMBER }}
+    if: ${{ needs.prep.outputs.BUILD_WEB == 'true' && needs.prep.outputs.APP_PR_NUMBER }}
     needs: [prep]
     runs-on: ubuntu-latest-xl
     env:
-      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
+      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER || '' }}
     steps:
       - name: Checkout
         # v4
@@ -219,11 +115,11 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    if: ${{ inputs.ANDROID }}
-    needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
+    if: ${{ needs.prep.outputs.BUILD_MOBILE == 'true' }}
+    needs: [prep]
     runs-on: ubuntu-latest-xl
     env:
-      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
+      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER || '' }}
     outputs:
       ROCK_ANDROID_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
     steps:
@@ -234,14 +130,6 @@ jobs:
           submodules: true
           ref: ${{ needs.prep.outputs.APP_REF }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
-        run: |
-          cd Mobile-Expensify
-          git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -327,11 +215,11 @@ jobs:
 
   iosHybrid:
     name: Build and deploy iOS for testing
-    if: ${{ inputs.IOS }}
-    needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
+    if: ${{ needs.prep.outputs.BUILD_MOBILE == 'true' }}
+    needs: [prep]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
-      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
+      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER || '' }}
     runs-on: macos-15-xlarge
     outputs:
       ROCK_IOS_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
@@ -343,14 +231,6 @@ jobs:
           submodules: true
           ref: ${{ needs.prep.outputs.APP_REF }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF != '' }}
-        run: |
-          cd Mobile-Expensify
-          git fetch origin ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
-          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -449,9 +329,9 @@ jobs:
 
   postGithubComment:
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ always() && needs.prep.outputs.POST_COMMENTS == 'true' }}
     name: Post a GitHub comment with app download links for testing
-    needs: [prep, getMobileExpensifyPR, web, androidHybrid, iosHybrid]
+    needs: [prep, web, androidHybrid, iosHybrid]
     steps:
       - name: Checkout
         # v4
@@ -459,33 +339,16 @@ jobs:
         with:
           ref: ${{ needs.prep.outputs.APP_REF }}
 
-      - name: Download Artifact
-        # v4
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
-
       - name: Publish links to apps for download on Expensify/App PR
-        if: ${{ needs.prep.outputs.APP_PR_NUMBER || (!needs.prep.outputs.APP_PR_NUMBER && !needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR) }}
+        if: ${{ needs.prep.outputs.APP_PR_NUMBER }}
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
           REPO: App
           APP_PR_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
-          MOBILE_EXPENSIFY_PR_NUMBER: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
           WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
-          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL || ''}}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL || ''}}
           WEB_LINK: https://${{ needs.prep.outputs.APP_PR_NUMBER }}.pr-testing.expensify.com
-
-      - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
-        if: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
-        uses: ./.github/actions/javascript/postTestBuildComment
-        with:
-          REPO: Mobile-Expensify
-          MOBILE_EXPENSIFY_PR_NUMBER: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          ANDROID: ${{ needs.androidHybrid.result }}
-          IOS: ${{ needs.iosHybrid.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
-          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
