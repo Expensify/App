@@ -459,7 +459,7 @@ type DuplicateExpenseTransactionParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    selfTourViewed: boolean;
+    isSelfTourViewed: boolean;
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
@@ -474,7 +474,7 @@ function duplicateExpenseTransaction({
     activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
-    selfTourViewed,
+    isSelfTourViewed,
     targetPolicy,
     targetPolicyCategories,
     targetReport,
@@ -529,7 +529,7 @@ function duplicateExpenseTransaction({
         transactionViolations: {},
         policyRecentlyUsedCurrencies,
         quickAction,
-        selfTourViewed,
+        isSelfTourViewed,
     };
 
     // If no workspace is provided the expense should be unreported

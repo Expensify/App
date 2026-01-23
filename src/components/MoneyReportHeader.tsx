@@ -356,7 +356,7 @@ function MoneyReportHeader({
     const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [selfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
     useEffect(() => {
         canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
@@ -651,7 +651,7 @@ function MoneyReportHeader({
                     activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    selfTourViewed,
+                    isSelfTourViewed,
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
@@ -667,7 +667,7 @@ function MoneyReportHeader({
             isASAPSubmitBetaEnabled,
             quickAction,
             policyRecentlyUsedCurrencies,
-            selfTourViewed,
+            isSelfTourViewed,
         ],
     );
 

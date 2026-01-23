@@ -57,7 +57,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
-    selfTourViewed: boolean;
+    isSelfTourViewed: boolean;
 };
 
 type InitialTransactionParams = {
@@ -98,7 +98,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
-    selfTourViewed: boolean;
+    isSelfTourViewed: boolean;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -153,7 +153,7 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
-    selfTourViewed,
+    isSelfTourViewed,
 }: CreateTransactionParams) {
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -216,7 +216,7 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                selfTourViewed,
+                isSelfTourViewed,
             });
         }
     }
@@ -265,7 +265,7 @@ function handleMoneyRequestStepScanParticipants({
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
-    selfTourViewed,
+    isSelfTourViewed,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -359,7 +359,7 @@ function handleMoneyRequestStepScanParticipants({
                             policyParams,
                             billable: false,
                             reimbursable: true,
-                            selfTourViewed,
+                            isSelfTourViewed,
                         });
                     },
                     (errorData) => {
@@ -381,7 +381,7 @@ function handleMoneyRequestStepScanParticipants({
                             activePolicyID,
                             files,
                             participant,
-                            selfTourViewed,
+                            isSelfTourViewed,
                         });
                     },
                 );
@@ -403,7 +403,7 @@ function handleMoneyRequestStepScanParticipants({
                 activePolicyID,
                 files,
                 participant,
-                selfTourViewed,
+                isSelfTourViewed,
             });
             return;
         }

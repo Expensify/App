@@ -1626,7 +1626,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            selfTourViewed: false,
+            isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -1785,7 +1785,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            selfTourViewed: false,
+            isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -1949,7 +1949,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            selfTourViewed: false,
+            isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
 
@@ -2123,7 +2123,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            selfTourViewed: false,
+            isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
 

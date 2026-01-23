@@ -171,7 +171,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [selfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
@@ -198,7 +198,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    selfTourViewed,
+                    isSelfTourViewed,
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
@@ -214,7 +214,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies,
-            selfTourViewed,
+            isSelfTourViewed,
         ],
     );
 

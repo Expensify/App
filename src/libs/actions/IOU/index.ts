@@ -535,7 +535,7 @@ type RequestMoneyInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    selfTourViewed: boolean;
+    isSelfTourViewed: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -6099,7 +6099,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        selfTourViewed,
+        isSelfTourViewed,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6274,7 +6274,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       engagementChoice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
-                      selfTourViewed,
+                      isSelfTourViewed,
                   })?.guidedSetupData
                 : undefined;
 

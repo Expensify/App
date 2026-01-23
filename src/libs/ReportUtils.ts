@@ -11527,7 +11527,7 @@ type PrepareOnboardingOnyxDataParams = {
     selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
-    selfTourViewed?: boolean;
+    isSelfTourViewed?: boolean;
 };
 
 function prepareOnboardingOnyxData({
@@ -11542,7 +11542,7 @@ function prepareOnboardingOnyxData({
     selectedInterestedFeatures,
     isInvitedAccountant,
     onboardingPurposeSelected,
-    selfTourViewed,
+    isSelfTourViewed,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -11695,7 +11695,7 @@ function prepareOnboardingOnyxData({
 
             let isTaskAutoCompleted: boolean = task.autoCompleted;
 
-            const onboardingSelfTourViewed = selfTourViewed ?? onboarding?.selfTourViewed;
+            const onboardingSelfTourViewed = isSelfTourViewed ?? onboarding?.selfTourViewed;
             if (task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR && onboardingSelfTourViewed) {
                 // If the user has already viewed the self tour, we mark the task as auto completed
                 isTaskAutoCompleted = true;
