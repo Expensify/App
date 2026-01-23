@@ -57,10 +57,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         splitExpenseDraftTransaction?.comment?.originalTransactionID,
     ]);
 
-    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(
-        () => getTransactionDetails(splitExpenseDraftTransaction, undefined, undefined, undefined, undefined, undefined, preferredLocale) ?? {},
-        [splitExpenseDraftTransaction, preferredLocale],
-    );
+    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
     const allTransactions = useAllTransactions();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
@@ -110,7 +107,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentPolicy);
+    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy);
 
     const isCategoryRequired = !!currentPolicy?.requiresCategory;
     const reportName = computeReportName(currentReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
