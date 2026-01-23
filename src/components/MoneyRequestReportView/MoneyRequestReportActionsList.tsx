@@ -205,8 +205,6 @@ function MoneyRequestReportActionsList({
         [report, policy?.id],
     );
 
-    const {
-        options: selectedTransactionsOptions,
     const showOfflineModal = useCallback(async () => {
         await showDecisionModal({
             title: translate('common.youAppearToBeOffline'),
@@ -224,6 +222,7 @@ function MoneyRequestReportActionsList({
     }, [showDecisionModal, translate]);
 
     const {
+        options: selectedTransactionsOptions,
         handleDeleteTransactions,
         isDeleteModalVisible,
         hideDeleteModal,
