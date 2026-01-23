@@ -104,7 +104,7 @@ jest.mock('@libs/actions/Plaid', () => ({
 jest.mock('@components/DelegateNoAccessModalProvider');
 
 describe('useAssignCard', () => {
-    const mockSetShouldShowOfflineModal = jest.fn();
+    const mockShowOfflineModal = jest.fn();
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -141,7 +141,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    showOfflineModal: mockShowOfflineModal,
                 }),
             );
 
@@ -156,7 +156,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    showOfflineModal: mockShowOfflineModal,
                 }),
             );
 
@@ -170,7 +170,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    showOfflineModal: mockShowOfflineModal,
                 }),
             );
 
@@ -187,13 +187,13 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockPlaidFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    showOfflineModal: mockShowOfflineModal,
                 }),
             );
 
             result.current.assignCard('Plaid Checking 0000', 'Plaid Checking 0000');
 
-            expect(mockSetShouldShowOfflineModal).toHaveBeenCalledWith(true);
+            expect(mockShowOfflineModal).toHaveBeenCalled();
         });
 
         it('should not show offline modal for commercial feed when offline', () => {
@@ -204,14 +204,14 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    showOfflineModal: mockShowOfflineModal,
                 }),
             );
 
             result.current.assignCard('490901XXXXXX1234', 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1');
 
             // Commercial feeds should work offline - offline modal should not be shown
-            expect(mockSetShouldShowOfflineModal).not.toHaveBeenCalled();
+            expect(mockShowOfflineModal).not.toHaveBeenCalled();
         });
     });
 
@@ -223,7 +223,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    showOfflineModal: mockShowOfflineModal,
                 }),
             );
 
@@ -244,7 +244,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockPlaidFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    showOfflineModal: mockShowOfflineModal,
                 }),
             );
 
