@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyReportField} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
@@ -97,6 +97,9 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     };
 
     const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+
+    // Provide a default when the report name and the policy field list are empty
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fieldValue = isReportFieldTitle ? report.reportName || (isPolicyFieldListEmpty ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '') : (reportField.value ?? reportField.defaultValue);
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
