@@ -21,6 +21,8 @@ import {
     isCardHiddenFromSearch,
 } from './CardUtils';
 import type {CompanyCardFeedIcons} from './CardUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {translateLocal} from './Localize';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
@@ -452,7 +454,8 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
                 id,
                 feed,
                 fundID,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                name: getCustomOrFormattedFeedName(translateLocal, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             };
         }
     }
@@ -503,7 +506,8 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
                 id,
                 feed,
                 fundID,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                name: getCustomOrFormattedFeedName(translateLocal, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
         }
     }

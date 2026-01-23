@@ -8055,6 +8055,11 @@ const CONST = {
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
     },
+
+    SECTION_LIST_ITEM_TYPE: {
+        HEADER: 'header',
+        ROW: 'row',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

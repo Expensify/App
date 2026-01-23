@@ -2,7 +2,7 @@ import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
@@ -26,8 +26,6 @@ import type {UnassignedCard} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -106,14 +104,13 @@ function isExpensifyCard(card?: Card) {
  * @param card
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
-function getCardDescription(card?: Card) {
+function getCardDescription(card: Card | undefined, translate: LocalizedTranslate) {
     if (!card) {
         return '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
     const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
+    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
     return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
@@ -470,7 +467,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
-function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
+function getCustomOrFormattedFeedName(translate: LocalizedTranslate, feed?: CompanyCardFeed, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
     if (!feed) {
         return;
     }
@@ -480,8 +477,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, customFeedName?: s
     }
 
     const feedName = getBankName(feed);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const formattedFeedName = feedName && shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', feedName) : feedName;
+    const formattedFeedName = feedName && shouldAddCardsSuffix ? translate('workspace.companyCards.feedName', feedName) : feedName;
 
     // Custom feed name can be empty. Fallback to default feed name
     // Fallback to feed key name for unknown feeds

@@ -43,7 +43,7 @@ import {
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const shortDate = '0924';
@@ -557,26 +557,26 @@ describe('CardUtils', () => {
         });
         it('Should return custom name if exists', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
-            const feedName = getCustomOrFormattedFeedName(feed, customFeedName);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, customFeedName);
             expect(feedName).toBe(customFeedName);
         });
 
         it('Should return formatted name if there is no custom name', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const customName = undefined;
-            const feedName = getCustomOrFormattedFeedName(feed, customName);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, customName);
             expect(feedName).toBe('Visa cards');
         });
 
         it('Should return undefined if no feed provided', () => {
             const feed = undefined;
-            const feedName = getCustomOrFormattedFeedName(feed);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed);
             expect(feedName).toBe(undefined);
         });
 
         it('Should return feed key name for unknown feed', () => {
             const companyCardNickname = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames?.[unknownFeed];
-            const feedName = getCustomOrFormattedFeedName(unknownFeed, companyCardNickname);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, unknownFeed, companyCardNickname);
             expect(feedName).toBe(unknownFeed);
         });
     });
@@ -1176,7 +1176,7 @@ describe('CardUtils', () => {
                 scrapeMinDate: '2024-10-17',
                 state: 3,
             };
-            const description = getCardDescription(card);
+            const description = getCardDescription(card, translateLocal);
             expect(description).toBe('Visa - 2554');
         });
 
@@ -1193,7 +1193,7 @@ describe('CardUtils', () => {
                 lastUpdated: '',
                 state: 2,
             };
-            const description = getCardDescription(card);
+            const description = getCardDescription(card, translateLocal);
             expect(description).toBe('Expensify Card');
         });
     });

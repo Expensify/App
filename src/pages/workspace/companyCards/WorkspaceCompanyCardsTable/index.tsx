@@ -84,6 +84,7 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed;
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards;
+    const showTableHeaderButtons = (showTableControls || isLoadingPage || isFeedPending) && !!feedName;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
@@ -297,7 +298,7 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
             filters={filterConfig}
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {(showCards || isLoadingPage || isFeedPending) && (
+            {showTableHeaderButtons && (
                 <View style={shouldUseNarrowTableLayout && styles.mb5}>
                     <WorkspaceCompanyCardsTableHeaderButtons
                         isLoading={isLoadingPage}

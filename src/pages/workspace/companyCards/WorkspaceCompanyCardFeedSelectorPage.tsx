@@ -69,7 +69,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             value: feedName,
             feed: feedSettings.feed as CompanyCardFeed,
             alternateText: domainName ?? policy?.name,
-            text: getCustomOrFormattedFeedName(feedSettings.feed as CompanyCardFeed, feedSettings.customFeedName),
+            text: getCustomOrFormattedFeedName(translate, feedSettings.feed as CompanyCardFeed, feedSettings.customFeedName),
             keyForList: feedName,
             isSelected: feedName === selectedFeedName,
             isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,

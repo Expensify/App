@@ -18,32 +18,31 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {getCompanyCardFeed, getCompanyCardFeedWithDomainID, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Current policy id */
-    policyID: string | undefined;
+    policyID: string;
 
     /** Currently selected feed */
-    feedName: CompanyCardFeedWithDomainID | undefined;
+    feedName: CompanyCardFeedWithDomainID;
 
     /** Whether the feed is loading */
-    isLoading?: boolean;
+    isLoading: boolean;
 
     /** Whether to show the table controls */
     showTableControls: boolean;
 
     /** Card feed icon */
-    CardFeedIcon?: React.ReactNode;
+    CardFeedIcon: React.ReactNode;
 };
 
 function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, showTableControls, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
@@ -59,19 +58,15 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const feed = getCompanyCardFeed(feedName);
-    const feedWithDomainID = getCompanyCardFeedWithDomainID(feed, workspaceAccountID);
-
-    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(feed, cardFeeds?.[feedName]?.customFeedName) : undefined;
-    const isCommercialFeed = isCustomFeed(feed);
+    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(translate, feedName as CompanyCardFeed, cardFeeds?.[feedName]?.customFeedName) : undefined;
+    const isCommercialFeed = isCustomFeed(feedName as CompanyCardFeed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
 
     const {cardFeedErrors} = useCardFeedErrors();
-    const feedErrors = cardFeedErrors[feedWithDomainID];
+    const feedErrors = cardFeedErrors[feedName];
     const hasFeedErrors = feedErrors?.hasFeedErrors;
     const isFeedConnectionBroken = feedErrors?.isFeedConnectionBroken;
     const shouldShowRBR = feedErrors?.shouldShowRBR;
