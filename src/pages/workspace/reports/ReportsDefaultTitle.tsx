@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
@@ -47,23 +47,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     ] as const satisfies string[];
 
     const titleField = getTitleFieldWithFallback(policy);
-
     const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
-    const [reportTitle, setReportTitle] = useState(() => customNameDefaultValue);
-
-    // Sync reportTitle state when titleField defaultValue changes. This is needed because:
-    // 1. useState initializer only runs once on mount - if the policy loads after the component mounts,
-    //    reportTitle won't update automatically even though customNameDefaultValue changes
-    // 2. Edge case: If another user updates the policy title formula default value while this user has
-    //    the page open, usePolicy will cause a re-render with the new defaultValue, but reportTitle
-    //    state won't update without this effect
-    // Only update if the current value is empty to avoid overwriting user input
-    React.useEffect(() => {
-        const newDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
-        if (newDefaultValue && !reportTitle) {
-            setReportTitle(newDefaultValue);
-        }
-    }, [titleField?.defaultValue, reportTitle]);
 
     const validateCustomName = useCallback(
         ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
@@ -136,10 +120,8 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                             label={translate('workspace.reports.customNameInputLabel')}
                             aria-label={translate('workspace.reports.customNameInputLabel')}
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            value={reportTitle}
                             spellCheck={false}
                             autoFocus
-                            onChangeText={setReportTitle}
                             autoGrowHeight
                             ref={(el: BaseTextInputRef | null): void => {
                                 if (!isInputInitializedRef.current) {
