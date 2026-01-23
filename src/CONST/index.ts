@@ -180,6 +180,30 @@ const EMAIL = {
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
+const FULLSTORY = {
+    CLASS: {
+        MASK: 'fs-mask',
+        UNMASK: 'fs-unmask',
+        EXCLUDE: 'fs-exclude',
+    },
+    OPERATION: {
+        TRACK_EVENT: 'trackEvent',
+        GET_SESSION: 'getSession',
+        INIT: 'init',
+        LOG: 'log',
+        SOURCE: 'source',
+        OBSERVE: 'observe',
+        RESTART: 'restart',
+        SET_IDENTITY: 'setIdentity',
+        SET_CONFIG: 'setConfig',
+        SET_PAGE: 'setPage',
+        SET_PROPERTIES: 'setProperties',
+        SHUTDOWN: 'shutdown',
+        START: 'start',
+        STAT: 'stat',
+    },
+};
+
 const CONST = {
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
@@ -2216,29 +2240,7 @@ const CONST = {
     EXPENSIFY_MERCHANT: 'Expensify',
     EMAIL,
 
-    FULLSTORY: {
-        CLASS: {
-            MASK: 'fs-mask',
-            UNMASK: 'fs-unmask',
-            EXCLUDE: 'fs-exclude',
-        },
-        OPERATION: {
-            TRACK_EVENT: 'trackEvent',
-            GET_SESSION: 'getSession',
-            INIT: 'init',
-            LOG: 'log',
-            SOURCE: 'source',
-            OBSERVE: 'observe',
-            RESTART: 'restart',
-            SET_IDENTITY: 'setIdentity',
-            SET_CONFIG: 'setConfig',
-            SET_PAGE: 'setPage',
-            SET_PROPERTIES: 'setProperties',
-            SHUTDOWN: 'shutdown',
-            START: 'start',
-            STAT: 'stat',
-        },
-    },
+    FULLSTORY,
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
 
@@ -8121,6 +8123,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, FULLSTORY};
 
 export default CONST;

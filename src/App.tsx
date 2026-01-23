@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import React from 'react';
+import React, {Suspense} from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
@@ -25,7 +25,6 @@ import KeyboardProvider from './components/KeyboardProvider';
 import KYCWallContextProvider from './components/KYCWall/KYCWallContext';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import {ModalProvider} from './components/Modal/Global/ModalContext';
-import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
@@ -44,12 +43,11 @@ import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeCont
 import WideRHPContextProvider from './components/WideRHPContextProvider';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
-import CONST from './CONST';
+import {FULLSTORY} from './CONST';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
-import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
@@ -58,6 +56,8 @@ import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
+
+const NavigationBar = React.lazy(() => import('./components/NavigationBar'));
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -72,7 +72,6 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 
 function App() {
     useDefaultDragAndDrop();
-    OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
@@ -93,7 +92,7 @@ function App() {
                         >
                             <View
                                 style={fill}
-                                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                                fsClass={FULLSTORY.CLASS.UNMASK}
                             >
                                 <ComposeProviders
                                     components={[
@@ -141,7 +140,9 @@ function App() {
                                             <Expensify />
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
-                                    <NavigationBar />
+                                    <Suspense fallback={null}>
+                                        <NavigationBar />
+                                    </Suspense>
                                 </ComposeProviders>
                             </View>
                         </SafeAreaProvider>
