@@ -44,6 +44,7 @@ import {
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
     getOriginalTransactionWithSplitInfo,
+    hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
@@ -113,7 +114,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }`,
         {canBeMissing: true},
     );
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`, {canBeMissing: true});
@@ -128,6 +128,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
     > | null>(null);
+    const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
@@ -160,6 +161,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
+    const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
@@ -201,22 +203,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
-                    allBetas,
                 });
             }
         },
-        [
-            activePolicyExpenseChat,
-            allPolicyCategories,
-            defaultExpensePolicy,
-            isASAPSubmitBetaEnabled,
-            introSelected,
-            activePolicyID,
-            quickAction,
-            policyRecentlyUsedCurrencies,
-            allBetas,
-            policy?.id,
-        ],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies, policy?.id],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
@@ -441,6 +431,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: isDuplicateActive ? Expensicons.ReceiptMultiple : Expensicons.CheckmarkCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
+                if (hasCustomUnitOutOfPolicyViolation) {
+                    setDuplicateDistanceErrorModalVisible(true);
+                    return;
+                }
+
                 if (!isDuplicateActive || !transaction) {
                     return;
                 }
@@ -449,7 +444,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
                 duplicateTransaction([transaction]);
             },
-            shouldCloseModalOnSelect: false,
+            shouldCloseModalOnSelect: hasCustomUnitOutOfPolicyViolation,
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -609,6 +604,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 cancelText={translate('common.cancel')}
                 danger
                 shouldEnableNewFocusManagement
+            />
+            <ConfirmModal
+                title={translate('common.duplicateExpense')}
+                isVisible={duplicateDistanceErrorModalVisible}
+                onConfirm={() => setDuplicateDistanceErrorModalVisible(false)}
+                onCancel={() => setDuplicateDistanceErrorModalVisible(false)}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('iou.correctDistanceRateError')}
+                shouldShowCancelButton={false}
             />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
