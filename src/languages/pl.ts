@@ -1108,7 +1108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Usuń podział',
         splitExpenseCannotBeEditedModalTitle: 'Ten wydatek nie może zostać edytowany',
         splitExpenseCannotBeEditedModalDescription: 'Zatwierdzonych lub opłaconych wydatków nie można edytować',
-        splitExpenseDistanceErrorModalDescription: 'Napraw błąd stawki odległości i spróbuj ponownie.',
+        splitExpenseDistanceErrorModalDescription: 'Popraw błąd stawki odległości i spróbuj ponownie.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Zapłać ${name ?? 'ktoś'}`,
         expense: 'Wydatek',
         categorize: 'Kategoryzuj',
