@@ -2556,6 +2556,7 @@ const staticStyles = (theme: ThemeColors) =>
         companyCardsBlockingErrorViewContainer: {
             maxWidth: 475,
             alignSelf: 'center',
+            flex: undefined,
         },
 
         forcedBlockingViewContainer: {

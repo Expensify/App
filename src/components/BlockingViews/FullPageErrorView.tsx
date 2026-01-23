@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -26,36 +26,12 @@ type FullPageErrorViewProps = {
     /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
 
-    /** The width of the icon */
-    iconWidth?: number;
-
-    /** The height of the icon */
-    iconHeight?: number;
-
-    /** The style of the title message */
-    titleStyle?: StyleProp<TextStyle>;
-
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
-
-    /** The style of the container */
-    containerStyle?: StyleProp<ViewStyle>;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function FullPageErrorView({
-    testID,
-    children = null,
-    shouldShow = false,
-    title = '',
-    subtitle = '',
-    shouldForceFullScreen = false,
-    iconWidth = variables.errorPageIconWidth,
-    iconHeight = variables.errorPageIconHeight,
-    subtitleStyle,
-    titleStyle,
-    containerStyle,
-}: FullPageErrorViewProps) {
+function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
 
@@ -63,15 +39,14 @@ function FullPageErrorView({
         return (
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <View
-                    style={[styles.flex1, containerStyle]}
+                    style={[styles.flex1, styles.searchBlockingErrorViewContainer]}
                     testID={testID}
                 >
                     <BlockingView
                         icon={illustrations.BrokenMagnifyingGlass}
-                        iconWidth={iconWidth}
-                        iconHeight={iconHeight}
+                        iconWidth={variables.errorPageIconWidth}
+                        iconHeight={variables.errorPageIconHeight}
                         title={title}
-                        titleStyles={titleStyle}
                         subtitle={subtitle}
                         subtitleStyle={subtitleStyle}
                     />

@@ -1,7 +1,7 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
@@ -10,6 +10,7 @@ import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCompanyCards from '@hooks/useCompanyCards';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -304,6 +305,11 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+    });
+
     return (
         <Table
             ref={tableRef}
@@ -351,16 +357,16 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             )}
 
             {!!feedErrorKey && !isShowingLoadingState && (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <View style={styles.alignItemsCenter}>
-                        <FullPageErrorView
-                            shouldShow
-                            title={feedErrorTitle}
-                            containerStyle={[styles.companyCardsBlockingErrorViewContainer, styles.pb4]}
+                <ScrollView contentContainerStyle={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, bottomSafeAreaPaddingStyle]}>
+                    <View style={[styles.alignItemsCenter]}>
+                        <BlockingView
+                            icon={illustrations.BrokenMagnifyingGlass}
                             iconWidth={variables.companyCardsPageNotFoundIconWidth}
                             iconHeight={variables.companyCardsPageNotFoundIconHeight}
+                            title={feedErrorTitle ?? ''}
                             subtitle={feedErrorMessage ?? undefined}
-                            titleStyle={[styles.mb2, styles.mt8]}
+                            containerStyle={[styles.companyCardsBlockingErrorViewContainer, styles.pb4]}
+                            titleStyles={[styles.mb2, styles.mt8]}
                             subtitleStyle={styles.textSupporting}
                         />
                         <Button
@@ -368,7 +374,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                             onPress={feedErrorReloadAction}
                         />
                     </View>
-                </View>
+                </ScrollView>
             )}
 
             {showCards && (
