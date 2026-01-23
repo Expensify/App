@@ -1,7 +1,6 @@
 import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
 import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -20,7 +19,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Domain, PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
@@ -31,7 +29,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    // using isSmallScreenWidth here because DecisionModal expects isSmallScreen instead of houldUseNarrowLayout
+    // using isSmallScreenWidth here because DecisionModal expects isSmallScreen instead of shouldUseNarrowLayout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
