@@ -6700,6 +6700,7 @@ export {
     saveReportDraft,
     moveIOUReportToPolicy,
     moveIOUReportToPolicyAndInviteSubmitter,
+    convertIOUReportToExpenseReport,
     dismissChangePolicyModal,
     changeReportPolicy,
     changeReportPolicyAndInviteSubmitter,

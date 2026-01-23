@@ -2843,6 +2843,77 @@ describe('actions/Report', () => {
             });
             expect(Object.values(reportActions ?? {}).at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MOVED);
         });
+
+        describe('convertIOUReportToExpenseReport', () => {
+
+            it('should set reportName to default formula when policy field list is empty and CUSTOM_REPORT_NAMES beta is enabled', () => {
+                // Given a policy with an empty field list
+                const policyID = '300';
+                const policyWithEmptyFieldList: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(1, undefined),
+                    reportID: 'iouReport300',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 1,
+                    reportName: 'Original IOU Report Name',
+                    total: 10000,
+                };
+
+                // Set up minimal Onyx state needed for the function
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
+
+                // When converting IOU report to expense report with CUSTOM_REPORT_NAMES beta enabled
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', [], true);
+
+                // Then the report name should be set to the default formula result ("New Report")
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`) as
+                    | OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>
+                    | undefined;
+                const reportValue = reportUpdate?.value as Partial<OnyxTypes.Report> | undefined;
+                expect(reportValue?.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+            });
+
+            it('should set reportName to default formula when policy field list is empty and CUSTOM_REPORT_NAMES beta is disabled', () => {
+                // Given a policy with an empty field list
+                const policyID = '301';
+                const policyWithEmptyFieldList: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(2, undefined),
+                    reportID: 'iouReport301',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 2,
+                    reportName: 'Original IOU Report Name',
+                    total: 10000,
+                };
+
+                // Set up minimal Onyx state needed for the function
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
+
+                // When converting IOU report to expense report with CUSTOM_REPORT_NAMES beta disabled
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', [], false);
+
+                // Then the report name should be set to the default formula result ("New Report")
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`) as
+                    | OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>
+                    | undefined;
+                const reportValue = reportUpdate?.value as Partial<OnyxTypes.Report> | undefined;
+                expect(reportValue?.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+            });
+        });
     });
 
     describe('moveIOUReportToPolicyAndInviteSubmitter', () => {
