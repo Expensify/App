@@ -20,7 +20,7 @@ import Waypoints from './Waypoints';
 function IOURequestStepDistanceGPS({
     report,
     route: {
-        params: {action, iouType, reportActionID},
+        params: {action, reportID, iouType, reportActionID},
     },
     transaction,
 }: IOURequestStepDistanceGPSProps) {
@@ -71,6 +71,7 @@ function IOURequestStepDistanceGPS({
                     navigateToNextStep={() => {}}
                     setShouldShowStartError={setShouldShowStartError}
                     setShouldShowPermissionsError={setShouldShowPermissionsError}
+                    reportID={reportID}
                 />
             </View>
         </StepScreenWrapper>
