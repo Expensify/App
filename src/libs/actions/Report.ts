@@ -4223,8 +4223,7 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
         },
     ];
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isOriginalReportArchived);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(originalReport, isOriginalReportArchived);
 
     const optimisticLastReportData = optimisticReportLastData(
         originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
