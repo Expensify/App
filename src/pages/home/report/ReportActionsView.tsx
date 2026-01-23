@@ -25,11 +25,11 @@ import {
     getMostRecentIOURequestActionID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
-    isActionableWhisperRequiringWritePermission,
     isCreatedAction,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
     isMoneyRequestAction,
+    isReportActionVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -228,14 +228,7 @@ function ReportActionsView({
                 }
 
                 const actionReportID = reportAction.reportID ?? reportID;
-                const isStaticallyVisible = visibleReportActionsData?.[actionReportID]?.[reportAction.reportActionID];
-
-                const passesStaticVisibility = isStaticallyVisible ?? true;
-                if (!passesStaticVisibility) {
-                    return false;
-                }
-
-                if (!canPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
+                if (!isReportActionVisible(reportAction, actionReportID, canPerformWriteAction, visibleReportActionsData)) {
                     return false;
                 }
 

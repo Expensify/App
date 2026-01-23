@@ -1162,7 +1162,11 @@ function isReportActionVisible(
         return false;
     }
     if (visibleReportActions) {
-        const staticVisibility = visibleReportActions[reportID]?.[reportAction.reportActionID] ?? true;
+        const staticVisibility = visibleReportActions[reportID]?.[reportAction.reportActionID];
+        // If action is not in derived value cache, fall back to runtime calculation
+        if (staticVisibility === undefined) {
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
+        }
         if (!staticVisibility) {
             return false;
         }
