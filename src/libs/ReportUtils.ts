@@ -6935,7 +6935,17 @@ function buildOptimisticExpenseReport(
 
     // Compute optimistic report name if applicable
     const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {});
-    expenseReport.reportName = computedName ?? expenseReport.reportName;
+    if (computedName !== null) {
+        expenseReport.reportName = computedName;
+    } else {
+        // If beta is disabled, policy is a group policy, and fieldList is empty, use default expense report name (matches OldDot behavior)
+        const isBetaDisabled = !Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, allBetas);
+        const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+        if (isBetaDisabled && isPolicyFieldListEmpty && isGroupPolicy(policy?.type ?? '')) {
+            expenseReport.reportName = CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
+        }
+        // Otherwise, keep the default format: `${policyName} owes ${formattedTotal}`
+    }
 
     expenseReport.fieldList = policy?.fieldList;
 
