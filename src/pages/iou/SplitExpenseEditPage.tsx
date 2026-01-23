@@ -46,7 +46,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, preferredLocale, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol} = useCurrencyList();
     const {currentSearchResults} = useSearchContext();
 
