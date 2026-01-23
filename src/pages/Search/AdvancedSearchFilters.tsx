@@ -276,7 +276,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 
     const cardNames = Object.values(cards)
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
-        .map((card) => getCardDescription(card));
+        .map((card) => getCardDescription(card, translate));
 
     const feedNames = Object.keys(cardFeedNamesWithType)
         .filter((workspaceCardFeedKey) => {
@@ -586,7 +586,7 @@ function AdvancedSearchFilters() {
             queryJSON,
         });
 
-        applyFiltersAndNavigate();
+        Navigation.setNavigationActionToMicrotaskQueue(() => applyFiltersAndNavigate());
     };
 
     const filters = typeFiltersKeys.map((section) => {

@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
@@ -25,12 +26,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, hasTags, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -69,6 +71,18 @@ function CategorySettingsPage({
         hasOutstandingChildTask,
         parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+
+    const policyHasTags = hasTags(policyTags);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -120,6 +134,7 @@ function CategorySettingsPage({
             return '';
         }
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
     const requiredFieldsTitle = useMemo(() => {
@@ -138,26 +153,48 @@ function CategorySettingsPage({
         return policyCategory?.pendingFields?.areCommentsRequired;
     }, [policyCategory?.pendingFields, policy?.isAttendeeTrackingEnabled]);
 
-    if (!policyCategory) {
-        return <NotFoundPage />;
-    }
-
-    const updateWorkspaceCategoryEnabled = (value: boolean) => {
-        if (shouldPreventDisableOrDelete) {
-            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
-            return;
-        }
-        setWorkspaceCategoryEnabled(
+    const updateWorkspaceCategoryEnabled = useCallback(
+        (value: boolean) => {
+            if (shouldPreventDisableOrDelete) {
+                setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                return;
+            }
+            setWorkspaceCategoryEnabled({
+                policyData,
+                categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+                setupCategoryTaskReport,
+                setupCategoryTaskParentReport,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                setupCategoriesAndTagsTaskReport,
+                setupCategoriesAndTagsTaskParentReport,
+                isSetupCategoriesAndTagsTaskParentReportArchived,
+                setupCategoriesAndTagsHasOutstandingChildTask,
+                setupCategoriesAndTagsParentReportAction,
+                policyHasTags,
+            });
+        },
+        [
+            setIsCannotDeleteOrDisableLastCategoryModalVisible,
+            shouldPreventDisableOrDelete,
             policyData,
-            {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            policyCategory.name,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
             currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
-        );
-    };
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            policyHasTags,
+        ],
+    );
 
     const navigateToEditCategory = () => {
         Navigation.navigate(
@@ -183,6 +220,10 @@ function CategorySettingsPage({
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
+
+    if (!policyCategory) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
