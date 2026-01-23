@@ -369,7 +369,7 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
+    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 /**
