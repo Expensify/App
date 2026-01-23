@@ -2383,7 +2383,7 @@ ${amount} voor ${merchant} - ${date}`,
             comment: (value: string) => `Beschrijving wijzigen in "${value}"`,
             merchant: (value: string) => `Handelaar bijwerken naar "${value}"`,
             reimbursable: (value: boolean) => `Uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`,
-            report: (value: string) => `Een rapport met de naam "${value}" toevoegen`,
+            report: (value: string) => `Voeg een rapport toe met de naam '${value}'`,
             tag: (value: string) => `Tag bijwerken naar "${value}"`,
             tax: (value: string) => `Belastingtarief bijwerken naar ${value}`,
         },
@@ -4848,6 +4848,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             assign: 'Toewijzen',
             assignCardFailedError: 'Toewijzing van kaart mislukt.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription:
+                'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van de transacties die we al hebben geïmporteerd.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uw Expensify Cards uitgeven en beheren',
@@ -5087,7 +5089,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Startdatum transactie',
                 changeTransactionStartDateWarning:
-                    'Als u de startdatum wijzigt, worden alle niet-gerapporteerde/conceptrapporttransacties verwijderd en worden alle transacties vanaf de nieuwe startdatum opnieuw geïmporteerd. Dit kan dubbele transacties veroorzaken.',
+                    'Het wijzigen van de startdatum verwijdert alle niet-gerapporteerde/conceptrapporttransacties en importeert alle transacties vanaf de nieuwe startdatum opnieuw. Dit kan dubbele transacties veroorzaken.',
                 updateCard: 'Kaart bijwerken',
                 unassignCard: 'Kaart ontkoppelen',
                 unassign: 'Toewijzen verwijderen',

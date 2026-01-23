@@ -2392,7 +2392,7 @@ ${amount} pour ${merchant} - ${date}`,
             comment: (value: string) => `Modifier la description en « ${value} »`,
             merchant: (value: string) => `Mettre à jour le marchand en « ${value} »`,
             reimbursable: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
-            report: (value: string) => `Ajouter un rapport nommé « ${value} »`,
+            report: (value: string) => `Ajouter un rapport nommé « ${value} »`,
             tag: (value: string) => `Mettre à jour le tag sur « ${value} »`,
             tax: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
         },
@@ -4872,6 +4872,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             assign: 'Assigner',
             assignCardFailedError: 'L’attribution de la carte a échoué.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription:
+                'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -5117,7 +5119,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
                 changeTransactionStartDateWarning:
-                    'La modification de la date de début supprimera toutes les transactions non déclarées/provisoires et réimportera toutes les transactions à partir de la nouvelle date de début. Cela peut entraîner des transactions en double.',
+                    'La modification de la date de début supprimera toutes les transactions de rapports non soumis/en brouillon et réimportera toutes les transactions à partir de la nouvelle date de début. Cela peut entraîner des transactions en double.',
                 updateCard: 'Mettre à jour la carte',
                 unassignCard: 'Désattribuer la carte',
                 unassign: 'Désassigner',
