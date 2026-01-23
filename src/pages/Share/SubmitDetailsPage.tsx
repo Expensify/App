@@ -108,7 +108,9 @@ function SubmitDetailsPage({
             hasOnlyPersonalPolicies,
             draftTransactions,
         });
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies, draftTransactions]);
+        // The draftTransactions can be changed if users update the expense, so we don't want to re-init the money request
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
