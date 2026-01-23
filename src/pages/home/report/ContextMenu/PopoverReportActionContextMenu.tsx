@@ -343,11 +343,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         ancestorsRef.current = ancestors;
     }, [originalReport, ancestors]);
     /** Opens the Confirm delete action modal */
-    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = async (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
+    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         reportIDRef.current = reportID;
         reportActionRef.current = reportAction ?? null;
 
-        const result = await showConfirmModal({
+        (async () => {
+            const result = await showConfirmModal({
             title: translate('reportActionContextMenu.deleteAction', {action: reportAction}),
             prompt: translate('reportActionContextMenu.deleteConfirmation', {action: reportAction}),
             confirmText: translate('common.delete'),
@@ -393,6 +394,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else {
             onCancel();
         }
+        })();
     };
 
     const hideDeleteModal = () => {

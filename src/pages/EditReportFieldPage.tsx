@@ -134,7 +134,14 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const isReportFieldDeletable = reportField.deletable && reportField?.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID;
 
     if (isReportFieldDeletable) {
-        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: handleReportFieldDelete, shouldCallAfterModalHide: true});
+        menuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('common.delete'),
+            onSelected: () => {
+                handleReportFieldDelete();
+            },
+            shouldCallAfterModalHide: true,
+        });
     }
 
     const fieldName = Str.UCFirst(reportField.name);
