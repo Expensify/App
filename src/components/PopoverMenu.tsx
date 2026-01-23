@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -256,7 +256,7 @@ function PopoverMenu(props: PopoverMenuProps) {
     return <BasePopoverMenu {...props} />;
 }
 
-function useHeaderState(initialHeaderText: string): [string, boolean, (newHeaderText: string, alwaysShow: boolean) => void, () => void] {
+function useHeaderState(initialHeaderText: string): [string, boolean, (newHeaderText: string, alwaysShow: boolean) => void, () => void, () => void] {
     const [headerTexts, setHeaderTexts] = useState<string[]>([initialHeaderText]);
     const [shouldAlwaysShowHeaderTexts, setShouldAlwaysShowHeaderTexts] = useState<boolean[]>([true]);
     const [headerIndex, setHeaderIndex] = useState(0);
@@ -275,7 +275,13 @@ function useHeaderState(initialHeaderText: string): [string, boolean, (newHeader
         setHeaderIndex((index) => index - 1);
     };
 
-    return [currentHeaderText, shouldAlwaysShowHeaderText, pushHeaderText, popHeaderText];
+    const resetHeaderText = () => {
+        setHeaderTexts([initialHeaderText]);
+        setShouldAlwaysShowHeaderTexts([true]);
+        setHeaderIndex(0);
+    };
+
+    return [currentHeaderText, shouldAlwaysShowHeaderText, pushHeaderText, popHeaderText, resetHeaderText];
 }
 
 function BasePopoverMenu({
@@ -332,7 +338,7 @@ function BasePopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
-    const [currentHeaderText, shouldAlwaysShowHeaderText, pushHeaderText, popHeaderText] = useHeaderState(headerText ?? '');
+    const [currentHeaderText, shouldAlwaysShowHeaderText, pushHeaderText, popHeaderText, resetHeaderText] = useHeaderState(headerText ?? '');
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -595,6 +601,7 @@ function BasePopoverMenu({
             onClose={() => {
                 setCurrentMenuItems(menuItems);
                 setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+                resetHeaderText();
                 onClose();
             }}
             isVisible={isVisible}

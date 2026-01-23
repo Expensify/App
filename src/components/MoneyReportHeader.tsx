@@ -1224,7 +1224,7 @@ function MoneyReportHeader({
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
             subMenuItems: secondaryApprovalActions,
             shouldUpdateSelectedIndex: true,
-            subMenuHeaderText: translate('iou.confirmApprovalWithHeldAmount'),
+            subMenuHeaderText: shouldShowApprovalSecondaryActions ? translate('iou.confirmApprovalWithHeldAmount') : undefined,
             onSelected: () => {
                 if (shouldShowApprovalSecondaryActions) {
                     return;
