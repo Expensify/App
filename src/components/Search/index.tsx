@@ -51,6 +51,7 @@ import {
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
     isTransactionCardGroupListItemType,
+    isTransactionCategoryGroupListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
@@ -781,6 +782,20 @@ function Search({
             if (isTransactionWithdrawalIDGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionCategoryGroupListItemType(item)) {
+                const categoryValue = item.category === '' ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : item.category;
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: categoryValue}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);

@@ -6516,6 +6516,7 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Tarjeta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retiro',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoría',
             },
             feed: 'Feed',
             withdrawalType: {

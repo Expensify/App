@@ -6848,6 +6848,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
             },
             feed: 'Feed',
             withdrawalType: {
