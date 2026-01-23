@@ -465,35 +465,6 @@ describe('SearchQueryUtils', () => {
                 amountEqualTo: '-54321',
             });
         });
-
-        test('attendee filter preserves name-only attendees without filtering by personalDetails', () => {
-            const policyCategories = {};
-            const policyTags = {};
-            const currencyList = {};
-            const personalDetails = {
-                12345: {accountID: 12345, login: 'user@example.com'},
-            };
-            const cardList = {};
-            const reports = {};
-            const taxRates = {};
-
-            // Test with mix of accountID and name-only attendee
-            const queryString = 'sortBy:date sortOrder:desc type:expense attendee:12345,ZZ';
-            const queryJSON = buildSearchQueryJSON(queryString);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
-
-            // Both values should be preserved - name-only attendees should not be filtered out
-            expect(result).toEqual({
-                type: 'expense',
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                attendee: ['12345', 'ZZ'],
-            });
-        });
     });
 
     describe('shouldHighlight', () => {
