@@ -3705,6 +3705,24 @@ const CONST = {
             INVOICING: 'invoicing2018',
         },
     },
+    EXPENSE_RULES: {
+        FIELDS: {
+            BILLABLE: 'billable',
+            CATEGORY: 'category',
+            DESCRIPTION: 'comment',
+            CREATE_REPORT: 'createReport',
+            MERCHANT: 'merchantToMatch',
+            RENAME_MERCHANT: 'merchant',
+            REIMBURSABLE: 'reimbursable',
+            REPORT: 'report',
+            TAG: 'tag',
+            TAX: 'tax',
+        },
+        BULK_ACTION_TYPES: {
+            EDIT: 'edit',
+            DELETE: 'delete',
+        },
+    },
 
     get SUBSCRIPTION_PRICES() {
         return {
