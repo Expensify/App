@@ -13,6 +13,7 @@ import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
@@ -50,6 +51,11 @@ const PUBLIC_SCREENS_ROUTES = {
 
 // Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
+
+const MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES = {
+    FACTOR: 'multifactor-authentication/factor',
+    PROMPT: 'multifactor-authentication/prompt',
+} as const;
 
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
@@ -91,6 +97,17 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+
+    EXPENSE_REPORT_RHP: {
+        route: 'e/:reportID',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `e/${reportID}` as const;
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
+
     SEARCH_REPORT_VERIFY_ACCOUNT: {
         route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
@@ -156,7 +173,6 @@ const ROUTES = {
     ENABLE_PAYMENTS: 'enable-payments',
     WALLET_STATEMENT_WITH_DATE: 'statements/:yearMonth',
     SIGN_IN_MODAL: 'sign-in-modal',
-    REQUIRE_TWO_FACTOR_AUTH: '2fa-required',
 
     BANK_ACCOUNT: 'bank-account',
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
@@ -342,6 +358,7 @@ const ROUTES = {
     },
 
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
+    SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
@@ -375,6 +392,18 @@ const ROUTES = {
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
     },
     SETTINGS_RULES: 'settings/rules',
+    SETTINGS_RULES_ADD: {
+        route: 'settings/rules/new/:field?',
+        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
+            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        },
+    },
+    SETTINGS_RULES_EDIT: {
+        route: 'settings/rules/edit/:hash/:field?',
+        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
+            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        },
+    },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
     SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
@@ -591,6 +620,10 @@ const ROUTES = {
     REPORT_VERIFY_ACCOUNT: {
         route: `r/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `r/${reportID}/${VERIFY_ACCOUNT}` as const,
+    },
+    EXPENSE_REPORT_VERIFY_ACCOUNT: {
+        route: `e/:reportID/${VERIFY_ACCOUNT}`,
+        getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -1180,13 +1213,12 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
         route: ':action/:iouType/distance-odometer/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_ODOMETER route');
             }
 
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}`, backTo);
+            return `${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}` as const;
         },
     },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
@@ -1292,6 +1324,21 @@ const ROUTES = {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
+    },
+    MONEY_REQUEST_STEP_TIME_RATE: {
+        route: ':action/:iouType/rate/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/rate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
+    MONEY_REQUEST_STEP_HOURS: {
+        route: ':action/:iouType/hours/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
+    MONEY_REQUEST_STEP_HOURS_EDIT: {
+        route: ':action/:iouType/hours-edit/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours-edit/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
     },
     DISTANCE_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID/distance-new/:backToReport?',
@@ -2006,6 +2053,10 @@ const ROUTES = {
     WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
         route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
+    },
+    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
+        route: 'workspaces/:policyID/category/:categoryName/required-fields',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
     },
     WORKSPACE_CATEGORY_APPROVER: {
         route: 'workspaces/:policyID/category/:categoryName/approver',
@@ -3107,7 +3158,15 @@ const ROUTES = {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
-    MISSING_PERSONAL_DETAILS: 'missing-personal-details',
+    MISSING_PERSONAL_DETAILS: {
+        route: 'missing-personal-details/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return 'missing-personal-details' as const;
+            }
+            return `missing-personal-details/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
     MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'missing-personal-details/confirm-magic-code',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/netsuite/subsidiary-selector',
@@ -3652,6 +3711,27 @@ const ROUTES = {
         route: 'domain/:domainAccountID/members/:accountID',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}` as const,
     },
+    DOMAIN_RESET_DOMAIN: {
+        route: 'domain/:domainAccountID/admins/:accountID/reset-domain',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}/reset-domain` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,
+    MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
+
+    // The exact notification & prompt type will be added as a part of Multifactor Authentication config in another PR,
+    // for now a string is accepted to avoid blocking this PR.
+    MULTIFACTOR_AUTHENTICATION_NOTIFICATION: {
+        route: 'multifactor-authentication/notification/:notificationType',
+        getRoute: (notificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE>) => `multifactor-authentication/notification/${notificationType}` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_PROMPT: {
+        route: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.PROMPT}/:promptType`,
+        getRoute: (promptType: string) => `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.PROMPT}/${promptType}` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',
 } as const;
 
 /**
@@ -3667,7 +3747,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;

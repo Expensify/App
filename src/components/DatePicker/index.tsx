@@ -1,10 +1,12 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
@@ -37,7 +39,11 @@ function DatePicker({
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
+    // shouldUseNarrowLayout returns true for RHP but goal here is to prevent autoFocus only on small devices.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
+
     const [isModalVisible, setIsModalVisible] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
@@ -70,10 +76,15 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const handlePress = useCallback(() => {
-        calculatePopoverPosition();
-        setIsModalVisible(true);
-    }, [calculatePopoverPosition]);
+    const handlePress = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            // This makes sure that cursor does not appear in the TextInput when we open the DatePicker
+            event?.preventDefault();
+            calculatePopoverPosition();
+            setIsModalVisible(true);
+        },
+        [calculatePopoverPosition],
+    );
 
     const closeDatePicker = useCallback(() => {
         textInputRef.current?.blur();
@@ -101,7 +112,7 @@ function DatePicker({
     }, [calculatePopoverPosition, windowWidth]);
 
     useEffect(() => {
-        if (!autoFocus || isAutoFocused.current) {
+        if (!autoFocus || isAutoFocused.current || isSmallScreenWidth) {
             return;
         }
         isAutoFocused.current = true;
@@ -109,7 +120,7 @@ function DatePicker({
         InteractionManager.runAfterInteractions(() => {
             handlePress();
         });
-    }, [handlePress, autoFocus]);
+    }, [handlePress, autoFocus, isSmallScreenWidth]);
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
@@ -139,12 +150,12 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    readOnly
                     onPress={handlePress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
+                    disableKeyboard
                 />
             </View>
 

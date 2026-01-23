@@ -252,7 +252,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         privateNotes?: Record<number, Note>;
 
         /** Collection of policy report fields, indexed by their fieldID */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;

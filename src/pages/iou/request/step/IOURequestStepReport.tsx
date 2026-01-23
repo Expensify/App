@@ -1,11 +1,10 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -15,14 +14,15 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {PersonalDetails, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -36,6 +36,10 @@ type TransactionGroupListItem = ListItem & {
 
 type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
 
+const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[] => {
+    return Object.values(actions ?? {}).filter(isMoneyRequestAction);
+};
+
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
@@ -46,19 +50,30 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID)) || isUnreported;
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
+    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const {removeTransaction, setSelectedTransactions} = useSearchContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
+    const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOrDraftReport?.parentReportID}`, {canBeMissing: true, selector: getIOUActionsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
+    const ownerAccountID = useMemo(() => {
+        if (isUnreported) {
+            return iouActions?.find((iouAction) => getOriginalMessage(iouAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>)?.IOUTransactionID === transaction.transactionID)
+                ?.actorAccountID;
+        }
+        return selectedReport?.ownerAccountID;
+    }, [isUnreported, selectedReport?.ownerAccountID, iouActions, transaction?.transactionID]);
+    const ownerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails, [personalDetails, ownerAccountID]);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
@@ -67,7 +82,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const handleGoBack = () => {
         if (isEditing) {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
         } else {
             Navigation.goBack(backTo);
         }
@@ -123,17 +138,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport(
-                    [transaction.transactionID],
-
+                changeTransactionsReport({
+                    transactionIDs: [transaction.transactionID],
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    report,
-                    allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                    undefined,
-                    allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                );
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    newReport: report,
+                    policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                    reportNextStep: undefined,
+                    policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                    allTransactions,
+                });
                 removeTransaction(transaction.transactionID);
             }
         });
@@ -166,10 +181,16 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled,
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
+                allTransactions,
+            });
             removeTransaction(transaction.transactionID);
         });
     };
@@ -183,7 +204,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
         handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 
@@ -214,6 +235,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         handleCreateReport();
     };
 
+    let selectedPolicyID;
+    if (isPerDiemTransaction) {
+        selectedPolicyID = perDiemOriginalPolicy?.id;
+    } else {
+        selectedPolicyID = !isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined;
+    }
+
     return (
         <>
             {CreateReportConfirmationModal}
@@ -222,13 +250,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 selectReport={selectReport}
                 transactionIDs={transaction ? [transaction.transactionID] : []}
                 selectedReportID={selectedReportID}
-                selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
+                selectedPolicyID={selectedPolicyID}
                 removeFromReport={removeFromReport}
                 isEditing={isEditing}
                 isUnreported={isUnreported}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
                 isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
                 createReport={action === CONST.IOU.ACTION.EDIT && (policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction) ? createReport : undefined}
+                targetOwnerAccountID={ownerAccountID}
             />
         </>
     );

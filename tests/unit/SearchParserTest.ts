@@ -791,6 +791,31 @@ const keywordTests = [
         },
     },
     {
+        query: 'columns:tax',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            columns: 'taxAmount',
+            filters: null,
+        },
+    },
+    {
+        query: 'merchant:tax',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'merchant',
+                right: 'tax',
+            },
+        },
+    },
+    {
         query: 'type:expense action:submit columns:group-bank-account,group-from',
         expected: {
             type: 'expense',
