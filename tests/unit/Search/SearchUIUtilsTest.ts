@@ -1682,7 +1682,7 @@ const transactionCategoryGroupListItems: TransactionCategoryGroupListItemType[] 
         count: 5,
         currency: 'USD',
         total: 250,
-        groupedBy: 'category',
+        groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
         formattedCategory: categoryName1,
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1692,7 +1692,7 @@ const transactionCategoryGroupListItems: TransactionCategoryGroupListItemType[] 
         count: 3,
         currency: 'USD',
         total: 75,
-        groupedBy: 'category',
+        groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
         formattedCategory: categoryName2,
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1705,7 +1705,7 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
         count: 5,
         currency: 'USD',
         total: 250,
-        groupedBy: 'category',
+        groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
         formattedCategory: categoryName1,
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1715,7 +1715,7 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
         count: 3,
         currency: 'USD',
         total: 75,
-        groupedBy: 'category',
+        groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
         formattedCategory: categoryName2,
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -2369,7 +2369,7 @@ describe('SearchUIUtils', () => {
                 count: 5,
                 currency: 'USD',
                 total: 250,
-                groupedBy: 'category',
+                groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
@@ -2662,8 +2662,8 @@ describe('SearchUIUtils', () => {
                     transactionCategoryGroupListItems,
                     localeCompare,
                     translateLocal,
-                    'date',
-                    'asc',
+                    CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    CONST.SEARCH.SORT_ORDER.ASC,
                     CONST.SEARCH.GROUP_BY.CATEGORY,
                 ),
             ).toStrictEqual(transactionCategoryGroupListItemsSorted);
@@ -2677,7 +2677,7 @@ describe('SearchUIUtils', () => {
                 localeCompare,
                 translateLocal,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
-                'asc',
+                CONST.SEARCH.SORT_ORDER.ASC,
                 CONST.SEARCH.GROUP_BY.CATEGORY,
             ) as TransactionCategoryGroupListItemType[];
 
@@ -2694,7 +2694,7 @@ describe('SearchUIUtils', () => {
                 localeCompare,
                 translateLocal,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
-                'desc',
+                CONST.SEARCH.SORT_ORDER.DESC,
                 CONST.SEARCH.GROUP_BY.CATEGORY,
             ) as TransactionCategoryGroupListItemType[];
 
@@ -2711,7 +2711,7 @@ describe('SearchUIUtils', () => {
                 localeCompare,
                 translateLocal,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                'desc',
+                CONST.SEARCH.SORT_ORDER.DESC,
                 CONST.SEARCH.GROUP_BY.CATEGORY,
             ) as TransactionCategoryGroupListItemType[];
 
@@ -2730,7 +2730,7 @@ describe('SearchUIUtils', () => {
                 localeCompare,
                 translateLocal,
                 CONST.SEARCH.TABLE_COLUMNS.CATEGORY, // Parser default: 'category' not 'groupCategory'
-                'asc',
+                CONST.SEARCH.SORT_ORDER.ASC,
                 CONST.SEARCH.GROUP_BY.CATEGORY,
             ) as TransactionCategoryGroupListItemType[];
 
@@ -2747,7 +2747,7 @@ describe('SearchUIUtils', () => {
                 localeCompare,
                 translateLocal,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                'desc',
+                CONST.SEARCH.SORT_ORDER.DESC,
                 CONST.SEARCH.GROUP_BY.CATEGORY,
             ) as TransactionCategoryGroupListItemType[];
 

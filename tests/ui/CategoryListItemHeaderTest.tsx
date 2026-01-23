@@ -15,22 +15,32 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');
 
-// Mock search context
+// Mock search context with all required SearchContextProps fields
 const mockSearchContext = {
     currentSearchHash: 12345,
-    selectedReports: {},
+    currentSearchKey: undefined,
+    currentSearchQueryJSON: undefined,
+    currentSearchResults: undefined,
+    selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
-    setSelectedReports: jest.fn(),
-    clearSelectedTransactions: jest.fn(),
+    shouldResetSearchQuery: false,
+    lastSearchType: undefined,
+    areAllMatchingItemsSelected: false,
+    showSelectAllMatchingItems: false,
+    shouldShowFiltersBarLoading: false,
     setLastSearchType: jest.fn(),
     setCurrentSearchHashAndKey: jest.fn(),
+    setCurrentSearchQueryJSON: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    removeTransaction: jest.fn(),
+    clearSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
     shouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
+    setShouldResetSearchQuery: jest.fn(),
 };
 
 const createCategoryListItem = (category: string, options: Partial<TransactionCategoryGroupListItemType> = {}): TransactionCategoryGroupListItemType => ({
@@ -39,7 +49,7 @@ const createCategoryListItem = (category: string, options: Partial<TransactionCa
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,
-    groupedBy: 'category',
+    groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
     transactions: [],
     transactionsQueryJSON: undefined,
     keyForList: `category-${category}`,
@@ -62,7 +72,6 @@ const renderCategoryListItemHeader = (
 ) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
             <SearchContext.Provider value={mockSearchContext}>
                 <CategoryListItemHeader
                     category={categoryItem}
