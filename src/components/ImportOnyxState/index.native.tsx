@@ -1,5 +1,7 @@
-import React, {useState} from 'react';
+import React, {useCallback} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
+import useDecisionModal from '@hooks/useDecisionModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
@@ -25,42 +27,48 @@ function readOnyxFile(fileUri: string) {
 }
 
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const {showDecisionModal} = useDecisionModal();
+    const {translate} = useLocalize();
 
-    const handleFileRead = (file: FileObject) => {
-        if (!file.uri) {
-            return;
-        }
+    const showErrorModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('initialSettingsPage.troubleshoot.invalidFile'),
+            prompt: translate('initialSettingsPage.troubleshoot.invalidFileDescription'),
+            secondOptionText: translate('common.ok'),
+        });
+    }, [showDecisionModal, translate]);
 
-        setIsLoading(true);
-        readOnyxFile(file.uri)
-            .then((fileContent: string) => {
-                rollbackOngoingRequest();
-                const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
-                const currentUserSessionCopy = {...session};
-                setPreservedUserSession(currentUserSessionCopy);
-                setShouldForceOffline(true);
-                return importState(transformedState);
-            })
-            .then(() => {
-                setIsUsingImportedState(true);
-                Navigation.navigate(ROUTES.HOME);
-            })
-            .catch((error) => {
-                console.error('Error importing state:', error);
-                setIsErrorModalVisible(true);
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    };
+    const handleFileRead = useCallback(
+        (file: FileObject) => {
+            if (!file.uri) {
+                return;
+            }
 
-    return (
-        <BaseImportOnyxState
-            onFileRead={handleFileRead}
-            isErrorModalVisible={isErrorModalVisible}
-            setIsErrorModalVisible={setIsErrorModalVisible}
-        />
+            setIsLoading(true);
+            readOnyxFile(file.uri)
+                .then((fileContent: string) => {
+                    rollbackOngoingRequest();
+                    const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
+                    const currentUserSessionCopy = {...session};
+                    setPreservedUserSession(currentUserSessionCopy);
+                    setShouldForceOffline(true);
+                    return importState(transformedState);
+                })
+                .then(() => {
+                    setIsUsingImportedState(true);
+                    Navigation.navigate(ROUTES.HOME);
+                })
+                .catch((error) => {
+                    console.error('Error importing state:', error);
+                    showErrorModal();
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                });
+        },
+        [session, setIsLoading, showErrorModal],
     );
+
+    return <BaseImportOnyxState onFileRead={handleFileRead} />;
 }
