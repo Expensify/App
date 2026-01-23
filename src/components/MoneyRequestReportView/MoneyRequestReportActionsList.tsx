@@ -46,11 +46,11 @@ import {
     getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
-    isActionableWhisperRequiringWritePermission,
     isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
+    isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
@@ -236,12 +236,7 @@ function MoneyRequestReportActionsList({
             }
 
             const actionReportID = reportAction.reportID ?? reportID;
-            const isStaticallyVisible = visibleReportActionsData?.[actionReportID]?.[reportAction.reportActionID] ?? true;
-            if (!isStaticallyVisible) {
-                return false;
-            }
-
-            if (!canPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
+            if (!isReportActionVisible(reportAction, actionReportID, canPerformWriteAction, visibleReportActionsData)) {
                 return false;
             }
 
