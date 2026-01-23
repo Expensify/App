@@ -1463,6 +1463,7 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctDistanceRateError: 'Fix the distance rate error and try again.',
+        duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per-diem expenses across workspaces because the rates may differ between workspaces.",
     },
     transactionMerge: {
         listPage: {
