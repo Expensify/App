@@ -364,7 +364,6 @@ function IOURequestStartPage({
                                                     />
                                                 ) : (
                                                     <IOURequestStepDestination
-                                                        shouldAutoFocusInput={false}
                                                         openedFromStartPage
                                                         ref={perDiemInputRef}
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}

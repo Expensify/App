@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useCallback, useState} from 'react';
 import type {UseWebSelectionListBehaviorOptions, UseWebSelectionListBehaviorResult} from './types';
 
 /**
@@ -9,11 +9,14 @@ import type {UseWebSelectionListBehaviorOptions, UseWebSelectionListBehaviorResu
 function useWebSelectionListBehavior(_options: UseWebSelectionListBehaviorOptions = {}): UseWebSelectionListBehaviorResult {
     const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
+    const onScroll = useCallback(() => {}, []);
+
     return {
         shouldIgnoreFocus: false,
         shouldDebounceScrolling: false,
         shouldDisableHoverStyle,
         setShouldDisableHoverStyle,
+        onScroll,
     };
 }
 
