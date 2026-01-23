@@ -2021,7 +2021,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
-> & {pendingFields: OnyxCommon.PendingFields<'isTimeTrackingEnabled'>};
+> & {pendingFields?: OnyxCommon.PendingFields<'isTimeTrackingEnabled'>};
 
 /** Stages of policy connection sync */
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
