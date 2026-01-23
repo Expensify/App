@@ -3,12 +3,15 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
-import type {ReportAction, SearchResults} from '@src/types/onyx';
+import type {ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
+    /** The transaction itself */
+    transaction: Transaction;
+
     /** Whether the transaction is selected */
     isSelected: boolean;
 
@@ -58,7 +61,7 @@ type SelectedTransactionInfo = {
     groupExchangeRate?: number;
 
     /** Whether it is the only expense of the parent expense report */
-    isFromOneTransactionReport?: boolean;
+    isFromOneTransactionReport: boolean;
 
     /** Account ID of the report owner */
     ownerAccountID?: number;

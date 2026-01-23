@@ -631,6 +631,12 @@ type AdditionalTransactionChanges = {
 
     /** Previous distance before changes */
     distance?: number;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of transaction changes  */

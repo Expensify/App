@@ -235,7 +235,7 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
         isSelfDM?: boolean,
-        iouReport?: OnyxEntry<Report> | null,
+        iouReport?: OnyxEntry<Report>,
         isFromExpenseReport?: boolean,
     ): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
@@ -264,7 +264,7 @@ const ViolationsUtils = {
         const shouldShowSmartScanFailedError =
             isScanRequest &&
             updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
-            TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport ?? undefined) &&
+            TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport) &&
             !hasUserStartedFixingSmartscan;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
@@ -502,15 +502,22 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
-        if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
-            newTransactionViolations.push({
-                name: CONST.VIOLATIONS.MISSING_ATTENDEES,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-                showInReview: true,
-            });
-        }
+        const shouldProcessMissingAttendees = !CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED;
 
-        if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
+        if (shouldProcessMissingAttendees) {
+            if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
+            }
+
+            if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
+            }
+        } else if (hasMissingAttendeesViolation) {
+            // Feature flag is disabled - always remove missingAttendees violations
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
         }
 
@@ -644,6 +651,8 @@ const ViolationsUtils = {
                 });
             case CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI:
                 return translate('violations.receiptGeneratedWithAI');
+            case CONST.VIOLATIONS.NO_ROUTE:
+                return translate('violations.noRoute');
             default:
                 // The interpreter should never get here because the switch cases should be exhaustive.
                 // If typescript is showing an error on the assertion below it means the switch statement is out of
@@ -715,7 +724,8 @@ const ViolationsUtils = {
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction) &&
+                    (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES)
                 );
             });
         });

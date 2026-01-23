@@ -75,7 +75,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     policy,
                     reportNextStep,
                     policyCategories,
-                    allTransactionsCollection: allTransactions,
+                    allTransactions,
                 });
             }
         });
