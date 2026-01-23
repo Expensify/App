@@ -48,7 +48,7 @@ import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
@@ -811,7 +811,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const fieldKey = getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy) && isExpenseReport && isPaidGroupPolicy(policy);
 
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
@@ -1005,10 +1005,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && !shouldShowTitleField && nameSectionExpenseIOU}
+                        {isExpenseReport && !shouldShowEditableTitleField && nameSectionExpenseIOU}
                     </View>
-
-                    {isExpenseReport && shouldShowTitleField && nameSectionTitleField}
+                    {isExpenseReport && shouldShowEditableTitleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
