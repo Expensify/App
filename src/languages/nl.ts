@@ -4598,7 +4598,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze helppagina](${CONST.NETSUITE
 
 _Voor meer gedetailleerde instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Wat is de script-ID?',
-                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder:
+                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder: 
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Klik op een aangepast segment.

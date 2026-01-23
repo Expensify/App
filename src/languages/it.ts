@@ -779,7 +779,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori
+            Autenticazione a due fattori  
             richiesta
         `),
         tfaRequiredDescription: dedent(`

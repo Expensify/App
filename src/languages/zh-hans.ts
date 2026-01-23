@@ -764,7 +764,7 @@ const translations: TranslationDeepObject<typeof en> = {
             请输入在最初请求该代码的设备上显示的代码
         `),
         doNotShare: dedent(`
-            不要与任何人分享你的验证码。
+            不要与任何人分享你的验证码。  
             Expensify 永远不会向你索要它！
         `),
         or: '，或',
@@ -773,7 +773,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: '返回原始设备并请求新验证码',
         successfulNewCodeRequest: '已请求验证码。请检查您的设备。',
         tfaRequiredTitle: dedent(`
-            双重身份验证
+            双重身份验证  
             必填
         `),
         tfaRequiredDescription: dedent(`
