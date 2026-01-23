@@ -5,6 +5,7 @@ import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
+import type {SearchQueryJSON} from '@components/Search/types';
 import type {
     ReportActionListItemType,
     TransactionCardGroupListItemType,
@@ -2395,6 +2396,42 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(memberItem)).toBe(false);
         });
 
+        it('should generate transactionsQueryJSON with valid hash for category sections', () => {
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByCategory.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                queryJSON: {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    status: '',
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    hash: 12345,
+                    flatFilters: [],
+                    inputQuery: 'type:expense groupBy:category',
+                    recentSearchHash: 12345,
+                    similarSearchHash: 12345,
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                        right: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    },
+                },
+            }) as [TransactionCategoryGroupListItemType[], number];
+
+            // Each category section should have a transactionsQueryJSON with a hash
+            result.forEach((item) => {
+                expect(item.transactionsQueryJSON).toBeDefined();
+                expect(item.transactionsQueryJSON?.hash).toBeDefined();
+                expect(typeof item.transactionsQueryJSON?.hash).toBe('number');
+            });
+        });
+
         it('should handle Unicode characters in category names', () => {
             const dataWithUnicode: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
@@ -2681,6 +2718,42 @@ describe('SearchUIUtils', () => {
             // Travel (250) should come before Food & Drink (75) when sorted by total descending
             expect(result.at(0)?.total).toBe(250);
             expect(result.at(1)?.total).toBe(75);
+        });
+
+        it('should sort category data using non-group column name (parser default sortBy)', () => {
+            // The parser sets default sortBy to 'category' (not 'groupCategory') when groupBy is category
+            // This test verifies that the sorting works with the parser's default value
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionCategoryGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.CATEGORY, // Parser default: 'category' not 'groupCategory'
+                'asc',
+                CONST.SEARCH.GROUP_BY.CATEGORY,
+            ) as TransactionCategoryGroupListItemType[];
+
+            // "Food & Drink" should come before "Travel" in ascending alphabetical order
+            expect(result.at(0)?.category).toBe(categoryName2); // Food & Drink
+            expect(result.at(1)?.category).toBe(categoryName1); // Travel
+        });
+
+        it('should sort category data by expenses count', () => {
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionCategoryGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                'desc',
+                CONST.SEARCH.GROUP_BY.CATEGORY,
+            ) as TransactionCategoryGroupListItemType[];
+
+            // Travel (5 expenses) should come before Food & Drink (3 expenses) when sorted by count descending
+            expect(result.at(0)?.count).toBe(5);
+            expect(result.at(1)?.count).toBe(3);
         });
     });
 
