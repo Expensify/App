@@ -52,7 +52,12 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
     const [reportTitle, setReportTitle] = useState(() => customNameDefaultValue);
 
-    // Update state when titleField defaultValue changes (e.g., when policy loads or fieldList becomes available)
+    // Sync reportTitle state when titleField defaultValue changes. This is needed because:
+    // 1. useState initializer only runs once on mount - if the policy loads after the component mounts,
+    //    reportTitle won't update automatically even though customNameDefaultValue changes
+    // 2. Edge case: If another user updates the policy title formula default value while this user has
+    //    the page open, usePolicy will cause a re-render with the new defaultValue, but reportTitle
+    //    state won't update without this effect
     // Only update if the current value is empty to avoid overwriting user input
     React.useEffect(() => {
         const newDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
