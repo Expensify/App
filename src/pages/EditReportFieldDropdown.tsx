@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import Icon from '@components/Icon';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
@@ -31,54 +31,45 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
-    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [], [recentlyUsedReportFields, fieldKey, localeCompare]);
+    const recentlyUsedOptions = recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [];
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
-    const itemRightSideComponent = useCallback(
-        (item: ListItem) => {
-            if (item.text === fieldValue) {
-                return (
-                    <Icon
-                        src={icons.Checkmark}
-                        fill={theme.iconSuccessFill}
-                    />
-                );
-            }
+    const itemRightSideComponent = (item: ListItem) => {
+        if (item.text === fieldValue) {
+            return (
+                <Icon
+                    src={icons.Checkmark}
+                    fill={theme.iconSuccessFill}
+                />
+            );
+        }
 
-            return null;
-        },
-        [fieldValue, icons.Checkmark, theme.iconSuccessFill],
-    );
+        return null;
+    };
 
-    const [sections, headerMessage] = useMemo(() => {
-        const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
+    const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
-        const policyReportFieldOptions = getReportFieldOptionsSection({
-            searchValue: debouncedSearchValue,
-            selectedOptions: [
-                {
-                    keyForList: fieldValue,
-                    searchText: fieldValue,
-                    text: fieldValue,
-                },
-            ],
-            options: validFieldOptions,
-            recentlyUsedOptions,
-            translate,
-        });
+    const sections = getReportFieldOptionsSection({
+        searchValue: debouncedSearchValue,
+        selectedOptions: [
+            {
+                keyForList: fieldValue,
+                searchText: fieldValue,
+                text: fieldValue,
+            },
+        ],
+        options: validFieldOptions,
+        recentlyUsedOptions,
+        translate,
+    });
 
-        const policyReportFieldData = policyReportFieldOptions.at(0)?.data ?? [];
-        const header = getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue);
-
-        return [policyReportFieldOptions, header];
-    }, [fieldOptions, localeCompare, debouncedSearchValue, fieldValue, recentlyUsedOptions, translate]);
-
-    const selectedOptionKey = useMemo(() => (sections.at(0)?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
+    const policyReportFieldData = sections.at(0)?.data ?? [];
+    const selectedOptionKey = policyReportFieldData.filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList;
 
     const textInputOptions = {
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
-        headerMessage,
+        headerMessage: getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue),
     };
 
     return (
