@@ -101,46 +101,44 @@ function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroup
     const [key, value] = entry;
     return key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) && typeof value === 'object' && value !== null && 'shared' in value;
 }
-
 /**
- * Gets all security groups for a given account ID.
- * Searches through all security groups in the domain and returns those
- * where the account ID appears in the 'shared' property.
+ * Creates a selector function to get all security groups for a specific account ID.
+ * The returned function searches through a domain and returns groups where
+ * the account ID is present in the 'shared' property.
  *
- * @param domain - The domain object from Onyx
- * @param accountID - The account ID to search for
- * @returns Object containing:
- *   - keys: Array of security group keys the account belongs to
- *   - securityGroups: Record of security group data keyed by their prefixed IDs
+ * @param accountID - The account ID to filter by
+ * @returns A function that takes a domain and returns the filtered keys and security group data
  */
-function selectSecurityGroupsForAccount(
-    domain: Domain | undefined,
-    accountID: number,
-): {
-    keys: SecurityGroupKey[];
-    securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>;
-} {
-    if (!domain) {
-        return {keys: [], securityGroups: {}};
-    }
-
-    const accountIDStr = String(accountID);
-    const keys: SecurityGroupKey[] = [];
-    const securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
-
-    for (const entry of Object.entries(domain)) {
-        if (!isSecurityGroupEntry(entry)) {
-            continue;
+function selectSecurityGroupsForAccount(accountID: number) {
+    return (
+        domain: Domain | undefined,
+    ): {
+        keys: SecurityGroupKey[];
+        securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>;
+    } => {
+        if (!domain) {
+            return {keys: [], securityGroups: {}};
         }
 
-        const [key, group] = entry;
-        if (accountIDStr in group.shared) {
-            keys.push(key);
-            securityGroups[key] = group;
-        }
-    }
+        const accountIDStr = String(accountID);
+        const keys: SecurityGroupKey[] = [];
+        const securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
 
-    return {keys, securityGroups};
+        for (const entry of Object.entries(domain)) {
+            if (!isSecurityGroupEntry(entry)) {
+                continue;
+            }
+
+            const [key, group] = entry;
+
+            if (group.shared && accountIDStr in group.shared) {
+                keys.push(key);
+                securityGroups[key] = group;
+            }
+        }
+
+        return {keys, securityGroups};
+    };
 }
 
 const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.members ?? {};

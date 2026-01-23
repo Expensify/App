@@ -127,13 +127,13 @@ describe('actions/Domain', () => {
         const targetEmail = 'user@test.com';
         const securityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1` as const;
         const securityGroupIDs = [securityGroupKey];
-        const securityGroups = {
+        const securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {
             [securityGroupKey]: {
                 shared: {
-                    [accountID]: 'read' as const,
+                    [accountID]: 'read',
                 },
             },
-        } as unknown as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>;
+        };
 
         closeUserAccount(domainAccountID, domainName, accountID, targetEmail, securityGroupIDs, securityGroups);
 
@@ -187,10 +187,14 @@ describe('actions/Domain', () => {
         const securityGroupKey1 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1` as const;
         const securityGroupKey2 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2` as const;
         const securityGroupIDs = [securityGroupKey1, securityGroupKey2];
-        const securityGroups = {
-            [securityGroupKey1]: {shared: {[accountID]: 'read' as const}},
-            [securityGroupKey2]: {shared: {[accountID]: 'read' as const}},
-        } as unknown as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>;
+        const securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {
+            [securityGroupKey1]: {
+                shared: {[accountID]: 'read'},
+            },
+            [securityGroupKey2]: {
+                shared: {[accountID]: 'read'},
+            },
+        };
         closeUserAccount(domainAccountID, domainName, accountID, targetEmail, securityGroupIDs, securityGroups);
 
         expect(apiWriteSpy).toHaveBeenCalledWith(

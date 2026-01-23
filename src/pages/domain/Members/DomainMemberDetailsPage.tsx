@@ -1,4 +1,5 @@
 import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -28,8 +29,9 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Info', 'RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    // using isSmallScreenWidth here because DecisionModal expects isSmallScreen instead of houldUseNarrowLayout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
@@ -39,16 +41,14 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         selector: adminAccountIDsSelector,
     });
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [securityGroupsData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: (d: OnyxEntry<Domain>) => selectSecurityGroupsForAccount(d, accountID),
+        selector: selectSecurityGroupsForAccount(accountID),
     });
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
+        selector: personalDetailsSelector(accountID),
     });
 
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
@@ -114,8 +114,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 firstOptionText={translate('domain.members.forceCloseAccount')}
                 isVisible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
-                firstOptionDanger
-                secondOptionSuccess
+                isFirstOptionDanger
+                isSecondOptionSuccess
             />
         </>
     );

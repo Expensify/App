@@ -34,10 +34,13 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         selector: memberPendingActionSelector,
     });
 
-    const getCustomRowProps = (accountID: number, email?: string) => ({
-        errors: email ? getLatestError(domainErrors?.memberErrors?.[email]?.errors) : (getLatestError(domainErrors?.memberErrors?.[accountID]?.errors) ?? undefined),
-        pendingAction: email ? domainPendingAction?.[email] : undefined,
-    });
+    const getCustomRowProps = (accountID: number, email?: string) => {
+        const errorKey = email ?? accountID;
+        const errors = getLatestError(domainErrors?.memberErrors?.[errorKey]?.errors) ?? undefined;
+        const pendingAction = email ? domainPendingAction?.[email] : undefined;
+
+        return {errors, pendingAction};
+    };
 
     return (
         <BaseDomainMembersPage

@@ -20,17 +20,17 @@ type DecisionModalProps = {
     /** Text content used in second button */
     secondOptionText: string;
 
-    /** Weather first option should use a success themed button */
-    firstOptionSuccess?: boolean;
+    /** Whether the first option uses a success-themed button */
+    isFirstOptionSuccess?: boolean;
 
-    /** Weather second option should use a success themed button  */
-    secondOptionSuccess?: boolean;
+    /** Whether the second option uses a success-themed button */
+    isSecondOptionSuccess?: boolean;
 
-    /** Weather first option should use a danger themed button  */
-    firstOptionDanger?: boolean;
+    /** Whether the first option uses a danger-themed button */
+    isFirstOptionDanger?: boolean;
 
-    /** Weather second option should use a danger themed button  */
-    secondOptionDanger?: boolean;
+    /** Whether the second option uses a danger-themed button */
+    isSecondOptionDanger?: boolean;
 
     /** onSubmit callback fired after clicking on first button */
     onFirstOptionSubmit?: () => void;
@@ -58,10 +58,10 @@ function DecisionModal({
     isSmallScreenWidth,
     onClose,
     isVisible,
-    firstOptionDanger = false,
-    firstOptionSuccess = true,
-    secondOptionSuccess = false,
-    secondOptionDanger = false,
+    isFirstOptionDanger = false,
+    isFirstOptionSuccess = true,
+    isSecondOptionSuccess = false,
+    isSecondOptionDanger = false,
 }: DecisionModalProps) {
     const styles = useThemeStyles();
 
@@ -84,8 +84,8 @@ function DecisionModal({
                 </View>
                 {!!firstOptionText && (
                     <Button
-                        success={firstOptionSuccess}
-                        danger={firstOptionDanger}
+                        success={isFirstOptionSuccess}
+                        danger={isFirstOptionDanger}
                         style={styles.mt5}
                         onPress={onFirstOptionSubmit}
                         pressOnEnter
@@ -97,8 +97,8 @@ function DecisionModal({
                     style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     text={secondOptionText}
-                    success={secondOptionSuccess}
-                    danger={secondOptionDanger}
+                    success={isSecondOptionSuccess}
+                    danger={isSecondOptionDanger}
                     large
                 />
             </View>

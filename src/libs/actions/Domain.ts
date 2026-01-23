@@ -778,7 +778,7 @@ function resetDomain(domainAccountID: number, domainName: string, domain: Domain
 }
 
 /**
- * Clears errors after trying to reset domain
+ * Clears errors after trying to reset the domain
  */
 function clearDomainErrors(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
@@ -789,7 +789,7 @@ function clearDomainErrors(domainAccountID: number) {
     });
 }
 
-/** Sends a request to remove user from a domain and close their account */
+/** Sends a request to remove a user from a domain and close their account */
 function closeUserAccount(
     domainAccountID: number,
     domain: string,
