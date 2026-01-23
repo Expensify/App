@@ -28,14 +28,14 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const selectedCountryName = selectedDestination?.split('#').at(0);
 
     const getSelectedOptions = (): Destination[] => {
-        if (!selectedDestination) {
+        if (!selectedCountryName) {
             return [];
         }
 
-        const selectedRate = customUnit?.rates?.[selectedDestination];
-
+        const selectedRate = customUnit?.rates?.[selectedCountryName];
         if (!selectedRate?.customUnitRateID) {
             return [];
         }
@@ -50,9 +50,11 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
         ];
     };
 
+    const selectedOptions = getSelectedOptions();
+
     const sections = getDestinationListSections({
         searchValue: debouncedSearchValue,
-        selectedOptions: getSelectedOptions(),
+        selectedOptions,
         destinations: Object.values(customUnit?.rates ?? {}),
         recentlyUsedDestinations: policyRecentlyUsedDestinations,
         translate,
@@ -62,7 +64,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
     const shouldShowTextInput = destinationsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const destinationData = sections?.at(0)?.data ?? [];
-    const selectedOptionKey = destinationData.find((destination) => destination.keyForList === selectedDestination)?.keyForList;
+    const selectedOptionKey = destinationData.find((destination) => destination.keyForList === selectedCountryName)?.keyForList;
 
     const textInputOptions = {
         value: searchValue,
@@ -81,7 +83,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
             textInputOptions={textInputOptions}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            initiallyFocusedItemKey={selectedOptionKey ?? undefined}
+            initiallyFocusedItemKey={selectedOptionKey}
             shouldHideKeyboardOnScroll={false}
             shouldUpdateFocusedIndex
         />
