@@ -1097,16 +1097,16 @@ const translations: TranslationDeepObject<typeof en> = {
         original: 'Original',
         split: 'Aufteilen',
         splitExpense: 'Ausgabe aufteilen',
-        splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
+        splitExpenseSubtitle: (amount: string, merchant: string) => `${amount} von ${merchant}`,
         splitByPercentage: 'Nach Prozentsatz aufteilen',
         addSplit: 'Aufteilung hinzufügen',
         makeSplitsEven: 'Aufteilungen gleichmäßig machen',
         editSplits: 'Aufteilungen bearbeiten',
-        totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist um ${amount} höher als die ursprüngliche Ausgabe.`,
-        totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Der Gesamtbetrag ist um ${amount} geringer als die ursprüngliche Ausgabe.`,
+        totalAmountGreaterThanOriginal: (amount: string) => `Der Gesamtbetrag ist um ${amount} höher als die ursprüngliche Ausgabe.`,
+        totalAmountLessThanOriginal: (amount: string) => `Der Gesamtbetrag ist um ${amount} geringer als die ursprüngliche Ausgabe.`,
         splitExpenseZeroAmount: 'Bitte gib vor dem Fortfahren einen gültigen Betrag ein.',
         splitExpenseOneMoreSplit: 'Keine Aufteilungen hinzugefügt. Fügen Sie mindestens eine hinzu, um zu speichern.',
-        splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} für ${merchant} bearbeiten`,
+        splitExpenseEditTitle: (amount: string, merchant: string) => `${amount} für ${merchant} bearbeiten`,
         removeSplit: 'Aufteilung entfernen',
         splitExpenseCannotBeEditedModalTitle: 'Diese Ausgabe kann nicht bearbeitet werden',
         splitExpenseCannotBeEditedModalDescription: 'Genehmigte oder bezahlte Ausgaben können nicht bearbeitet werden',
@@ -1229,11 +1229,11 @@ const translations: TranslationDeepObject<typeof en> = {
         flip: 'Drehen',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} Rechnung senden`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
-        submitted: ({memo}: SubmittedWithMemoParams) => `Eingereicht${memo ? `, mit dem Hinweis ${memo}` : ''}`,
+        submitted: (memo?: string) => `Eingereicht${memo ? `, mit dem Hinweis ${memo}` : ''}`,
         automaticallySubmitted: `eingereicht über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">verspätete Einreichungen</a>`,
         queuedToSubmitViaDEW: 'in die Warteschlange gestellt zur Einreichung über benutzerdefinierten Genehmigungsworkflow',
         trackedAmount: (formattedAmount: string, comment?: string) => `Verfolgung von ${formattedAmount}${comment ? `für ${comment}` : ''}`,
-        splitAmount: ({amount}: SplitAmountParams) => `Split ${amount}`,
+        splitAmount: (amount: string) => `Split ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `aufteilen ${formattedAmount}${comment ? `für ${comment}` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `Dein Anteil ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} schuldet ${amount}${comment ? `für ${comment}` : ''}`,
@@ -1275,9 +1275,9 @@ const translations: TranslationDeepObject<typeof en> = {
             `änderte ${translatedChangedField} zu ${newMerchant} (zuvor ${oldMerchant}), wodurch der Betrag auf ${newAmountToDisplay} aktualisiert wurde (zuvor ${oldAmountToDisplay})`,
         basedOnAI: 'basierend auf bisherigen Aktivitäten',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `basierend auf den <a href="${rulesLink}">Arbeitsbereichsregeln</a>` : 'basierend auf Arbeitsbereichsregel'),
-        threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `für ${comment}` : 'Ausgabe'}`,
+        threadExpenseReportName: (formattedAmount: string, comment: string) => `${formattedAmount} ${comment ? `für ${comment}` : 'Ausgabe'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rechnung ${linkedReportID}`,
-        threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} gesendet${comment ? `für ${comment}` : ''}`,
+        threadPaySomeoneReportName: (formattedAmount: string, comment: string) => `${formattedAmount} gesendet${comment ? `für ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `Ausgabe von persönlichem Bereich nach ${workspaceName ?? `Chat mit ${reportName}`} verschoben`,
         movedToPersonalSpace: 'Ausgabe in den persönlichen Bereich verschoben',
@@ -1393,7 +1393,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapprove: 'Genehmigung aufheben',
         unapproveReport: 'Berichtsgenehmigung aufheben',
         headsUp: 'Achtung!',
-        unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `Dieser Bericht wurde bereits nach ${accountingIntegration} exportiert. Änderungen können zu Datenabweichungen führen. Sind Sie sicher, dass Sie die Genehmigung dieses Berichts zurückziehen möchten?`,
         reimbursable: 'erstattungsfähig',
         nonReimbursable: 'nicht erstattungsfähig',
@@ -1428,7 +1428,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         dates: 'Daten',
         rates: 'Tarife',
-        submitsTo: ({name}: SubmitsToParams) => `Sendet an ${name}`,
+        submitsTo: (name: string) => `Sendet an ${name}`,
         reject: {
             educationalTitle: 'Solltest du annehmen oder ablehnen?',
             educationalText: 'Wenn du eine Ausgabe noch nicht genehmigen oder bezahlen möchtest, kannst du sie zurückstellen oder ablehnen.',
@@ -1466,7 +1466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'Arbeitsbereich auswählen',
         date: 'Datum',
         splitDates: 'Datumsangaben aufteilen',
-        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} bis ${endDate} (${count} Tage)`,
+        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} bis ${endDate} (${count} Tage)`,
         splitByDate: 'Nach Datum aufteilen',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `bericht aufgrund eines benutzerdefinierten Genehmigungsworkflows an ${to} weitergeleitet`,
         timeTracking: {
@@ -2351,7 +2351,7 @@ ${amount} für ${merchant} – ${date}`,
         shipCard: 'Karte versenden',
     },
     transferAmountPage: {
-        transfer: ({amount}: TransferParams) => `Überweisen${amount ? ` ${amount}` : ''}`,
+        transfer: (amount: string) => `Überweisen${amount ? ` ${amount}` : ''}`,
         instant: 'Sofort (Debitkarte)',
         instantSummary: (rate: string, minAmount: string) => `${rate}% Gebühr (mindestens ${minAmount})`,
         ach: '1–3 Werktage (Bankkonto)',
@@ -2920,7 +2920,7 @@ ${
         resendLink: 'Link erneut senden',
     },
     unlinkLoginForm: {
-        toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) =>
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
             `Um ${secondaryLogin} zu verifizieren, sende den Magic Code bitte erneut aus den Kontoeinstellungen von ${primaryLogin}.`,
         noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `Wenn du keinen Zugriff mehr auf ${primaryLogin} hast, bitte entkopple deine Konten.`,
         unlink: 'Verknüpfung aufheben',
@@ -3029,7 +3029,7 @@ ${
             custom: 'Benutzerdefiniert',
         },
         untilTomorrow: 'Bis morgen',
-        untilTime: ({time}: UntilTimeParams) => `Bis ${time}`,
+        untilTime: (time: string) => `Bis ${time}`,
         date: 'Datum',
         time: 'Zeit',
         clearAfter: 'Leeren nach',
@@ -3038,7 +3038,7 @@ ${
         setVacationDelegate: `Legen Sie eine Urlaubsvertretung fest, die Berichte in Ihrer Abwesenheit in Ihrem Namen genehmigt.`,
         vacationDelegateError: 'Beim Aktualisieren deines Urlaubsvertreters ist ein Fehler aufgetreten.',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `als Urlaubsvertretung von ${nameOrEmail}`,
-        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `an ${submittedToName} als Urlaubsvertreter für ${vacationDelegateName}`,
+        toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `an ${submittedToName} als Urlaubsvertreter für ${vacationDelegateName}`,
         vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
             `Sie weisen ${nameOrEmail} als Ihre Urlaubsvertretung zu. Diese Person ist noch nicht in all Ihren Workspaces. Wenn Sie fortfahren, wird eine E-Mail an alle Ihre Workspace-Admins gesendet, damit sie hinzugefügt wird.`,
     },
@@ -3228,7 +3228,7 @@ ${
             generalInfo: `Allgemeine Informationen über Prepaid-Konten finden Sie unter <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>.`,
             conditionsDetails: `Ausführliche Informationen und Bedingungen zu allen Gebühren und Dienstleistungen finden Sie unter <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> oder telefonisch unter +1 833-400-0904.`,
             electronicFundsWithdrawalInstant: 'Elektronische Guthabenabbuchung (sofort)',
-            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(mind. ${amount})`,
+            electronicFundsInstantFeeMin: (amount: string) => `(mind. ${amount})`,
         },
         longTermsForm: {
             listOfAllFees: 'Eine Liste aller Expensify-Wallet-Gebühren',
@@ -3248,7 +3248,7 @@ ${
             electronicFundsInstantDetails: (percentage: string, amount: string) =>
                 'Für Überweisungen von deinem Expensify Wallet auf deine verknüpfte Debitkarte per Sofortüberweisung fällt eine Gebühr an. Diese Überweisung wird in der Regel innerhalb weniger Minuten abgeschlossen.' +
                 `Die Gebühr beträgt ${percentage}% des Überweisungsbetrags (mit einer Mindestgebühr von ${amount}).`,
-            fdicInsuranceBancorp: ({amount}: TermsParams) =>
+            fdicInsuranceBancorp: (amount: string) =>
                 `Ihre Gelder sind für eine FDIC-Versicherung berechtigt. Ihre Gelder werden bei ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, einem von der FDIC versicherten Institut, gehalten oder dorthin übertragen.` +
                 `Sobald sie dort sind, sind Ihre Gelder bis zu ${amount} durch die FDIC versichert, falls ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} ausfällt, sofern bestimmte Einlagensicherungsanforderungen erfüllt sind und Ihre Karte registriert ist. Einzelheiten finden Sie unter ${CONST.TERMS.FDIC_PREPAID}.`,
             contactExpensifyPayments: `Kontaktieren Sie ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} telefonisch unter +1 833-400-0904, per E‑Mail an ${CONST.EMAIL.CONCIERGE} oder melden Sie sich unter ${CONST.NEW_EXPENSIFY_URL} an.`,
@@ -3257,7 +3257,7 @@ ${
             automated: 'Automatisiert',
             liveAgent: 'Live-Agent',
             instant: 'Sofort',
-            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `Mind. ${amount}`,
+            electronicFundsInstantFeeMin: (amount: string) => `Mind. ${amount}`,
         },
     },
     activateStep: {
@@ -3769,15 +3769,15 @@ ${
             flightSeatChanged: (airlineCode: string) => `Ihre Sitzplatzzuweisung auf Flug ${airlineCode} wurde geändert.`,
             flightSeatCancelled: (airlineCode: string) => `Ihre Sitzplatzzuweisung auf Flug ${airlineCode} wurde entfernt.`,
             paymentDeclined: 'Die Zahlung für Ihre Flugbuchung ist fehlgeschlagen. Bitte versuchen Sie es erneut.',
-            bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `Sie haben Ihre ${type}-Reservierung ${id} storniert.`,
-            bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `Der Anbieter hat Ihre ${type}-Reservierung ${id} storniert.`,
-            bookingRebooked: ({type, id = ''}: TravelTypeParams) => `Ihre ${type}-Reservierung wurde neu gebucht. Neue Bestätigungsnummer: ${id}.`,
-            bookingUpdated: ({type}: TravelTypeParams) => `Ihre ${type}-Buchung wurde aktualisiert. Prüfen Sie die neuen Details in der Reiseroute.`,
+            bookingCancelledByTraveler: (type: string, id = '') => `Sie haben Ihre ${type}-Reservierung ${id} storniert.`,
+            bookingCancelledByVendor: (type: string, id = '') => `Der Anbieter hat Ihre ${type}-Reservierung ${id} storniert.`,
+            bookingRebooked: (type: string, id = '') => `Ihre ${type}-Reservierung wurde neu gebucht. Neue Bestätigungsnummer: ${id}.`,
+            bookingUpdated: (type: string) => `Ihre ${type}-Buchung wurde aktualisiert. Prüfen Sie die neuen Details in der Reiseroute.`,
             railTicketRefund: ({origin, destination, startDate}: RailTicketParams) =>
                 `Ihr Bahnticket für ${origin} → ${destination} am ${startDate} wurde erstattet. Eine Gutschrift wird bearbeitet.`,
             railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `Ihr Bahnticket für ${origin} → ${destination} am ${startDate} wurde umgetauscht.`,
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Ihr Bahnticket für ${origin} → ${destination} am ${startDate} wurde aktualisiert.`,
-            defaultUpdate: ({type}: TravelTypeParams) => `Ihre ${type}-Reservierung wurde aktualisiert.`,
+            defaultUpdate: (type: string) => `Ihre ${type}-Reservierung wurde aktualisiert.`,
         },
         flightTo: 'Flug nach',
         trainTo: 'Zug nach',
@@ -4722,7 +4722,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             employeeDefaultDescription: 'Die Standardabteilung des Mitarbeiters wird, sofern vorhanden, in Sage Intacct auf seine Ausgaben angewendet.',
             displayedAsTagDescription: 'Die Abteilung kann für jede einzelne Ausgabe im Bericht eines Mitarbeiters ausgewählt werden.',
             displayedAsReportFieldDescription: 'Die Abteilungsauswahl wird auf alle Ausgaben im Bericht eines Mitarbeiters angewendet.',
-            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Wählen Sie aus, wie Sage Intacct-<strong>${mappingTitle}</strong> in Expensify verarbeitet werden soll.`,
+            toggleImportTitle: (mappingTitle: string) => `Wählen Sie aus, wie Sage Intacct-<strong>${mappingTitle}</strong> in Expensify verarbeitet werden soll.`,
             expenseTypes: 'Ausgabenarten',
             expenseTypesDescription: 'Ihre Sage Intacct-Spesentypen werden in Expensify als Kategorien importiert.',
             accountTypesDescription: 'Ihr Sage Intacct-Kontenplan wird als Kategorien in Expensify importiert.',
@@ -5407,7 +5407,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 updateTaxClaimableFailureMessage: 'Der rückerstattungsfähige Anteil muss geringer sein als der Kilometersatzbetrag',
             },
             deleteTaxConfirmation: 'Sind Sie sicher, dass Sie diese Steuer löschen möchten?',
-            deleteMultipleTaxConfirmation: ({taxAmount}: TaxAmountParams) => `Möchten Sie wirklich ${taxAmount} Steuern löschen?`,
+            deleteMultipleTaxConfirmation: (taxAmount: number) => `Möchten Sie wirklich ${taxAmount} Steuern löschen?`,
             actions: {
                 delete: 'Rate löschen',
                 deleteMultiple: 'Sätze löschen',
@@ -6399,10 +6399,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `Genehmigende Person für ${field} „${name}“ zu ${formatApprover(newApproverName, newApproverEmail)} geändert (zuvor ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
-        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `hat die Kategorie „${categoryName}“ hinzugefügt`,
-        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `hat die Kategorie „${categoryName}“ entfernt`,
-        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deaktiviert' : 'aktiviert'} die Kategorie „${categoryName}“`,
-        updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+        addCategory: (categoryName: string) => `hat die Kategorie „${categoryName}“ hinzugefügt`,
+        deleteCategory: (categoryName: string) => `hat die Kategorie „${categoryName}“ entfernt`,
+        updateCategory: (categoryName: string, oldValue: boolean) => `${oldValue ? 'deaktiviert' : 'aktiviert'} die Kategorie „${categoryName}“`,
+        updateCategoryPayrollCode: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!oldValue) {
                 return `den Gehaltsabrechnungscode „${newValue}“ zur Kategorie „${categoryName}“ hinzugefügt`;
             }
@@ -6411,7 +6411,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
             return `hat den Gehaltsabrechnungscode der Kategorie „${categoryName}“ in „${newValue}“ geändert (zuvor „${oldValue}“)`;
         },
-        updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+        updateCategoryGLCode: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!oldValue) {
                 return `den Hauptbuchcode „${newValue}“ zur Kategorie „${categoryName}“ hinzugefügt`;
             }
@@ -6420,10 +6420,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
             return `den Kontenplan-Code der Kategorie „${categoryName}“ in „${newValue}“ geändert (zuvor „${oldValue}“)`;
         },
-        updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
+        updateAreCommentsRequired: (categoryName: string, oldValue: boolean) => {
             return `Beschreibung der Kategorie „${categoryName}“ in ${!oldValue ? 'Erforderlich' : 'nicht erforderlich'} geändert (zuvor ${!oldValue ? 'nicht erforderlich' : 'Erforderlich'})`;
         },
-        updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
+        updateCategoryMaxExpenseAmount: (categoryName: string, newAmount?: string, oldAmount?: string) => {
             if (newAmount && !oldAmount) {
                 return `einen maximalen Betrag von ${newAmount} zur Kategorie „${categoryName}“ hinzugefügt`;
             }
@@ -6432,20 +6432,20 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
             return `hat den Maximalbetrag der Kategorie „${categoryName}“ auf ${newAmount} geändert (zuvor ${oldAmount})`;
         },
-        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+        updateCategoryExpenseLimitType: (categoryName: string, newValue: string, oldValue?: string) => {
             if (!oldValue) {
                 return `hat einen Grenzwerttyp von ${newValue} zur Kategorie „${categoryName}“ hinzugefügt`;
             }
             return `den Kategoriegrenztyp von „${categoryName}“ zu ${newValue} geändert (zuvor ${oldValue})`;
         },
-        updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoReceipt: (categoryName: string, newValue: string, oldValue?: string) => {
             if (!oldValue) {
                 return `Kategorie „${categoryName}“ aktualisiert, indem Belege in ${newValue} geändert wurden`;
             }
             return `Kategorie „${categoryName}“ zu ${newValue} geändert (zuvor ${oldValue})`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `hat die Kategorie „${oldName}“ in „${newName}“ umbenannt`,
-        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
+        setCategoryName: (oldName: string, newName: string) => `hat die Kategorie „${oldName}“ in „${newName}“ umbenannt`,
+        updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `den Beschreibungshinweis „${oldValue}“ aus der Kategorie „${categoryName}“ entfernt`;
             }
@@ -6453,7 +6453,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 ? `den Beschreibungshinweis „${newValue}“ zur Kategorie „${categoryName}“ hinzugefügt`
                 : `den Beschreibungshinweis der Kategorie „${categoryName}“ zu „${newValue}“ geändert (zuvor „${oldValue}“)`;
         },
-        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `hat den Tag-Listen-Namen in „${newName}“ geändert (zuvor „${oldName}“)`,
+        updateTagListName: (oldName: string, newName: string) => `hat den Tag-Listen-Namen in „${newName}“ geändert (zuvor „${oldName}“)`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `hat das Tag „${tagName}“ zur Liste „${tagListName}“ hinzugefügt`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) =>
             `die Tag-Liste „${tagListName}“ aktualisiert, indem das Tag „${oldName}“ in „${newName}“ geändert wurde`,
@@ -6470,21 +6470,21 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             `den/die/das ${customUnitName} ${updatedField} in „${newValue}“ geändert (zuvor „${oldValue}“)`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung bei Entfernungsraten`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `hat einen neuen „${customUnitName}“-Satz „${rateName}“ hinzugefügt`,
-        updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
+        updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `hat den Satz für ${customUnitName} ${updatedField} „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
-        updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
             if (oldTaxPercentage && oldValue) {
                 return `den Steuersatz für den Entfernungssatz „${customUnitRateName}“ zu „${newValue} (${newTaxPercentage})“ geändert (zuvor „${oldValue} (${oldTaxPercentage})“)`;
             }
             return `den Steuersatz „${newValue} (${newTaxPercentage})“ zum Kilometersatz „${customUnitRateName}“ hinzugefügt`;
         },
-        updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
+        updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue) {
                 return `hat den erstattungsfähigen Steueranteil am Distanzsatz „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`;
             }
             return `hat einen steuererstattungsfähigen Anteil von „${newValue}“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+        updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'aktiviert' : 'deaktiviert'} den ${customUnitName}-Satz „${customUnitRateName}“`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `hat den Preis „${rateName}“ für „${customUnitName}“ entfernt`,
@@ -6504,18 +6504,17 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType}-Berichts­feld „${fieldName}“ entfernt`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `„Verhinderung der Selbstgenehmigung“ aktualisiert auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
-        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
+        updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
                 return `Das Datum für die monatliche Berichtseinreichung auf „${newValue}“ festlegen`;
             }
             return `das monatliche Berichtseinreichungsdatum auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`;
         },
-        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `„Spesen an Kunden weiterberechnen“ wurde auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `„Standard für Barausgaben“ auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `„Standard-Berichtstitel erzwingen“ ${value ? 'Ein' : 'Aus'}`,
+        updateDefaultBillable: (oldValue: string, newValue: string) => `„Spesen an Kunden weiterberechnen“ wurde auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
+        updateDefaultReimbursable: (oldValue: string, newValue: string) => `„Standard für Barausgaben“ auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
+        updateDefaultTitleEnforced: (value: boolean) => `„Standard-Berichtstitel erzwingen“ ${value ? 'Ein' : 'Aus'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `hat den Namen dieses Workspace in „${newName}“ geändert (zuvor „${oldName}“)`,
-        updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
+        updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription
                 ? `die Beschreibung dieses Arbeitsbereichs auf „${newDescription}“ festlegen`
                 : `hat die Beschreibung dieses Workspace auf „${newDescription}“ aktualisiert (zuvor „${oldDescription}“)`,
@@ -6535,14 +6534,13 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         demotedFromWorkspace: (policyName: string, oldRole: string) =>
             `hat deine Rolle in ${policyName} von ${oldRole} zu Nutzer aktualisiert. Du wurdest aus allen Ausgabenchats von Einreichenden entfernt, außer aus deinen eigenen.`,
-        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `Standardwährung auf ${newCurrency} aktualisiert (zuvor ${oldCurrency})`,
-        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
-            `die automatische Berichtshäufigkeit auf „${newFrequency}“ aktualisiert (zuvor „${oldFrequency}“)`,
+        updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `Standardwährung auf ${newCurrency} aktualisiert (zuvor ${oldCurrency})`,
+        updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `die automatische Berichtshäufigkeit auf „${newFrequency}“ aktualisiert (zuvor „${oldFrequency}“)`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `den Genehmigungsmodus auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
         upgradedWorkspace: 'hat diesen Workspace auf den Control-Tarif hochgestuft',
         forcedCorporateUpgrade: `Dieser Workspace wurde auf den Control-Tarif aktualisiert. Klicken Sie <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> für weitere Informationen.`,
         downgradedWorkspace: 'hat diesen Workspace auf den Collect-Tarif herabgestuft',
-        updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
+        updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `hat den Prozentsatz der Berichte, die zufällig zur manuellen Genehmigung weitergeleitet werden, auf ${Math.round(newAuditRate * 100)}% geändert (zuvor ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (zuvor ${oldLimit})`,
@@ -6676,20 +6674,18 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             oldValue ? `den Firmennamen der Rechnung in „${newValue}“ geändert (zuvor „${oldValue}“)` : `den Rechnungsfirmennamen auf „${newValue}“ festlegen`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `die Firmenwebsite der Rechnung wurde in „${newValue}“ geändert (zuvor „${oldValue}“)` : `setzen Sie die Firmenwebsite der Rechnung auf „${newValue}“`,
-        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `benutzerdefinierte Berichtsnamensformel in „${newValue}“ geändert (zuvor „${oldValue}“)`,
+        changedCustomReportNameFormula: (oldValue: string, newValue: string) => `benutzerdefinierte Berichtsnamensformel in „${newValue}“ geändert (zuvor „${oldValue}“)`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `hat den autorisierten Zahler in „${newReimburser}“ geändert (zuvor „${previousReimburser}“)` : `den autorisierten Zahler in „${newReimburser}“ geändert`,
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `erforderlichen Belegbetrag auf „${newValue}“ festlegen`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `Betrag für erforderlichen Beleg auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `Betrag für erforderlichen Beleg entfernt (zuvor „${oldValue}“)`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximalen Spesenbetrag auf „${newValue}“ festlegen`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximalen Ausgabenbetrag auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximalen Ausgabenbetrag entfernt (zuvor „${oldValue}“)`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage festlegen`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter entfernt (zuvor „${oldValue}“ Tage)`,
+        setReceiptRequiredAmount: (newValue: string) => `erforderlichen Belegbetrag auf „${newValue}“ festlegen`,
+        changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `Betrag für erforderlichen Beleg auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
+        removedReceiptRequiredAmount: (oldValue: string) => `Betrag für erforderlichen Beleg entfernt (zuvor „${oldValue}“)`,
+        setMaxExpenseAmount: (newValue: string) => `maximalen Spesenbetrag auf „${newValue}“ festlegen`,
+        changedMaxExpenseAmount: (oldValue: string, newValue: string) => `maximalen Ausgabenbetrag auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
+        removedMaxExpenseAmount: (oldValue: string) => `maximalen Ausgabenbetrag entfernt (zuvor „${oldValue}“)`,
+        setMaxExpenseAge: (newValue: string) => `maximales Ausgabenalter auf „${newValue}“ Tage festlegen`,
+        changedMaxExpenseAge: (oldValue: string, newValue: string) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
+        removedMaxExpenseAge: (oldValue: string) => `maximales Ausgabenalter entfernt (zuvor „${oldValue}“ Tage)`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -6721,7 +6717,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         completed: 'Abgeschlossen',
         action: 'Abschließen',
         messages: {
-            created: ({title}: TaskCreatedActionParams) => `Aufgabe für ${title}`,
+            created: (title: string) => `Aufgabe für ${title}`,
             completed: 'als erledigt markiert',
             canceled: 'Gelöschte Aufgabe',
             reopened: 'als unvollständig markiert',
@@ -6735,7 +6731,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         deleteConfirmation: 'Möchten Sie diese Aufgabe wirklich löschen?',
     },
     statementPage: {
-        title: ({year, monthName}: StatementTitleParams) => `Abrechnung ${monthName} ${year}`,
+        title: (year: number | string, monthName: string) => `Abrechnung ${monthName} ${year}`,
     },
     keyboardShortcutsPage: {
         title: 'Tastenkombinationen',
@@ -7032,13 +7028,13 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 selectedForRandomAuditMarkdown: `[zufällig ausgewählt](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) zur Überprüfung`,
                 share: ({to}: ShareParams) => `eingeladenes Mitglied ${to}`,
                 unshare: ({to}: UnshareParams) => `entferntes Mitglied ${to}`,
-                stripePaid: ({amount, currency}: StripePaidParams) => `bezahlt ${currency}${amount}`,
+                stripePaid: (amount: string, currency: string) => `bezahlt ${currency}${amount}`,
                 takeControl: `Kontrolle übernommen`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `Beim Synchronisieren mit ${label}${errorMessage ? ` ("${errorMessage}")` : ''} ist ein Problem aufgetreten. Bitte behebe das Problem in den <a href="${workspaceAccountingLink}">Workspace-Einstellungen</a>.`,
                 addEmployee: (email: string, role: string) => `${email} als ${role === 'member' ? 'a' : 'ein'} ${role} hinzugefügt`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `hat die Rolle von ${email} in ${newRole} geändert (zuvor ${currentRole})`,
-                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `Benutzerdefiniertes Feld 1 von ${email} entfernt (zuvor „${previousValue}“)`;
                     }
@@ -7046,7 +7042,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                         ? `„${newValue}“ zu benutzerdefiniertem Feld 1 von ${email} hinzugefügt`
                         : `benutzerdefiniertes Feld 1 von ${email} in „${newValue}“ geändert (zuvor „${previousValue}“)`;
                 },
-                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                updatedCustomField2: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `Benutzerdefiniertes Feld 2 von ${email} entfernt (zuvor „${previousValue}“)`;
                     }
@@ -7527,7 +7523,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 subtitle: 'Als nächsten Schritt <a href="#">schließen Sie Ihre Einrichtungs-Checkliste ab</a>, damit Ihr Team mit dem Spesenmanagement beginnen kann.',
             },
             trialStarted: {
-                title: ({numOfDays}: TrialStartedTitleParams) => `Testversion: Noch ${numOfDays} ${numOfDays === 1 ? 'Tag' : 'Tage'} übrig!`,
+                title: (numOfDays: number) => `Testversion: Noch ${numOfDays} ${numOfDays === 1 ? 'Tag' : 'Tage'} übrig!`,
                 subtitle: 'Fügen Sie eine Zahlungskarte hinzu, um weiterhin alle Ihre Lieblingsfunktionen zu nutzen.',
             },
             trialEnded: {
@@ -7630,10 +7626,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             note: 'Hinweis: Ein aktives Mitglied ist jeder, der Ausgabendaten, die mit Ihrem Unternehmensarbeitsbereich verknüpft sind, erstellt, bearbeitet, eingereicht, genehmigt, erstattet oder exportiert hat.',
             confirmDetails: 'Bestätigen Sie Ihre neuen jährlichen Abonnementdetails:',
             subscriptionSize: 'Abonnementgröße',
-            activeMembers: ({size}: SubscriptionSizeParams) => `${size} aktive Mitglieder/Monat`,
+            activeMembers: (size: number) => `${size} aktive Mitglieder/Monat`,
             subscriptionRenews: 'Abonnement wird verlängert',
             youCantDowngrade: 'Während Ihres Jahresabonnements ist ein Downgrade nicht möglich.',
-            youAlreadyCommitted: ({size, date}: SubscriptionCommitmentParams) =>
+            youAlreadyCommitted: (size: number, date: string) =>
                 `Sie haben sich bereits für ein jährliches Abonnement mit ${size} aktiven Mitgliedern pro Monat bis zum ${date} verpflichtet. Sie können ab dem ${date} zu einem nutzungsbasierten Abonnement wechseln, indem Sie die automatische Verlängerung deaktivieren.`,
             error: {
                 size: 'Bitte eine gültige Abonnementgröße eingeben',
@@ -7648,7 +7644,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+            summary: (subscriptionType: string, subscriptionSize: string, autoRenew: string, autoIncrease: string) =>
                 `Abonnementstyp: ${subscriptionType}, Abonnementgröße: ${subscriptionSize}, Automatische Verlängerung: ${autoRenew}, Automatische jährliche Sitzplatzerhöhung: ${autoIncrease}`,
             none: 'keine',
             on: 'Ein',
@@ -7656,15 +7652,15 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             annual: 'Jährlich',
             autoRenew: 'Automatische Verlängerung',
             autoIncrease: 'Jährliche Plätze automatisch erhöhen',
-            saveUpTo: ({amountWithCurrency}: SubscriptionSettingsSaveUpToParams) => `Sparen Sie bis zu ${amountWithCurrency}/Monat pro aktivem Mitglied`,
+            saveUpTo: (amountWithCurrency: string) => `Sparen Sie bis zu ${amountWithCurrency}/Monat pro aktivem Mitglied`,
             automaticallyIncrease:
                 'Erhöhe deine jährlichen Plätze automatisch, um aktive Mitglieder abzudecken, die deine Abogröße überschreiten. Hinweis: Dadurch wird das Enddatum deines Jahresabonnements verlängert.',
             disableAutoRenew: 'Automatische Verlängerung deaktivieren',
             helpUsImprove: 'Helfen Sie uns, Expensify zu verbessern',
             whatsMainReason: 'Was ist der Hauptgrund, warum du die automatische Verlängerung deaktivierst?',
-            renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Wird am ${date} verlängert.`,
+            renewsOn: (date: string) => `Wird am ${date} verlängert.`,
             pricingConfiguration: 'Die Preise hängen von der Konfiguration ab. Wählen Sie für den niedrigsten Preis ein Jahresabonnement und holen Sie sich die Expensify Card.',
-            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+            learnMore: (hasAdminsRoom: boolean) =>
                 `<muted-text>Erfahren Sie mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatten Sie mit unserem Team in Ihrem ${hasAdminsRoom ? `<a href="adminsRoom">#admins-Raum.</a>` : '#admins-Raum.'}</muted-text>`,
             estimatedPrice: 'Geschätzter Preis',
             changesBasedOn: 'Dies ändert sich basierend auf deiner Expensify Card-Nutzung und den untenstehenden Abonnementoptionen.',

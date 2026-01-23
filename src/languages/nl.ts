@@ -1094,16 +1094,16 @@ const translations: TranslationDeepObject<typeof en> = {
         original: 'Origineel',
         split: 'Splitsen',
         splitExpense: 'Uitgave splitsen',
-        splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} van ${merchant}`,
+        splitExpenseSubtitle: (amount: string, merchant: string) => `${amount} van ${merchant}`,
         splitByPercentage: 'Splitsen op percentage',
         addSplit: 'Splits toevoegen',
         makeSplitsEven: 'Verdeel bedragen gelijk',
         editSplits: 'Splits bewerken',
-        totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Totaalbedrag is ${amount} hoger dan de oorspronkelijke uitgave.`,
-        totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Totaalbedrag is ${amount} lager dan de oorspronkelijke uitgave.`,
+        totalAmountGreaterThanOriginal: (amount: string) => `Totaalbedrag is ${amount} hoger dan de oorspronkelijke uitgave.`,
+        totalAmountLessThanOriginal: (amount: string) => `Totaalbedrag is ${amount} lager dan de oorspronkelijke uitgave.`,
         splitExpenseZeroAmount: 'Voer een geldig bedrag in voordat u verdergaat.',
         splitExpenseOneMoreSplit: 'Geen splits toegevoegd. Voeg er minstens één toe om op te slaan.',
-        splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} bewerken voor ${merchant}`,
+        splitExpenseEditTitle: (amount: string, merchant: string) => `${amount} bewerken voor ${merchant}`,
         removeSplit: 'Splitsing verwijderen',
         splitExpenseCannotBeEditedModalTitle: 'Deze uitgave kan niet worden bewerkt',
         splitExpenseCannotBeEditedModalDescription: 'Goedgekeurde of betaalde uitgaven kunnen niet worden bewerkt',
@@ -1226,11 +1226,11 @@ const translations: TranslationDeepObject<typeof en> = {
         flip: 'Omdraaien',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} factuur verzenden`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
-        submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, met de melding ${memo}` : ''}`,
+        submitted: (memo?: string) => `ingediend${memo ? `, met de melding ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">indiening uitstellen</a>`,
         queuedToSubmitViaDEW: 'in wachtrij geplaatst om in te dienen via aangepaste goedkeuringswerkstroom',
         trackedAmount: (formattedAmount: string, comment?: string) => `bijhouden ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
-        splitAmount: ({amount}: SplitAmountParams) => `${amount} splits`,
+        splitAmount: (amount: string) => `${amount} splits`,
         didSplitAmount: (formattedAmount: string, comment: string) => `splitsen ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `Jouw deel ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} is ${amount}${comment ? `voor ${comment}` : ''} verschuldigd`,
@@ -1272,9 +1272,9 @@ const translations: TranslationDeepObject<typeof en> = {
             `heeft ${translatedChangedField} gewijzigd naar ${newMerchant} (voorheen ${oldMerchant}), waardoor het bedrag is bijgewerkt naar ${newAmountToDisplay} (voorheen ${oldAmountToDisplay})`,
         basedOnAI: 'op basis van eerdere activiteit',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `op basis van <a href="${rulesLink}">werkruimte-regels</a>` : 'op basis van werkruimte-regel'),
-        threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `voor ${comment}` : 'uitgave'}`,
+        threadExpenseReportName: (formattedAmount: string, comment: string) => `${formattedAmount} ${comment ? `voor ${comment}` : 'uitgave'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Factuurrapport nr. ${linkedReportID}`,
-        threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} verzonden${comment ? `voor ${comment}` : ''}`,
+        threadPaySomeoneReportName: (formattedAmount: string, comment: string) => `${formattedAmount} verzonden${comment ? `voor ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `heeft uitgave verplaatst van persoonlijke ruimte naar ${workspaceName ?? `chat met ${reportName}`}`,
         movedToPersonalSpace: 'uitgave verplaatst naar persoonlijke ruimte',
@@ -1389,7 +1389,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapprove: 'Goedkeuring intrekken',
         unapproveReport: 'Goedkeuring van rapport intrekken',
         headsUp: 'Let op!',
-        unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `Dit rapport is al geëxporteerd naar ${accountingIntegration}. Het wijzigen ervan kan tot gegevensverschillen leiden. Weet je zeker dat je de goedkeuring van dit rapport wilt intrekken?`,
         reimbursable: 'vergoedbaar',
         nonReimbursable: 'niet-vergoedbaar',
@@ -1424,7 +1424,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         dates: 'Datums',
         rates: 'Tarieven',
-        submitsTo: ({name}: SubmitsToParams) => `Dient in bij ${name}`,
+        submitsTo: (name: string) => `Dient in bij ${name}`,
         reject: {
             educationalTitle: 'Moet je vasthouden of afwijzen?',
             educationalText: 'Als je nog niet klaar bent om een uitgave goed te keuren of te betalen, kun je deze in de wacht zetten of afwijzen.',
@@ -1462,7 +1462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'Kies een workspace',
         date: 'Datum',
         splitDates: 'Datums splitsen',
-        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} tot ${endDate} (${count} dagen)`,
+        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} tot ${endDate} (${count} dagen)`,
         splitByDate: 'Splitsen op datum',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport doorgestuurd naar ${to} vanwege aangepaste goedkeuringsworkflow`,
         timeTracking: {
@@ -2346,7 +2346,7 @@ ${amount} voor ${merchant} - ${date}`,
         shipCard: 'Kaart verzenden',
     },
     transferAmountPage: {
-        transfer: ({amount}: TransferParams) => `Overboeking${amount ? ` ${amount}` : ''}`,
+        transfer: (amount: string) => `Overboeking${amount ? ` ${amount}` : ''}`,
         instant: 'Direct (debitkaart)',
         instantSummary: (rate: string, minAmount: string) => `${rate}% vergoeding (${minAmount} minimum)`,
         ach: '1-3 werkdagen (bankrekening)',
@@ -2911,7 +2911,7 @@ ${
         resendLink: 'Link opnieuw verzenden',
     },
     unlinkLoginForm: {
-        toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) =>
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
             `Om ${secondaryLogin} te valideren, stuur de magische code opnieuw vanuit de Accountinstellingen van ${primaryLogin}.`,
         noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `Als je geen toegang meer hebt tot ${primaryLogin}, koppel dan je accounts los.`,
         unlink: 'Koppeling verwijderen',
@@ -3020,7 +3020,7 @@ ${
             custom: 'Aangepast',
         },
         untilTomorrow: 'Tot morgen',
-        untilTime: ({time}: UntilTimeParams) => `Tot ${time}`,
+        untilTime: (time: string) => `Tot ${time}`,
         date: 'Datum',
         time: 'Tijd',
         clearAfter: 'Wissen na',
@@ -3029,7 +3029,7 @@ ${
         setVacationDelegate: `Stel een vervangende goedkeurder in om rapporten namens jou te accorderen terwijl je afwezig bent.`,
         vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vervanger tijdens vakantie.',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `als ${nameOrEmail}'s plaatsvervanger tijdens vakantie`,
-        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `aan ${submittedToName} als vakantiemachtiging voor ${vacationDelegateName}`,
+        toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `aan ${submittedToName} als vakantiemachtiging voor ${vacationDelegateName}`,
         vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
             `Je wijst ${nameOrEmail} aan als je vervangend gemachtigde tijdens je vakantie. Ze zitten nog niet in al je werkruimtes. Als je doorgaat, wordt er een e-mail gestuurd naar alle beheerders van je werkruimtes om hen toe te voegen.`,
     },
@@ -3218,7 +3218,7 @@ ${
             generalInfo: `Voor algemene informatie over prepaidrekeningen gaat u naar <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>.`,
             conditionsDetails: `Ga voor details en voorwaarden van alle kosten en diensten naar <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> of bel +1 833-400-0904.`,
             electronicFundsWithdrawalInstant: 'Elektronische fondsenafschrijving (direct)',
-            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min. ${amount})`,
+            electronicFundsInstantFeeMin: (amount: string) => `(min. ${amount})`,
         },
         longTermsForm: {
             listOfAllFees: 'Een lijst met alle Expensify Wallet-kosten',
@@ -3238,7 +3238,7 @@ ${
             electronicFundsInstantDetails: (percentage: string, amount: string) =>
                 'Er zijn kosten verbonden aan het overmaken van geld van je Expensify Wallet naar je gekoppelde debitcard met de optie voor directe overboeking. Deze overboeking wordt meestal binnen enkele minuten voltooid.' +
                 `De vergoeding is ${percentage}% van het over te maken bedrag (met een minimumvergoeding van ${amount}).`,
-            fdicInsuranceBancorp: ({amount}: TermsParams) =>
+            fdicInsuranceBancorp: (amount: string) =>
                 `Uw tegoeden komen in aanmerking voor FDIC-verzekering. Uw tegoeden worden aangehouden bij of overgemaakt naar ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, een door de FDIC verzekerde instelling.` +
                 `Eenmaal daar zijn je tegoeden verzekerd tot ${amount} door de FDIC in het geval dat ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} failliet gaat, mits aan specifieke vereisten voor depositoverzekering is voldaan en je kaart geregistreerd is. Zie ${CONST.TERMS.FDIC_PREPAID} voor details.`,
             contactExpensifyPayments: `Neem contact op met ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} door te bellen naar +1 833-400-0904, per e-mail via ${CONST.EMAIL.CONCIERGE} of meld u aan op ${CONST.NEW_EXPENSIFY_URL}.`,
@@ -3247,7 +3247,7 @@ ${
             automated: 'Geautomatiseerd',
             liveAgent: 'Live agent',
             instant: 'Direct',
-            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `Min. ${amount}`,
+            electronicFundsInstantFeeMin: (amount: string) => `Min. ${amount}`,
         },
     },
     activateStep: {
@@ -3758,15 +3758,15 @@ ${
             flightSeatChanged: (airlineCode: string) => `Je stoeltoewijzing op vlucht ${airlineCode} is gewijzigd.`,
             flightSeatCancelled: (airlineCode: string) => `Uw stoeltoewijzing op vlucht ${airlineCode} is verwijderd.`,
             paymentDeclined: 'Betaling voor uw vluchtboeking is mislukt. Probeer het opnieuw.',
-            bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `Je hebt je ${type}-reservering ${id} geannuleerd.`,
-            bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `De leverancier heeft je ${type}-reservering ${id} geannuleerd.`,
-            bookingRebooked: ({type, id = ''}: TravelTypeParams) => `Je ${type}-reservering is opnieuw geboekt. Nieuwe bevestiging nr.:${id}.`,
-            bookingUpdated: ({type}: TravelTypeParams) => `Je ${type}-boeking is bijgewerkt. Bekijk de nieuwe details in het reisschema.`,
+            bookingCancelledByTraveler: (type: string, id = '') => `Je hebt je ${type}-reservering ${id} geannuleerd.`,
+            bookingCancelledByVendor: (type: string, id = '') => `De leverancier heeft je ${type}-reservering ${id} geannuleerd.`,
+            bookingRebooked: (type: string, id = '') => `Je ${type}-reservering is opnieuw geboekt. Nieuwe bevestiging nr.:${id}.`,
+            bookingUpdated: (type: string) => `Je ${type}-boeking is bijgewerkt. Bekijk de nieuwe details in het reisschema.`,
             railTicketRefund: ({origin, destination, startDate}: RailTicketParams) =>
                 `Je treinkaartje voor ${origin} → ${destination} op ${startDate} is terugbetaald. Er wordt een tegoed verwerkt.`,
             railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `Uw treinkaartje voor ${origin} → ${destination} op ${startDate} is omgewisseld.`,
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Je treinticket voor ${origin} → ${destination} op ${startDate} is bijgewerkt.`,
-            defaultUpdate: ({type}: TravelTypeParams) => `Je ${type}-reservering is bijgewerkt.`,
+            defaultUpdate: (type: string) => `Je ${type}-reservering is bijgewerkt.`,
         },
         flightTo: 'Vlucht naar',
         trainTo: 'Trein naar',
@@ -4707,7 +4707,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             employeeDefaultDescription: 'De standaardafdeling van de medewerker wordt toegepast op zijn/haar uitgaven in Sage Intacct, indien deze bestaat.',
             displayedAsTagDescription: 'Afdeling zal selecteerbaar zijn voor elke afzonderlijke uitgave op het rapport van de werknemer.',
             displayedAsReportFieldDescription: 'De selectie van een afdeling wordt toegepast op alle onkosten in het rapport van een medewerker.',
-            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Kies hoe je Sage Intacct-<strong>${mappingTitle}</strong> in Expensify wilt afhandelen.`,
+            toggleImportTitle: (mappingTitle: string) => `Kies hoe je Sage Intacct-<strong>${mappingTitle}</strong> in Expensify wilt afhandelen.`,
             expenseTypes: 'Kostentypen',
             expenseTypesDescription: 'Uw Sage Intacct-onkostypen worden als categorieën in Expensify geïmporteerd.',
             accountTypesDescription: 'Uw Sage Intacct-rekeningschema wordt in Expensify geïmporteerd als categorieën.',
@@ -5383,7 +5383,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 updateTaxClaimableFailureMessage: 'Het terugvorderbare gedeelte moet lager zijn dan het kilometervergoedingbedrag',
             },
             deleteTaxConfirmation: 'Weet je zeker dat je deze belasting wilt verwijderen?',
-            deleteMultipleTaxConfirmation: ({taxAmount}: TaxAmountParams) => `Weet je zeker dat je ${taxAmount} belastingen wilt verwijderen?`,
+            deleteMultipleTaxConfirmation: (taxAmount: number) => `Weet je zeker dat je ${taxAmount} belastingen wilt verwijderen?`,
             actions: {
                 delete: 'Tarief verwijderen',
                 deleteMultiple: 'Tarieven verwijderen',
@@ -6369,10 +6369,10 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `heeft de fiatteur voor het veld ${field} "${name}" gewijzigd naar ${formatApprover(newApproverName, newApproverEmail)} (voorheen ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
-        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `heeft de categorie "${categoryName}" toegevoegd`,
-        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `heeft de categorie "${categoryName}" verwijderd`,
-        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'Uitgeschakeld' : 'ingeschakeld'} de categorie "${categoryName}"`,
-        updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+        addCategory: (categoryName: string) => `heeft de categorie "${categoryName}" toegevoegd`,
+        deleteCategory: (categoryName: string) => `heeft de categorie "${categoryName}" verwijderd`,
+        updateCategory: (categoryName: string, oldValue: boolean) => `${oldValue ? 'Uitgeschakeld' : 'ingeschakeld'} de categorie "${categoryName}"`,
+        updateCategoryPayrollCode: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!oldValue) {
                 return `heeft de looncode "${newValue}" toegevoegd aan de categorie "${categoryName}"`;
             }
@@ -6381,7 +6381,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             }
             return `heeft de looncode van categorie "${categoryName}" gewijzigd naar “${newValue}” (voorheen “${oldValue}”)`;
         },
-        updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+        updateCategoryGLCode: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!oldValue) {
                 return `heeft de GL-code "${newValue}” toegevoegd aan de categorie "${categoryName}"`;
             }
@@ -6390,10 +6390,10 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             }
             return `GL-code van categorie “${categoryName}” gewijzigd naar “${newValue}” (was eerder “${oldValue}“)`;
         },
-        updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
+        updateAreCommentsRequired: (categoryName: string, oldValue: boolean) => {
             return `heeft de categoriebeschrijving van "${categoryName}" gewijzigd naar ${!oldValue ? 'vereist' : 'Niet vereist'} (voorheen ${!oldValue ? 'Niet vereist' : 'vereist'})`;
         },
-        updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
+        updateCategoryMaxExpenseAmount: (categoryName: string, newAmount?: string, oldAmount?: string) => {
             if (newAmount && !oldAmount) {
                 return `heeft een maximaal bedrag van ${newAmount} toegevoegd aan de categorie "${categoryName}"`;
             }
@@ -6402,20 +6402,20 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             }
             return `heeft het maximumbedrag voor de categorie "${categoryName}" gewijzigd naar ${newAmount} (voorheen ${oldAmount})`;
         },
-        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+        updateCategoryExpenseLimitType: (categoryName: string, newValue: string, oldValue?: string) => {
             if (!oldValue) {
                 return `heeft een limiettype van ${newValue} toegevoegd aan de categorie "${categoryName}"`;
             }
             return `heeft het "${categoryName}"-categorielimiettype gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
-        updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoReceipt: (categoryName: string, newValue: string, oldValue?: string) => {
             if (!oldValue) {
                 return `heeft de categorie "${categoryName}" bijgewerkt door Bonnetjes te wijzigen in ${newValue}`;
             }
             return `heeft de categorie "${categoryName}" gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `de categorie "${oldName}" hernoemd naar "${newName}"`,
-        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
+        setCategoryName: (oldName: string, newName: string) => `de categorie "${oldName}" hernoemd naar "${newName}"`,
+        updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `heeft de beschrijvingshint "${oldValue}" verwijderd uit de categorie "${categoryName}"`;
             }
@@ -6423,7 +6423,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 ? `heeft de beschrijvingshint "${newValue}" toegevoegd aan de categorie "${categoryName}"`
                 : `heeft de categorie-beschrijvingshint van "${categoryName}" gewijzigd naar “${newValue}” (voorheen “${oldValue}”)`;
         },
-        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `de taglijstnaam gewijzigd in "${newName}" (voorheen "${oldName}")`,
+        updateTagListName: (oldName: string, newName: string) => `de taglijstnaam gewijzigd in "${newName}" (voorheen "${oldName}")`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `heeft de tag "${tagName}" toegevoegd aan de lijst "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `heeft de taglijst "${tagListName}" bijgewerkt door de tag "${oldName}" te wijzigen in "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'ingeschakeld' : 'Uitgeschakeld'} de tag '${tagName}' op de lijst '${tagListName}'`,
@@ -6439,21 +6439,21 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             `heeft de ${customUnitName} ${updatedField} gewijzigd naar „${newValue}” (voorheen „${oldValue}”)`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'ingeschakeld' : 'Uitgeschakeld'} belastingregistratie op afstandstarieven`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft een nieuw "${customUnitName}" tarief "${rateName}" toegevoegd`,
-        updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
+        updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `heeft het tarief van de ${customUnitName} ${updatedField} "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
             if (oldTaxPercentage && oldValue) {
                 return `heeft het belastingtarief op het afstanden tarief "${customUnitRateName}" gewijzigd naar "${newValue} (${newTaxPercentage})" (voorheen "${oldValue} (${oldTaxPercentage})")`;
             }
             return `heeft het belastingtarief "${newValue} (${newTaxPercentage})" toegevoegd aan het afstandstarief "${customUnitRateName}"`;
         },
-        updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
+        updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue) {
                 return `heeft het terugvorderbare belastingdeel op het afstandstarief "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`;
             }
             return `heeft een terugvorderbaar belastingdeel van "${newValue}" toegevoegd aan het kilometertarief "${customUnitRateName}"`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+        updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'Ingeschakeld' : 'Uitgeschakeld'} het ${customUnitName}-tarief "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `heeft het tarief "${rateName}" met de eenheid "${customUnitName}" verwijderd`,
@@ -6473,19 +6473,17 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         deleteReportField: (fieldType: string, fieldName?: string) => `heeft ${fieldType}-rapportveld "${fieldName}" verwijderd`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `heeft "Zelfgoedkeuring voorkomen" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
-        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
+        updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
                 return `stel de maandelijkse rapportindieningsdatum in op "${newValue}"`;
             }
             return `heeft de maandelijkse rapportindieningsdatum bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`;
         },
-        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `heeft "Kosten opnieuw doorberekenen aan klanten" bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `"Standaard contante uitgave" bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `heeft "Standaardtitels voor rapporten afdwingen" ingeschakeld ${value ? 'aan' : 'Uit'}`,
+        updateDefaultBillable: (oldValue: string, newValue: string) => `heeft "Kosten opnieuw doorberekenen aan klanten" bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
+        updateDefaultReimbursable: (oldValue: string, newValue: string) => `"Standaard contante uitgave" bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
+        updateDefaultTitleEnforced: (value: boolean) => `heeft "Standaardtitels voor rapporten afdwingen" ingeschakeld ${value ? 'aan' : 'Uit'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `heeft de naam van deze workspace bijgewerkt naar "${newName}" (voorheen "${oldName}")`,
-        updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
+        updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription
                 ? `stel de beschrijving van deze workspace in op "${newDescription}"`
                 : `heeft de beschrijving van deze workspace bijgewerkt naar "${newDescription}" (voorheen "${oldDescription}")`,
@@ -6505,14 +6503,14 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         demotedFromWorkspace: (policyName: string, oldRole: string) =>
             `heeft je rol in ${policyName} gewijzigd van ${oldRole} naar gebruiker. Je bent verwijderd uit alle onkostenchats van indieners, behalve uit je eigen.`,
-        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `standaardvaluta bijgewerkt naar ${newCurrency} (voorheen ${oldCurrency})`,
-        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
+        updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `standaardvaluta bijgewerkt naar ${newCurrency} (voorheen ${oldCurrency})`,
+        updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `heeft de automatische rapportagefrequentie bijgewerkt naar "${newFrequency}" (voorheen "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `goedkeuringsmodus bijgewerkt naar ‘${newValue}’ (voorheen ‘${oldValue}’)`,
         upgradedWorkspace: 'heeft deze workspace geüpgraded naar het Control-abonnement',
         forcedCorporateUpgrade: `Deze werkruimte is geüpgraded naar het Control-abonnement. Klik <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> voor meer informatie.`,
         downgradedWorkspace: 'heeft deze workspace gedowngraded naar het Collect-abonnement',
-        updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
+        updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `heeft het percentage van rapporten dat willekeurig wordt doorgestuurd voor handmatige goedkeuring gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `heeft de handmatige goedkeuringslimiet voor alle uitgaven gewijzigd naar ${newLimit} (voorheen ${oldLimit})`,
@@ -6572,8 +6570,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 }
             }
         },
-        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `heeft de formule voor de aangepaste rapportnaam gewijzigd in "${newValue}" (voorheen "${oldValue}")`,
+        changedCustomReportNameFormula: (oldValue: string, newValue: string) => `heeft de formule voor de aangepaste rapportnaam gewijzigd in "${newValue}" (voorheen "${oldValue}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `standaardgoedkeurder gewijzigd in ${newApprover} (voorheen ${previousApprover})` : `heeft de standaardgoedkeurder gewijzigd naar ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -6652,16 +6649,15 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             previousReimburser
                 ? `heeft de gemachtigde betaler gewijzigd in "${newReimburser}" (voorheen "${previousReimburser}")`
                 : `heeft de gemachtigde betaler gewijzigd in "${newReimburser}"`,
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `stel het vereiste bonbedrag in op "${newValue}"`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `heeft het vereiste bonbedrag gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `vereiste bedrag op verwijderde bon (voorheen “${oldValue}”)`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximumbedrag voor uitgave instellen op "${newValue}"`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale onkostensom gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximaal bedrag voor uitgave verwijderd (voorheen "${oldValue}")`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `stel maximale leeftijd uitgave in op "${newValue}" dagen`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale uitgaafleeftijd gewijzigd naar "${newValue}" dagen (voorheen "${oldValue}")`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale onkostendatum verwijderd (voorheen "${oldValue}" dagen)`,
+        setReceiptRequiredAmount: (newValue: string) => `stel het vereiste bonbedrag in op "${newValue}"`,
+        changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `heeft het vereiste bonbedrag gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
+        removedReceiptRequiredAmount: (oldValue: string) => `vereiste bedrag op verwijderde bon (voorheen “${oldValue}”)`,
+        setMaxExpenseAmount: (newValue: string) => `maximumbedrag voor uitgave instellen op "${newValue}"`,
+        changedMaxExpenseAmount: (oldValue: string, newValue: string) => `maximale onkostensom gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
+        removedMaxExpenseAmount: (oldValue: string) => `maximaal bedrag voor uitgave verwijderd (voorheen "${oldValue}")`,
+        setMaxExpenseAge: (newValue: string) => `stel maximale leeftijd uitgave in op "${newValue}" dagen`,
+        changedMaxExpenseAge: (oldValue: string, newValue: string) => `maximale uitgaafleeftijd gewijzigd naar "${newValue}" dagen (voorheen "${oldValue}")`,
+        removedMaxExpenseAge: (oldValue: string) => `maximale onkostendatum verwijderd (voorheen "${oldValue}" dagen)`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -6693,7 +6689,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         completed: 'Voltooid',
         action: 'Voltooien',
         messages: {
-            created: ({title}: TaskCreatedActionParams) => `taak voor ${title}`,
+            created: (title: string) => `taak voor ${title}`,
             completed: 'Gemarkeerd als voltooid',
             canceled: 'verwijderde taak',
             reopened: 'gemarkeerd als onvolledig',
@@ -6707,7 +6703,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         deleteConfirmation: 'Weet je zeker dat je deze taak wilt verwijderen?',
     },
     statementPage: {
-        title: ({year, monthName}: StatementTitleParams) => `Overzicht ${monthName} ${year}`,
+        title: (year: number | string, monthName: string) => `Overzicht ${monthName} ${year}`,
     },
     keyboardShortcutsPage: {
         title: 'Sneltoetsen',
@@ -7004,13 +7000,13 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 selectedForRandomAuditMarkdown: `[Willekeurig geselecteerd](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) voor beoordeling`,
                 share: ({to}: ShareParams) => `uitgenodigd lid ${to}`,
                 unshare: ({to}: UnshareParams) => `verwijderd lid ${to}`,
-                stripePaid: ({amount, currency}: StripePaidParams) => `betaald ${currency}${amount}`,
+                stripePaid: (amount: string, currency: string) => `betaald ${currency}${amount}`,
                 takeControl: `heeft de controle overgenomen`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `er is een probleem opgetreden bij het synchroniseren met ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Los het probleem op in de <a href="${workspaceAccountingLink}">werkruimte-instellingen</a>.`,
                 addEmployee: (email: string, role: string) => `${email} toegevoegd als ${role === 'member' ? 'een' : 'een'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `heeft de rol van ${email} gewijzigd naar ${newRole} (voorheen ${currentRole})`,
-                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `aangepaste veld 1 van ${email} verwijderd (voorheen „${previousValue}”)`;
                     }
@@ -7018,7 +7014,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                         ? `“${newValue}” toegevoegd aan aangepaste veld 1 van ${email}`
                         : `heeft aangepaste veld 1 van ${email} gewijzigd naar "${newValue}" (voorheen "${previousValue}")`;
                 },
-                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                updatedCustomField2: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `aangepaste veld 2 van ${email} verwijderd (voorheen "${previousValue}")`;
                     }
@@ -7498,7 +7494,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 subtitle: 'Als volgende stap kun je <a href="#">je instellingschecklist voltooien</a>, zodat je team kan beginnen met declareren.',
             },
             trialStarted: {
-                title: ({numOfDays}: TrialStartedTitleParams) => `Proef: nog ${numOfDays} ${numOfDays === 1 ? 'dag' : 'dagen'}!`,
+                title: (numOfDays: number) => `Proef: nog ${numOfDays} ${numOfDays === 1 ? 'dag' : 'dagen'}!`,
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
             },
             trialEnded: {
@@ -7600,10 +7596,10 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             note: 'Opmerking: Een actief lid is iedereen die onkosten heeft aangemaakt, bewerkt, ingediend, goedgekeurd, vergoed of geëxporteerd die zijn gekoppeld aan de werkruimte van uw bedrijf.',
             confirmDetails: 'Bevestig de details van je nieuwe jaarlijkse abonnement:',
             subscriptionSize: 'Abonnementsgrootte',
-            activeMembers: ({size}: SubscriptionSizeParams) => `${size} actieve leden/maand`,
+            activeMembers: (size: number) => `${size} actieve leden/maand`,
             subscriptionRenews: 'Abonnement wordt verlengd',
             youCantDowngrade: 'Je kunt je jaarlijkse abonnement niet downgraden.',
-            youAlreadyCommitted: ({size, date}: SubscriptionCommitmentParams) =>
+            youAlreadyCommitted: (size: number, date: string) =>
                 `Je hebt al toegezegd aan een jaarlijks abonnement van ${size} actieve leden per maand tot ${date}. Je kunt op ${date} overschakelen naar een abonnement op basis van gebruik door automatisch verlengen uit te schakelen.`,
             error: {
                 size: 'Voer een geldig abonnementsaantal in',
@@ -7618,7 +7614,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+            summary: (subscriptionType: string, subscriptionSize: string, autoRenew: string, autoIncrease: string) =>
                 `Abonnementstype: ${subscriptionType}, Abonnementsgrootte: ${subscriptionSize}, Automatisch verlengen: ${autoRenew}, Aantal jaarlijkse licenties automatisch verhogen: ${autoIncrease}`,
             none: 'geen',
             on: 'aan',
@@ -7626,15 +7622,15 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             annual: 'Jaarlijks',
             autoRenew: 'Automatisch verlengen',
             autoIncrease: 'Jaarlijkse seats automatisch verhogen',
-            saveUpTo: ({amountWithCurrency}: SubscriptionSettingsSaveUpToParams) => `Bespaar tot ${amountWithCurrency}/maand per actief lid`,
+            saveUpTo: (amountWithCurrency: string) => `Bespaar tot ${amountWithCurrency}/maand per actief lid`,
             automaticallyIncrease:
                 'Verhoog je jaarlijkse aantal seats automatisch om actieve leden op te vangen die je abonnementsomvang overschrijden. Opmerking: hierdoor wordt de einddatum van je jaarlijkse abonnement verlengd.',
             disableAutoRenew: 'Automatisch verlengen uitschakelen',
             helpUsImprove: 'Help ons Expensify verbeteren',
             whatsMainReason: 'Wat is de belangrijkste reden waarom je automatische verlenging uitschakelt?',
-            renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Wordt verlengd op ${date}.`,
+            renewsOn: (date: string) => `Wordt verlengd op ${date}.`,
             pricingConfiguration: 'De prijs is afhankelijk van de configuratie. Voor de laagste prijs kies je een jaarlijks abonnement en schaf je de Expensify Card aan.',
-            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+            learnMore: (hasAdminsRoom: boolean) =>
                 `<muted-text>Lees meer op onze <a href="${CONST.PRICING}">prijspagina</a> of chat met ons team in je ${hasAdminsRoom ? `<a href="adminsRoom">#admins-kamer.</a>` : '#admins-kamer.'}</muted-text>`,
             estimatedPrice: 'Geschatte prijs',
             changesBasedOn: 'Dit verandert op basis van je gebruik van de Expensify Card en de abonnementsopties hieronder.',
