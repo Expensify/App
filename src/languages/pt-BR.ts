@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Senha',
         magicCode: 'Código mágico',
+        digits: 'dígitos',
         twoFactorCode: 'Código de autenticação de dois fatores',
         workspaces: 'Workspaces',
         inbox: 'Caixa de entrada',
@@ -634,6 +635,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Total não reembolsável',
         originalAmount: 'Valor original',
         insights: 'Insights',
+        duplicateExpense: 'Despesa duplicada',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1469,6 +1471,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / hora`,
             amountTooLargeError: 'O valor total é muito alto. Reduza as horas ou diminua a tarifa.',
         },
+        correctDistanceRateError: 'Corrija o erro na taxa de distância e tente novamente.',
     },
     transactionMerge: {
         listPage: {
@@ -5512,7 +5515,8 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 giveItNameInstruction: 'Torne-o único o suficiente para diferenciá-lo de outros cartões. Casos de uso específicos são ainda melhores!',
                 cardName: 'Nome do cartão',
                 letsDoubleCheck: 'Vamos conferir se está tudo certo.',
-                willBeReady: 'Este cartão estará pronto para uso imediatamente.',
+                willBeReadyToUse: 'Este cartão estará pronto para uso imediatamente.',
+                willBeReadyToShip: 'Este cartão estará pronto para envio imediato.',
                 cardholder: 'Titular do cartão',
                 cardType: 'Tipo de cartão',
                 limit: 'Limite',

@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: '密码',
         magicCode: '魔法代码',
+        digits: '位数字',
         twoFactorCode: '双重验证代码',
         workspaces: '工作区',
         inbox: '收件箱',
@@ -631,6 +632,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
         insights: '洞察',
+        duplicateExpense: '重复报销',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1448,6 +1450,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / 小时`,
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
+        correctDistanceRateError: '修复里程费率错误后请重试。',
     },
     transactionMerge: {
         listPage: {
@@ -5394,7 +5397,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 giveItNameInstruction: '让它足够独特，以便与其他卡片区分开来。提供具体的使用场景会更好！',
                 cardName: '卡片名称',
                 letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
-                willBeReady: '此卡将可立即使用。',
+                willBeReadyToUse: '此卡将立即可用。',
+                willBeReadyToShip: '此卡将立即准备好发货。',
                 cardholder: '持卡人',
                 cardType: '卡类型',
                 limit: '限制',
