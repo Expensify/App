@@ -420,7 +420,7 @@ export default NewSettingsScreen;
 
 ## Multi-step flows with URL synchronization
 
-Multi-step flows (wizards, forms with multiple screens) should use URL-based navigation via the `useSubPage` hook. This approach ensures browser navigation works correctly and page refreshes preserve the current position.
+Multi-step flows (wizards, forms with multiple screens) should use URL-based navigation via the `useSubPage` hook or via basic navigation between plain static routes. This approach ensures browser navigation works correctly and page refreshes preserve the current position.
 
 ### When to use
 
@@ -435,8 +435,6 @@ Common examples include:
 - Account setup wizards
 - Form flows with multiple sections
 - Settings configuration flows
-
-**Usage of the hook is not an explicit requirement. Plain static routes with basic navigation between them is also an acceptable approach.**
 
 ### Implementation pattern
 
