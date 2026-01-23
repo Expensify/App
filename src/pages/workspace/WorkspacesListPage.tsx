@@ -54,6 +54,7 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -445,11 +446,22 @@ function WorkspacesListPage() {
                 });
             }
 
+            const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+            const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
+            const accessibilityLabel = [
+                `${translate('workspace.common.workspace')}: ${item.title}`,
+                isDefault ? translate('common.default') : '',
+                `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
+                `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
+            ]
+                .filter(Boolean)
+                .join(', ');
+
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
                     pendingAction={item.pendingAction}
-                    errorRowStyles={styles.ph5}
+                    errorRowStyles={[styles.ph5, styles.mt3]}
                     onClose={item.dismissError}
                     errors={item.errors}
                     style={styles.mb2}
@@ -458,7 +470,7 @@ function WorkspacesListPage() {
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel="row"
+                        accessibilityLabel={accessibilityLabel}
                         style={[styles.mh5]}
                         disabled={item.disabled}
                         onPress={item.action}
@@ -511,6 +523,7 @@ function WorkspacesListPage() {
             icons,
             expensifyIcons.Building,
             expensifyIcons.Exit,
+            personalDetails,
         ],
     );
 
@@ -759,7 +772,7 @@ function WorkspacesListPage() {
                 shouldUseNarrowLayout && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }
