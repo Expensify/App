@@ -84,7 +84,7 @@ function SearchSingleSelectionPicker({
                   ],
             noResultsFound: isEmpty,
         };
-    }, [initiallySelectedItem, selectedItem?.value, items, pickerTitle, debouncedSearchTerm]);
+    }, [initiallySelectedItem, selectedItem?.value, items, pickerTitle, debouncedSearchTerm, localeCompare]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
