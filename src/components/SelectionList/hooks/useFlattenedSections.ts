@@ -59,11 +59,13 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
 
             for (const item of section.data ?? []) {
                 const currentIndex = data.length;
+                // Unique key for the item to avoid duplicates among sections
+                const uniqueKey = `${item.keyForList}#${itemsTotalCount}`;
                 const itemData = {
                     ...item,
                     type: CONST.SECTION_LIST_ITEM_TYPE.ROW,
                     isDisabled: section.isDisabled === true || item.isDisabled === true,
-                    keyForList: `${item.keyForList}-${itemsTotalCount}`,
+                    keyForList: uniqueKey,
                 } as SectionListItem<TItem>;
                 data.push(itemData);
 
