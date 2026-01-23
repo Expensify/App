@@ -262,7 +262,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: illustrations.Clock,
             titleTranslationKey: 'workspace.moreFeatures.timeTracking.title',
             subtitleTranslationKey: 'workspace.moreFeatures.timeTracking.subtitle',
-            isActive: isTimeTrackingEnabled(policy) ?? false,
+            isActive: isTimeTrackingEnabled(policy),
             pendingAction: policy?.pendingFields?.isTimeTrackingEnabled,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
@@ -270,7 +270,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyTimeTracking(policyID, isEnabled);
             },
-            onPress: () => {},
+            onPress: () => {
+                // TODO: Navigate to the Time Tracking settings page when implemented.
+            },
         });
     }
 
