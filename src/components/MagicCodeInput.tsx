@@ -21,9 +21,9 @@ const TEXT_INPUT_EMPTY_STATE = '';
 /**
  * Trims whitespace from pasted magic codes
  */
-const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, onChangeText: (value: string) => void) => {
+const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, onChangeText: (value: string) => void, isPastingAllowed: boolean) => {
     useEffect(() => {
-        if (typeof document === 'undefined') {
+        if (typeof document === 'undefined' || !isPastingAllowed) {
             return;
         }
 
@@ -53,7 +53,7 @@ const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, o
         return () => {
             document.removeEventListener('paste', handlePaste, true);
         };
-    }, [inputRef, onChangeText]);
+    }, [inputRef, onChangeText, isPastingAllowed]);
 };
 
 type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
@@ -94,6 +94,15 @@ type MagicCodeInputProps = {
 
     /** Specifies if the keyboard should be disabled */
     isDisableKeyboard?: boolean;
+
+    /** Specifies if the cursor is on */
+    isCursorOn?: boolean;
+
+    /** Specifies whether the code can be pasted */
+    isPastingAllowed?: boolean;
+
+    /** Specifies whether the input is masked */
+    isInputMasked?: boolean;
 
     /** Last pressed digit on BigDigitPad */
     lastPressedDigit?: string;
@@ -150,6 +159,9 @@ function MagicCodeInput({
     maxLength = CONST.MAGIC_CODE_LENGTH,
     onFulfill = () => {},
     isDisableKeyboard = false,
+    isCursorOn = false,
+    isPastingAllowed = true,
+    isInputMasked = false,
     lastPressedDigit = '',
     autoComplete,
     hasError = false,
@@ -331,7 +343,7 @@ function MagicCodeInput({
         valueRef.current = finalInput;
     };
 
-    useMagicCodePaste(inputRef, onChangeText);
+    useMagicCodePaste(inputRef, onChangeText, isPastingAllowed);
 
     /**
      * Handles logic related to certain key presses.
@@ -520,8 +532,12 @@ function MagicCodeInput({
                                 ]}
                             >
                                 <View style={styles.magicCodeInputValueContainer}>
-                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
-                                    {isFocused && !isDisableKeyboard && (
+                                    {isInputMasked ? (
+                                        <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{CONST.DOT_SEPARATOR}</Text>
+                                    ) : (
+                                        <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
+                                    )}
+                                    {isFocused && !isDisableKeyboard && isCursorOn && (
                                         <View style={[styles.magicCodeInputCursorContainer]}>
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>

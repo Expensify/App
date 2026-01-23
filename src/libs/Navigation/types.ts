@@ -2772,7 +2772,7 @@ type AttachmentModalScreensParamList = {
         reportID: string;
         policyID?: string;
     };
-    [SCREENS.TRANSACTION_RECEIPT]: AttachmentModalContainerModalProps & {
+    [SCREENS.TRANSACTION_RECEIPT]: {
         reportID: string;
         transactionID: string;
         readonly?: string;

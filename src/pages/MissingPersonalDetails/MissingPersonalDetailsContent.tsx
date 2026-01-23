@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {createContext, useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -21,6 +21,7 @@ import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
+import Pin from './substeps/Pin';
 import type {CustomSubStepProps} from './types';
 import {getInitialSubstep, getSubstepValues} from './utils';
 
@@ -35,11 +36,23 @@ type MissingPersonalDetailsContentProps = {
     onComplete: () => void;
 };
 
-const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
+type PinCodeContextType = {
+    finalPinCode: string;
+    setFinalPinCode: (newPinCode: string) => void;
+};
+
+const PinCodeContext = createContext<PinCodeContextType>({
+    finalPinCode: '',
+    setFinalPinCode: () => {},
+});
+
+const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Pin, Confirmation];
 
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [finalPinCode, setFinalPinCode] = useState('');
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
@@ -101,6 +114,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         [moveTo],
     );
 
+    const contextValue = useMemo(
+        () => ({
+            finalPinCode,
+            setFinalPinCode,
+        }),
+        [finalPinCode, setFinalPinCode],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -130,3 +151,5 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 }
 
 export default MissingPersonalDetailsContent;
+
+export {PinCodeContext};
