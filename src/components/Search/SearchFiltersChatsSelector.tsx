@@ -82,7 +82,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, visibleReportActionsData);
             return {...report, alternateText};
         });
-    }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, visibleReportActionsData]);
+    }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, visibleReportActionsData, currentUserAccountID]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
