@@ -8,12 +8,17 @@ import {SearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType} from '@components/Search/types';
 import CategoryListItemHeader from '@components/SelectionListWithSections/Search/CategoryListItemHeader';
 import type {TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');
+
+// Mock useResponsiveLayout to control screen size in tests
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
 // Mock search context with all required SearchContextProps fields
 const mockSearchContext = {
@@ -97,6 +102,22 @@ describe('CategoryListItemHeader', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
+
+    beforeEach(() => {
+        // Default to small screen (mobile) layout
+        mockedUseResponsiveLayout.mockReturnValue({
+            isLargeScreenWidth: false,
+            shouldUseNarrowLayout: true,
+            isSmallScreenWidth: true,
+            isMediumScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isExtraSmallScreenHeight: false,
+            isExtraLargeScreenWidth: false,
+            isSmallScreen: true,
+            isInNarrowPaneModal: false,
+            onboardingIsMediumOrLargerScreenWidth: false,
+        });
+    });
 
     afterEach(async () => {
         await act(async () => {
@@ -224,6 +245,88 @@ describe('CategoryListItemHeader', () => {
             const checkbox = screen.getByRole('checkbox');
             // The checkbox should still be rendered
             expect(checkbox).toBeOnTheScreen();
+        });
+    });
+
+    describe('Large screen layout', () => {
+        beforeEach(() => {
+            mockedUseResponsiveLayout.mockReturnValue({
+                isLargeScreenWidth: true,
+                shouldUseNarrowLayout: false,
+                isSmallScreenWidth: false,
+                isMediumScreenWidth: false,
+                isExtraSmallScreenWidth: false,
+                isExtraSmallScreenHeight: false,
+                isExtraLargeScreenWidth: true,
+                isSmallScreen: false,
+                isInNarrowPaneModal: false,
+                onboardingIsMediumOrLargerScreenWidth: true,
+            });
+        });
+
+        it('should render column components on large screen', async () => {
+            const categoryItem = createCategoryListItem('Travel', {count: 5, total: 25000});
+            renderCategoryListItemHeader(categoryItem, {
+                columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL],
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Should display category name, expense count, and total
+            expect(screen.getByText('Travel')).toBeOnTheScreen();
+            expect(screen.getByText('5')).toBeOnTheScreen();
+            expect(screen.getByText('$250.00')).toBeOnTheScreen();
+        });
+
+        it('should render checkbox on large screen when canSelectMultiple is true', async () => {
+            const categoryItem = createCategoryListItem('Travel');
+            renderCategoryListItemHeader(categoryItem, {canSelectMultiple: true});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByRole('checkbox')).toBeOnTheScreen();
+        });
+    });
+
+    describe('Expand/Collapse functionality', () => {
+        it('should render expand/collapse button when onDownArrowClick is provided', async () => {
+            const onDownArrowClick = jest.fn();
+            const categoryItem = createCategoryListItem('Travel');
+            renderCategoryListItemHeader(categoryItem, {onDownArrowClick, isExpanded: false});
+            await waitForBatchedUpdatesWithAct();
+
+            // The expand/collapse button should be rendered with "Expand" label when not expanded
+            const expandButton = screen.getByLabelText('Expand');
+            expect(expandButton).toBeOnTheScreen();
+        });
+
+        it('should call onDownArrowClick when expand/collapse button is pressed', async () => {
+            const onDownArrowClick = jest.fn();
+            const categoryItem = createCategoryListItem('Travel');
+            renderCategoryListItemHeader(categoryItem, {onDownArrowClick, isExpanded: false});
+            await waitForBatchedUpdatesWithAct();
+
+            const expandButton = screen.getByLabelText('Expand');
+            fireEvent.press(expandButton);
+
+            expect(onDownArrowClick).toHaveBeenCalled();
+        });
+
+        it('should show "Collapse" label when isExpanded is true', async () => {
+            const onDownArrowClick = jest.fn();
+            const categoryItem = createCategoryListItem('Travel');
+            renderCategoryListItemHeader(categoryItem, {onDownArrowClick, isExpanded: true});
+            await waitForBatchedUpdatesWithAct();
+
+            const collapseButton = screen.getByLabelText('Collapse');
+            expect(collapseButton).toBeOnTheScreen();
+        });
+
+        it('should not render expand/collapse button when onDownArrowClick is not provided', async () => {
+            const categoryItem = createCategoryListItem('Travel');
+            renderCategoryListItemHeader(categoryItem);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText('Expand')).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText('Collapse')).not.toBeOnTheScreen();
         });
     });
 });
