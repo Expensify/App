@@ -87,7 +87,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -386,15 +385,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     deleteAppReport(currentReportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
                 } else if (currentReportAction) {
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        deleteReportComment(
-                            reportIDRef.current,
-                            currentReportAction,
-                            ancestorsRef.current,
-                            isReportArchived,
-                            isOriginalReportArchived,
-                            email ?? '',
-                            visibleReportActionsData ?? undefined,
-                        );
+                        deleteReportComment(reportIDRef.current, currentReportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
                     });
                 }
 

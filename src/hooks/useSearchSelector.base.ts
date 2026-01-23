@@ -165,7 +165,6 @@ function useSearchSelectorBase({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
 
     const onListEndReached = useDebounce(
         useCallback(() => {
@@ -197,7 +196,6 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     countryCode,
                     loginList,
-                    visibleReportActionsData,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
@@ -284,7 +282,6 @@ function useSearchSelectorBase({
         areOptionsInitialized,
         searchContext,
         optionsWithContacts,
-        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         betas,
@@ -299,7 +296,6 @@ function useSearchSelectorBase({
         getValidOptionsConfig,
         selectedOptions,
         includeCurrentUser,
-        visibleReportActionsData,
     ]);
 
     const isOptionSelected = useMemo(() => {
