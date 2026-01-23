@@ -1855,6 +1855,10 @@ describe('SearchUIUtils', () => {
 
             const localSearchResults = {
                 ...searchResults.data,
+                [`policy_${policyID}`]: {
+                    ...searchResults.data[`policy_${policyID}`],
+                    role: CONST.POLICY.ROLE.USER,
+                },
                 [`report_${dewReportID}`]: {
                     ...searchResults.data[`report_${reportID}`],
                     reportID: dewReportID,
