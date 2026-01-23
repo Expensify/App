@@ -2595,7 +2595,7 @@ const translations = {
                         3. Click *More features*.
                         4. Enable *Workflows*.
                         5. Navigate to *Workflows* in the workspace editor.
-                        6. Enable *Add approvals*.
+                        6. Enable *Approvals*.
                         7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
