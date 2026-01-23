@@ -844,7 +844,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
                         onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isDownloadFailureModalVisible}

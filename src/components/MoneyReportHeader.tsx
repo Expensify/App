@@ -1774,7 +1774,6 @@ function MoneyReportHeader({
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={downloadErrorModalVisible}
@@ -1783,7 +1782,6 @@ function MoneyReportHeader({
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
@@ -1804,7 +1802,6 @@ function MoneyReportHeader({
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setOfflineModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={offlineModalVisible}

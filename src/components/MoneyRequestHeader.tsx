@@ -549,7 +549,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={downloadErrorModalVisible}

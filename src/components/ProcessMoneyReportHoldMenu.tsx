@@ -129,7 +129,6 @@ function ProcessMoneyReportHoldMenu({
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
-            isSmallScreenWidth={isSmallScreenWidth}
         />
     );
 }

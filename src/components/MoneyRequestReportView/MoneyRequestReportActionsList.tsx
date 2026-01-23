@@ -819,7 +819,6 @@ function MoneyRequestReportActionsList({
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
                 onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
@@ -828,7 +827,6 @@ function MoneyRequestReportActionsList({
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
                 onSecondOptionSubmit={() => setOfflineModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={offlineModalVisible}

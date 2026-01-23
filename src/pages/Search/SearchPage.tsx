@@ -1264,7 +1264,6 @@ function SearchPage({route}: SearchPageProps) {
                     <DecisionModal
                         title={translate('common.youAppearToBeOffline')}
                         prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
                         onSecondOptionSubmit={handleOfflineModalClose}
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
@@ -1273,7 +1272,6 @@ function SearchPage({route}: SearchPageProps) {
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
                         onSecondOptionSubmit={handleDownloadErrorModalClose}
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isDownloadErrorModalVisible}

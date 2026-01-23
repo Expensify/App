@@ -837,7 +837,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadFailureModalVisible}

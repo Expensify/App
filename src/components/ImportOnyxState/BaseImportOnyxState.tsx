@@ -50,7 +50,6 @@ function BaseImportOnyxState({
             <DecisionModal
                 title={translate('initialSettingsPage.troubleshoot.invalidFile')}
                 prompt={translate('initialSettingsPage.troubleshoot.invalidFileDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setIsErrorModalVisible(false)}
                 secondOptionText={translate('common.ok')}
                 isVisible={isErrorModalVisible}

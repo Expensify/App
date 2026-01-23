@@ -91,7 +91,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
                 onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={shouldShowOfflineModal}
