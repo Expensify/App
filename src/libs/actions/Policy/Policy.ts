@@ -4663,6 +4663,9 @@ function enablePolicyTimeTracking(policyID: string, enabled: boolean) {
                             enabled,
                         },
                     },
+                    pendingFields: {
+                        isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
             },
         ],
