@@ -33,6 +33,8 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
         <Section
             title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.title')}
             subtitle={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.subtitle')}
+            titleStyles={[styles.accountSettingsSectionTitle]}
+            subtitleMuted
             isCentralPane
         >
             <MenuItem
