@@ -6,6 +6,7 @@ import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -230,6 +231,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
+    const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
 
     useImperativeHandle(ref, () => ({
@@ -259,7 +261,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
-        undefined,
+        allPersonalDetails,
         undefined,
         undefined,
         reportAttributesDerived,
@@ -394,8 +396,9 @@ function NewChatPage({ref}: NewChatPageProps) {
                 <PressableWithFeedback
                     onPress={() => toggleOption(item)}
                     disabled={item.isDisabled}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.CHECKBOX}
+                    accessibilityLabel={item.text ?? ''}
+                    accessibilityState={{checked: item.isSelected}}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
                 >
                     <SelectCircle
