@@ -850,15 +850,18 @@ async function submitForm(data: FormData) {
 
 Good (composition):
 
+- Features expressed as composable children
+- Parent stays stable; add features by adding children
+
 ```tsx
-// Features expressed as composable children
-// Parent stays stable; add features by adding children
 <Table data={items} columns={columns}>
   <Table.SearchBar />
   <Table.Header />
   <Table.Body />
 </Table>
+```
 
+```tsx
 <SelectionList data={items}>
   <SelectionList.TextInput />
   <SelectionList.Body />
@@ -867,9 +870,32 @@ Good (composition):
 
 Bad (configuration):
 
+- Features controlled by boolean flags
+- Adding a new feature requires modifying the Table component's API
+
 ```tsx
-// Features controlled by boolean flags
-// Adding a new feature requires modifying the component's API
+<Table
+  data={items}
+  columns={columns}
+  shouldShowSearchBar
+  shouldShowHeader
+  shouldEnableSorting
+  shouldShowPagination
+  shouldHighlightOnHover
+/>
+
+type TableProps = {
+  data: Item[];
+  columns: Column[];
+  shouldShowSearchBar?: boolean;    // ❌ Could be <Table.SearchBar />
+  shouldShowHeader?: boolean;       // ❌ Could be <Table.Header />
+  shouldEnableSorting?: boolean;    // ❌ Configuration for header behavior
+  shouldShowPagination?: boolean;   // ❌ Could be <Table.Pagination />
+  shouldHighlightOnHover?: boolean; // ❌ Configuration for styling behavior
+};
+```
+
+```tsx
 <SelectionList
   data={items}
   shouldShowTextInput
