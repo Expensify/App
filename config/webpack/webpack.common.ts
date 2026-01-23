@@ -128,15 +128,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 fileWhitelist: [/\.lottie$/],
                 include: 'allAssets',
             }),
-            // Inject <link rel="prefetch" /> into HTML
-            // This is not "webpackPrefetch: true" equivalent!
-            // By convention we use ".prefetch" suffix for such chunks
-            new PreloadWebpackPlugin({
-                rel: 'prefetch',
-                as: 'script',
-                include: 'asyncChunks',
-                fileWhitelist: [/(.+)\.prefetch(.*)\.js$/],
-            }),
             new webpack.ProvidePlugin({
                 process: 'process/browser',
             }),
@@ -371,8 +362,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     // to reduce the potential bundled size of the initial chunk
                     heicTo: {
                         test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
-                        name: 'heicTo.prefetch',
+                        name: 'heicTo',
                         chunks: 'all',
+                        priority: 10, // ensure this chunk has always its own group
                     },
                     // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
                     expensifyIcons: {

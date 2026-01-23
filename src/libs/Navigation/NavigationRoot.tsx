@@ -33,7 +33,7 @@ import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStora
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
-const AppNavigator = lazy(() => lazyRetry(() => import(/* webpackChunkName: "navigator.prefetch" */ './AppNavigator')));
+const AppNavigator = lazy(() => lazyRetry(() => import(/* webpackChunkName: "appNavigator.prefetch" */ './AppNavigator')));
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
