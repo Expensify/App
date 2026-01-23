@@ -269,7 +269,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, undefined, true, activePolicy, policy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, currentUserAccountID, undefined, true, activePolicy, policy);
                 }
             }
         },

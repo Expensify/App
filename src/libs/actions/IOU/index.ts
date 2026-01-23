@@ -10786,6 +10786,7 @@ function payMoneyRequest(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    currentUserAccountID: number,
     paymentPolicyID?: string,
     full = true,
     activePolicy?: OnyxEntry<OnyxTypes.Policy>,
@@ -10810,7 +10811,7 @@ function payMoneyRequest(
         activePolicy,
         reportPolicy: policy,
         iouReportCurrentNextStepDeprecated,
-        currentUserAccountIDParam: userAccountID,
+        currentUserAccountIDParam: currentUserAccountID,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
