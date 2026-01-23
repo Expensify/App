@@ -112,8 +112,9 @@ describe('IOU Utils', () => {
 
         it('should pass draftTransactions with existing drafts to startDistanceRequest for TRACK_DISTANCE', () => {
             // Given draftTransactions with some existing draft data
+            const transactionKey = 'transaction_123';
             const draftTransactions = {
-                transaction_123: {transactionID: '123', amount: 100, currency: 'USD'} as unknown as Parameters<typeof navigateToQuickAction>[0]['draftTransactions'],
+                [transactionKey]: {transactionID: '123', amount: 100, currency: 'USD'} as unknown as Parameters<typeof navigateToQuickAction>[0]['draftTransactions'],
             };
             // When the quick action is TRACK_DISTANCE
             navigateToQuickAction({
@@ -133,8 +134,9 @@ describe('IOU Utils', () => {
 
         it('should pass draftTransactions with existing drafts to startDistanceRequest for REQUEST_DISTANCE', () => {
             // Given draftTransactions with some existing draft data
+            const transactionKey = 'transaction_456';
             const draftTransactions = {
-                transaction_456: {transactionID: '456', amount: 200, currency: 'EUR'} as unknown as Parameters<typeof navigateToQuickAction>[0]['draftTransactions'],
+                [transactionKey]: {transactionID: '456', amount: 200, currency: 'EUR'} as unknown as Parameters<typeof navigateToQuickAction>[0]['draftTransactions'],
             };
             // When the quick action is REQUEST_DISTANCE
             navigateToQuickAction({
