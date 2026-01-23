@@ -4,7 +4,6 @@ import {InteractionManager, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -23,6 +22,7 @@ import useAllTransactions from '@hooks/useAllTransactions';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -129,10 +129,9 @@ function SearchPage({route}: SearchPageProps) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const {showConfirmModal} = useConfirmModal();
+    const {showDecisionModal} = useDecisionModal();
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const isCustomReportNamesBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES);
@@ -303,7 +302,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleBasicExport = useCallback(async () => {
         if (isOffline) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -344,7 +343,7 @@ function SearchPage({route}: SearchPageProps) {
                 transactionIDList: selectedTransactionsKeys,
             },
             () => {
-                setIsDownloadErrorModalVisible(true);
+                showDownloadErrorModal();
             },
             translate,
         );
@@ -366,7 +365,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleApproveWithDEWCheck = useCallback(async () => {
         if (isOffline) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -429,7 +428,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
         if (isOffline) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -466,7 +465,7 @@ function SearchPage({route}: SearchPageProps) {
                 return;
             }
             if (isOffline) {
-                setIsOfflineModalVisible(true);
+                showOfflineModal();
                 return;
             }
 
@@ -737,7 +736,7 @@ function SearchPage({route}: SearchPageProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setIsOfflineModalVisible(true);
+                        showOfflineModal();
                         return;
                     }
 
@@ -770,7 +769,7 @@ function SearchPage({route}: SearchPageProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setIsOfflineModalVisible(true);
+                        showOfflineModal();
                         return;
                     }
 
@@ -815,7 +814,7 @@ function SearchPage({route}: SearchPageProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setIsOfflineModalVisible(true);
+                        showOfflineModal();
                         return;
                     }
 
@@ -847,7 +846,7 @@ function SearchPage({route}: SearchPageProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setIsOfflineModalVisible(true);
+                        showOfflineModal();
                         return;
                     }
 
@@ -1177,13 +1176,21 @@ function SearchPage({route}: SearchPageProps) {
         [saveScrollOffset, route],
     );
 
-    const handleOfflineModalClose = useCallback(() => {
-        setIsOfflineModalVisible(false);
-    }, [setIsOfflineModalVisible]);
+    const showOfflineModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
 
-    const handleDownloadErrorModalClose = useCallback(() => {
-        setIsDownloadErrorModalVisible(false);
-    }, [setIsDownloadErrorModalVisible]);
+    const showDownloadErrorModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
 
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
@@ -1261,22 +1268,6 @@ function SearchPage({route}: SearchPageProps) {
             </Animated.View>
             {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
                 <View>
-                    <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        onSecondOptionSubmit={handleOfflineModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isOfflineModalVisible}
-                        onClose={handleOfflineModalClose}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        onSecondOptionSubmit={handleDownloadErrorModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isDownloadErrorModalVisible}
-                        onClose={handleDownloadErrorModalClose}
-                    />
                     {!!rejectModalAction && (
                         <HoldOrRejectEducationalModal
                             onClose={dismissRejectModalBasedOnAction}
