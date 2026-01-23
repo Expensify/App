@@ -121,7 +121,7 @@ export default createOnyxDerivedValueConfig({
                     delete reportVisibility[actionID];
                     continue;
                 }
-                
+
                 const action = reportActions[actionID];
                 if (!action) {
                     delete reportVisibility[actionID];
