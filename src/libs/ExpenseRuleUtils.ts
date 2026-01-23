@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
 import {getDecodedCategoryName} from './CategoryUtils';
@@ -8,32 +9,38 @@ import StringUtils from './StringUtils';
 function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextProps['translate']): string {
     const changes: string[] = [];
 
+    const addRuleUpdate = (translationKey: TranslationPaths, translationKeyUpdate: TranslationPaths, value: string | boolean) => {
+        return changes.push(translate(changes.length > 0 ? translationKey : translationKeyUpdate, value as TranslationParameters<TranslationPaths>[0]));
+    };
+
     if (rule.billable) {
-        changes.push(translate('expenseRulesPage.changes.billable', rule.billable === 'true'));
+        addRuleUpdate('expenseRulesPage.changes.billable', 'expenseRulesPage.changes.updateBillable', rule.billable === 'true');
     }
     if (rule.category) {
-        changes.push(translate('expenseRulesPage.changes.category', getDecodedCategoryName(rule.category)));
+        addRuleUpdate('expenseRulesPage.changes.category', 'expenseRulesPage.changes.updateCategory', getDecodedCategoryName(rule.category));
     }
     if (rule.comment) {
-        changes.push(translate('expenseRulesPage.changes.comment', rule.comment));
+        addRuleUpdate('expenseRulesPage.changes.comment', 'expenseRulesPage.changes.updateComment', rule.comment);
     }
     if (rule.merchant) {
-        changes.push(translate('expenseRulesPage.changes.merchant', rule.merchant));
+        addRuleUpdate('expenseRulesPage.changes.merchant', 'expenseRulesPage.changes.updateMerchant', rule.merchant);
     }
     if (rule.reimbursable) {
-        changes.push(translate('expenseRulesPage.changes.reimbursable', rule.reimbursable === 'true'));
+        addRuleUpdate('expenseRulesPage.changes.reimbursable', 'expenseRulesPage.changes.updateReimbursable', rule.reimbursable === 'true');
+    }
+    if (rule.tag) {
+        addRuleUpdate('expenseRulesPage.changes.tag', 'expenseRulesPage.changes.updateTag', getCleanedTagName(rule.tag));
+    }
+    if (rule.tax?.field_id_TAX) {
+        addRuleUpdate('expenseRulesPage.changes.tax', 'expenseRulesPage.changes.updateTax', rule.tax.field_id_TAX.value);
     }
     if (rule.report) {
         changes.push(translate('expenseRulesPage.changes.report', rule.report));
     }
-    if (rule.tag) {
-        changes.push(translate('expenseRulesPage.changes.tag', getCleanedTagName(rule.tag)));
-    }
-    if (rule.tax?.field_id_TAX) {
-        changes.push(translate('expenseRulesPage.changes.tax', rule.tax.field_id_TAX.value));
-    }
 
-    return changes.join(', ');
+    const formatted = changes.join(', ');
+
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
