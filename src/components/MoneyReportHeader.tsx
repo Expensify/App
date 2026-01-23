@@ -488,15 +488,15 @@ function MoneyReportHeader({
 
     // Check for DEW submit/approve failed or pending - show appropriate next step
     if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
-        const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
-            if (action.reportActionID) {
-                acc[action.reportActionID] = action;
-            }
-            return acc;
-        }, {});
-        const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
-
         if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
+                if (action.reportActionID) {
+                    acc[action.reportActionID] = action;
+                }
+                return acc;
+            }, {});
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
+
             if (errors?.dewSubmitFailed) {
                 optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
             } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
