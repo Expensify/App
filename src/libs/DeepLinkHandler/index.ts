@@ -18,6 +18,7 @@ let allReports: OnyxCollection<Report> = {};
 let areSubscriptionsSetUp = false;
 let isInitialized = false;
 let pendingDeepLinkUrl: string | null = null;
+let isUrlChangeEvent = false;
 
 // Track which subscriptions have received their first callback
 let hasOnboardingPurposeReceived = false;
@@ -40,10 +41,13 @@ function processPendingDeepLinkIfReady() {
     }
 
     const urlToProcess = pendingDeepLinkUrl;
+    const wasUrlChangeEvent = isUrlChangeEvent;
     pendingDeepLinkUrl = null;
+    isUrlChangeEvent = false;
 
     const isCurrentlyAuthenticated = hasAuthToken();
-    openReportFromDeepLink(urlToProcess, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
+    console.log('[DeepLinkHandler] Processing deep link:', urlToProcess, 'isAuthenticated:', isCurrentlyAuthenticated, 'reports count:', Object.keys(allReports ?? {}).length, 'isUrlChangeEvent:', wasUrlChangeEvent);
+    openReportFromDeepLink(urlToProcess, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, wasUrlChangeEvent);
 
     // Reset flags after processing so future deep links wait for fresh values
     hasOnboardingPurposeReceived = false;
@@ -104,17 +108,30 @@ function setUpOnyxSubscriptions() {
 
 /**
  * Handle deep link URL processing
+ * @param url - The deep link URL
+ * @param fromUrlChangeEvent - True if this is from a URL change event (app already running), false for initial URL
  */
-function handleDeepLink(url: string | null) {
+function handleDeepLink(url: string | null, fromUrlChangeEvent = false) {
+    console.log('[DeepLinkHandler] handleDeepLink called with url:', url, 'pendingDeepLinkUrl:', pendingDeepLinkUrl, 'areSubscriptionsSetUp:', areSubscriptionsSetUp, 'fromUrlChangeEvent:', fromUrlChangeEvent);
     if (!url) {
         return;
     }
 
-    // Set up Onyx subscriptions only when we have a URL to process
+    // For URL change events (app already running), process immediately with current values
+    // React Navigation's linking config will handle the navigation automatically
+    if (fromUrlChangeEvent) {
+        const isCurrentlyAuthenticated = hasAuthToken();
+        console.log('[DeepLinkHandler] URL change event, processing immediately with current values, isAuthenticated:', isCurrentlyAuthenticated);
+        openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, true);
+        return;
+    }
+
+    // For initial URL (cold start), set up subscriptions and wait for data
     setUpOnyxSubscriptions();
 
     // Store the URL to process once subscriptions are ready
     pendingDeepLinkUrl = url;
+    isUrlChangeEvent = false;
 
     // Try to process immediately if subscriptions are already set up and ready
     processPendingDeepLinkIfReady();
@@ -130,6 +147,7 @@ function initializeDeepLinkHandler() {
 
     // Check for initial URL first
     Linking.getInitialURL().then((url) => {
+        console.log('[DeepLinkHandler] getInitialURL resolved with:', url);
         if (!url) {
             return;
         }
@@ -138,8 +156,9 @@ function initializeDeepLinkHandler() {
     });
 
     // Set up listener for URL changes (future deep links)
+    // For URL change events, React Navigation's linking config handles navigation automatically
     Linking.addEventListener('url', (state) => {
-        handleDeepLink(state.url);
+        handleDeepLink(state.url, true);
     });
 
     if (CONFIG.IS_HYBRID_APP) {

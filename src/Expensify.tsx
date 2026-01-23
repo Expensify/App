@@ -283,8 +283,10 @@ function Expensify() {
         setIsAuthenticatedAtStartup(isAuthenticated);
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
+            console.log('[Expensify] getInitialURL resolved, url:', url, 'isAuthenticated:', isAuthenticated);
             setInitialUrl(url as Route);
             if (!url || isAuthenticated) {
+                console.log('[Expensify] Calling doneCheckingPublicRoom because', !url ? 'no url' : 'user is authenticated');
                 Report.doneCheckingPublicRoom();
             }
         });
