@@ -71,8 +71,6 @@ We use Prettier to automatically style our code.
 - You can run Prettier to fix the style on all files with `npm run prettier`
 - You can run Prettier in watch mode to fix the styles when they are saved with `npm run prettier-watch`
 
-Our codebase is also protected by automated code review rules that check for common patterns and anti-patterns. You can find the complete list of rules in the [Code Inline Reviewer documentation](../.claude/agents/code-inline-reviewer.md).
-
 There are a few things that we have customized for our tastes which will take precedence over Airbnb's guide.
 
 ## TypeScript guidelines
