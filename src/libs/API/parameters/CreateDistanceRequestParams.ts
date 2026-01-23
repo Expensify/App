@@ -30,6 +30,7 @@ type CreateDistanceRequestParams = {
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
+    customUnitPolicyID?: string;
 };
 
 export default CreateDistanceRequestParams;
