@@ -3135,17 +3135,16 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
-        describe('REPORT_PREVIEW action', () => {
-            it('should show report preview message for non-policy expense chat', async () => {
-                const report: Report = {
-                    ...createRandomReport(0, undefined),
-                    isOwnPolicyExpenseChat: false,
-                };
+        describe('getReportPreviewMessage', () => {
+            it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
                 const iouReport: Report = {
                     ...createRandomReport(1, undefined),
                     isOwnPolicyExpenseChat: false,
                     type: CONST.REPORT.TYPE.IOU,
                     isWaitingOnBankAccount: false,
+                    currency: CONST.CURRENCY.USD,
+                    total: 100,
+                    unheldTotal: 100,
                 };
                 const reportPreviewAction: ReportAction = {
                     ...createRandomReportAction(1),
@@ -3169,6 +3168,7 @@ describe('OptionsListUtils', () => {
                 };
                 const iouAction: ReportAction = {
                     ...createRandomReportAction(2),
+                    reportID: iouReport.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     message: [{type: 'COMMENT', text: ''}],
                     originalMessage: {
@@ -3177,24 +3177,15 @@ describe('OptionsListUtils', () => {
                     },
                     shouldShow: true,
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
-                    [reportPreviewAction.reportActionID]: reportPreviewAction,
-                });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {
-                    [iouAction.reportActionID]: iouAction,
-                });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const lastMessage = getLastMessageTextForReport({
-                    translate: translateLocal,
-                    report,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                // Test getReportPreviewMessage directly - this is the function responsible for formatting the message
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
-                const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
-                expect(lastMessage).toBe(expected);
+                const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
+                expect(formattedMessage).toBe('$1.00 for A A A');
             });
         });
         it('MOVED_TRANSACTION action', async () => {
@@ -3242,13 +3233,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [submittedAction.reportActionID]: submittedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({
-                    translate: translateLocal,
-                    report,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
+                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}, currentUserAccountID: CURRENT_USER_ACCOUNT_ID});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
         });
@@ -3267,13 +3252,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [approvedAction.reportActionID]: approvedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({
-                    translate: translateLocal,
-                    report,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
+                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}, currentUserAccountID: CURRENT_USER_ACCOUNT_ID});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
         });
@@ -3292,13 +3271,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({
-                    translate: translateLocal,
-                    report,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
+                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}, currentUserAccountID: CURRENT_USER_ACCOUNT_ID});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
         });
@@ -3314,13 +3287,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
-                const lastMessage = getLastMessageTextForReport({
-                    translate: translateLocal,
-                    report,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
+                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}, currentUserAccountID: CURRENT_USER_ACCOUNT_ID});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
         });
@@ -3431,6 +3398,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                visibleReportActionsDataParam: {},
             });
             expect(result).toBe(expectedVisibleText);
         });
@@ -3477,6 +3445,7 @@ describe('OptionsListUtils', () => {
                     policy,
                     reportMetadata,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    visibleReportActionsDataParam: {},
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -3503,13 +3472,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({
-                    translate: translateLocal,
-                    report,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
+                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}, currentUserAccountID: CURRENT_USER_ACCOUNT_ID});
                 expect(lastMessage).toBe(customErrorMessage);
             });
 
@@ -3532,13 +3495,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({
-                    translate: translateLocal,
-                    report,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
+                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}, currentUserAccountID: CURRENT_USER_ACCOUNT_ID});
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
         });

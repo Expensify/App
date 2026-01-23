@@ -204,6 +204,7 @@ import type {
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
+    VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -1986,6 +1987,7 @@ function deleteReportComment(
     isReportArchived: boolean | undefined,
     isOriginalReportArchived: boolean | undefined,
     currentEmail: string,
+    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
@@ -2032,7 +2034,7 @@ function deleteReportComment(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
                 ReportActionsUtils.didMessageMentionCurrentUser(action, currentEmail) &&
-                ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
+                ReportActionsUtils.isReportActionVisible(action, reportID, undefined, visibleReportActionsDataParam),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }
@@ -2188,6 +2190,7 @@ function editReportComment(
     isOriginalParentReportArchived: boolean | undefined,
     currentUserLogin: string,
     videoAttributeCache?: Record<string, string>,
+    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
@@ -2220,7 +2223,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin);
+        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin, visibleReportActionsDataParam);
         return;
     }
 
@@ -2878,12 +2881,12 @@ function buildNewReportOptimisticData(
     policy: OnyxEntry<Policy>,
     reportID: string,
     reportActionID: string,
-    creatorPersonalDetails: CurrentUserPersonalDetails,
+    ownerPersonalDetails: CurrentUserPersonalDetails,
     reportPreviewReportActionID: string,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
 ) {
-    const {accountID, login, email} = creatorPersonalDetails;
+    const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
     const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation);
@@ -2935,7 +2938,7 @@ function buildNewReportOptimisticData(
         shouldShow: true,
         childOwnerAccountID: accountID,
         automatic: false,
-        avatar: creatorPersonalDetails.avatar,
+        avatar: ownerPersonalDetails.avatar,
         isAttachmentOnly: false,
         reportActionID: reportPreviewReportActionID,
         message: createReportActionMessage,
@@ -3106,7 +3109,7 @@ function buildNewReportOptimisticData(
 }
 
 function createNewReport(
-    creatorPersonalDetails: CurrentUserPersonalDetails,
+    ownerPersonalDetails: CurrentUserPersonalDetails,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
@@ -3121,7 +3124,7 @@ function createNewReport(
         policy,
         optimisticReportID,
         reportActionID,
-        creatorPersonalDetails,
+        ownerPersonalDetails,
         reportPreviewReportActionID,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
@@ -3139,12 +3142,13 @@ function createNewReport(
             reportID: optimisticReportID,
             reportActionID,
             reportPreviewReportActionID,
+            ownerEmail: ownerPersonalDetails.login,
             ...(shouldDismissEmptyReportsConfirmation ? {shouldDismissEmptyReportsConfirmation} : {}),
         },
         {optimisticData, successData, failureData},
     );
     if (shouldNotifyNewAction) {
-        notifyNewAction(parentReportID, creatorPersonalDetails.accountID, reportPreviewAction);
+        notifyNewAction(parentReportID, ownerPersonalDetails.accountID, reportPreviewAction);
     }
 
     return optimisticReportData;

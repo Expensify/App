@@ -169,6 +169,7 @@ function useSearchSelectorBase({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
 
     const onListEndReached = useDebounce(
         useCallback(() => {
@@ -202,6 +203,7 @@ function useSearchSelectorBase({
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
+                    visibleReportActionsData,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
@@ -290,6 +292,7 @@ function useSearchSelectorBase({
         areOptionsInitialized,
         searchContext,
         optionsWithContacts,
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         betas,
@@ -306,6 +309,7 @@ function useSearchSelectorBase({
         includeCurrentUser,
         currentUserAccountID,
         currentUserEmail,
+        visibleReportActionsData,
     ]);
 
     const isOptionSelected = useMemo(() => {

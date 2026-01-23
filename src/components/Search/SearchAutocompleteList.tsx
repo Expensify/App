@@ -199,6 +199,7 @@ function SearchAutocompleteList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -222,10 +223,11 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
+            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, visibleReportActionsData, currentUserAccountID, currentUserEmail]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -432,6 +434,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
@@ -465,6 +468,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).recentReports.filter((chat) => {
@@ -541,14 +545,14 @@ function SearchAutocompleteList({
                     .filter(
                         (card) =>
                             (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
-                            !alreadyAutocompletedKeys.has(getCardDescription(card).toLowerCase()),
+                            !alreadyAutocompletedKeys.has(getCardDescription(card, translate).toLowerCase()),
                     )
                     .sort()
                     .slice(0, 10);
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
-                    text: getCardDescription(card),
+                    text: getCardDescription(card, translate),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
@@ -642,9 +646,11 @@ function SearchAutocompleteList({
         statusAutocompleteList,
         feedAutoCompleteList,
         cardAutocompleteList,
+        translate,
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
+        visibleReportActionsData,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
