@@ -4768,6 +4768,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             assign: '分配',
             assignCardFailedError: '卡片分配失败。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片信息流',
+                workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时出错。请重试或联系您的管理员。',
+                feedCouldNotBeLoadedTitle: '无法加载此订阅内容',
+                feedCouldNotBeLoadedMessage: '加载此信息流时出错。请重试或联系您的管理员。',
+                tryAgain: '重试',
+            },
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',

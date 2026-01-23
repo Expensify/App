@@ -4847,6 +4847,13 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
+                workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
+                feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                tryAgain: '再試行',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',

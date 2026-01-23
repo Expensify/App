@@ -4859,6 +4859,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             assign: 'Przypisz',
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
+                workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',
+                feedCouldNotBeLoadedTitle: 'Nie można było wczytać tego kanału',
+                feedCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania tego kanału. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
+                tryAgain: 'Spróbuj ponownie',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
