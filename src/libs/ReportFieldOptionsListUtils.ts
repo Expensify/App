@@ -60,7 +60,6 @@ function getReportFieldOptionsSection({
             title: '',
             data: getReportFieldOptions(selectedOptionKeys),
         });
-
     }
 
     if (filteredRecentlyUsedOptions.length > 0) {
@@ -69,7 +68,6 @@ function getReportFieldOptionsSection({
             title: translate('common.recent'),
             data: getReportFieldOptions(filteredRecentlyUsedOptions),
         });
-
     }
 
     reportFieldOptionsSections.push({
