@@ -252,6 +252,7 @@ const WRITE_COMMANDS = {
     TOGGLE_POLICY_PER_DIEM: 'TogglePolicyPerDiem',
     ENABLE_POLICY_COMPANY_CARDS: 'EnablePolicyCompanyCards',
     ENABLE_POLICY_INVOICING: 'EnablePolicyInvoicing',
+    UPDATE_POLICY_TIME_TRACKING_DEFAULT_RATE: 'UpdatePolicyTimeTrackingDefaultRate',
     SET_POLICY_RULES_ENABLED: 'SetPolicyRulesEnabled',
     SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT: 'SetPolicyExpenseMaxAmountNoReceipt',
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
@@ -880,6 +881,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DISTANCE_TAX_CLAIMABLE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
     [WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES]: Parameters.DeletePolicyDistanceRatesParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_TIME_TRACKING_DEFAULT_RATE]: Parameters.UpdatePolicyTimeTrackingDefaultRateParams;
     [WRITE_COMMANDS.DISMISS_TRACK_EXPENSE_ACTIONABLE_WHISPER]: Parameters.DismissTrackExpenseActionableWhisperParams;
     [WRITE_COMMANDS.UPDATE_BILLING_CARD_CURRENCY]: Parameters.UpdateBillingCurrencyParams;
     [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST]: Parameters.ConvertTrackedExpenseToRequestParams;

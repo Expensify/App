@@ -829,6 +829,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/InviteReceiptPartnerPolicyPage').default,
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/EditInviteReceiptPartnerPolicyPage').default,
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage').default,
+    [SCREENS.WORKSPACE.TIME_TRACKING_RATE]: () => require<ReactComponentModule>('../../../../pages/workspace/timeTracking/WorkspaceTimeTrackingRatePage').default,
     [SCREENS.DOMAIN.VERIFY]: () => require<ReactComponentModule>('../../../../pages/domain/SamlVerifyDomainPage').default,
     [SCREENS.DOMAIN.VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/SamlDomainVerifiedPage').default,
     [SCREENS.DOMAIN.ADMIN_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminDetailsPage').default,

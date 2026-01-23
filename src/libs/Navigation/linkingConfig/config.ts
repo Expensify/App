@@ -1166,6 +1166,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
                         },
+                        [SCREENS.WORKSPACE.TIME_TRACKING_RATE]: {
+                            path: ROUTES.WORKSPACE_TIME_TRACKING_RATE.route,
+                        },
                         [SCREENS.DOMAIN.VERIFY]: {
                             path: ROUTES.DOMAIN_VERIFY.route,
                         },
@@ -2054,6 +2057,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.RULES]: {
                     path: ROUTES.WORKSPACE_RULES.route,
+                },
+                [SCREENS.WORKSPACE.TIME_TRACKING]: {
+                    path: ROUTES.WORKSPACE_TIME_TRACKING.route,
                 },
             },
         },
