@@ -1,13 +1,12 @@
-import React, {useEffect, useState} from 'react';
-import DecisionModal from '@components/DecisionModal';
+import React, {useCallback, useEffect} from 'react';
 import useAssignCard from '@hooks/useAssignCard';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useCardsList from '@hooks/useCardsList';
 import useCompanyCards from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,7 +26,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -45,8 +43,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
     const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
+    const {showDecisionModal} = useDecisionModal();
     const {isOffline} = useNetwork({
         onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),
     });
@@ -66,7 +64,15 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName);
     }, [bankName, isLoading, policyID, isFeedPending, domainOrWorkspaceAccountID, policy?.employeeList]);
 
-    const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
+    const showOfflineModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
+    const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, showOfflineModal});
 
     return (
         <AccessOrNotFoundWrapper
@@ -87,15 +93,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     isAssigningCardDisabled={isAssigningCardDisabled}
                 />
             </WorkspacePageWithSections>
-
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={shouldShowOfflineModal}
-                onClose={() => setShouldShowOfflineModal(false)}
-            />
         </AccessOrNotFoundWrapper>
     );
 }
