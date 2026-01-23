@@ -70,6 +70,7 @@ import {
     getParticipantsList,
     getReportDescription,
     getReportFieldKey,
+    getReportForHeader,
     isAdminOwnerApproverOrReportOwner,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
@@ -343,8 +344,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
-
-    const reportName = isGroupChat ? getReportNameFromReportNameUtils(report, reportAttributes) : Parser.htmlToText(getReportNameFromReportNameUtils(report, reportAttributes));
+    const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
+    const reportName = isGroupChat
+        ? getReportNameFromReportNameUtils(reportForHeader, reportAttributes)
+        : Parser.htmlToText(getReportNameFromReportNameUtils(reportForHeader, reportAttributes));
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
