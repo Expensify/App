@@ -5,7 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
-// TODO: remove `recentWaypoints` from this file [YET TO CREATE ISSUE]
+// TODO: remove `recentWaypoints` from this file [https://github.com/Expensify/App/issues/80268]
 // `recentWaypoints` was moved here temporarily from `src/libs/actions/IOU/index.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
