@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
@@ -46,15 +45,15 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
             />
             <ToggleSettingOptionRow
-                    title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
-                    subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
-                    shouldPlaceSubtitleBelowSwitch
-                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
-                    isActive={autoAddTripName}
-                    onToggle={toggleAutoAddTripName}
-                    pendingAction={policy?.pendingFields?.travelSettings}
-                    wrapperStyle={styles.mt3}
-                />
+                title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
+                shouldPlaceSubtitleBelowSwitch
+                switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                isActive={autoAddTripName}
+                onToggle={toggleAutoAddTripName}
+                pendingAction={policy?.pendingFields?.travelSettings}
+                wrapperStyle={styles.mt3}
+            />
         </Section>
     );
 }
