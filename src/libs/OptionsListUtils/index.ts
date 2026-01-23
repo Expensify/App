@@ -567,14 +567,19 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
-function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountIDParam: number): string {
+function getLastActorDisplayNameFromLastVisibleActions(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    currentUserAccountIDParam: number,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 
     if (lastReportAction) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
-        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (allPersonalDetails?.[lastActorAccountID] ?? null) : null;
+        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
 
         if (!actorDetails && lastReportAction.person?.at(0)?.text) {
             actorDetails = {
@@ -989,6 +994,7 @@ function getReportOption(
     participant: Participant,
     privateIsArchived: string | undefined,
     policy: OnyxEntry<Policy>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     reportDrafts?: OnyxCollection<Report>,
 ): OptionData {
@@ -997,7 +1003,7 @@ function getReportOption(
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
+        personalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
         {
             showChatPreviewLine: false,
@@ -1012,7 +1018,7 @@ function getReportOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, currentUserAccountID, privateIsArchived);
+        option.text = computeReportName(report, undefined, undefined, undefined, undefined, personalDetails, undefined, currentUserAccountID, privateIsArchived);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1022,7 +1028,7 @@ function getReportOption(
 
         if (report?.policyID) {
             const submitToAccountID = getSubmitToAccountID(policy, report);
-            const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+            const submitsToAccountDetails = personalDetails?.[submitToAccountID];
             const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
             if (subtitle) {
@@ -1044,6 +1050,7 @@ function getReportOption(
 function getReportDisplayOption(
     report: OnyxEntry<Report>,
     unknownUserDetails: OnyxEntry<Participant>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): OptionData {
@@ -1051,7 +1058,7 @@ function getReportDisplayOption(
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
+        personalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
         {
             showChatPreviewLine: false,
@@ -1066,7 +1073,7 @@ function getReportDisplayOption(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report, undefined, undefined, undefined, undefined, allPersonalDetails, undefined, currentUserAccountID, privateIsArchived);
+        option.text = computeReportName(report, undefined, undefined, undefined, undefined, personalDetails, undefined, currentUserAccountID, privateIsArchived);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
@@ -1087,7 +1094,11 @@ function getReportDisplayOption(
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(participant: Participant | SearchOptionData, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): SearchOptionData {
+function getPolicyExpenseReportOption(
+    participant: Participant | SearchOptionData,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+): SearchOptionData {
     const expenseReport = reportUtilsIsPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
@@ -1096,7 +1107,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
 
     const option = createOption(
         visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
+        personalDetails ?? {},
         !isEmptyObject(expenseReport) ? expenseReport : null,
         {
             showChatPreviewLine: false,
@@ -1459,7 +1470,7 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
             }
-            if (comparator(option) > comparator(peekedValue)) {
+            if (reversed ? comparator(option) < comparator(peekedValue) : comparator(option) > comparator(peekedValue)) {
                 heap.pop();
                 heap.push(option);
             }
@@ -2607,7 +2618,9 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                          return isReportPolicyExpenseChat
+                              ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived)
+                              : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2633,7 +2646,9 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                      return isReportPolicyExpenseChat
+                          ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived)
+                          : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
