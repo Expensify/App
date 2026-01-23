@@ -19,7 +19,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage, shouldRequireMerchant} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -216,7 +216,9 @@ function IOURequestStepAmount({
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
+                return participantAccountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
@@ -285,14 +287,8 @@ function IOURequestStepAmount({
                 setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
-                // If merchant is required and missing, navigate to merchant step first
-                if (shouldRequireMerchant(transaction, report, isEditingSplitBill)) {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, reportActionID));
-                    return;
-                }
                 navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
             });
-
             return;
         }
 
@@ -313,7 +309,7 @@ function IOURequestStepAmount({
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, currentUserPersonalDetails.accountID).then(() => {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID, undefined, reportActionID));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
                 });
             };
 
@@ -335,10 +331,6 @@ function IOURequestStepAmount({
                 const chatReportID = selectedReport?.chatReportID ?? iouReportID;
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    if (shouldRequireMerchant(transaction, selectedReport, isEditingSplitBill)) {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID, undefined, reportActionID));
-                        return;
-                    }
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID));
                 });
             } else {

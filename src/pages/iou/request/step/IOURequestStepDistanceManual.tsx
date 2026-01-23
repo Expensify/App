@@ -304,6 +304,7 @@ function IOURequestStepDistanceManual({
                 autoGrowExtraSpace={variables.w80}
                 touchableInputWrapperStyle={styles.heightUndefined}
                 errorText={formError}
+                accessibilityLabel={`${translate('common.distance')} (${translate(`common.${unit}`)})`}
                 footer={
                     <Button
                         success
