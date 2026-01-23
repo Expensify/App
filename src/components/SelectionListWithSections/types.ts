@@ -39,7 +39,6 @@ import type RadioListItem from './RadioListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
-import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -125,6 +124,9 @@ type ExtendedTargetedEvent = TargetedEvent & {
 type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
+
+    /** Text to be announced by screen reader */
+    accessibilityLabel?: string;
 
     /** Alternate text to display */
     alternateText?: string | null;
@@ -685,7 +687,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type ValidListItem =
     | typeof RadioListItem
     | typeof UserListItem
-    | typeof TableListItem
     | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof TransactionGroupListItem
@@ -871,6 +872,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom content to display in the header of list component. */
     listHeaderContent?: React.JSX.Element | null;
+
+    /** By default, when `listHeaderContent` is passed, the section title will not be rendered. This flag allows the section title to still be rendered in certain cases. */
+    showSectionTitleWithListHeaderContent?: boolean;
 
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
