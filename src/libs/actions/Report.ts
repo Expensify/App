@@ -170,6 +170,7 @@ import {
     isUnread,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
+    computeOptimisticReportName,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
@@ -5676,27 +5677,18 @@ function convertIOUReportToExpenseReport(
         expenseReport.managerID = nextApproverAccountID;
     }
 
-    // Only compute optimistic report name if the user is on the CUSTOM_REPORT_NAMES beta
-    if (isCustomReportNamesBetaEnabled) {
-        const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-        if (!!titleReportField && isPaidGroupPolicy(policy)) {
-            // Convert transactions array to Record<string, Transaction> for FormulaContext
-            const transactionsRecord: Record<string, Transaction> = {};
-            for (const transaction of reportTransactions) {
-                if (transaction?.transactionID) {
-                    transactionsRecord[transaction.transactionID] = transaction;
-                }
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-            const Formula = require('@libs/Formula') as {compute: (formula?: string, context?: {report: Report; policy: Policy; allTransactions?: Record<string, Transaction>}) => string};
-            const computedName = Formula.compute(titleReportField.defaultValue, {
-                report: expenseReport,
-                policy,
-                allTransactions: transactionsRecord,
-            });
-            expenseReport.reportName = computedName ?? expenseReport.reportName;
+    // Convert transactions array to Record<string, Transaction> for computeOptimisticReportName
+    const transactionsRecord: Record<string, Transaction> = {};
+    for (const transaction of reportTransactions) {
+        if (transaction?.transactionID) {
+            transactionsRecord[transaction.transactionID] = transaction;
         }
+    }
+
+    // Compute optimistic report name if applicable
+    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, transactionsRecord, isCustomReportNamesBetaEnabled);
+    if (computedName !== null) {
+        expenseReport.reportName = computedName;
     }
 
     const reportID = iouReport.reportID;
