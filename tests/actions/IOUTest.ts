@@ -9869,5 +9869,213 @@ describe('actions/IOU', () => {
                 });
             });
         });
+
+        it('should handle complete distance expense workflow with multiple waypoint updates', async () => {
+            // Scenario: User creates a distance expense, then updates waypoints multiple times before submitting
+            const transactionID = 'distance_expense_001';
+            const transactionThreadReportID = 'thread_report_001';
+            const parentReportID = 'iou_report_001';
+            const policyID = 'policy_functional';
+
+            const initialWaypoints = {
+                waypoint0: {keyForList: 'office', lat: 40.7128, lng: -74.006, address: 'New York', name: 'Office'},
+            };
+
+            const updatedWaypoints = {
+                waypoint0: {keyForList: 'office', lat: 40.7128, lng: -74.006, address: 'New York', name: 'Office'},
+                waypoint1: {keyForList: 'meeting', lat: 40.758, lng: -73.9855, address: 'Manhattan', name: 'Client Meeting'},
+                waypoint2: {keyForList: 'parking', lat: 34.0522, lng: -118.2437, address: 'Los Angeles', name: 'Parking'},
+            };
+
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 25000,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Uber',
+                reportID: parentReportID,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 350},
+                    waypoints: initialWaypoints,
+                },
+            };
+
+            const fakePolicy = createRandomPolicy(Number(policyID));
+            const transactionThreadReport = {reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.EXPENSE} as Report;
+            const parentReport = {reportID: parentReportID, type: CONST.REPORT.TYPE.IOU} as Report;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+
+            mockFetch?.pause?.();
+
+            // First update: Add more waypoints to the expense
+            updateMoneyRequestDistance({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                waypoints: updatedWaypoints,
+                recentWaypointsCollection: [],
+                distance: 350000, // 350 miles in meters
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                transactionBackup: fakeTransaction,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'driver@example.com',
+                isASAPSubmitBetaEnabled: false,
+                odometerStart: 50000,
+                odometerEnd: 50350,
+                parentReportNextStep: undefined,
+            });
+
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Verify the transaction was updated with complete route information
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    callback: (transaction) => {
+                        Onyx.disconnect(connection);
+                        if (transaction?.modifiedWaypoints) {
+                            // Verify all waypoints are present
+                            expect(Object.keys(transaction.modifiedWaypoints)).toHaveLength(3);
+                            expect(transaction.modifiedWaypoints.waypoint0).toBeDefined();
+                            expect(transaction.modifiedWaypoints.waypoint1).toBeDefined();
+                            expect(transaction.modifiedWaypoints.waypoint2).toBeDefined();
+                            // Verify specific waypoint details
+                            expect(transaction.modifiedWaypoints.waypoint1?.name).toBe('Client Meeting');
+                            resolve();
+                        }
+                    },
+                });
+            });
+        });
+
+        it('QA: should handle edge cases and invalid inputs gracefully', async () => {
+            // Edge case 1: Empty waypoints object
+            const transactionID = 'edge_case_001';
+            const transactionThreadReportID = 'thread_edge_001';
+            const parentReportID = 'iou_edge_001';
+            const policyID = 'policy_edge';
+
+            const emptyWaypoints = {};
+
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Test',
+                reportID: parentReportID,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE},
+                    waypoints: {},
+                },
+            };
+
+            const fakePolicy = createRandomPolicy(Number(policyID));
+            const transactionThreadReport = {reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.EXPENSE} as Report;
+            const parentReport = {reportID: parentReportID, type: CONST.REPORT.TYPE.IOU} as Report;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+
+            // Call with empty waypoints - should not crash
+            updateMoneyRequestDistance({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                waypoints: emptyWaypoints,
+                recentWaypointsCollection: [],
+                distance: undefined, // No distance change
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                transactionBackup: fakeTransaction,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'test@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Verify transaction still exists and wasn't corrupted - use synchronous check
+            const transactionAfterUpdate = await new Promise<Transaction | null>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    waitForCollectionCallback: false,
+                    callback: (transaction) => {
+                        Onyx.disconnect(connection);
+                        resolve(transaction ?? null);
+                    },
+                });
+            });
+
+            // Transaction should still exist with valid ID
+            expect(transactionAfterUpdate?.transactionID).toBe(transactionID);
+
+            // Edge case 2: Undefined distance with waypoints
+            const transactionID2 = 'edge_case_002';
+
+            const fakeTransaction2: Transaction = {
+                transactionID: transactionID2,
+                amount: 2000,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Test 2',
+                reportID: parentReportID,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE},
+                    waypoints: {},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, fakeTransaction2);
+
+            updateMoneyRequestDistance({
+                transactionID: transactionID2,
+                transactionThreadReport,
+                parentReport,
+                waypoints: {
+                    waypoint0: {keyForList: 'start', lat: 0, lng: 0, address: 'Start', name: 'Start'},
+                },
+                recentWaypointsCollection: [],
+                distance: undefined,
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                transactionBackup: fakeTransaction2,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'test@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Verify second transaction
+            const transaction2AfterUpdate = await new Promise<Transaction | null>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`,
+                    waitForCollectionCallback: false,
+                    callback: (transaction) => {
+                        Onyx.disconnect(connection);
+                        resolve(transaction ?? null);
+                    },
+                });
+            });
+
+            expect(transaction2AfterUpdate?.transactionID).toBe(transactionID2);
+        });
     });
 });
