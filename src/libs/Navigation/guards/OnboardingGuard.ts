@@ -147,7 +147,7 @@ const OnboardingGuard: NavigationGuard = {
             const currentPath = getPathFromState(state, linkingConfig.config);
 
             if (currentPath === onboardingRoute) {
-                Log.info('[OnboardingGuard] Allowing, current path martches onboarding route');
+                Log.info('[OnboardingGuard] Allowing, current path matches onboarding route');
                 return {type: 'ALLOW'};
             }
 
