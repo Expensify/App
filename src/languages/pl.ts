@@ -636,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
         originalAmount: 'Kwota pierwotna',
         insights: 'Analizy',
+        duplicateExpense: 'Zduplikowany wydatek',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1472,6 +1473,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / godzina`,
             amountTooLargeError: 'Całkowita kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
+        correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
     },
     transactionMerge: {
         listPage: {
