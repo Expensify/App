@@ -57,7 +57,7 @@ function SearchSingleSelectionPicker({
             : [];
         const remainingItemsSection = items
             .filter((item) => item?.value !== initiallySelectedItem?.value && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
+            .sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.value,
