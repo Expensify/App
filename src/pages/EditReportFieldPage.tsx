@@ -96,9 +96,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const fieldValue = isReportFieldTitle
-        ? report.reportName || (isPolicyFieldListEmpty ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
-        : reportField.value ?? reportField.defaultValue;
+    const fieldValue = isReportFieldTitle ? report.reportName || (isPolicyFieldListEmpty ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '') : (reportField.value ?? reportField.defaultValue);
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];

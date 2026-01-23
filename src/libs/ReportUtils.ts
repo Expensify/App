@@ -6794,12 +6794,7 @@ function buildOptimisticInvoiceReport(
  * Computes the optimistic report name using the policy's title field formula.
  * @returns The computed report name or null if the beta is not enabled or if the policy is not a group policy.
  */
-function computeOptimisticReportName(
-    report: Report,
-    policy: OnyxEntry<Policy>,
-    policyID: string | undefined,
-    allTransactions: Record<string, Transaction>,
-): string | null {
+function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, policyID: string | undefined, allTransactions: Record<string, Transaction>): string | null {
     // Only compute optimistic report name if the user is on the CUSTOM_REPORT_NAMES beta
     if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, allBetas)) {
         return null;
