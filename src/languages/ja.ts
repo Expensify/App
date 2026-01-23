@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'パスワード',
         magicCode: 'マジックコード',
+        digits: '桁',
         twoFactorCode: '2要素コード',
         workspaces: 'ワークスペース',
         inbox: '受信トレイ',
@@ -634,6 +635,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
         insights: 'インサイト',
+        duplicateExpense: '重複した経費',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1471,6 +1473,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / 時間`,
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
+        correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {
@@ -5490,7 +5493,8 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 giveItNameInstruction: '他のカードと見分けがつくように、十分ユニークな名前にしてください。具体的な使用例が入っていると、なお良いです！',
                 cardName: 'カード名',
                 letsDoubleCheck: 'すべてが正しく見えるか、もう一度確認しましょう。',
-                willBeReady: 'このカードはすぐに利用できるようになります。',
+                willBeReadyToUse: 'このカードはすぐに利用できるようになります。',
+                willBeReadyToShip: 'このカードはすぐに発送できる状態になります。',
                 cardholder: 'カード保有者',
                 cardType: 'カードの種類',
                 limit: '制限',
