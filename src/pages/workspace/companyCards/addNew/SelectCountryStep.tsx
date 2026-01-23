@@ -152,11 +152,8 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 onSelectRow={onSelectionChange}
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}
-                // Avoid auto-scroll/focus resets; ordering keeps the initial selection visible
-                initiallyFocusedItemKey={undefined}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
-                shouldUpdateFocusedIndex={false}
                 addBottomSafeAreaPadding
                 shouldStopPropagation
             >

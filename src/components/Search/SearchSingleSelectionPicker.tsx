@@ -115,7 +115,6 @@ function SearchSingleSelectionPicker({
     return (
         <SelectionList
             sections={sections}
-            initiallyFocusedOptionKey={undefined}
             textInputValue={searchTerm}
             onChangeText={setSearchTerm}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
@@ -126,7 +125,6 @@ function SearchSingleSelectionPicker({
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             ListItem={SingleSelectListItem}
-            shouldUpdateFocusedIndex={false}
         />
     );
 }

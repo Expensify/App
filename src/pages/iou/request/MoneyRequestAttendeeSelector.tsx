@@ -312,8 +312,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             isLoadingNewOptions={!!isSearchingForReports}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
             onEndReached={onListEndReached}
-            initiallyFocusedOptionKey={undefined}
-            shouldUpdateFocusedIndex={false}
         />
     );
 }
