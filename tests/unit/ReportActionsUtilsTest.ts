@@ -31,6 +31,7 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1021,6 +1022,38 @@ describe('ReportActionsUtils', () => {
         it('should return true for an active IOU report action', () => {
             const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
             expect(result).toBe(true);
+        });
+
+        it('should return true for a report that has transactions from both sides when reportActions are unloaded', async () => {
+            const unloadedActionsReportID = '5';
+            const transactionFromCurrentUser = {
+                ...createRandomTransaction(1),
+                reportID: unloadedActionsReportID,
+                amount: -100,
+            };
+            const transactionFromOtherUser = {
+                ...createRandomTransaction(2),
+                reportID: unloadedActionsReportID,
+                amount: 500,
+            };
+
+            // When: there are non-deleted transactions from both
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
+
+            // Then: should return true
+            let result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            expect(result).toBe(true);
+
+            // When: all transactions from the current user account have been deleted
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, {
+                ...transactionFromCurrentUser,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+
+            // Then: should return false
+            result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            expect(result).toBe(false);
         });
     });
 
