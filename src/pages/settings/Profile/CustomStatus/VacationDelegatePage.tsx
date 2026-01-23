@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
@@ -35,8 +36,9 @@ function VacationDelegatePage() {
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const personalDetailsByLogin = usePersonalDetailsByLogin();
     const currentVacationDelegate = vacationDelegate?.delegate;
-    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const delegatePersonalDetails = personalDetailsByLogin[currentVacationDelegate?.toLowerCase() ?? ''];
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
@@ -154,6 +156,7 @@ function VacationDelegatePage() {
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
                     setIsWarningModalVisible(true);
                     setNewVacationDelegate(option?.login ?? '');
+                    Keyboard.dismiss();
                     return;
                 }
 
@@ -169,7 +172,7 @@ function VacationDelegatePage() {
 
     const renderDelegatorList = () => {
         return vacationDelegate?.delegatorFor?.map((delegatorEmail) => {
-            const delegatorDetails = getPersonalDetailByEmail(delegatorEmail);
+            const delegatorDetails = personalDetailsByLogin[delegatorEmail.toLowerCase()];
             const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
             const displayLogin = formattedLogin || delegatorEmail;
 

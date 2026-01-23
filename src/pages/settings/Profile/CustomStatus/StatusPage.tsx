@@ -20,6 +20,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -30,7 +31,6 @@ import focusAfterModalClose from '@libs/focusAfterModalClose';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
 import {clearVacationDelegateError} from '@userActions/VacationDelegate';
 import CONST from '@src/CONST';
@@ -57,13 +57,14 @@ function StatusPage() {
 
     const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetailsByLogin = usePersonalDetailsByLogin();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const hasVacationDelegate = !!vacationDelegate?.delegate;
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
-    const vacationDelegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
+    const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
     const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
 
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -194,7 +195,7 @@ function StatusPage() {
 
     const renderDelegatorList = () => {
         return vacationDelegate?.delegatorFor?.map((delegatorEmail) => {
-            const delegatorDetails = getPersonalDetailByEmail(delegatorEmail);
+            const delegatorDetails = personalDetailsByLogin[delegatorEmail.toLowerCase()];
             const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
             const displayLogin = formattedLogin || delegatorEmail;
 
