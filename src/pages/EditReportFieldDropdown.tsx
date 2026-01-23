@@ -26,7 +26,7 @@ type EditReportFieldDropdownPageProps = {
     onSubmit: (form: Record<string, string>) => void;
 };
 
-function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
+function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
@@ -85,12 +85,14 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
         <SelectionList
             sections={sections ?? []}
             ListItem={RadioListItem}
+            shouldShowTextInput
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
             initiallyFocusedItemKey={selectedOptionKey}
             rightHandSideComponent={itemRightSideComponent}
+            disableMaintainingScrollPosition
         />
     );
 }
 
-export default EditReportFieldDropdownPage;
+export default EditReportFieldDropdown;
