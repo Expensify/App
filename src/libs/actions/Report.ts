@@ -5689,13 +5689,6 @@ function convertIOUReportToExpenseReport(
     const computedName = computeOptimisticReportName(expenseReport, policy, policyID, transactionsRecord, isCustomReportNamesBetaEnabled);
     if (computedName !== null) {
         expenseReport.reportName = computedName;
-    } else {
-        // If beta is disabled, policy is a group policy, and fieldList is empty, use default expense report name (matches OldDot behavior)
-        const isBetaDisabled = isCustomReportNamesBetaEnabled === false;
-        const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
-        if (isBetaDisabled && isPolicyFieldListEmpty && isPaidGroupPolicy(policy)) {
-            expenseReport.reportName = CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
-        }
     }
 
     const reportID = iouReport.reportID;
