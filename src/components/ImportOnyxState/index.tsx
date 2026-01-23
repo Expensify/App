@@ -19,14 +19,6 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const {showDecisionModal} = useDecisionModal();
     const {translate} = useLocalize();
 
-    const showErrorModal = async () => {
-        await showDecisionModal({
-            title: translate('initialSettingsPage.troubleshoot.invalidFile'),
-            prompt: translate('initialSettingsPage.troubleshoot.invalidFileDescription'),
-            secondOptionText: translate('common.ok'),
-        });
-    };
-
     const handleFileRead = (file: FileObject) => {
         if (!file.uri) {
             return;
@@ -57,7 +49,11 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             })
             .catch((error) => {
                 console.error('Error importing state:', error);
-                showErrorModal();
+                showDecisionModal({
+                    title: translate('initialSettingsPage.troubleshoot.invalidFile'),
+                    prompt: translate('initialSettingsPage.troubleshoot.invalidFileDescription'),
+                    secondOptionText: translate('common.ok'),
+                });
             })
             .finally(() => {
                 setIsLoading(false);
