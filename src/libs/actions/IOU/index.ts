@@ -638,7 +638,6 @@ type CreateDistanceRequestInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    firstCreatedGpsExpenseDateNewDot?: string;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -709,7 +708,6 @@ type CreateTrackExpenseParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    firstCreatedGpsExpenseDateNewDot?: string;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -6500,7 +6498,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         introSelected,
         activePolicyID,
         quickAction,
-        firstCreatedGpsExpenseDateNewDot,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6655,14 +6652,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
             value: transaction?.iouRequestType,
-        });
-    }
-
-    if (isGPSDistanceRequest && !firstCreatedGpsExpenseDateNewDot) {
-        onyxData?.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT,
-            value: DateUtils.getDBTime(),
         });
     }
 
@@ -7440,7 +7429,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        firstCreatedGpsExpenseDateNewDot,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7611,14 +7599,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
                 value: transaction.iouRequestType,
-            });
-        }
-
-        if (isGPSDistanceRequest && !firstCreatedGpsExpenseDateNewDot) {
-            onyxData?.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT,
-                value: DateUtils.getDBTime(),
             });
         }
 

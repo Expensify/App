@@ -128,7 +128,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     introSelected?: IntroSelected;
     activePolicyID?: string;
     privateIsArchived?: string;
-    firstCreatedGpsExpenseDateNewDot?: string;
     gpsCoordinates?: string;
     gpsDistance?: number;
 };
@@ -480,7 +479,6 @@ function handleMoneyRequestStepDistanceNavigation({
     introSelected,
     activePolicyID,
     privateIsArchived,
-    firstCreatedGpsExpenseDateNewDot,
     gpsCoordinates,
     gpsDistance,
 }: MoneyRequestStepDistanceNavigationParams) {
@@ -550,7 +548,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
-                    firstCreatedGpsExpenseDateNewDot,
                 });
                 return;
             }
@@ -583,7 +580,6 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                firstCreatedGpsExpenseDateNewDot,
             });
             return;
         }
