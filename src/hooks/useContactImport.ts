@@ -41,7 +41,7 @@ function useContactImport(): UseContactImportResult {
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail ?? '', currentUserAccountID);
+            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID);
             setContacts(usersFromContact);
         });
     }, [localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID]);
