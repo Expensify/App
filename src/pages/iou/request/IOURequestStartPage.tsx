@@ -30,6 +30,7 @@ import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils'
 import Performance from '@libs/Performance';
 import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
+    getActivePoliciesWithExpenseChatAndTimeEnabled,
     getPerDiemCustomUnit,
     hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil,
     isTimeTrackingEnabled,
@@ -51,6 +52,7 @@ import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
+import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
@@ -124,6 +126,10 @@ function IOURequestStartPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const policiesWithPerDiemEnabledAndHasRates = useMemo(
         () => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserPersonalDetails.login),
+        [allPolicies, currentUserPersonalDetails.login],
+    );
+    const policiesWithTimeEnabled = useMemo(
+        () => getActivePoliciesWithExpenseChatAndTimeEnabled(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
     );
     const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
@@ -259,7 +265,10 @@ function IOURequestStartPage({
             },
         },
     );
-    const shouldShowTimeOption = isBetaEnabled(CONST.BETAS.TIME_TRACKING) && iouType === CONST.IOU.TYPE.SUBMIT && !isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled;
+    const shouldShowTimeOption =
+        isBetaEnabled(CONST.BETAS.TIME_TRACKING) &&
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
+        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
 
     const onBackButtonPress = () => {
         navigateBack();
@@ -377,10 +386,18 @@ function IOURequestStartPage({
                                     <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
-                                                <IOURequestStepHours
-                                                    route={route}
-                                                    navigation={navigation}
-                                                />
+                                                {isFromGlobalCreate && policiesWithTimeEnabled.length > 1 ? (
+                                                    <IOURequestStepTimeWorkspace
+                                                        route={route}
+                                                        navigation={navigation}
+                                                    />
+                                                ) : (
+                                                    <IOURequestStepHours
+                                                        route={route}
+                                                        navigation={navigation}
+                                                        explicitPolicyID={isFromGlobalCreate ? policiesWithTimeEnabled.at(0)?.id : undefined}
+                                                    />
+                                                )}
                                             </TabScreenWithFocusTrapWrapper>
                                         )}
                                     </TopTab.Screen>
