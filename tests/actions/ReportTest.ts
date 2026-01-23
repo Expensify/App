@@ -23,7 +23,7 @@ import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
-import '@src/libs/PreexistingReportHandler';
+import {replaceOptimisticReportWithActualReport} from '@src/libs/PreexistingReportHandler';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -3169,7 +3169,7 @@ describe('actions/Report', () => {
         });
     });
 
-    describe('handlePreexistingReport', () => {
+    describe('replaceOptimisticReportWithActualReport', () => {
         beforeEach(async () => {
             await Onyx.clear();
             await waitForBatchedUpdates();
@@ -3180,7 +3180,7 @@ describe('actions/Report', () => {
             report.reportID = '';
             report.preexistingReportID = '2';
 
-            Report.handlePreexistingReport(report, undefined);
+            replaceOptimisticReportWithActualReport(report, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3193,7 +3193,7 @@ describe('actions/Report', () => {
             report.reportID = '1';
             report.preexistingReportID = undefined;
 
-            Report.handlePreexistingReport(report, undefined);
+            replaceOptimisticReportWithActualReport(report, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3225,7 +3225,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            Report.handlePreexistingReport(report, undefined);
+            replaceOptimisticReportWithActualReport(report, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3258,7 +3258,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
             await waitForBatchedUpdates();
 
-            Report.handlePreexistingReport(optimisticReport, undefined);
+            replaceOptimisticReportWithActualReport(optimisticReport, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3293,7 +3293,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
             await waitForBatchedUpdates();
 
-            Report.handlePreexistingReport(optimisticReport, undefined);
+            replaceOptimisticReportWithActualReport(optimisticReport, undefined);
 
             await waitForBatchedUpdates();
 

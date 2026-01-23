@@ -1879,98 +1879,6 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
-function handlePreexistingReport(report: Report, draftReportComment: string | undefined) {
-    const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
-
-    if (!reportID || !preexistingReportID) {
-        return;
-    }
-
-    // Handle cleanup of stale optimistic IOU report and its report preview separately
-    if ((isMoneyRequestReport(report) || isMoneyRequest(report)) && parentReportID && parentReportActionID) {
-        const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
-        if (parentReportAction?.childReportID === reportID) {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-                [parentReportActionID]: null,
-            });
-        }
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-        return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
-        // In this case, the API will let us know by returning a preexistingReportID.
-        // We should clear out the optimistically created report and re-route the user to the preexisting report.
-        let callback = () => {
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
-
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                ...report,
-                reportID: preexistingReportID,
-                preexistingReportID: null,
-                // Replacing the existing report's participants to avoid duplicates
-                participants: existingReport?.participants ?? report.participants,
-            });
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
-        };
-
-        if (!navigationRef.isReady()) {
-            callback();
-            return;
-        }
-
-        // Use Navigation.getActiveRoute() instead of navigationRef.getCurrentRoute()?.path because
-        // getCurrentRoute().path can be undefined during first navigation.
-        // We still need getCurrentRoute() for params and screen name as getActiveRoute() only returns the path string.
-        const activeRoute = Navigation.getActiveRoute();
-        const currentRouteInfo = navigationRef.getCurrentRoute();
-        const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
-        const screenName = currentRouteInfo?.name;
-
-        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`);
-
-        // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
-        // When user is editing a money request report (/e/:reportID route) and has
-        // an optimistic report in the background that should be replaced with preexisting report
-        const isOptimisticReportInBackground = screenName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && backTo && backTo.includes(`/r/${reportID}`);
-
-        // Only re-route them if they are still looking at the optimistically created report
-        if (isOptimisticReportFocused || isOptimisticReportInBackground) {
-            const currCallback = callback;
-            callback = () => {
-                currCallback();
-                if (isOptimisticReportFocused) {
-                    Navigation.setParams({reportID: preexistingReportID.toString()});
-                } else if (isOptimisticReportInBackground) {
-                    // Navigate to the correct backTo route with the preexisting report ID
-                    Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`) as Route);
-                }
-            };
-
-            // The report screen will listen to this event and transfer the draft comment to the existing report
-            // This will allow the newest draft comment to be transferred to the existing report
-            DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
-                preexistingReportID,
-                callback,
-            });
-
-            return;
-        }
-
-        // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
-        // after that clear the optimistically created report
-        if (!draftReportComment) {
-            callback();
-            return;
-        }
-
-        saveReportDraftComment(preexistingReportID, draftReportComment, callback);
-    });
-}
-
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(
     reportID: string | undefined,
@@ -6529,7 +6437,6 @@ export {
     getNewerActions,
     getOlderActions,
     getReportPrivateNote,
-    handlePreexistingReport,
     handleUserDeletedLinksInHtml,
     hasErrorInPrivateNotes,
     inviteToGroupChat,
