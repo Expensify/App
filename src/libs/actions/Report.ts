@@ -6359,6 +6359,42 @@ function buildOptimisticChangePolicyData(
         });
     }
 
+    // 8. Update optimistic report name when moving to a paid workspace
+    // Convert transactions array to Record<string, Transaction> for computeOptimisticReportName
+    const transactionsRecord: Record<string, Transaction> = {};
+    for (const transaction of transactions) {
+        if (transaction?.transactionID) {
+            transactionsRecord[transaction.transactionID] = transaction;
+        }
+    }
+
+    // Create an updated report object with the new policyID for computing the optimistic name
+    const updatedReport = {
+        ...report,
+        policyID: policy.id,
+        parentReportID: newPolicyExpenseChatReportID,
+        chatReportID: newPolicyExpenseChatReportID,
+    };
+
+    // Compute optimistic report name if moving to a paid workspace
+    const computedName = computeOptimisticReportName(updatedReport, policy, policy.id, transactionsRecord);
+    if (computedName !== null) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportName: computedName,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportName: report.reportName,
+            },
+        });
+    }
+
     return {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction};
 }
 
