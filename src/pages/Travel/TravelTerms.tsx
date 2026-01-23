@@ -91,9 +91,9 @@ function TravelTerms({route}: TravelTermsPageProps) {
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         // Only travelProvisioning and domain should trigger this effect. Other dependencies (translate, styles, StyleUtils, Navigation, etc.)
         // are stable references that don't change between renders, so including them would cause unnecessary re-renders.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [travelProvisioning, domain]);
 
     const toggleTravelTerms = () => {
