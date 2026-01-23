@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
@@ -42,7 +43,7 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
 
 function AmountTextInput({
     formattedAmount,
@@ -59,9 +60,11 @@ function AmountTextInput({
     shouldApplyPaddingToContainer = false,
     ref,
     disabled,
+    accessibilityLabel,
     ...rest
 }: AmountTextInputProps) {
     const navigation = useNavigation();
+    const {translate} = useLocalize();
 
     return (
         <TextInput
@@ -83,7 +86,7 @@ function AmountTextInput({
             submitBehavior="submit"
             selection={selection}
             onSelectionChange={onSelectionChange}
-            role={CONST.ROLE.PRESENTATION}
+            accessibilityLabel={accessibilityLabel ?? translate('iou.amount')}
             onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
