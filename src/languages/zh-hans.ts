@@ -632,6 +632,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
         insights: '洞察',
+        duplicateExpense: '重复报销',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1450,6 +1451,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / 小时`,
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
+        correctDistanceRateError: '修复里程费率错误后请重试。',
     },
     transactionMerge: {
         listPage: {

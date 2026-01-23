@@ -635,6 +635,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
         insights: 'インサイト',
+        duplicateExpense: '重複した経費',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1473,6 +1474,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / 時間`,
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
+        correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {
