@@ -14,7 +14,6 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
@@ -30,14 +29,23 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS> & {
+type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
+    typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
+> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE | typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT> & {
         explicitPolicyID?: string;
     };
 
-function IOURequestStepHours({report, route: {params, name: routeName}, transaction, explicitPolicyID}: IOURequestStepHoursProps) {
-    const {iouType, reportID, transactionID = '-1', action, reportActionID} = params;
-    const isEditingConfirmation = (params as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_HOURS])?.origin === CONST.IOU.HOURS_STEP_ORIGIN.CONFIRM;
+function IOURequestStepHours({
+    report,
+    route: {
+        params: {iouType, reportID, transactionID = '-1', action, reportActionID},
+        name: routeName,
+    },
+    transaction,
+    explicitPolicyID,
+}: IOURequestStepHoursProps) {
+    const isEditingConfirmation = routeName === SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
     const isEmbeddedInStartPage = routeName === SCREENS.MONEY_REQUEST.CREATE;
     const policyID = explicitPolicyID ?? report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);

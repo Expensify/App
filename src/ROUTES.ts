@@ -1318,15 +1318,14 @@ const ROUTES = {
             `${action as string}/${iouType as string}/rate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
     },
     MONEY_REQUEST_STEP_HOURS: {
-        route: ':action/:iouType/hours/:origin/:transactionID/:reportID/:reportActionID?',
-        getRoute: (
-            action: IOUAction,
-            iouType: IOUType,
-            origin: ValueOf<typeof CONST.IOU.HOURS_STEP_ORIGIN>,
-            transactionID: string | undefined,
-            reportID: string | undefined,
-            reportActionID?: string,
-        ) => `${action as string}/${iouType as string}/hours/${origin}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+        route: ':action/:iouType/hours/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
+    MONEY_REQUEST_STEP_HOURS_EDIT: {
+        route: ':action/:iouType/hours-edit/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours-edit/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
     },
     DISTANCE_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID/distance-new/:backToReport?',

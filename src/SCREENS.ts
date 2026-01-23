@@ -335,6 +335,7 @@ const SCREENS = {
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
         STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
         STEP_HOURS: 'Money_Request_Step_Hours',
+        STEP_HOURS_EDIT: 'Money_Request_Step_Hours_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
