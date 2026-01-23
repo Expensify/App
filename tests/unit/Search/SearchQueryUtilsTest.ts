@@ -738,6 +738,12 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.limit).toBeUndefined();
         });
 
+        it('converts comma-separated limit to undefined', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense limit:10,20');
+
+            expect(queryJSON?.limit).toBeUndefined();
+        });
+
         it('uses last limit value when multiple limits specified', () => {
             const queryJSON = buildSearchQueryJSON('type:expense limit:10 limit:20');
 
