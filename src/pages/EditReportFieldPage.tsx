@@ -13,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
-import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -91,7 +90,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            setNavigationActionToMicrotaskQueue(() => {
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
                 goBack();
                 setTimeout(() => {
                     deleteReportField(report.reportID, reportField);

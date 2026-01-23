@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -21,7 +21,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
+import Navigation from '@libs/Navigation/Navigation';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -385,7 +385,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 } else if (isReportPreviewAction(currentReportAction)) {
                     deleteAppReport(currentReportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
                 } else if (currentReportAction) {
-                    setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
                         deleteReportComment(
                             reportIDRef.current,
                             currentReportAction,

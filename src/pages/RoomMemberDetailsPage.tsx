@@ -16,7 +16,6 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFromRoom} from '@libs/actions/Report';
-import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -67,7 +66,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                 return;
             }
             removeFromRoom(report?.reportID, [accountID]);
-            setNavigationActionToMicrotaskQueue(() => {
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.goBack(backTo);
             });
         });

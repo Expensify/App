@@ -17,7 +17,6 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFromGroupChat} from '@libs/actions/Report';
-import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isGroupChatAdmin} from '@libs/ReportUtils';
@@ -65,7 +64,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                 return;
             }
             removeFromGroupChat(report?.reportID, [accountID]);
-            setNavigationActionToMicrotaskQueue(() => {
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.goBack(backTo);
             });
         });
