@@ -847,7 +847,7 @@ async function submitForm(data: FormData) {
   - The component uses composition and child components for features
   - Parent components stay stable as features are added
 
-- **Reasoning**: When new features are implemented by adding configuration (props, flags, conditional logic) to existing components, if requirements change, then those components must be repeatedly modified, increasing coupling, surface area, and regression risk. Composition ensures features scale horizontally, limits the scope of changes, and prevents components from becoming configuration-driven "god components."
+- **Reasoning**: When new features are implemented by adding configuration (props, flags, conditional logic) to existing components, if requirements change, then those components must be repeatedly modified, increasing coupling, surface area, and regression risk. Composition ensures features scale horizontally, limits the scope of changes, and prevents components from becoming configuration-driven "mega components".
 
 Good (composition):
 
