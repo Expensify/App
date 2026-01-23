@@ -56,7 +56,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack as Route));
             }
         },
-        [context, allPolicies, allReports, route.name, selectedTransactionsForReject, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [context, allPolicies, allReports, route.name, selectedTransactionsForReject, isDelegateAccessRestricted, currentUserAccountID, showDelegateNoAccessModal],
     );
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {

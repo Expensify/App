@@ -125,12 +125,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [
         isExpenseReportType,
         transactionsSnapshot?.data,
-        accountID,
         translate,
         formatPhoneNumber,
         groupItem.transactions,
         selectedTransactionIDsSet,
         currentUserDetails.email,
+        currentUserDetails.accountID,
         isActionLoadingSet,
         bankAccountList,
     ]);
