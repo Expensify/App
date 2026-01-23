@@ -147,9 +147,9 @@ import type {
     // UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     // UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     // UpdatedPolicyDescriptionParams,
-    UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
-    UpdatedPolicyFrequencyParams,
+    // UpdatedPolicyFieldWithNewAndOldValueParams,
+    // UpdatedPolicyFieldWithValueParam,
+    // UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
@@ -6404,17 +6404,16 @@ const translations = {
         deleteReportField: (fieldType: string, fieldName?: string) => `removed ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
-        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
+        updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
                 return `set the monthly report submission date to "${newValue}"`;
             }
             return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
         },
-        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
-        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `changed the custom report name formula to "${newValue}" (previously "${oldValue}")`,
+        updateDefaultBillable: (oldValue: string, newValue: string) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
+        updateDefaultReimbursable: (oldValue: string, newValue: string) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
+        updateDefaultTitleEnforced: (value: boolean) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
+        changedCustomReportNameFormula: (oldValue: string, newValue: string) => `changed the custom report name formula to "${newValue}" (previously "${oldValue}")`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription
@@ -6437,8 +6436,7 @@ const translations = {
         demotedFromWorkspace: (policyName: string, oldRole: string) =>
             `updated your role in ${policyName} from ${oldRole} to user. You have been removed from all submitter expense chats except for you own.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `updated the default currency to ${newCurrency} (previously ${oldCurrency})`,
-        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
-            `updated the auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
+        updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `updated the auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `updated the approval mode to "${newValue}" (previously "${oldValue}")`,
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
         forcedCorporateUpgrade: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
@@ -6563,15 +6561,15 @@ const translations = {
                 }
             }
         },
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
+        setReceiptRequiredAmount: (newValue: string) => `set receipt required amount to "${newValue}"`,
+        changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedReceiptRequiredAmount: (oldValue: string) => `removed receipt required amount (previously "${oldValue}")`,
+        setMaxExpenseAmount: (newValue: string) => `set max expense amount to "${newValue}"`,
+        changedMaxExpenseAmount: (oldValue: string, newValue: string) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
+        removedMaxExpenseAmount: (oldValue: string) => `removed max expense amount (previously "${oldValue}")`,
+        setMaxExpenseAge: (newValue: string) => `set max expense age to "${newValue}" days`,
+        changedMaxExpenseAge: (oldValue: string, newValue: string) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
+        removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

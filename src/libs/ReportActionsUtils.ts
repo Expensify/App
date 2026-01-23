@@ -2496,10 +2496,7 @@ function getWorkspaceFrequencyUpdateMessage(translate: LocalizedTranslate, actio
     if (!oldFrequencyTranslation || !newFrequencyTranslation) {
         return getReportActionText(action);
     }
-    return translate('workspaceActions.updatedWorkspaceFrequencyAction', {
-        oldFrequency: oldFrequencyTranslation,
-        newFrequency: newFrequencyTranslation,
-    });
+    return translate('workspaceActions.updatedWorkspaceFrequencyAction', oldFrequencyTranslation, newFrequencyTranslation);
 }
 
 function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action: ReportAction, policy?: OnyxEntry<Policy>): string {
@@ -2834,13 +2831,13 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
         const newFormatted = newIsDisabled ? '' : String(newValue);
 
         if (oldIsDisabled && !newIsDisabled) {
-            return translate('workspaceActions.setMaxExpenseAge', {oldValue: oldFormatted, newValue: newFormatted});
+            return translate('workspaceActions.setMaxExpenseAge', newFormatted);
         }
 
         if (!oldIsDisabled && newIsDisabled) {
-            return translate('workspaceActions.removedMaxExpenseAge', {oldValue: oldFormatted, newValue: newFormatted});
+            return translate('workspaceActions.removedMaxExpenseAge', oldFormatted);
         }
-        return translate('workspaceActions.changedMaxExpenseAge', {oldValue: oldFormatted, newValue: newFormatted});
+        return translate('workspaceActions.changedMaxExpenseAge', oldFormatted, newFormatted);
     }
     if (
         updatedField &&
@@ -2860,10 +2857,7 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
             }
             return '';
         };
-        return translate('workspaceActions.updateMonthlyOffset', {
-            newValue: getAutoReportingOffsetToDisplay(newValue),
-            oldValue: getAutoReportingOffsetToDisplay(oldValue),
-        });
+        return translate('workspaceActions.updateMonthlyOffset', getAutoReportingOffsetToDisplay(oldValue), getAutoReportingOffsetToDisplay(newValue));
     }
     return getReportActionText(action);
 }
@@ -3125,14 +3119,14 @@ function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate: Localized
         const newValue = newIsDisabled ? '' : convertToDisplayString(newMaxExpenseAmountNoReceipt, currency);
 
         if (oldIsDisabled && !newIsDisabled) {
-            return translate('workspaceActions.setReceiptRequiredAmount', {oldValue, newValue});
+            return translate('workspaceActions.setReceiptRequiredAmount', newValue);
         }
 
         if (!oldIsDisabled && newIsDisabled) {
-            return translate('workspaceActions.removedReceiptRequiredAmount', {oldValue, newValue});
+            return translate('workspaceActions.removedReceiptRequiredAmount', oldValue);
         }
 
-        return translate('workspaceActions.changedReceiptRequiredAmount', {oldValue, newValue});
+        return translate('workspaceActions.changedReceiptRequiredAmount', oldValue, newValue);
     }
 
     return getReportActionText(action);
@@ -3149,14 +3143,14 @@ function getPolicyChangeLogMaxExpenseAmountMessage(translate: LocalizedTranslate
         const newValue = newIsDisabled ? '' : convertToDisplayString(newMaxExpenseAmount, currency);
 
         if (oldIsDisabled && !newIsDisabled) {
-            return translate('workspaceActions.setMaxExpenseAmount', {oldValue, newValue});
+            return translate('workspaceActions.setMaxExpenseAmount', newValue);
         }
 
         if (!oldIsDisabled && newIsDisabled) {
-            return translate('workspaceActions.removedMaxExpenseAmount', {oldValue, newValue});
+            return translate('workspaceActions.removedMaxExpenseAmount', oldValue);
         }
 
-        return translate('workspaceActions.changedMaxExpenseAmount', {oldValue, newValue});
+        return translate('workspaceActions.changedMaxExpenseAmount', oldValue, newValue);
     }
 
     return getReportActionText(action);
@@ -3172,14 +3166,14 @@ function getPolicyChangeLogMaxExpenseAgeMessage(translate: LocalizedTranslate, a
         const newValue = newIsDisabled ? '' : String(newMaxExpenseAge);
 
         if (oldIsDisabled && !newIsDisabled) {
-            return translate('workspaceActions.setMaxExpenseAge', {oldValue, newValue});
+            return translate('workspaceActions.setMaxExpenseAge', newValue);
         }
 
         if (!oldIsDisabled && newIsDisabled) {
-            return translate('workspaceActions.removedMaxExpenseAge', {oldValue, newValue});
+            return translate('workspaceActions.removedMaxExpenseAge', oldValue);
         }
 
-        return translate('workspaceActions.changedMaxExpenseAge', {oldValue, newValue});
+        return translate('workspaceActions.changedMaxExpenseAge', oldValue, newValue);
     }
 
     return getReportActionText(action);
@@ -3189,10 +3183,7 @@ function getPolicyChangeLogDefaultBillableMessage(translate: LocalizedTranslate,
     const {oldDefaultBillable, newDefaultBillable} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE>) ?? {};
 
     if (typeof oldDefaultBillable === 'string' && typeof newDefaultBillable === 'string') {
-        return translate('workspaceActions.updateDefaultBillable', {
-            oldValue: oldDefaultBillable,
-            newValue: newDefaultBillable,
-        });
+        return translate('workspaceActions.updateDefaultBillable', oldDefaultBillable, newDefaultBillable);
     }
 
     return getReportActionText(action);
@@ -3202,10 +3193,7 @@ function getPolicyChangeLogDefaultReimbursableMessage(translate: LocalizedTransl
     const {oldDefaultReimbursable, newDefaultReimbursable} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE>) ?? {};
 
     if (typeof oldDefaultReimbursable === 'string' && typeof newDefaultReimbursable === 'string') {
-        return translate('workspaceActions.updateDefaultReimbursable', {
-            oldValue: oldDefaultReimbursable,
-            newValue: newDefaultReimbursable,
-        });
+        return translate('workspaceActions.updateDefaultReimbursable', oldDefaultReimbursable, newDefaultReimbursable);
     }
 
     return getReportActionText(action);
@@ -3215,10 +3203,7 @@ function getPolicyChangeLogDefaultTitleMessage(translate: LocalizedTranslate, ac
     const {oldDefaultTitle, newDefaultTitle} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE>) ?? {};
 
     if (typeof oldDefaultTitle === 'string' && typeof newDefaultTitle === 'string') {
-        return translate('workspaceActions.changedCustomReportNameFormula', {
-            newValue: newDefaultTitle,
-            oldValue: oldDefaultTitle,
-        });
+        return translate('workspaceActions.changedCustomReportNameFormula', oldDefaultTitle, newDefaultTitle);
     }
 
     return getReportActionText(action);
@@ -3228,9 +3213,7 @@ function getPolicyChangeLogDefaultTitleEnforcedMessage(translate: LocalizedTrans
     const {value} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED>) ?? {};
 
     if (typeof value === 'boolean') {
-        return translate('workspaceActions.updateDefaultTitleEnforced', {
-            value,
-        });
+        return translate('workspaceActions.updateDefaultTitleEnforced', value);
     }
 
     return getReportActionText(action);
