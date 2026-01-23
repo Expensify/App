@@ -47,8 +47,6 @@ const config = {
         : {},
 };
 
-// const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
 const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, config));
-console.log('🔧 METRO CONFIG: config =', config);
 
 module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);
