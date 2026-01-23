@@ -89,7 +89,6 @@ function WorkspaceReportFieldsPage({
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
-    // Get title field with fallback when policy fieldList is empty (matches OldDot behavior)
     const titleField = getTitleFieldWithFallback(policy);
 
     const reportFieldsSections: ReportFieldForList[] = policy?.fieldList

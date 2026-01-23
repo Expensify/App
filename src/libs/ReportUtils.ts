@@ -4377,11 +4377,7 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
 }
 
 /**
- * Gets the title field from a policy, with fallback to default when fieldList is empty (matches OldDot behavior).
- * This consolidates the logic for checking if a policy has a title field and providing a fallback.
- *
- * @param policy - The policy to get the title field from
- * @returns The title field from the policy, the fallback field if fieldList is empty, or undefined
+ * Gets the title field from a policy, with a fallback when the policy fieldList is empty (matches OldDot behavior).
  */
 function getTitleFieldWithFallback(policy: OnyxEntry<Policy>): PolicyReportField | undefined {
     const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];

@@ -46,7 +46,6 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         translate('workspace.reports.customNameTotalExample'),
     ] as const satisfies string[];
 
-    // Get title field with fallback when policy fieldList is empty (matches OldDot behavior)
     const titleField = getTitleFieldWithFallback(policy);
 
     const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
