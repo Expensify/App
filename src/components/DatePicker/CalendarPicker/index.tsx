@@ -17,6 +17,9 @@ import generateMonthMatrix from './generateMonthMatrix';
 import type CalendarPickerListItem from './types';
 import YearPickerModal from './YearPickerModal';
 
+const SELECTED_ACCESSIBILITY_STATE = {selected: true} as const;
+const UNSELECTED_ACCESSIBILITY_STATE = {selected: false} as const;
+
 type CalendarPickerProps = {
     /** An initial value of date string */
     value?: Date | string;
@@ -271,14 +274,17 @@ function CalendarPicker({
                                 onDayPressed(day);
                             };
                             const key = `${index}_day-${day}`;
-                            const dateAccessibilityLabel = day ? format(currentDate, 'EEEE, MMMM d, yyyy') : '';
+                            const fullDate = day ? new Date(currentYearView, currentMonthView, day) : null;
+                            const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate) : '';
                             return (
                                 <PressableWithoutFeedback
                                     key={key}
                                     disabled={isDisabled}
                                     onPress={handleOnPress}
                                     style={themeStyles.calendarDayRoot}
-                                    accessibilityLabel={dateAccessibilityLabel}
+                                    accessibilityLabel={accessibilityDateLabel}
+                                    accessibilityState={isSelected ? SELECTED_ACCESSIBILITY_STATE : UNSELECTED_ACCESSIBILITY_STATE}
+                                    aria-selected={isSelected}
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
