@@ -216,7 +216,7 @@ export default createOnyxDerivedValueConfig({
         const localeCompare = createLocaleCompare(preferredLocale);
 
         // Sort the reports
-        const orderedReportIDs = SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplay, priorityMode, localeCompare, reportsDrafts, reportNameValuePairs, reportAttributes);
+        const orderedReportIDs = SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplay, priorityMode, localeCompare, reportsDrafts, reportNameValuePairs);
 
         // Mark as fully computed after first full iteration
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
