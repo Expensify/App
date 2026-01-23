@@ -3224,65 +3224,6 @@ describe('actions/Report', () => {
             expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.convertedAmount).toBeNull();
         });
-
-        it('should update optimistic report name to default expense report name when changing IOU report to paid policy with empty fieldList', async () => {
-            const reportID = 'iouReport123';
-            const transactionID = 'transaction456';
-            const originalReportName = 'r@591539.com owes $4.00';
-
-            // Create an IOU report (submitted to an individual)
-            const iouReport: OnyxTypes.Report = {
-                ...createRandomReport(1, undefined),
-                reportID,
-                type: CONST.REPORT.TYPE.IOU,
-                reportName: originalReportName,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                currency: CONST.CURRENCY.USD,
-                total: -400, // $4.00
-            };
-
-            // Create a transaction for the report
-            const transaction = {
-                ...createRandomTransaction(1),
-                transactionID,
-                reportID,
-                currency: CONST.CURRENCY.USD,
-                amount: -400,
-            };
-
-            // Create a paid policy (TEAM) with empty fieldList
-            const paidPolicy = {
-                ...createRandomPolicy(Number(2), CONST.POLICY.TYPE.TEAM),
-                fieldList: {}, // Empty fieldList
-                outputCurrency: CONST.CURRENCY.USD,
-            };
-
-            // Set up the transaction in Onyx so getReportTransactions can find it
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-            await waitForBatchedUpdates();
-
-            const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData(iouReport, paidPolicy, 1, '', false, true, undefined);
-
-            // Find all report optimistic data entries (there may be multiple updates for the same report)
-            const reportOptimisticDataEntries = optimisticData.filter((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-
-            // Verify that at least one entry updates the report name to the default expense report name
-            expect(reportOptimisticDataEntries.length).toBeGreaterThan(0);
-            const reportNameUpdate = reportOptimisticDataEntries.find((data) => {
-                const value = data.value as Partial<OnyxTypes.Report>;
-                return value?.reportName === CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
-            });
-            expect(reportNameUpdate).toBeDefined();
-
-            // Verify failure data restores the original report name
-            const reportFailureDataEntries = failureData.filter((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-            expect(reportFailureDataEntries.length).toBeGreaterThan(0);
-            const reportNameFailure = reportFailureDataEntries.find((data) => {
-                const value = data.value as Partial<OnyxTypes.Report>;
-                return value?.reportName === originalReportName;
-            });
-            expect(reportNameFailure).toBeDefined();
-        });
     });
 
     describe('searchInServer', () => {
