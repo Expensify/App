@@ -71,6 +71,8 @@ We use Prettier to automatically style our code.
 - You can run Prettier to fix the style on all files with `npm run prettier`
 - You can run Prettier in watch mode to fix the styles when they are saved with `npm run prettier-watch`
 
+Our codebase is also protected by automated code review rules that check for common patterns and anti-patterns. You can find the complete list of rules in the [Code Inline Reviewer documentation](../.claude/agents/code-inline-reviewer.md).
+
 There are a few things that we have customized for our tastes which will take precedence over Airbnb's guide.
 
 ## TypeScript guidelines
@@ -1015,6 +1017,8 @@ JavaScript is always changing. We are excited whenever it does! However, we tend
 So, if a new language feature isn't something we have agreed to support it's off the table. Sticking to just one way to do things reduces cognitive load in reviews and also makes sure our knowledge of language features progresses at the same pace. If a new language feature will cause considerable effort for everyone to adapt to or we're just not quite sold on the value of it yet, we won't support it.
 
 ## React Coding Standards
+
+For additional React best practices and patterns that are automatically enforced during code review, see the [AI Code Reviewer Rules](../.claude/agents/code-inline-reviewer.md).
 
 ### Code Documentation
 
