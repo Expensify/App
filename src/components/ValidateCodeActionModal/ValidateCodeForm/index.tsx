@@ -12,6 +12,4 @@ function ValidateCodeForm(props: ValidateCodeFormProps) {
     );
 }
 
-ValidateCodeForm.displayName = 'ValidateCodeForm';
-
 export default ValidateCodeForm;
