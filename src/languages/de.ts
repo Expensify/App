@@ -7858,6 +7858,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         outstandingFilter: '<tooltip>Nach Ausgaben filtern,\ndie <strong>genehmigt werden müssen</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Quittung senden, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',
@@ -8036,7 +8037,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         domainAdmins: 'Domain-Admins',
     },
     gps: {
-        tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
         disclaimer: 'Benutze GPS, um eine Ausgabe von deiner Reise zu erstellen. Tippe unten auf „Start“, um mit der Aufzeichnung zu beginnen.',
         error: {failedToStart: 'Standortverfolgung konnte nicht gestartet werden.', failedToGetPermissions: 'Die erforderlichen Standortberechtigungen konnten nicht abgerufen werden.'},
         trackingDistance: 'Strecke wird verfolgt...',

@@ -7868,6 +7868,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
+        gpsTooltip: '<tooltip>Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Annuler les modifications ?',
@@ -8042,7 +8043,6 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         domainAdmins: 'Administrateurs de domaine',
     },
     gps: {
-        tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',
         disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Touchez Démarrer ci-dessous pour commencer le suivi.',
         error: {failedToStart: 'Impossible de démarrer le suivi de la localisation.', failedToGetPermissions: 'Échec de l’obtention des autorisations de localisation requises.'},
         trackingDistance: 'Suivi de la distance...',

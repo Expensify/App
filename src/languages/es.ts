@@ -7954,6 +7954,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
+        gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
@@ -8138,7 +8139,6 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     gps: {
-        tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',
         disclaimer: 'Utiliza el GPS para crear un gasto a partir de tu trayecto. Toca Iniciar a continuación para comenzar el seguimiento.',
         error: {
             failedToStart: 'No se pudo iniciar el seguimiento de la ubicación.',

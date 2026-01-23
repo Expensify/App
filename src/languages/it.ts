@@ -7848,6 +7848,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         },
         outstandingFilter: '<tooltip>Filtra per le spese\nche <strong>necessitano di approvazione</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Invia questa ricevuta per\n<strong>completare la prova!</strong></tooltip>',
+        gpsTooltip: '<tooltip>Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Scartare le modifiche?',
@@ -8024,7 +8025,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         domainAdmins: 'Amministratori di dominio',
     },
     gps: {
-        tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
         disclaimer: 'Usa il GPS per creare una spesa dal tuo viaggio. Tocca Avvia qui sotto per iniziare il tracciamento.',
         error: {failedToStart: 'Impossibile avviare il tracciamento della posizione.', failedToGetPermissions: 'Impossibile ottenere le autorizzazioni di localizzazione richieste.'},
         trackingDistance: 'Tracciamento distanza...',

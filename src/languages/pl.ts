@@ -7816,6 +7816,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>ukończyć jazdę próbną!</strong></tooltip>',
+        gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
@@ -7990,7 +7991,6 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
         domainAdmins: 'Administratorzy domeny',
     },
     gps: {
-        tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',
         disclaimer: 'Użyj GPS, aby utworzyć wydatek z Twojej podróży. Stuknij „Start” poniżej, aby rozpocząć śledzenie.',
         error: {failedToStart: 'Nie udało się uruchomić śledzenia lokalizacji.', failedToGetPermissions: 'Nie udało się uzyskać wymaganych uprawnień do lokalizacji.'},
         trackingDistance: 'Śledzenie dystansu…',
