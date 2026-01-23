@@ -1,8 +1,7 @@
 import React from 'react';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import type {SectionListProps} from './types';
 import AnimatedSectionList from './AnimatedSectionList';
-
+import type {SectionListProps} from './types';
 
 function BaseSectionList<ItemT, SectionT>({
     addBottomSafeAreaPadding,

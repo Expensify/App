@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
@@ -7,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {View} from 'react-native';
 import SettlementButton from '.';
 import type SettlementButtonProps from './types';
 

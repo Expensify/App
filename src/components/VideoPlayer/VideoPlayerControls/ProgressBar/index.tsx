@@ -79,9 +79,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
                     style={styles.progressBarOutline}
                     onLayout={onSliderLayout}
                 >
-                    <Animated.View
-                        style={[styles.progressBarFill, progressBarStyle]}
-                    />
+                    <Animated.View style={[styles.progressBarFill, progressBarStyle]} />
                 </Animated.View>
             </Animated.View>
         </GestureDetector>
