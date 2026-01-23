@@ -11532,7 +11532,7 @@ describe('ReportUtils', () => {
     });
 
     describe('buildOptimisticEmptyReport', () => {
-        it('should set reportName to "New Report" when policy field list is empty', async () => {
+        it('should set reportName to "New Report" when policy field list is empty and the beta is enabled', async () => {
             // Given a policy with an empty field list
             const policyWithEmptyFieldList: Policy = {
                 ...createRandomPolicy(200),
@@ -11561,7 +11561,7 @@ describe('ReportUtils', () => {
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
-        it('should set reportName to empty string when policy field list is empty and beta is not enabled', async () => {
+        it('should set reportName to empty string when policy field list is empty and the beta is not enabled', async () => {
             // Given a policy with an empty field list
             const policyWithEmptyFieldList: Policy = {
                 ...createRandomPolicy(201),
