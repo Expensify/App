@@ -298,6 +298,7 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
 /**
  * Determines the transaction type based on custom unit name or card name.
  * Returns 'distance' for Distance transactions, 'perDiem' for Per Diem International transactions,
+ * 'time' for time transactions,
  * 'cash' for cash transactions, or 'card' for card transactions.
  *
  * @param transaction - The transaction to check
