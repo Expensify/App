@@ -323,7 +323,8 @@ function ReportActionsView({
         return <ReportActionsSkeletonView />;
     }
 
-    if (!isReportTransactionThread && isMissingReportActions) {
+    const hasDerivedValueTimingIssue = reportActions.length > 0 && isMissingReportActions;
+    if (hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
