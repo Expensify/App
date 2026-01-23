@@ -91,8 +91,3 @@ Yes. Employees can submit reports manually at any time—even if a scheduled fre
 
 Only compliant expenses will be submitted. Expenses with violations, missing data, or issues will stay in an open report until fixed.
 
-## Can I automatically approve submitted reports?
-
-Yes! You can combine the Submissions setting with **Auto-Approval Rules** in your Workflow to automate approval after submission.
-
----
