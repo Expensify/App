@@ -31,7 +31,7 @@ function WorkspaceTimeTrackingRatePage({route}: WorkspaceTimeTrackingRatePagePro
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_RATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_RATE_FORM> =>
         getFieldRequiredErrors(values, [INPUT_IDS.RATE]);
@@ -42,7 +42,7 @@ function WorkspaceTimeTrackingRatePage({route}: WorkspaceTimeTrackingRatePagePro
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED}
         >
