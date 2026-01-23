@@ -2,6 +2,7 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -11,12 +12,21 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     getCardIssuedMessage,
+    getCompanyAddressUpdateMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getPolicyChangeLogMaxExpenseAgeMessage,
+    getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
+    getUpdateACHAccountMessage,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
+import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -567,6 +577,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -583,6 +594,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -599,6 +611,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -616,6 +629,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -634,6 +648,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
                     originalMessage: {},
                     message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"', type: 'Action type', text: 'Action text'}],
@@ -641,6 +656,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-08 22:27:06.825',
                     reportActionID: '1661970171066216',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
                     originalMessage: {
                         paymentType: 'ACH',
@@ -650,6 +666,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-06 22:27:08.825',
                     reportActionID: '1661970171066220',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
                     originalMessage: {
                         html: 'Hello world',
@@ -667,11 +684,48 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(expectedOutput);
         });
 
+        it('should not show moved transaction system message when expense is moved from personal space', () => {
+            const movedTransactionAction: ReportAction = {
+                created: '2022-11-13 22:27:01.825',
+                reportActionID: '8401445780099177',
+                reportID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    toReportID: '123',
+                },
+            };
+
+            const addCommentAction: ReportAction = {
+                created: '2022-11-12 22:27:01.825',
+                reportActionID: '6401435781022176',
+                reportID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+
+            const input: ReportAction[] = [movedTransactionAction, addCommentAction];
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+
+            expect(result).toStrictEqual([addCommentAction]);
+        });
+
         it('should filter out closed actions', () => {
             const input: ReportAction[] = [
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -688,6 +742,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -704,6 +759,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -721,6 +777,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -739,6 +796,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '1661970171066218',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                     originalMessage: {
                         policyName: 'default', // change to const
@@ -767,6 +825,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -783,6 +842,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '8401445780099175',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -794,6 +854,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '8401445780099174',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -816,6 +877,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:04:13.728',
                     reportActionID: '1607371725956675966',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '<mention-user accountID="18414674"/>',
@@ -835,6 +897,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:00:14.352',
                     reportActionID: '4655978522337302598',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '#join',
@@ -853,6 +916,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
                     originalMessage: {
                         lastModified: '2024-11-19 08:00:14.353',
@@ -870,6 +934,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
                     originalMessage: {
                         inviteeAccountIDs: [18414674],
@@ -969,6 +1034,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 created: '2023-08-01 16:00:00',
                 reportActionID: 'action1',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -979,6 +1045,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
                 created: '2023-08-01 18:00:00',
                 reportActionID: 'action2',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -1294,6 +1361,11 @@ describe('ReportActionsUtils', () => {
             };
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1432,7 +1504,7 @@ describe('ReportActionsUtils', () => {
                 created: '2025-09-29',
                 originalMessage: {
                     toReportID: report.reportID,
-                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    fromReportID: '1',
                 },
             };
 
@@ -1559,12 +1631,25 @@ describe('ReportActionsUtils', () => {
         it('should return the correct message with a valid report ID and report name', () => {
             const reportID = '12345';
             const reportName = 'Test Expense Report';
-            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
-                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+    });
+
+    describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '67890';
+            const reportName = 'Original Report';
+            const reportUrl = getReportURLForCurrentContext(reportID);
+            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
+                reportUrl,
                 reportName,
             });
 
-            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
 
             expect(result).toBe(expectedMessage);
         });
@@ -2260,6 +2345,336 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getPolicyChangeLogMaxExpenseAmountMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmount: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    newMaxExpenseAmount: 10000,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            expect(result).toBe('set max expense amount to "$100.00"');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmount: 10000,
+                    newMaxExpenseAmount: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            expect(result).toBe('removed max expense amount (previously "$100.00")');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmount: 10000,
+                    newMaxExpenseAmount: 50000,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            expect(result).toBe('changed max expense amount to "$500.00" (previously "$100.00")');
+        });
+    });
+
+    describe('getPolicyChangeLogMaxExpenseAgeMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAge: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    newMaxExpenseAge: 30,
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
+            expect(result).toBe('set max expense age to "30" days');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAge: 30,
+                    newMaxExpenseAge: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
+            expect(result).toBe('removed max expense age (previously "30" days)');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAge: 30,
+                    newMaxExpenseAge: 60,
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
+            expect(result).toBe('changed max expense age to "60" days (previously "30")');
+        });
+    });
+
+    describe('getPolicyChangeLogMaxExpenseAmountNoReceiptMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoReceipt: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    newMaxExpenseAmountNoReceipt: 2500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            expect(result).toBe('set receipt required amount to "$25.00"');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoReceipt: 2500,
+                    newMaxExpenseAmountNoReceipt: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            expect(result).toBe('removed receipt required amount (previously "$25.00")');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoReceipt: 2500,
+                    newMaxExpenseAmountNoReceipt: 7500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            expect(result).toBe('changed receipt required amount to "$75.00" (previously "$25.00")');
+        });
+    });
+
+    describe('getCompanyAddressUpdateMessage', () => {
+        it('should return "set" message when setting address for first time', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St',
+                        city: 'San Francisco',
+                        state: 'CA',
+                        zipCode: '94102',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, San Francisco, CA 94102"');
+        });
+
+        it('should return "changed" message when updating existing address', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '456 New Ave',
+                        city: 'Los Angeles',
+                        state: 'CA',
+                        zipCode: '90001',
+                        country: 'US',
+                    },
+                    oldAddress: {
+                        addressStreet: '123 Old St',
+                        city: 'San Francisco',
+                        state: 'CA',
+                        zipCode: '94102',
+                        country: 'US',
+                    },
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the company address to "456 New Ave, Los Angeles, CA 90001" (previously "123 Old St, San Francisco, CA 94102")');
+        });
+        it('should handle address with street2 (newline separated)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nSuite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+
+            // The new line should be replaced with a comma
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+    });
+
+    describe('getUpdateACHAccountMessage', () => {
+        it('should return "set" message when setting the default bank account for the first time', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only new bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Business Checking',
+                    maskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('set the default business bank account to "Business Checking: XXXX1234"');
+        });
+
+        it('should return "set" message without bank name when bankAccountName is empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only new bank account maskedBankAccountNumber
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: '',
+                    maskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('set the default business bank account to "XXXX1234"');
+        });
+
+        it('should return "removed" message when removing the default bank account', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only old bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldBankAccountName: 'Business Checking',
+                    oldMaskedBankAccountNumber: 'XXXX5678',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('removed the default business bank account "Business Checking: XXXX5678"');
+        });
+
+        it('should return "removed" message without bank name when oldBankAccountName is empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only old bank account maskedBankAccountNumber
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldBankAccountName: '',
+                    oldMaskedBankAccountNumber: 'XXXX5678',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('removed the default business bank account "XXXX5678"');
+        });
+
+        it('should return "changed" message when changing from one bank account to another', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with both new and old bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Savings Account',
+                    maskedBankAccountNumber: 'XXXX5678',
+                    oldBankAccountName: 'Business Checking',
+                    oldMaskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('changed the default business bank account to "Savings Account: XXXX5678" (previously "Business Checking: XXXX1234")');
+        });
+
+        it('should return "changed" message with partial bank names when some names are empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action where new bank has a name but old bank does not
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Savings Account',
+                    maskedBankAccountNumber: 'XXXX5678',
+                    oldBankAccountName: '',
+                    oldMaskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('changed the default business bank account to "Savings Account: XXXX5678" (previously "XXXX1234")');
+        });
+    });
+
     describe('getWorkspaceCustomUnitRateUpdatedMessage', () => {
         it('should return the correct message when a rate is enabled', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
@@ -2551,6 +2966,72 @@ describe('ReportActionsUtils', () => {
 
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
+        });
+    });
+
+    describe('getInvoiceCompanyNameUpdateMessage', () => {
+        it('should return the correct message when changing invoice company name with previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'New Company Name',
+                    oldValue: 'Old Company Name',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyNameUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the invoice company name to "New Company Name" (previously "Old Company Name")');
+        });
+
+        it('should return the correct message when setting invoice company name without previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'New Company Name',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyNameUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the invoice company name to "New Company Name"');
+        });
+    });
+
+    describe('getInvoiceCompanyWebsiteUpdateMessage', () => {
+        it('should return the correct message when changing invoice company website with previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'https://newwebsite.com',
+                    oldValue: 'https://oldwebsite.com',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the invoice company website to "https://newwebsite.com" (previously "https://oldwebsite.com")');
+        });
+
+        it('should return the correct message when setting invoice company website without previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'https://newwebsite.com',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the invoice company website to "https://newwebsite.com"');
         });
     });
 });

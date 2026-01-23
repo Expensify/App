@@ -18,7 +18,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildMergedTransactionData} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,6 +42,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        canBeMissing: false,
+    });
 
     const policyID = targetTransactionReport?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -52,6 +55,13 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
+    const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+    const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
+    const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`, {canBeMissing: true});
+    const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`, {
+        canBeMissing: true,
+    });
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -68,6 +78,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
+            targetTransactionThreadReport,
+            targetTransactionThreadParentReport,
+            targetTransactionThreadParentReportNextStep,
+            allTransactionViolations,
             policy,
             policyTags,
             policyCategories,
@@ -93,7 +107,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
             }
         } else {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
         }
     };
 

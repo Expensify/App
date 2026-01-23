@@ -1,15 +1,14 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +39,8 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const StyleUtils = useStyleUtils();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {showConfirmModal} = useConfirmModal();
+
+    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
     const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, route.params.backTo);
@@ -51,30 +51,19 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
+    const removeUser = () => {
+        setIsRemoveMemberConfirmModalVisible(false);
+        removeFromGroupChat(report?.reportID, [accountID]);
+        Navigation.goBack(backTo);
+    };
 
-    const showRemoveUserModal = useCallback(() => {
-        showConfirmModal({
-            danger: true,
-            title: translate('workspace.people.removeGroupMemberButtonTitle'),
-            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
-            confirmText: translate('common.remove'),
-            cancelText: translate('common.cancel'),
-        }).then(({action}) => {
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            removeFromGroupChat(report?.reportID, [accountID]);
-            Navigation.goBack(backTo);
-        });
-    }, [showConfirmModal, translate, displayName, report?.reportID, accountID, backTo]);
-
-    const navigateToProfile = useCallback(() => {
+    const navigateToProfile = () => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
-    }, [accountID]);
+    };
 
-    const openRoleSelectionModal = useCallback(() => {
+    const openRoleSelectionModal = () => {
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, route.params.backTo));
-    }, [accountID, report.reportID, route.params.backTo]);
+    };
 
     if (!member) {
         return <NotFoundPage />;
@@ -106,14 +95,26 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                         </Text>
                     )}
                     {isCurrentUserAdmin && (
-                        <Button
-                            text={translate('workspace.people.removeGroupMemberButtonTitle')}
-                            onPress={showRemoveUserModal}
-                            isDisabled={isSelectedMemberCurrentUser}
-                            icon={icons.RemoveMembers}
-                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                            style={styles.mv5}
-                        />
+                        <>
+                            <Button
+                                text={translate('workspace.people.removeGroupMemberButtonTitle')}
+                                onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
+                                isDisabled={isSelectedMemberCurrentUser}
+                                icon={icons.RemoveMembers}
+                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                style={styles.mv5}
+                            />
+                            <ConfirmModal
+                                danger
+                                title={translate('workspace.people.removeGroupMemberButtonTitle')}
+                                isVisible={isRemoveMemberConfirmModalVisible}
+                                onConfirm={removeUser}
+                                onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
+                                prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                                confirmText={translate('common.remove')}
+                                cancelText={translate('common.cancel')}
+                            />
+                        </>
                     )}
                 </View>
                 <View style={styles.w100}>

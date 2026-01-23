@@ -194,10 +194,10 @@ function ReportFooter({
             }
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
-            addComment(targetReport, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+            addComment(targetReport, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true, isInSidePanel);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, targetReport, targetReportAncestors],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [report.reportID, handleCreateTask, targetReport, targetReportAncestors, isInSidePanel],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
@@ -225,7 +225,12 @@ function ReportFooter({
                             isSmallSizeLayout={isSmallSizeLayout || isInSidePanel}
                         />
                     )}
-                    {isArchivedRoom && <ArchivedReportFooter report={report} />}
+                    {isArchivedRoom && (
+                        <ArchivedReportFooter
+                            report={report}
+                            currentUserAccountID={personalDetail.accountID}
+                        />
+                    )}
                     {!isArchivedRoom && !!isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
@@ -256,6 +261,7 @@ function ReportFooter({
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
+                            isInSidePanel={isInSidePanel}
                         />
                     </SwipeableView>
                 </View>

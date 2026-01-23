@@ -1,7 +1,6 @@
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
@@ -12,7 +11,6 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -64,7 +62,6 @@ function TransactionPreviewContent({
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
-    shouldHighlight = false,
 }: TransactionPreviewContentProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag']);
     const theme = useTheme();
@@ -224,17 +221,10 @@ function TransactionPreviewContent({
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
     const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.cardBG,
-        shouldApplyOtherStyles: false,
-    });
-
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
     return (
-        <Animated.View style={[transactionWrapperStyles, containerStyles, animatedHighlightStyle]}>
+        <View style={[transactionWrapperStyles, containerStyles]}>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
                 onClose={() => offlineWithFeedbackOnClose}
@@ -245,7 +235,7 @@ function TransactionPreviewContent({
                 shouldDisableOpacity={isDeleted}
                 shouldHideOnDelete={shouldHideOnDelete}
             >
-                <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorderColor, styles.reportContainerBorderRadius]]}>
+                <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
                     <ReportActionItemImages
                         images={receiptImages}
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -410,7 +400,7 @@ function TransactionPreviewContent({
                     )}
                 </View>
             </OfflineWithFeedback>
-        </Animated.View>
+        </View>
     );
 }
 

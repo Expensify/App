@@ -193,6 +193,7 @@ type GetOptionsConfig = {
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
+    shouldAcceptName?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
