@@ -56,7 +56,7 @@ const useSearchTypeMenuSections = () => {
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
-    const todoReports = useTodos();
+    const {reportCounts} = useTodos();
 
     const handlePendingConfirm = useCallback(
         (shouldDismissEmptyReportsConfirmation: boolean) => {
@@ -104,7 +104,7 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
                 allTransactionDrafts,
-                todoReports,
+                reportCounts,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -118,7 +118,7 @@ const useSearchTypeMenuSections = () => {
             shouldRedirectToExpensifyClassic,
             allTransactionDrafts,
             icons,
-            todoReports,
+            reportCounts,
         ],
     );
 

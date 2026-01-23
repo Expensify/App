@@ -220,21 +220,21 @@ describe('useTodos', () => {
             const {result} = renderHook(() => useTodos());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.reportsToSubmit.length).toBe(4);
-            expect(result.current.reportsToApprove.length).toBe(3);
-            expect(result.current.reportsToPay.length).toBe(2);
-            expect(result.current.reportsToExport.length).toBe(1);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBe(4);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(3);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(2);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toBe(1);
 
             for (const id of SUBMIT_REPORT_IDS) {
-                expect(result.current.reportsToSubmit.map((r) => r.reportID)).toContain(id);
+                expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toContain(id);
             }
             for (const id of APPROVE_REPORT_IDS) {
-                expect(result.current.reportsToApprove.map((r) => r.reportID)).toContain(id);
+                expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toContain(id);
             }
             for (const id of PAY_REPORT_IDS) {
-                expect(result.current.reportsToPay.map((r) => r.reportID)).toContain(id);
+                expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY]).toContain(id);
             }
-            expect(result.current.reportsToExport.map((r) => r.reportID)).toContain(EXPORT_REPORT_ID);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toContain(EXPORT_REPORT_ID);
         });
     });
 
@@ -277,11 +277,11 @@ describe('useTodos', () => {
         };
 
         it('should show correct badgeText for todo reports based on report counts', () => {
-            const todoReports = {
-                reportsToSubmit: [createMockReport('1'), createMockReport('2'), createMockReport('3')],
-                reportsToApprove: [createMockReport('4'), createMockReport('5')],
-                reportsToPay: [createMockReport('6')],
-                reportsToExport: [createMockReport('7'), createMockReport('8'), createMockReport('9'), createMockReport('10'), createMockReport('11')],
+            const reportCounts = {
+                [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 3,
+                [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 2,
+                [CONST.SEARCH.SEARCH_KEYS.PAY]: 1,
+                [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 5,
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
@@ -297,7 +297,7 @@ describe('useTodos', () => {
                 undefined,
                 false,
                 {},
-                todoReports,
+                reportCounts,
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -316,11 +316,11 @@ describe('useTodos', () => {
 
         it('should show 50+ when todo report count exceeds max limit', () => {
             const reportsOverMax = Array.from({length: 55}, (_, i) => createMockReport(String(i + 1)));
-            const todoReports = {
-                reportsToSubmit: reportsOverMax,
-                reportsToApprove: [],
-                reportsToPay: [],
-                reportsToExport: [],
+            const reportCounts = {
+                [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: reportsOverMax.length,
+                [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
+                [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
+                [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
@@ -336,7 +336,7 @@ describe('useTodos', () => {
                 undefined,
                 false,
                 {},
-                todoReports,
+                reportCounts,
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');

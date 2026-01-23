@@ -2313,16 +2313,16 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test createTypeMenuItems', () => {
-        const emptyTodoReports = {
-            reportsToSubmit: [] as OnyxTypes.Report[],
-            reportsToApprove: [] as OnyxTypes.Report[],
-            reportsToPay: [] as OnyxTypes.Report[],
-            reportsToExport: [] as OnyxTypes.Report[],
+        const reportCounts = {
+            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 0,
+            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
+            [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
+            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
         };
 
         it('should return the default menu items', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, emptyTodoReports)
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2413,7 +2413,7 @@ describe('SearchUIUtils', () => {
                 undefined,
                 false,
                 {},
-                emptyTodoReports,
+                reportCounts,
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -2477,7 +2477,7 @@ describe('SearchUIUtils', () => {
                 undefined,
                 false,
                 {},
-                emptyTodoReports,
+                reportCounts,
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2520,7 +2520,7 @@ describe('SearchUIUtils', () => {
                 undefined,
                 false,
                 {},
-                emptyTodoReports,
+                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2543,7 +2543,7 @@ describe('SearchUIUtils', () => {
                 undefined,
                 false,
                 {},
-                emptyTodoReports,
+                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2573,7 +2573,7 @@ describe('SearchUIUtils', () => {
                 undefined,
                 false,
                 {},
-                emptyTodoReports,
+                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2603,7 +2603,7 @@ describe('SearchUIUtils', () => {
                 undefined,
                 false,
                 {},
-                emptyTodoReports,
+                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2625,7 +2625,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, emptyTodoReports);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2658,7 +2658,7 @@ describe('SearchUIUtils', () => {
                 undefined,
                 false,
                 {},
-                emptyTodoReports,
+                reportCounts,
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2690,7 +2690,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, emptyTodoReports);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2728,7 +2728,7 @@ describe('SearchUIUtils', () => {
                 undefined,
                 false,
                 {},
-                emptyTodoReports,
+                reportCounts,
             );
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
@@ -2739,7 +2739,7 @@ describe('SearchUIUtils', () => {
 
         it('should generate correct routes', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, emptyTodoReports)
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
                 .map((section) => section.menuItems)
                 .flat();
 
