@@ -39,7 +39,7 @@ jobs:
   prep:
     runs-on: ubuntu-latest
     outputs:
-      APP_REF: ${{ steps.getHeadRef.outputs.REF || steps.setAppRef.outputs.REF || 'main' }}
+      APP_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
       APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
       MOBILE_PR_NUMBER: ${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}
       BUILD_WEB: ${{ steps.detectOSBotifyPush.outputs.BUILD_WEB || 'true' }}
@@ -122,23 +122,21 @@ jobs:
           fi
           echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
-      - name: Check if App pull request number is correct
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Set App ref
         id: getHeadRef
         run: |
           set -e
-          if [ -z "${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}" ]; then
-            echo "REF=" >> "$GITHUB_OUTPUT"
-          else
-            echo "REF=$(gh pr view ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ -z "${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}" ]; then
+              echo "REF=" >> "$GITHUB_OUTPUT"
+            else
+              echo "REF=$(gh pr view ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+            fi
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            echo "REF=${{ github.sha }}" >> "$GITHUB_OUTPUT"
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Set App ref for push
-        id: setAppRef
-        if: ${{ github.event_name == 'push' }}
-        run: echo "REF=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
   getMobileExpensifyPR:
     runs-on: ubuntu-latest
