@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import React from 'react';
-import {InteractionManager} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -91,8 +91,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
+            setNavigationActionToMicrotaskQueue(() => {
                 goBack();
                 setTimeout(() => {
                     deleteReportField(report.reportID, reportField);

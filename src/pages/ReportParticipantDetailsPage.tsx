@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFromGroupChat} from '@libs/actions/Report';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isGroupChatAdmin} from '@libs/ReportUtils';
@@ -64,8 +65,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                 return;
             }
             removeFromGroupChat(report?.reportID, [accountID]);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
+            setNavigationActionToMicrotaskQueue(() => {
                 Navigation.goBack(backTo);
             });
         });
