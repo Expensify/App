@@ -104,6 +104,7 @@ function mapTransactionItemToSelectedEntry(
     return [
         item.keyForList,
         {
+            transaction: item,
             isSelected: true,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
@@ -161,6 +162,7 @@ function prepareTransactionsList(
     return {
         ...selectedTransactions,
         [item.keyForList]: {
+            transaction: item,
             isSelected: true,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
@@ -547,6 +549,7 @@ function Search({
                     const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
                     newTransactionList[transactionItem.transactionID] = {
+                        transaction: transactionItem,
                         action: transactionItem.action,
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
@@ -605,6 +608,7 @@ function Search({
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
                 newTransactionList[transactionItem.transactionID] = {
+                    transaction: transactionItem,
                     action: transactionItem.action,
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
