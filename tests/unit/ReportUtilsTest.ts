@@ -9217,6 +9217,36 @@ describe('ReportUtils', () => {
             // Then the report name should be "New Report" instead of the default name
             expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
+
+        it('should set reportName to default expense report name when policy field list is empty and CUSTOM_REPORT_NAMES beta is disabled', async () => {
+            // Given a policy with an empty field list
+            const policyID = '201';
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                fieldList: {},
+            };
+
+            // And the CUSTOM_REPORT_NAMES beta is NOT enabled
+            await Onyx.set(ONYXKEYS.BETAS, []);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
+            await waitForBatchedUpdates();
+
+            // When we create an expense report offline
+            const chatReportID = '2';
+            const reportDraft: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
+            const total = 100;
+            const currency = CONST.CURRENCY.USD;
+            const expenseReport = buildOptimisticExpenseReport(chatReportID, policyID, 1, total, currency);
+
+            // Then the report name should be the default expense report name
+            expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+        });
     });
 
     describe('hasEmptyReportsForPolicy', () => {
