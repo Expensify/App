@@ -4849,6 +4849,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
