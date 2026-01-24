@@ -5441,18 +5441,17 @@ function deleteAppReport(
  * Moves an IOU report to a policy by converting it to an expense report
  */
 function moveIOUReportToPolicy(
-    reportID: string,
+    iouReport: OnyxEntry<Report>,
     policy: Policy,
     isFromSettlementButton?: boolean,
     reportTransactions: Transaction[] = [],
     isCustomReportNamesBetaEnabled?: boolean,
 ): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
     // This flow only works for IOU reports
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
         return;
     }
+    const reportID = iouReport.reportID;
     const isReimbursed = isReportManuallyReimbursed(iouReport);
 
     // We do not want to create negative amount expenses

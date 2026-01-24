@@ -485,6 +485,7 @@ function SearchPage({route}: SearchPageProps) {
                 if (!itemReportID) {
                     return;
                 }
+                const itemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportID}`];
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
                 const reportType = getReportType(itemReportID);
@@ -531,7 +532,7 @@ function SearchPage({route}: SearchPageProps) {
                     );
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReportID, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
                     }
                 }
             }
@@ -591,6 +592,7 @@ function SearchPage({route}: SearchPageProps) {
             personalPolicyID,
             allTransactions,
             isCustomReportNamesBetaEnabled,
+            allReports,
         ],
     );
 
