@@ -6827,6 +6827,7 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+            MERCHANT: 'merchant',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6903,6 +6904,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                MERCHANT: {
+                    MERCHANT: this.TABLE_COLUMNS.GROUP_MERCHANT,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -6944,6 +6950,7 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_EXPENSES,
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
+                MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7039,6 +7046,7 @@ const CONST = {
             GROUP_BANK_ACCOUNT: 'groupBankAccount',
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
+            GROUP_MERCHANT: 'groupMerchant',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7219,6 +7227,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'group-bank-account',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
+                [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
             };
         },
         NOT_MODIFIER: 'Not',
@@ -7260,6 +7269,7 @@ const CONST = {
             UNAPPROVED_CARD: 'unapprovedCard',
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
+            TOP_MERCHANTS: 'topMerchants',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {
