@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
 import {createTransaction, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,6 +30,12 @@ jest.mock('@libs/actions/IOU', () => {
         startSplitBill: jest.fn(),
         createDistanceRequest: jest.fn(),
         resetSplitShares: jest.fn(),
+    };
+});
+
+jest.mock('@libs/actions/IOU/Split', () => {
+    return {
+        startSplitBill: jest.fn(),
     };
 });
 
@@ -361,7 +368,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(IOU.startSplitBill).toHaveBeenCalledWith({
+            expect(startSplitBill).toHaveBeenCalledWith({
                 participants: [
                     expect.objectContaining({
                         accountID: 0,

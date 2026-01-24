@@ -18,14 +18,16 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
+import {getRequestType, getTransactionType} from '@libs/TransactionUtils';
 import {getPolicyTagsData} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateTrackExpenseParams, RequestMoneyInformation} from '.';
+import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
 import {
+    createDistanceRequest,
     getAllReportActionsFromIOU,
     getAllReports,
     getAllTransactions,
@@ -468,6 +470,7 @@ type DuplicateExpenseTransactionParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    customUnitPolicyID?: string;
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
@@ -482,6 +485,7 @@ function duplicateExpenseTransaction({
     activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
+    customUnitPolicyID,
     targetPolicy,
     targetPolicyCategories,
     targetReport,
@@ -566,7 +570,35 @@ function duplicateExpenseTransaction({
         policyCategories: targetPolicyCategories ?? {},
     };
 
-    return requestMoney(params);
+    const transactionType = getTransactionType(transaction);
+
+    switch (transactionType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
+            const distanceParams: CreateDistanceRequestInformation = {
+                ...params,
+                participants,
+                existingTransaction: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transaction.comment,
+                    iouRequestType: getRequestType(transaction),
+                    modifiedCreated: '',
+                    reportID: '1',
+                    transactionID: '1',
+                },
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
+                    validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+                },
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                quickAction,
+                customUnitPolicyID,
+            };
+            return createDistanceRequest(distanceParams);
+        }
+        default:
+            return requestMoney(params);
+    }
 }
 
 export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction};

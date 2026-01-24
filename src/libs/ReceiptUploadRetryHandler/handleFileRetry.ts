@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as IOU from '@userActions/IOU';
+import {startSplitBill} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -33,7 +34,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             const startSplitBillParams = {...retryParams} as IOU.StartSplitBilActionParams;
             startSplitBillParams.receipt = file;
             startSplitBillParams.shouldPlaySound = false;
-            IOU.startSplitBill(startSplitBillParams);
+            startSplitBill(startSplitBillParams);
             break;
         }
         case CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE: {

@@ -111,7 +111,9 @@ function SubmitDetailsPage({
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-        return participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
+        return participant?.accountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived);
     });
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
@@ -279,6 +281,7 @@ function SubmitDetailsPage({
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
                         isManualDistanceRequest={false}
+                        isGPSDistanceRequest={false}
                         onPDFLoadError={() => {
                             if (errorTitle) {
                                 return;

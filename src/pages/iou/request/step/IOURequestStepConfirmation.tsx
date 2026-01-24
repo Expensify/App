@@ -37,6 +37,7 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
@@ -68,6 +69,7 @@ import {
     getValidWaypoints,
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest,
@@ -82,16 +84,14 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
-    splitBill,
-    splitBillAndOpenReport,
     startMoneyRequest,
-    startSplitBill,
     submitPerDiemExpense as submitPerDiemExpenseIOUActions,
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
+import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -167,6 +167,7 @@ function IOURequestStepConfirmation({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
     /*
@@ -249,7 +250,8 @@ function IOURequestStepConfirmation({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
+    const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
+    const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
@@ -307,7 +309,7 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived, reportDrafts);
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived, reportDrafts);
             }) ?? [],
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy],
     );
@@ -747,7 +749,7 @@ function IOURequestStepConfirmation({
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
-                const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+                const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
                 trackExpenseIOUActions({
                     report,
@@ -787,6 +789,7 @@ function IOURequestStepConfirmation({
                         isLinkedTrackedExpenseReportArchived,
                         odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
                         odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
+                        gpsCoordinates: isGPSDistanceRequest ? getGPSCoordinates(gpsDraftDetails) : undefined,
                     },
                     accountantParams: {
                         accountant: item.accountant,
@@ -807,6 +810,7 @@ function IOURequestStepConfirmation({
             privateIsArchivedMap,
             isManualDistanceRequest,
             isOdometerDistanceRequest,
+            isGPSDistanceRequest,
             report,
             isDraftPolicy,
             action,
@@ -819,6 +823,7 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            gpsDraftDetails,
             isASAPSubmitBetaEnabled,
             introSelected,
             activePolicyID,
@@ -867,6 +872,7 @@ function IOURequestStepConfirmation({
                     receipt: isManualDistanceRequest || isOdometerDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
                     odometerStart: isOdometerDistanceRequest ? transaction.comment?.odometerStart : undefined,
                     odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
+                    gpsCoordinates: isGPSDistanceRequest ? getGPSCoordinates(gpsDraftDetails) : undefined,
                 },
                 backToReport,
                 isASAPSubmitBetaEnabled,
@@ -882,17 +888,19 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.accountID,
             iouType,
             policy,
-            isOdometerDistanceRequest,
             policyCategories,
             policyTags,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
-            isManualDistanceRequest,
             transactionDistance,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            isManualDistanceRequest,
+            isOdometerDistanceRequest,
             receiptFiles,
+            isGPSDistanceRequest,
+            gpsDraftDetails,
             backToReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
@@ -1421,6 +1429,7 @@ function IOURequestStepConfirmation({
                         isDistanceRequest={isDistanceRequest}
                         isManualDistanceRequest={isManualDistanceRequest}
                         isOdometerDistanceRequest={isOdometerDistanceRequest}
+                        isGPSDistanceRequest={isGPSDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}
