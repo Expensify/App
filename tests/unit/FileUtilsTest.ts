@@ -1,9 +1,11 @@
 import {Platform} from 'react-native';
+import ImageSize from 'react-native-image-size';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
 
 jest.useFakeTimers();
+jest.mock('react-native-image-size');
 
 const createMockFile = (name: string, size: number) => ({
     name,
@@ -238,6 +240,58 @@ describe('FileUtils', () => {
             mockCanvas.toBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(null));
 
             await expect(FileUtils.canvasFallback(blob, 'test.heic')).rejects.toThrow('Canvas conversion failed - returned null blob');
+        });
+    });
+
+    describe('getImageDimensionsAfterResize', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('should return scaled dimensions for normal-sized images', async () => {
+            (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 4000, height: 3000});
+
+            const file = {uri: 'file://test.jpg', name: 'test.jpg', type: 'image/jpeg'};
+            const result = await FileUtils.getImageDimensionsAfterResize(file);
+
+            expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+            expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+        });
+
+        it('should throw IMAGE_DIMENSIONS_TOO_LARGE error when image exceeds maximum pixel count', async () => {
+            // 10000 x 6000 = 60 million pixels, which exceeds MAX_IMAGE_PIXEL_COUNT (50 million)
+            (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 10000, height: 6000});
+
+            const file = {uri: 'file://large-image.jpg', name: 'large-image.jpg', type: 'image/jpeg'};
+
+            await expect(FileUtils.getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+        });
+
+        it('should not throw for images at exactly the maximum pixel count', async () => {
+            // Exactly 50 million pixels (e.g., 10000 x 5000)
+            (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 10000, height: 5000});
+
+            const file = {uri: 'file://max-size.jpg', name: 'max-size.jpg', type: 'image/jpeg'};
+
+            await expect(FileUtils.getImageDimensionsAfterResize(file)).resolves.toBeDefined();
+        });
+    });
+
+    describe('getFileValidationErrorText', () => {
+        const mockTranslate = (key: string) => key;
+
+        it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
+            const result = FileUtils.getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+
+            expect(result.title).toBe('attachmentPicker.attachmentError');
+            expect(result.reason).toBe('attachmentPicker.imageDimensionsTooLarge');
+        });
+
+        it('should return empty strings for null validation error', () => {
+            const result = FileUtils.getFileValidationErrorText(mockTranslate, null);
+
+            expect(result.title).toBe('');
+            expect(result.reason).toBe('');
         });
     });
 });
