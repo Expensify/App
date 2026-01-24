@@ -1994,6 +1994,7 @@ function getMemberSections(
 function getCardSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
+    translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
 ): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
@@ -2033,13 +2034,16 @@ function getCardSections(
                 transactionsQueryJSON,
                 ...personalDetails,
                 ...cardGroup,
-                formattedCardName: getCardDescription({
-                    cardID: cardGroup.cardID,
-                    bank: cardGroup.bank,
-                    cardName: cardGroup.cardName,
-                    lastFourPAN: cardGroup.lastFourPAN,
-                } as OnyxTypes.Card),
-                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed, customFeedName) ?? '',
+                formattedCardName: getCardDescription(
+                    {
+                        cardID: cardGroup.cardID,
+                        bank: cardGroup.bank,
+                        cardName: cardGroup.cardName,
+                        lastFourPAN: cardGroup.lastFourPAN,
+                    } as OnyxTypes.Card,
+                    translate,
+                ),
+                formattedFeedName: getCustomOrFormattedFeedName(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, customFeedName) ?? '',
             };
         }
     }
@@ -2203,7 +2207,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, cardFeeds);
+                return getCardSections(data, queryJSON, translate, cardFeeds);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -2861,6 +2865,12 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
+function isTodoSearch(hash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
+    const TODO_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
+    const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.hash === hash)?.key;
+    return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
+}
+
 // eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
     icons: Record<'Document' | 'Pencil' | 'ThumbsUp', IconAsset>,
@@ -3076,8 +3086,8 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
 /**
  * Whether to show the empty state or not
  */
-function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
-    return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes | undefined) {
+    return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
@@ -3661,5 +3671,6 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    isTodoSearch,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

@@ -3,12 +3,15 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
-import type {ReportAction, SearchResults} from '@src/types/onyx';
+import type {ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
+    /** The transaction itself */
+    transaction: Transaction;
+
     /** Whether the transaction is selected */
     isSelected: boolean;
 
@@ -137,6 +140,8 @@ type SearchContextData = {
 
 type SearchContextProps = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
+    /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
+    shouldUseLiveData: boolean;
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
