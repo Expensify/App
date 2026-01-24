@@ -2684,6 +2684,16 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    MISSING_PERSONAL_DETAILS: {
+        STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+            CONFIRM: 'confirm',
+        },
+    },
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -3703,6 +3713,24 @@ const CONST = {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
             INVOICING: 'invoicing2018',
+        },
+    },
+    EXPENSE_RULES: {
+        FIELDS: {
+            BILLABLE: 'billable',
+            CATEGORY: 'category',
+            DESCRIPTION: 'comment',
+            CREATE_REPORT: 'createReport',
+            MERCHANT: 'merchantToMatch',
+            RENAME_MERCHANT: 'merchant',
+            REIMBURSABLE: 'reimbursable',
+            REPORT: 'report',
+            TAG: 'tag',
+            TAX: 'tax',
+        },
+        BULK_ACTION_TYPES: {
+            EDIT: 'edit',
+            DELETE: 'delete',
         },
     },
 
@@ -8036,6 +8064,11 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+    },
+
+    SECTION_LIST_ITEM_TYPE: {
+        HEADER: 'header',
+        ROW: 'row',
     },
 } as const;
 
