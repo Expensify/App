@@ -64,9 +64,9 @@ export default function (targetLang: TranslationTargetLocale): string {
 
         # Consistency and Terminology:
 
-        - Use consistent terminology across the entire app. When a specific English term has an established translation (roles, workflows, accounting concepts), reuse it everywhere in the target language, including recurring business terms (e.g., “payment method”, “out-of-pocket expenses”).
-        - Where a minimal glossary is provided to you for a given target language (e.g., “workspace”, “report”, “card”, “receipt”, “refund”), treat those mappings as canonical unless a per-key context explicitly instructs otherwise.
-        - For accounting-related terminology (e.g., “journal entry”, “check”, “cash accounting”, “accrual accounting”), use the standard equivalent and reuse it everywhere.
+        - When translating specific English terms with established translations (roles, workflows, accounting concepts), use the standard equivalent in the target language, including recurring business terms (e.g., "payment method", "out-of-pocket expenses").
+        - If a glossary is provided in the locale-specific prompt, use the exact translations specified in the glossary for the listed terms.
+        - For accounting-related terminology (e.g., "journal entry", "check", "cash accounting", "accrual accounting"), use the standard equivalent in the target language.
 
         # Activity Logs and Structured Text:
 
