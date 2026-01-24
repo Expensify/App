@@ -2014,6 +2014,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, po
         showRBR = true,
         shouldShowGBR = false,
         shouldUnreadBeBold = false,
+        personalDetails,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2084,7 +2085,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, po
             if (report?.policyID) {
                 const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
-                const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+                const submitsToAccountDetails = (personalDetails ?? allPersonalDetails)?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
                 if (subtitle) {
@@ -2163,6 +2164,7 @@ function getValidOptions(
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
         shouldAcceptName = false,
+        personalDetails,
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
@@ -2245,6 +2247,7 @@ function getValidOptions(
                 shouldSeparateSelfDMChat,
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
+                personalDetails,
             }).at(0);
         }
 
@@ -2258,6 +2261,7 @@ function getValidOptions(
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
+            personalDetails,
         });
 
         workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
@@ -2267,6 +2271,7 @@ function getValidOptions(
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
+            personalDetails,
         });
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
@@ -2382,6 +2387,7 @@ type SearchOptionsConfig = {
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
     loginList: OnyxEntry<Login>;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -2976,8 +2982,8 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
-function getManagerMcTestParticipant(): Participant | undefined {
-    const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
+function getManagerMcTestParticipant(personalDetails?: OnyxEntry<PersonalDetailsList>): Participant | undefined {
+    const managerMcTestPersonalDetails = Object.values(personalDetails ?? allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
     return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
