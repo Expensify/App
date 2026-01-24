@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -2948,7 +2948,12 @@ describe('OptionsListUtils', () => {
         });
 
         describe('DEW (Dynamic External Workflow)', () => {
-            beforeEach(() => Onyx.clear());
+            beforeEach(async () => {
+                await act(async () => {
+                    await Onyx.clear();
+                });
+                jest.clearAllMocks();
+            });
 
             it('should show queued message for SUBMITTED action with DEW policy when offline and pending submit', async () => {
                 const reportID = 'dewReport1';
@@ -3459,7 +3464,12 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getReportOption', () => {
-        beforeEach(() => Onyx.clear());
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            jest.clearAllMocks();
+        });
 
         it('should return option with correct workspace name when policy is provided', async () => {
             const reportID = '101';
