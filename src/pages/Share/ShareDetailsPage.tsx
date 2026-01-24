@@ -18,6 +18,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -61,8 +62,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const ancestors = useAncestors(report);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+    const displayReport = useMemo(
+        () => getReportDisplayOption(report, unknownUserDetails, privateIsArchived, reportAttributesDerived),
+        [report, unknownUserDetails, privateIsArchived, reportAttributesDerived],
+    );
 
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');

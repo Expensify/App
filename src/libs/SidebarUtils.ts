@@ -37,6 +37,8 @@ import {
     getDeletedApprovalRuleMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportAction,
@@ -62,6 +64,7 @@ import {
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -648,6 +651,7 @@ function getOptionData({
     lastActionReport,
     movedFromReport,
     movedToReport,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -666,6 +670,7 @@ function getOptionData({
     lastActionReport: OnyxEntry<Report> | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    currentUserAccountID: number;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -793,10 +798,10 @@ function getOptionData({
             : null;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport({report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived});
+        lastMessageTextFromReport = getLastMessageTextForReport({translate, report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived});
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
@@ -828,7 +833,7 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
@@ -910,10 +915,16 @@ function getOptionData({
             result.alternateText = getSubmitsToUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
             result.alternateText = getForwardsToUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
+            result.alternateText = getInvoiceCompanyNameUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
+            result.alternateText = getInvoiceCompanyWebsiteUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER) {
             result.alternateText = getReimburserUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
             result.alternateText = getWorkspaceReimbursementUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
+            result.alternateText = getUpdateACHAccountMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
             result.alternateText = getCompanyAddressUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
@@ -935,7 +946,8 @@ function getOptionData({
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            const displayName = (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails)) || lastActorDisplayName;
+            const displayName =
+                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID)) || lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
@@ -999,8 +1011,9 @@ function getOptionData({
                     translate('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isReportArchived) {
-            const displayName = (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails)) || lastActorDisplayName;
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
+            const displayName =
+                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID)) || lastActorDisplayName;
             result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
             result.alternateText = formatReportLastMessageText(lastMessageText);

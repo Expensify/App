@@ -125,14 +125,14 @@ function TripRoomPreview({
     shouldDisplayContextMenu = true,
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const chatReportID = chatReport?.reportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
     const dateInfo =
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(translate, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
+            ? DateUtils.getFormattedDateRange(translate, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate), preferredLocale)
             : '';
     const reportCurrency = iouReport?.currency ?? chatReport?.currency;
 

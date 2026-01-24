@@ -52,7 +52,7 @@ import ImportContactButton from './ImportContactButton';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish?: (value?: string) => void;
+    onFinish?: (value?: string, participants?: Participant[]) => void;
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
@@ -92,7 +92,7 @@ const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUT
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onFinish = (_value?: string) => {},
+    onFinish = (_value?: string, _participants?: Participant[]) => {},
     onParticipantsAdded,
     iouType,
     action,
@@ -163,7 +163,7 @@ function MoneyRequestParticipantsSelector({
             onParticipantsAdded(newParticipants);
 
             if (!option.isSelfDM) {
-                onFinish();
+                onFinish(undefined, newParticipants);
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
