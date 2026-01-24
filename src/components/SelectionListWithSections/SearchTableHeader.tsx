@@ -343,6 +343,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
                     translationKey: undefined,
+                    icon: icons.Receipt,
                     isColumnSortable: false,
                 },
                 {
