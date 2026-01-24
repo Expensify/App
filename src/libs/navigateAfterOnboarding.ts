@@ -1,5 +1,5 @@
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import ROUTES from '@src/ROUTES';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';

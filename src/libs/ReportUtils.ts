@@ -23,7 +23,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type PolicyData from '@hooks/usePolicyData/types';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
