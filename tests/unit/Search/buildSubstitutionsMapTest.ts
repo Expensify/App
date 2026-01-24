@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import type {OnyxCollection} from 'react-native-onyx';
-import {translateLocal} from '../../utils/TestHelper';
 import {buildSubstitutionsMap} from '@src/components/Search/SearchRouter/buildSubstitutionsMap';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {translateLocal} from '../../utils/TestHelper';
 
 jest.mock('@libs/ReportUtils', () => {
     return {
