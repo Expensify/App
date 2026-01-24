@@ -3129,12 +3129,12 @@ describe('actions/IOU', () => {
                 const validWaypoints: WaypointCollection = {
                     waypoint0: {
                         lat: 40.7128,
-                        lng: -74.0060,
+                        lng: -74.006,
                         address: '123 Broadway, New York, NY, USA',
                         name: '123 Broadway',
                     },
                     waypoint1: {
-                        lat: 40.7580,
+                        lat: 40.758,
                         lng: -73.9855,
                         address: 'Times Square, New York, NY, USA',
                         name: 'Times Square',
