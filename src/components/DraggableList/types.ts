@@ -5,6 +5,22 @@ type DraggableListData<T> = {
     data: T[];
 };
 
+type DraggableItemState = {
+    isDragDisabled: boolean;
+    isDisabled: boolean;
+};
+
+function getDraggableItemState(item: unknown): DraggableItemState {
+    if (!item || typeof item !== 'object') {
+        return {isDragDisabled: false, isDisabled: false};
+    }
+
+    return {
+        isDragDisabled: 'isDragDisabled' in item && Boolean(item.isDragDisabled),
+        isDisabled: 'isDisabled' in item && Boolean(item.isDisabled),
+    };
+}
+
 /**
  * Props for DraggableList are inspired by the `react-native-draggable-flatlist` library.
  * https://github.com/computerjazz/react-native-draggable-flatlist#props
@@ -39,7 +55,10 @@ type SortableItemProps = {
     disabled?: boolean;
     /** Whether this item is currently focused for keyboard navigation */
     isFocused?: boolean;
+    /** Whether this item is disabled (not selectable, skipped in Tab navigation) */
+    isItemDisabled?: boolean;
 };
 
 export default DraggableListProps;
 export type {SortableItemProps};
+export {getDraggableItemState};

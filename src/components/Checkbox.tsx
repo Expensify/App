@@ -65,6 +65,9 @@ type CheckboxProps = Partial<ChildrenProps> &
 
         /** Reference to the outer element */
         ref?: ForwardedRef<View>;
+
+        /** Tab index for the checkbox */
+        tabIndex?: number;
     };
 
 function Checkbox({
@@ -87,6 +90,7 @@ function Checkbox({
     testID,
     ref,
     sentryLabel,
+    tabIndex,
 }: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -130,6 +134,7 @@ function Checkbox({
             ref={ref as PressableRef}
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceOrEnterKey}
+            tabIndex={tabIndex}
             role={CONST.ROLE.CHECKBOX}
             /*  true  → checked
                 false → unchecked

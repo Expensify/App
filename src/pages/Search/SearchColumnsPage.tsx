@@ -109,6 +109,7 @@ function SearchColumnsPage() {
                 isSelected: isEffectivelySelected,
                 isDisabled: isRequired,
                 isDragDisabled,
+                tabIndex: -1,
                 leftElement: (
                     <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
                         <Icon
@@ -134,8 +135,6 @@ function SearchColumnsPage() {
 
     const onSelectItem = (item: ListItem, listType: ActiveList) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
-
-        // Set the active list for keyboard navigation
         setActiveList(listType);
 
         if (requiredColumns.has(updatedColumnId)) {

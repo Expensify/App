@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
+import {getDraggableItemState} from './types';
 
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 
@@ -37,9 +38,9 @@ function DraggableList<T>({
         return keyExtractor(item, index);
     });
 
-    const disabledArrowKeyIndexes = data.flatMap((item, index) => ((item as {isDisabled?: boolean})?.isDisabled ? [index] : []));
+    const disabledArrowKeyIndexes = data.flatMap((item, index) => (getDraggableItemState(item).isDisabled ? [index] : []));
 
-    const [focusedIndex] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: data.length - 1,
         disabledIndexes: disabledArrowKeyIndexes,
@@ -71,14 +72,14 @@ function DraggableList<T>({
 
             const reorderedItems = arrayMove(data, oldIndex, newIndex);
             onDragEndCallback?.({data: reorderedItems});
+            setFocusedIndex(-1);
         }
     };
 
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
-        // Check if item has a disabled property for dragging
-        const isDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
-        const isFocused = index === focusedIndex;
+        const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemState(item);
+        const isFocused = index === focusedIndex && !isItemDisabled;
 
         const renderedItem = renderItem({
             item,
@@ -93,8 +94,9 @@ function DraggableList<T>({
             <SortableItem
                 id={key}
                 key={key}
-                disabled={isDisabled}
+                disabled={isDragDisabled}
                 isFocused={isFocused}
+                isItemDisabled={isItemDisabled}
             >
                 {itemWithFocus}
             </SortableItem>
