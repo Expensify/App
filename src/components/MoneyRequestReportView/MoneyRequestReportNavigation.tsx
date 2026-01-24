@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
@@ -15,6 +16,29 @@ import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
+import type {Report} from '@src/types/onyx';
+
+type ReportPendingFields = Pick<Report, 'pendingAction' | 'pendingFields'>;
+
+/**
+ * Selector to only get pendingAction and pendingFields from reports.
+ * This reduces re-renders by not subscribing to all report field changes.
+ */
+function selectReportsPendingFields(reports: OnyxCollection<Report>): OnyxCollection<ReportPendingFields> {
+    if (!reports) {
+        return null;
+    }
+    return Object.keys(reports).reduce((acc: Record<string, ReportPendingFields>, key) => {
+        const report = reports[key];
+        if (report) {
+            acc[key] = {
+                pendingAction: report.pendingAction,
+                pendingFields: report.pendingFields,
+            };
+        }
+        return acc;
+    }, {});
+}
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -24,7 +48,7 @@ type MoneyRequestReportNavigationProps = {
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
-    const [liveReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [liveReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: selectReportsPendingFields});
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
@@ -61,12 +85,14 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
 
+    const reportKeyPrefix = ONYXKEYS.COLLECTION.REPORT;
     const allReports = results.filter((id) => {
         if (!id) {
             return false;
         }
-        const liveReport = liveReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
-        return liveReport?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const liveReport = liveReports?.[`${reportKeyPrefix}${id}`];
+        const isPendingDelete = liveReport?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || liveReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        return !isPendingDelete;
     });
 
     const currentIndex = allReports.indexOf(reportID);
