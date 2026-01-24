@@ -43,14 +43,15 @@ class ChatGPTTranslator extends Translator {
     }
 
     protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
+        const instructions = await buildTranslationInstructions(targetLang);
         const userInput = buildTranslationRequestInput(text, context);
 
         let attempt = 0;
         while (attempt <= ChatGPTTranslator.MAX_RETRIES) {
             try {
-                // TODO: Update to use instructions parameter (commit 2)
                 const response = await this.openai.promptResponses({
                     input: userInput,
+                    instructions,
                 });
 
                 const fixedResult = this.fixChineseBracketsInMarkdown(response.text);
