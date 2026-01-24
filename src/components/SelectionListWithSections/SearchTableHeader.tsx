@@ -431,7 +431,6 @@ function SearchTableHeader({
     // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
     const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard', 'Receipt'] : []) satisfies SearchHeaderIcons;
 
-    
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
             return columns.includes(columnName);
