@@ -52,6 +52,7 @@ class ChatGPTTranslator extends Translator {
                 const response = await this.openai.promptResponses({
                     input: userInput,
                     instructions,
+                    promptCacheKey: `translation-${targetLang}`,
                 });
 
                 const fixedResult = this.fixChineseBracketsInMarkdown(response.text);
