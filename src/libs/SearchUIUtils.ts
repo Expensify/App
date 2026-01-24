@@ -234,6 +234,7 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
 
 const transactionMerchantGroupColumnNamesToSortingProperty: TransactionMerchantGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
@@ -2140,7 +2141,7 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
                 transactions: [],
                 transactionsQueryJSON,
                 ...merchantGroup,
-                formattedMerchant: merchantGroup.merchant,
+                formattedMerchant: merchantGroup.merchant || '',
             };
         }
     }

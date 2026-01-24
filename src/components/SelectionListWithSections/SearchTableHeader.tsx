@@ -429,6 +429,9 @@ function SearchTableHeader({
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
+    // Convert MERCHANT sortBy to GROUP_MERCHANT for merchant grouping so the sort arrow appears on the correct column
+    const displaySortBy = groupBy === CONST.SEARCH.GROUP_BY.MERCHANT && sortBy === CONST.SEARCH.TABLE_COLUMNS.MERCHANT ? CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT : sortBy;
+
     // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
     const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard', 'Receipt'] : []) satisfies SearchHeaderIcons;
 
@@ -491,7 +494,7 @@ function SearchTableHeader({
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}
-            sortBy={sortBy}
+            sortBy={displaySortBy}
             sortOrder={sortOrder}
             // In GroupBy views, disable flex expansion for Total columns so Expenses column gets more space
             shouldRemoveTotalColumnFlex={!!groupBy && !isExpenseReportView}
@@ -501,7 +504,9 @@ function SearchTableHeader({
                 if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
                     return;
                 }
-                onSortPress(columnName, order);
+                // Convert GROUP_MERCHANT to MERCHANT for sorting to avoid crashes
+                const sortColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT ? CONST.SEARCH.TABLE_COLUMNS.MERCHANT : columnName;
+                onSortPress(sortColumn, order);
             }}
         />
     );
