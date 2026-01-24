@@ -6888,6 +6888,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6927,6 +6928,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
+        topMerchants: 'Top-Händler',
     },
     genericErrorPage: {
         title: 'Oh je, etwas ist schiefgelaufen!',

@@ -6879,6 +6879,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6918,6 +6919,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         topSpenders: 'Maggiori spenditori',
+        topMerchants: 'Principali esercenti',
     },
     genericErrorPage: {
         title: 'Uh-oh, qualcosa è andato storto!',
