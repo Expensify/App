@@ -6637,6 +6637,8 @@ ${reportName}
         unapprovedCash: '未批准的现金',
         unapprovedCard: '未批准的卡片',
         reconciliation: '对账',
+        topSpenders: '消费最多者',
+        topMerchants: '消费最多的商家',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
@@ -6740,7 +6742,6 @@ ${reportName}
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
-        topSpenders: '最高支出者',
     },
     genericErrorPage: {
         title: '哎呀，出错了！',

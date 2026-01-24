@@ -69,8 +69,10 @@ function SearchColumnsPage() {
         const unselected = columnsToSort
             .filter((col) => !col.isSelected)
             .sort((a, b) => {
-                const textA = translate(getSearchColumnTranslationKey(a.value));
-                const textB = translate(getSearchColumnTranslationKey(b.value));
+                const keyA = getSearchColumnTranslationKey(a.value);
+                const keyB = getSearchColumnTranslationKey(b.value);
+                const textA = keyA ? translate(keyA) : '';
+                const textB = keyB ? translate(keyB) : '';
                 return localeCompare(textA, textB);
             });
         return [...selected, ...unselected];
@@ -101,8 +103,9 @@ function SearchColumnsPage() {
             const isRequired = requiredColumns.has(columnId);
             const isEffectivelySelected = isRequired || isSelected;
             const isDragDisabled = !isEffectivelySelected;
+            const translationKey = getSearchColumnTranslationKey(columnId);
             return {
-                text: translate(getSearchColumnTranslationKey(columnId)),
+                text: translationKey ? translate(translationKey) : '',
                 value: columnId,
                 keyForList: columnId,
                 isSelected: isEffectivelySelected,
@@ -148,8 +151,10 @@ function SearchColumnsPage() {
                 const selected = prevColumns.filter((col) => col.isSelected);
                 const unselected = prevColumns.filter((col) => !col.isSelected && col.columnId !== updatedColumnId);
                 const unselectedSorted = unselected.sort((a, b) => {
-                    const textA = translate(getSearchColumnTranslationKey(a.columnId));
-                    const textB = translate(getSearchColumnTranslationKey(b.columnId));
+                    const keyA = getSearchColumnTranslationKey(a.columnId);
+                    const keyB = getSearchColumnTranslationKey(b.columnId);
+                    const textA = keyA ? translate(keyA) : '';
+                    const textB = keyB ? translate(keyB) : '';
                     return localeCompare(textA, textB);
                 });
                 return [...selected, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];
