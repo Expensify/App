@@ -458,6 +458,7 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
+            accessibilityLabel={props.accessibilityLabel}
         />
     );
 

@@ -329,6 +329,7 @@ import {
     isDistanceRequest,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
+    isManagedCardTransaction,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isMapDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
@@ -462,20 +463,6 @@ type BuildOptimisticIOUReportActionParams = {
     bankAccountID?: number | undefined;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
-};
-
-type BuildOptimisticExpenseReportParams = {
-    chatReportID: string | undefined;
-    policyID: string | undefined;
-    payeeAccountID: number;
-    total: number;
-    currency: string;
-    allBetas: OnyxEntry<Beta[]>;
-    nonReimbursableTotal?: number;
-    parentReportActionID?: string;
-    optimisticIOUReportID?: string;
-    reportTransactions?: Record<string, Transaction>;
-    createdTimestamp?: string;
 };
 
 type OptimisticIOUReportAction = Pick<
@@ -1114,6 +1101,12 @@ Onyx.connectWithoutView({
             return acc;
         }, {});
     },
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -4561,6 +4554,11 @@ function canEditMoneyRequest(
         return false;
     }
 
+    // Domain admins can report unreported managed card transactions
+    if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isManagedCardTransaction(transaction)) {
+        return true;
+    }
+
     const moneyRequestReportID = originalMessage?.IOUReportID;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
@@ -6772,7 +6770,7 @@ function buildOptimisticInvoiceReport(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, allBetas: OnyxEntry<Beta[]>, isEmptyOptimisticReport = false) {
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimisticReport = false) {
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     if (isASAPSubmitBetaEnabled) {
         return {
@@ -6816,19 +6814,18 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, allBetas: Ony
  * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
  * @param optimisticIOUReportID – Optimistic IOU report id
  */
-function buildOptimisticExpenseReport({
-    chatReportID,
-    policyID,
-    payeeAccountID,
-    total,
-    currency,
-    allBetas,
+function buildOptimisticExpenseReport(
+    chatReportID: string | undefined,
+    policyID: string | undefined,
+    payeeAccountID: number,
+    total: number,
+    currency: string,
     nonReimbursableTotal = 0,
-    parentReportActionID,
-    optimisticIOUReportID,
-    reportTransactions,
-    createdTimestamp,
-}: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
+    parentReportActionID?: string,
+    optimisticIOUReportID?: string,
+    reportTransactions?: Record<string, Transaction>,
+    createdTimestamp?: string,
+): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
@@ -6841,7 +6838,7 @@ function buildOptimisticExpenseReport({
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 
@@ -6900,16 +6897,8 @@ function buildOptimisticExpenseReport({
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(
-    reportID: string,
-    accountID: number,
-    parentReport: OnyxEntry<Report>,
-    parentReportActionID: string,
-    policy: OnyxEntry<Policy>,
-    timeOfCreation: string,
-    allBetas: OnyxEntry<Beta[]>,
-) {
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas, true);
+function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, parentReportActionID: string, policy: OnyxEntry<Policy>, timeOfCreation: string) {
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, true);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
@@ -9917,7 +9906,6 @@ function getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    allBetas: OnyxEntry<Beta[]>,
     filterDeprecatedTypes = false,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
@@ -10035,11 +10023,10 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    allBetas: OnyxEntry<Beta[]>,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, allBetas, true, isReportArchived, isRestrictedToPreferredPolicy) as Array<
+    return getMoneyRequestOptions(report, policy, reportParticipants, true, isReportArchived, isRestrictedToPreferredPolicy) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
@@ -10250,7 +10237,6 @@ function canCreateRequest(
     policy: OnyxEntry<Policy>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     isReportArchived: boolean | undefined,
-    allBetas: OnyxEntry<Beta[]>,
     isRestrictedToPreferredPolicy = false,
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
@@ -10259,7 +10245,7 @@ function canCreateRequest(
         return false;
     }
 
-    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, allBetas, false, isReportArchived, isRestrictedToPreferredPolicy);
+    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, false, isReportArchived, isRestrictedToPreferredPolicy);
     requestOptions.push(CONST.IOU.TYPE.CREATE);
 
     return requestOptions.includes(iouType);
@@ -10627,7 +10613,7 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
 /**
  * Check to see if the current user has access to view the report.
  */
-function canCurrentUserOpenReport(report: OnyxEntry<Report>, allBetas: OnyxEntry<Beta[]>, isReportArchived = false): boolean {
+function canCurrentUserOpenReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
     return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allBetas, isReportArchived);
 }
 
@@ -11090,7 +11076,6 @@ function shouldCreateNewMoneyRequestReport(
     existingIOUReport: OnyxInputOrEntry<Report> | undefined,
     chatReport: OnyxInputOrEntry<Report>,
     isScanRequest: boolean,
-    allBetas: OnyxEntry<Beta[]>,
     action?: IOUAction,
 ): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
@@ -11626,6 +11611,8 @@ function prepareOnboardingOnyxData({
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
+    let setupTagsTaskReportID;
+    let setupCategoriesAndTagsTaskReportID;
     const tasksData = onboardingMessage.tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
@@ -11706,6 +11693,12 @@ function prepareOnboardingOnyxData({
             }
             if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS) {
                 addExpenseApprovalsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS) {
+                setupTagsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS) {
+                setupCategoriesAndTagsTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -11914,6 +11907,8 @@ function prepareOnboardingOnyxData({
                 choice: engagementChoice,
                 createWorkspace: createWorkspaceTaskReportID,
                 addExpenseApprovals: addExpenseApprovalsTaskReportID,
+                setupTags: setupTagsTaskReportID,
+                setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
             },
         },
     );
@@ -11983,6 +11978,8 @@ function prepareOnboardingOnyxData({
                 choice: null,
                 createWorkspace: null,
                 addExpenseApprovals: null,
+                setupCategoriesAndTags: null,
+                setupTags: null,
             },
         },
     );
@@ -12178,12 +12175,12 @@ function prepareOnboardingOnyxData({
  * DM, and we saved the report ID in the user's `onboarding` NVP. As a fallback for users who don't have the NVP, we now
  * only use the Concierge chat.
  */
-function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData, onboardingPurposeSelected?: OnboardingPurpose): boolean {
+function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData, onboardingValue: OnyxEntry<Onboarding>, onboardingPurposeSelected?: OnboardingPurpose): boolean {
     // onboarding can be an empty object for old accounts and accounts created from olddot
-    if (onboarding && !isEmptyObject(onboarding) && onboarding.chatReportID) {
-        return onboarding.chatReportID === optionOrReport?.reportID;
+    if (onboardingValue && !isEmptyObject(onboardingValue) && onboardingValue.chatReportID) {
+        return onboardingValue.chatReportID === optionOrReport?.reportID;
     }
-    if (isEmptyObject(onboarding)) {
+    if (isEmptyObject(onboardingValue)) {
         return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
     }
 
@@ -12207,8 +12204,8 @@ function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose): boole
  * Get the report used for the user's onboarding process. For most users it is the Concierge chat, however in the past
  * we also used the system DM for A/B tests.
  */
-function getChatUsedForOnboarding(): OnyxEntry<Report> {
-    return Object.values(allReports ?? {}).find((report) => isChatUsedForOnboarding(report));
+function getChatUsedForOnboarding(onboardingValue: OnyxEntry<Onboarding>): OnyxEntry<Report> {
+    return Object.values(allReports ?? {}).find((report) => isChatUsedForOnboarding(report, onboardingValue));
 }
 
 /**
@@ -12427,7 +12424,7 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
     return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
 }
 
-function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>, allBetas: OnyxEntry<Beta[]>): boolean {
+function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>): boolean {
     const transactions = getReportTransactions(iouReport?.reportID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
