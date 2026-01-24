@@ -33,9 +33,9 @@ import {
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
-    updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -63,7 +63,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -260,7 +260,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const date = DateUtils.formatWithUTCTimeZone(
             item.created,
             DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            preferredLocale,
         );
         previewHeaderText.unshift({text: date}, dotSeparator);
 

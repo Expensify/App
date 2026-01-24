@@ -3253,7 +3253,8 @@ describe('SearchUIUtils', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: '11111111'}, undefined, undefined);
+            // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, reportAction1, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
