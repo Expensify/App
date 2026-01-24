@@ -105,7 +105,6 @@ class ChatGPTTranslator extends Translator {
             perLocaleOutputTokens += outputTokens;
         }
 
-        let totalInputTokens = perLocaleInputTokens * targetLanguages.length;
         const totalOutputTokens = perLocaleOutputTokens * targetLanguages.length;
 
         const perLocaleInstructionTokens = await Promise.all(
@@ -115,18 +114,21 @@ class ChatGPTTranslator extends Translator {
             }),
         );
 
-        // Instructions are sent with every request, but prompt caching reduces cost.
-        // First request pays full price, subsequent requests get ~90% discount (only pay ~10%).
-        const CACHED_PROMPT_DISCOUNT = 0.1;
+        // Instructions are sent with every request.
+        // First request per locale: uncached (full price)
+        // Remaining requests per locale: cached (discounted price)
         const numStrings = stringsToTranslate.length;
+        let totalUncachedInputTokens = perLocaleInputTokens * targetLanguages.length;
+        let totalCachedInputTokens = 0;
 
         for (const instructionTokens of perLocaleInstructionTokens) {
-            // Calculate: full price for first request + discounted price for remaining requests
-            const instructionCost = instructionTokens * (1 + (numStrings - 1) * CACHED_PROMPT_DISCOUNT);
-            totalInputTokens += instructionCost;
+            // First request per locale uses uncached instructions
+            totalUncachedInputTokens += instructionTokens;
+            // Remaining requests use cached instructions
+            totalCachedInputTokens += instructionTokens * (numStrings - 1);
         }
 
-        return ChatGPTCostEstimator.getTotalEstimatedCost(totalInputTokens, totalOutputTokens);
+        return ChatGPTCostEstimator.getTotalEstimatedCost(totalUncachedInputTokens, totalOutputTokens, totalCachedInputTokens);
     }
 }
 
