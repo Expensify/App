@@ -7,6 +7,7 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -54,6 +55,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const personalDetails = usePersonalDetails();
     const personalDetail = useCurrentUserPersonalDetails();
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
@@ -66,8 +68,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const ancestors = useAncestors(report);
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, privateIsArchived, reportAttributesDerived),
-        [report, unknownUserDetails, privateIsArchived, reportAttributesDerived],
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived],
     );
 
     const shouldShowAttachment = !isTextShared;

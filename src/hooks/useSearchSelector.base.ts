@@ -1,5 +1,6 @@
 import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
@@ -169,6 +170,7 @@ function useSearchSelectorBase({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
 
     const onListEndReached = useDebounce(
         useCallback(() => {
@@ -213,6 +215,7 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
                     includeUserToInvite,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
@@ -224,6 +227,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     excludeLogins,
                     excludeFromSuggestionsOnly,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
                 return getValidOptions(
@@ -244,6 +248,7 @@ function useSearchSelectorBase({
                         searchString: computedSearchTerm,
                         maxElements: maxResults,
                         includeUserToInvite,
+                        personalDetails,
                     },
                     countryCode,
                 );
@@ -264,6 +269,7 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     maxElements: maxResults,
                     includeUserToInvite,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
@@ -281,6 +287,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     includeCurrentUser,
                     shouldAcceptName: true,
+                    personalDetails,
                 });
             default:
                 return getEmptyOptions();
@@ -304,6 +311,7 @@ function useSearchSelectorBase({
         getValidOptionsConfig,
         selectedOptions,
         includeCurrentUser,
+        personalDetails,
     ]);
 
     const isOptionSelected = useMemo(() => {
