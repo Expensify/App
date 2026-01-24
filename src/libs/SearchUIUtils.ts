@@ -83,9 +83,9 @@ import {
     isDeletedAction,
     isHoldAction,
     isMoneyRequestAction,
-    isReportActionVisible,
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
+    shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
@@ -368,7 +368,6 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
 };
 
 /**
@@ -1649,7 +1648,7 @@ function createAndOpenSearchTransactionThread(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue): [ReportActionListItemType[], number] {
+function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
@@ -1679,10 +1678,8 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
-                const reportID = reportAction.reportID;
                 if (
-                    !reportID ||
-                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
+                    !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -2108,10 +2105,9 @@ function getSections({
     isActionLoadingSet,
     cardFeeds,
     allTransactionViolations,
-    visibleReportActionsData,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data, visibleReportActionsData);
+        return getReportActionsSections(data);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
@@ -2773,6 +2769,12 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
+function isTodoSearch(hash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
+    const TODO_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
+    const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.hash === hash)?.key;
+    return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
+}
+
 // eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
     icons: Record<'Document' | 'Pencil' | 'ThumbsUp', IconAsset>,
@@ -2988,8 +2990,8 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
 /**
  * Whether to show the empty state or not
  */
-function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
-    return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes | undefined) {
+    return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
@@ -3553,5 +3555,6 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    isTodoSearch,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

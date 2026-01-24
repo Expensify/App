@@ -226,7 +226,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             )
         ) {
             const participant = orderedSearchOptions.userToInvite.isPolicyExpenseChat
-                ? getPolicyExpenseReportOption(orderedSearchOptions.userToInvite, reportAttributesDerived)
+                ? getPolicyExpenseReportOption(orderedSearchOptions.userToInvite, personalDetails, reportAttributesDerived)
                 : getParticipantsOption(orderedSearchOptions.userToInvite, personalDetails);
             combined.push(participant);
         }

@@ -74,10 +74,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                personalDetails,
             },
             countryCode,
         );
-    }, [areOptionsInitialized, options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
+    }, [areOptionsInitialized, options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails]);
 
     const initialSelectedOptions = useMemo(() => {
         if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
