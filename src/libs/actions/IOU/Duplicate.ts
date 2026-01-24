@@ -467,6 +467,15 @@ type DuplicateExpenseTransactionParams = {
     targetReport?: OnyxTypes.Report;
 };
 
+// TODO: remove `recentWaypoints` from this file [https://github.com/Expensify/App/issues/80049]
+// `recentWaypoints` was moved here temporarily from `src/libs/actions/IOU/index.ts` during the `Deprecate Onyx.connect` refactor.
+// All uses of this variable should be replaced with `useOnyx`.
+let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
+Onyx.connect({
+    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+    callback: (val) => (recentWaypoints = val ?? []),
+});
+
 function duplicateExpenseTransaction({
     transaction,
     optimisticChatReportID,
@@ -561,15 +570,6 @@ function duplicateExpenseTransaction({
     };
 
     const transactionType = getTransactionType(transaction);
-
-    // TODO: remove `recentWaypoints` from this file [https://github.com/Expensify/App/issues/80049]
-    // `recentWaypoints` was moved here temporarily from `src/libs/actions/IOU/index.ts` during the `Deprecate Onyx.connect` refactor.
-    // All uses of this variable should be replaced with `useOnyx`.
-    let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
-    Onyx.connect({
-        key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-        callback: (val) => (recentWaypoints = val ?? []),
-    });
 
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {

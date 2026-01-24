@@ -905,6 +905,7 @@ function IOURequestStepConfirmation({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            recentWaypoints,
         ],
     );
 
