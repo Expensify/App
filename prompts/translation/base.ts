@@ -68,6 +68,24 @@ export default function (targetLang: TranslationTargetLocale): string {
         - If a glossary is provided in the locale-specific prompt, use the exact translations specified in the glossary for the listed terms.
         - For accounting-related terminology (e.g., "journal entry", "check", "cash accounting", "accrual accounting"), use the standard equivalent in the target language.
 
+        # Glossary (XML Format):
+
+        Some locale-specific prompts may include a <glossary> section with canonical term mappings:
+
+        <glossary>
+          <term>
+            <sourceTerm>English term</sourceTerm>
+            <targetTerm>Translated term</targetTerm>
+            <partOfSpeech>verb|noun|adjective</partOfSpeech>
+            <usage>Context for when to use this translation</usage>
+          </term>
+        </glossary>
+
+        When a glossary is provided:
+        - Use the exact <targetTerm> for the corresponding <sourceTerm>
+        - The <partOfSpeech> and <usage> help disambiguate when multiple translations exist
+        - Glossary terms take precedence over your default translations
+
         # Activity Logs and Structured Text:
 
         - For activity log messages describing changes/actions, begin with the verb describing the action performed (e.g., “updated”, “added”) in a consistent tense, followed by the affected object and any placeholders.
