@@ -6,13 +6,6 @@ import Translator from './Translator';
 import type {StringWithContext} from './types';
 
 /**
- * Session state for a single locale, maintaining conversation context across translations.
- */
-type LocaleSession = {
-    conversationID: string;
-};
-
-/**
  * Represents a translation that failed after all retries.
  */
 type FailedTranslation = {
@@ -33,11 +26,6 @@ class ChatGPTTranslator extends Translator {
     private readonly openai: OpenAIUtils;
 
     /**
-     * Per-locale session state, created lazily on first use of each locale.
-     */
-    private readonly sessions = new Map<TranslationTargetLocale, LocaleSession>();
-
-    /**
      * Tracks translations that failed after all retries, for summary reporting.
      */
     private readonly failedTranslations: FailedTranslation[] = [];
@@ -54,36 +42,15 @@ class ChatGPTTranslator extends Translator {
         return [...this.failedTranslations];
     }
 
-    /**
-     * Gets or creates a session for the given locale, initializing the conversation with system instructions.
-     */
-    private async getOrCreateSession(targetLang: TranslationTargetLocale): Promise<LocaleSession> {
-        const existing = this.sessions.get(targetLang);
-        if (existing) {
-            return existing;
-        }
-
-        // Build system instructions and create a conversation with them pre-seeded
-        const instructions = await buildTranslationInstructions(targetLang);
-        const conversationID = await this.openai.createConversation(instructions);
-
-        const session: LocaleSession = {conversationID};
-        this.sessions.set(targetLang, session);
-        return session;
-    }
-
     protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
-        const session = await this.getOrCreateSession(targetLang);
         const userInput = buildTranslationRequestInput(text, context);
 
         let attempt = 0;
         while (attempt <= ChatGPTTranslator.MAX_RETRIES) {
             try {
-                // Use conversationID to maintain context across all translations for this locale.
-                // The conversation was seeded with system instructions via the Conversations API.
+                // TODO: Update to use instructions parameter (commit 2)
                 const response = await this.openai.promptResponses({
                     input: userInput,
-                    conversationID: session.conversationID,
                 });
 
                 const fixedResult = this.fixChineseBracketsInMarkdown(response.text);
