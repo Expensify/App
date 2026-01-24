@@ -1633,9 +1633,9 @@ describe('actions/IOU', () => {
                     const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT,
                         waitForCollectionCallback: true,
-                        callback: (rpts) => {
+                        callback: (reports) => {
                             Onyx.disconnect(connection);
-                            resolve(rpts);
+                            resolve(reports);
                         },
                     });
                 });
