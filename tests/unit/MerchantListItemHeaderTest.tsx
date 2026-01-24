@@ -1,5 +1,5 @@
-import React from 'react';
 import {render} from '@testing-library/react-native';
+import React from 'react';
 import MerchantListItemHeader from '@components/SelectionListWithSections/Search/MerchantListItemHeader';
 import type {TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
@@ -10,13 +10,17 @@ jest.mock('@components/Checkbox', () => ({
     default: ({onPress, isChecked, isIndeterminate, disabled, accessibilityLabel}: any) => {
         const React = require('react');
         const {Pressable, Text} = require('react-native');
-        return React.createElement(Pressable, {
-            onPress,
-            disabled,
-            accessibilityLabel,
-            accessibilityState: {checked: isChecked, disabled},
-            testID: 'checkbox',
-        }, React.createElement(Text, {}, isChecked ? 'checked' : 'unchecked'));
+        return React.createElement(
+            Pressable,
+            {
+                onPress,
+                disabled,
+                accessibilityLabel,
+                accessibilityState: {checked: isChecked, disabled},
+                testID: 'checkbox',
+            },
+            React.createElement(Text, {}, isChecked ? 'checked' : 'unchecked'),
+        );
     },
 }));
 
