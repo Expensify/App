@@ -793,6 +793,8 @@ const ONYXKEYS = {
         WORKSPACE_MEMBER_CUSTOM_FIELD_FORM: 'WorkspaceMemberCustomFieldForm',
         WORKSPACE_MEMBER_CUSTOM_FIELD_FORM_DRAFT: 'WorkspaceMemberCustomFieldFormDraft',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
+        WORKSPACE_CLIENT_ID_FORM: 'workspaceClientIDForm',
+        WORKSPACE_CLIENT_ID_FORM_DRAFT: 'workspaceClientIDFormDraft',
         WORKSPACE_TAX_CUSTOM_NAME: 'workspaceTaxCustomName',
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
         WORKSPACE_COMPANY_CARD_FEED_NAME: 'workspaceCompanyCardFeedName',
@@ -1052,6 +1054,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM]: FormTypes.EnterSignerInfoForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
+    [ONYXKEYS.FORMS.WORKSPACE_CLIENT_ID_FORM]: FormTypes.WorkspaceClientIDForm;
     [ONYXKEYS.FORMS.WORKSPACE_MEMBER_CUSTOM_FIELD_FORM]: FormTypes.WorkspaceMemberCustomFieldsForm;
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
