@@ -16,6 +16,7 @@ import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -57,8 +58,8 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getOriginalTransactionWithSplitInfo, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -71,7 +72,6 @@ import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
@@ -96,6 +96,7 @@ function mapTransactionItemToSelectedEntry(
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
+    currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
@@ -103,12 +104,13 @@ function mapTransactionItemToSelectedEntry(
     return [
         item.keyForList,
         {
+            transaction: item,
             isSelected: true,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -125,7 +127,7 @@ function mapTransactionItemToSelectedEntry(
             groupExchangeRate: item.groupExchangeRate,
             reportID: item.reportID,
             policyID: item.report?.policyID,
-            amount: item.modifiedAmount ?? item.amount,
+            amount: hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount,
             groupAmount: item.groupAmount,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
@@ -141,6 +143,7 @@ function prepareTransactionsList(
     originalItemTransaction: OnyxEntry<Transaction>,
     selectedTransactions: SelectedTransactions,
     currentUserLogin: string,
+    currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -155,12 +158,13 @@ function prepareTransactionsList(
     return {
         ...selectedTransactions,
         [item.keyForList]: {
+            transaction: item,
             isSelected: true,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest(
                 item.reportAction,
@@ -175,8 +179,7 @@ function prepareTransactionsList(
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            amount: Math.abs(item.modifiedAmount || item.amount),
+            amount: Math.abs(hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
@@ -236,6 +239,7 @@ function Search({
         selectAllMatchingItems,
         shouldResetSearchQuery,
         setShouldResetSearchQuery,
+        shouldUseLiveData,
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
@@ -244,48 +248,14 @@ function Search({
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-
-    // Filter violations based on user visibility
-    const filteredViolations = useMemo(() => {
-        if (!violations || !searchResults?.data) {
-            return violations;
-        }
-
-        const filtered: Record<string, TransactionViolation[]> = {};
-
-        const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
-
-        for (const key of transactionKeys) {
-            const transaction = searchResults.data[key as keyof typeof searchResults.data] as Transaction;
-            if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
-                continue;
-            }
-
-            const report = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-            const policy = searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
-            if (report && policy) {
-                const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-                if (transactionViolations) {
-                    const filteredTransactionViolations = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, email ?? '', true, transaction)),
-                    );
-
-                    if (filteredTransactionViolations.length > 0) {
-                        filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
-                    }
-                }
-            }
-        }
-
-        return filtered;
-    }, [violations, searchResults, email]);
+    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -300,9 +270,8 @@ function Search({
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
-
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
-
+    const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
@@ -390,21 +359,24 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        shouldUseLiveData,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
+    // For to-do searches, we never show loading state since the data is always available locally from Onyx
     const shouldShowLoadingState =
+        !shouldUseLiveData &&
         !isOffline &&
         (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || (hasErrors && !searchRequestResponseStatusCode));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const [filteredData, filteredDataLength, allDataLength] = useMemo(() => {
+    const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
         if (searchResults === undefined || !isDataLoaded) {
             return [[], 0, 0];
         }
@@ -419,6 +391,7 @@ function Search({
         const [filteredData1, allLength] = getSections({
             type,
             data: searchResults.data,
+            policies,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
             translate,
@@ -449,9 +422,63 @@ function Search({
         email,
         isActionLoadingSet,
         cardFeeds,
+        policies,
         bankAccountList,
         violations,
     ]);
+
+    // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
+    // containing its individual transactions. We collect these hashes and fetch their snapshots to enrich the grouped items.
+    const groupByTransactionHashes = useMemo(() => {
+        if (!validGroupBy) {
+            return [];
+        }
+        return (baseFilteredData as TransactionGroupListItemType[])
+            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
+            .filter((hashValue): hashValue is string => !!hashValue);
+    }, [validGroupBy, baseFilteredData]);
+
+    const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
+
+    const filteredData = useMemo(() => {
+        if (!validGroupBy || isExpenseReportType) {
+            return baseFilteredData;
+        }
+
+        const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
+            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            if (!snapshot?.data) {
+                return item;
+            }
+
+            const [transactions1] = getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: snapshot.data,
+                currentAccountID: accountID,
+                currentUserEmail: email ?? '',
+                bankAccountList,
+                translate,
+                formatPhoneNumber,
+                isActionLoadingSet,
+            });
+            return {...item, transactions: transactions1 as TransactionListItemType[]};
+        });
+
+        return enriched;
+    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList]);
+
+    const hasLoadedAllTransactions = useMemo(() => {
+        if (!validGroupBy) {
+            return true;
+        }
+        // For group-by views, check if all transactions in groups have been loaded
+        return (baseFilteredData as TransactionGroupListItemType[]).every((item) => {
+            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            // If snapshot doesn't exist, the group hasn't been expanded yet (transactions not loaded)
+            // If snapshot exists and has hasMoreResults: true, not all transactions are loaded
+            return !!snapshot && !snapshot?.search?.hasMoreResults;
+        });
+    }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -517,11 +544,12 @@ function Search({
                     const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
                     newTransactionList[transactionItem.transactionID] = {
+                        transaction: transactionItem,
                         action: transactionItem.action,
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: canUnholdRequest,
-                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', transactionItem.policy),
+                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest(
                             transactionItem.reportAction,
@@ -538,13 +566,14 @@ function Search({
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
-                        amount: transactionItem.modifiedAmount ?? transactionItem.amount,
+                        amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
                         groupAmount: transactionItem.groupAmount,
                         groupCurrency: transactionItem.groupCurrency,
                         groupExchangeRate: transactionItem.groupExchangeRate,
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                         reportAction: transactionItem.reportAction,
+                        isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                     };
                 }
             }
@@ -570,11 +599,12 @@ function Search({
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
                 newTransactionList[transactionItem.transactionID] = {
+                    transaction: transactionItem,
                     action: transactionItem.action,
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: canUnholdRequest,
-                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', transactionItem.policy),
+                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest(
                         transactionItem.reportAction,
@@ -591,13 +621,14 @@ function Search({
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
-                    amount: transactionItem.modifiedAmount ?? transactionItem.amount,
+                    amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
                     groupAmount: transactionItem.groupAmount,
                     groupCurrency: transactionItem.groupCurrency,
                     groupExchangeRate: transactionItem.groupExchangeRate,
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     reportAction: transactionItem.reportAction,
+                    isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                 };
             }
         }
@@ -672,7 +703,7 @@ function Search({
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                 setSelectedTransactions(
-                    prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, email ?? '', outstandingReportsByPolicyID),
+                    prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, email ?? '', accountID, outstandingReportsByPolicyID),
                     filteredData,
                 );
                 return;
@@ -699,14 +730,14 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
+                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                             }),
                     ),
                 },
                 filteredData,
             );
         },
-        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data, email],
+        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data, email, accountID],
     );
 
     const onSelectRow = useCallback(
@@ -797,6 +828,13 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
                 }
+
+                if (item.transactions.length > 1) {
+                    markReportIDAsMultiTransactionExpense(reportID);
+                } else {
+                    unmarkReportIDAsMultiTransactionExpense(reportID);
+                }
+
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
@@ -815,15 +853,24 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [
+            isMobileSelectionModeEnabled,
+            markReportIDAsExpense,
+            toggleTransaction,
+            queryJSON,
+            handleSearch,
+            searchKey,
+            markReportIDAsMultiTransactionExpense,
+            unmarkReportIDAsMultiTransactionExpense,
+        ],
     );
 
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
             return [];
         }
-        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchResults?.search?.type, validGroupBy);
-    }, [accountID, searchResults?.data, searchResults?.search?.type, visibleColumns, validGroupBy]);
+        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy);
+    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -922,7 +969,7 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
+                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                             }),
                     ),
                 ),
@@ -939,7 +986,7 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                     }),
             ),
             filteredData,
@@ -955,12 +1002,35 @@ function Search({
         outstandingReportsByPolicyID,
         searchResults?.data,
         email,
+        accountID,
     ]);
 
     const onLayout = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER);
         handleSelectionListScroll(sortedData, searchListRef.current);
     }, [handleSelectionListScroll, sortedData]);
+
+    useEffect(() => {
+        if (shouldShowLoadingState) {
+            return;
+        }
+
+        const renderSpanParent = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+
+        if (renderSpanParent) {
+            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER, {
+                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER,
+                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER,
+                parentSpan: renderSpanParent,
+            }).setAttributes({
+                inputQuery: queryJSON?.inputQuery,
+            });
+        }
+
+        // Exclude `queryJSON?.inputQuery` since it’s only telemetry metadata and would cause the span to start multiple times.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldShowLoadingState]);
 
     const onLayoutSkeleton = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
@@ -1004,7 +1074,7 @@ function Search({
     }
 
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type)) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -1088,11 +1158,12 @@ function Search({
                     }
                     queryJSON={queryJSON}
                     columns={columnsToShow}
-                    violations={filteredViolations}
+                    violations={violations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
+                    hasLoadedAllTransactions={hasLoadedAllTransactions}
                     customCardNames={customCardNames}
                 />
                 <ConfirmModal

@@ -6,6 +6,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -27,7 +28,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
+import {
+    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
+    getActivePoliciesWithExpenseChatAndTimeEnabled,
+    getPerDiemCustomUnit,
+    hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil,
+    isTimeTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -42,8 +49,10 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDestination from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
+import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
+import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
@@ -87,6 +96,8 @@ function IOURequestStartPage({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
+    const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
+
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -99,15 +110,32 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
 
+    const onTabSelectFocusHandler = ({index}: {index: number}) => {
+        // We requestAnimationFrame since the function is called in the animate block in the web implementation
+        // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
+        requestAnimationFrame(() => {
+            //  2 - PerDiem
+            if (index !== 2) {
+                return;
+            }
+            perDiemInputRef.current?.focus?.();
+        });
+    };
+
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const policiesWithPerDiemEnabledAndHasRates = useMemo(
         () => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
     );
+    const policiesWithTimeEnabled = useMemo(
+        () => getActivePoliciesWithExpenseChatAndTimeEnabled(allPolicies, currentUserPersonalDetails.login),
+        [allPolicies, currentUserPersonalDetails.login],
+    );
     const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
     const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
     const hasCurrentPolicyPerDiemEnabled = !!policy?.arePerDiemRatesEnabled;
+    const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
     const shouldShowPerDiemOption =
@@ -200,11 +228,18 @@ function IOURequestStartPage({
     useFocusEffect(
         useCallback(() => {
             // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (transaction?.reportID === reportID || isLoadingTransaction || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
+            if (
+                transaction?.reportID === reportID ||
+                isLoadingTransaction ||
+                isLoadingSelectedTab ||
+                !transactionRequestType ||
+                prevTransactionReportID !== transaction?.reportID ||
+                !personalPolicy?.id
+            ) {
                 return;
             }
             resetIOUTypeIfChanged(transactionRequestType);
-        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID, isLoadingTransaction]),
+        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID, isLoadingTransaction, personalPolicy?.id]),
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
@@ -233,6 +268,10 @@ function IOURequestStartPage({
             },
         },
     );
+    const shouldShowTimeOption =
+        isBetaEnabled(CONST.BETAS.TIME_TRACKING) &&
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
+        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
 
     const onBackButtonPress = () => {
         navigateBack();
@@ -240,6 +279,8 @@ function IOURequestStartPage({
     };
 
     useHandleBackButton(onBackButtonPress);
+
+    const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
     return (
         <AccessOrNotFoundWrapper
@@ -273,6 +314,7 @@ function IOURequestStartPage({
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
                                 onTabSelected={onTabSelected}
+                                onTabSelect={onTabSelectFocusHandler}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
@@ -324,17 +366,39 @@ function IOURequestStartPage({
                                     <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
-                                                {moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled ? (
+                                                {shouldShowWorkspaceSelectForPerDiem ? (
                                                     <IOURequestStepPerDiemWorkspace
                                                         route={route}
                                                         navigation={navigation}
                                                     />
                                                 ) : (
                                                     <IOURequestStepDestination
+                                                        shouldAutoFocusInput={false}
                                                         openedFromStartPage
+                                                        ref={perDiemInputRef}
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
                                                         route={route}
                                                         navigation={navigation}
+                                                    />
+                                                )}
+                                            </TabScreenWithFocusTrapWrapper>
+                                        )}
+                                    </TopTab.Screen>
+                                )}
+                                {shouldShowTimeOption && (
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
+                                        {() => (
+                                            <TabScreenWithFocusTrapWrapper>
+                                                {isFromGlobalCreate && policiesWithTimeEnabled.length > 1 ? (
+                                                    <IOURequestStepTimeWorkspace
+                                                        route={route}
+                                                        navigation={navigation}
+                                                    />
+                                                ) : (
+                                                    <IOURequestStepHours
+                                                        route={route}
+                                                        navigation={navigation}
+                                                        explicitPolicyID={isFromGlobalCreate ? policiesWithTimeEnabled.at(0)?.id : undefined}
                                                     />
                                                 )}
                                             </TabScreenWithFocusTrapWrapper>

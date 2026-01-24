@@ -67,6 +67,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((acc, id) => {
             const participant = personalDetails?.[id];
@@ -97,16 +98,18 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            allPolicies,
             draftComments,
             nvpDismissedProductTraining,
             loginList,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                personalDetails,
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
+    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails]);
 
     const filteredOptions = useMemo(() => {
         return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {

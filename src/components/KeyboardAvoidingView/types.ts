@@ -1,4 +1,4 @@
-import type {KeyboardAvoidingViewProps as RNKeyboardAvoidingViewProps} from 'react-native-keyboard-controller';
+import type {KeyboardAvoidingViewProps as RNKeyboardAvoidingViewProps} from 'react-native';
 
 type KeyboardAvoidingViewProps = RNKeyboardAvoidingViewProps & {
     /**

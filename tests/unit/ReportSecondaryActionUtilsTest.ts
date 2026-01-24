@@ -923,6 +923,9 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // Use tomorrow's date to ensure we're always before the NACHA cutoff (23:45 UTC)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const ACTION_ID = 'action_id';
         const reportAction = {
             actionID: ACTION_ID,
@@ -931,7 +934,7 @@ describe('getSecondaryAction', () => {
                 IOUTransactionID: TRANSACTION_ID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             },
-            created: new Date().toISOString(),
+            created: tomorrow.toISOString(),
         } as unknown as ReportAction;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -970,6 +973,9 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // Use tomorrow's date to ensure we're always before the NACHA cutoff (23:45 UTC)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const ACTION_ID = 'action_id';
         const reportAction = {
             actionID: ACTION_ID,
@@ -979,7 +985,7 @@ describe('getSecondaryAction', () => {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
-            created: new Date().toISOString(),
+            created: tomorrow.toISOString(),
         } as unknown as ReportAction;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -1018,6 +1024,9 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // Use tomorrow's date to ensure we're always before the NACHA cutoff (23:45 UTC)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const ACTION_ID = 'action_id';
         const reportAction = {
             actionID: ACTION_ID,
@@ -1027,7 +1036,7 @@ describe('getSecondaryAction', () => {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
-            created: new Date().toISOString(),
+            created: tomorrow.toISOString(),
         } as unknown as ReportAction;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -1066,6 +1075,9 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // Use tomorrow's date to ensure we're always before the NACHA cutoff (23:45 UTC)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const ACTION_ID = 'action_id';
         const reportAction = {
             actionID: ACTION_ID,
@@ -1075,7 +1087,7 @@ describe('getSecondaryAction', () => {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
-            created: new Date().toISOString(),
+            created: tomorrow.toISOString(),
         } as unknown as ReportAction;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -1439,7 +1451,7 @@ describe('getSecondaryAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, undefined, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, {} as Transaction, undefined, {} as Transaction, policy);
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -2429,7 +2441,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = {} as unknown as Policy;
 
         const result = [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS];
-        expect(getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, undefined, {} as Transaction, policy)).toEqual(result);
+        expect(getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, {} as Transaction, undefined, {} as Transaction, policy)).toEqual(result);
     });
 
     it('includes HOLD option', () => {
@@ -2448,7 +2460,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = {} as unknown as Policy;
 
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
@@ -2465,12 +2477,12 @@ describe('getSecondaryTransactionThreadActions', () => {
         } as unknown as Transaction;
 
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, undefined, {} as Transaction, policy, transactionThreadReport);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, undefined, {} as Transaction, policy, transactionThreadReport);
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
         // Do not show if admin is the holder
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
-        const result2 = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, undefined, {} as Transaction, policy, transactionThreadReport);
+        const result2 = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, undefined, {} as Transaction, policy, transactionThreadReport);
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
@@ -2487,7 +2499,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, {} as Transaction, undefined, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, {} as Transaction, undefined, {} as Transaction, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -2575,7 +2587,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
@@ -2611,7 +2623,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -2648,7 +2660,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, {} as Transaction, policy);
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -2691,6 +2703,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 originalCurrency: 'USD',
                 postedDate: '2025-01-01',
                 cardID: 1,
+                convertedAmount: -100,
             });
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
@@ -2744,6 +2757,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 originalCurrency: 'USD',
                 postedDate: '2025-01-01',
                 cardID: 1,
+                convertedAmount: 100,
             });
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
