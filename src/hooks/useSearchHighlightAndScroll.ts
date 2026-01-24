@@ -26,6 +26,7 @@ type UseSearchHighlightAndScroll = {
     searchKey: SearchKey | undefined;
     offset: number;
     shouldCalculateTotals: boolean;
+    shouldUseLiveData: boolean;
 };
 
 /**
@@ -41,6 +42,7 @@ function useSearchHighlightAndScroll({
     searchKey,
     offset,
     shouldCalculateTotals,
+    shouldUseLiveData,
 }: UseSearchHighlightAndScroll) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
@@ -156,12 +158,14 @@ function useSearchHighlightAndScroll({
     ]);
 
     useEffect(() => {
+        // For live data, isLoading is always false, so we also need to reset when searchResultsData changes
+        // For snapshot data, we wait for isLoading to become false after the API call completes
         if (searchResults?.search?.isLoading) {
             return;
         }
 
         searchTriggeredRef.current = false;
-    }, [searchResults?.search?.isLoading]);
+    }, [searchResults?.search?.isLoading, shouldUseLiveData, searchResultsData]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
