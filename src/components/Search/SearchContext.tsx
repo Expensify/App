@@ -51,6 +51,10 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
 
+    // Use a ref to access searchContextData in callbacks without causing callback reference changes
+    const searchContextDataRef = useRef(searchContextData);
+    searchContextDataRef.current = searchContextData;
+
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContextData.currentSearchHash}`, {canBeMissing: true});
 
     const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SearchKey | undefined) => {
@@ -137,11 +141,13 @@ function SearchContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            if (searchHashOrClearIDsFlag === searchContextData.currentSearchHash) {
+            const data = searchContextDataRef.current;
+
+            if (searchHashOrClearIDsFlag === data.currentSearchHash) {
                 return;
             }
 
-            if (searchContextData.selectedReports.length === 0 && isEmptyObject(searchContextData.selectedTransactions) && !searchContextData.shouldTurnOffSelectionMode) {
+            if (data.selectedReports.length === 0 && isEmptyObject(data.selectedTransactions) && !data.shouldTurnOffSelectionMode) {
                 return;
             }
             setSearchContextData((prevState) => ({
@@ -155,13 +161,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             shouldShowSelectAllMatchingItems(false);
             selectAllMatchingItems(false);
         },
-        [
-            searchContextData.currentSearchHash,
-            searchContextData.selectedReports.length,
-            searchContextData.selectedTransactions,
-            searchContextData.shouldTurnOffSelectionMode,
-            setSelectedTransactions,
-        ],
+        [setSelectedTransactions],
     );
 
     const removeTransaction: SearchContextProps['removeTransaction'] = useCallback(

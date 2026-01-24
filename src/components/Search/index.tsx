@@ -202,6 +202,7 @@ function Search({
     onDEWModalOpen,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
+
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -704,6 +705,7 @@ function Search({
             }
 
             const currentTransactions = itemTransactions ?? item.transactions;
+
             if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
