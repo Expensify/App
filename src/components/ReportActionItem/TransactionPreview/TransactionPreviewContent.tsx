@@ -1,10 +1,10 @@
-import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import truncate from 'lodash/truncate';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import {DotIndicator} from '@components/Icon/Expensicons';
+import { DotIndicator } from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
@@ -13,32 +13,32 @@ import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import { getDecodedCategoryName } from '@libs/CategoryUtils';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {calculateAmount} from '@libs/IOUUtils';
+import { calculateAmount } from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
-import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
-import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import type {TransactionDetails} from '@libs/ReportUtils';
-import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import { getCommaSeparatedTagNameWithSanitizedColons } from '@libs/PolicyUtils';
+import { getThumbnailAndImageURIs } from '@libs/ReceiptUtils';
+import { getOriginalMessage, isMoneyRequestAction } from '@libs/ReportActionsUtils';
+import type { TransactionDetails } from '@libs/ReportUtils';
+import { canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
-import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
-import variables from '@styles/variables';
+import type { TranslationPathOrText } from '@libs/TransactionPreviewUtils';
+import { createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths } from '@libs/TransactionPreviewUtils';
+import { isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning } from '@libs/TransactionUtils';
+import ViolationsUtils, { filterReceiptViolations } from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {TransactionPreviewContentProps} from './types';
+import variables from '@styles/variables';
+import type { TransactionPreviewContentProps } from './types';
 
 function TransactionPreviewContent({
     action,
@@ -242,7 +242,7 @@ function TransactionPreviewContent({
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isHovered={isHovered || isTransactionScanning}
                         size={1}
-                        shouldUseAspectRatio={!isMapDistanceRequest(transaction)}
+                        shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
                         <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
