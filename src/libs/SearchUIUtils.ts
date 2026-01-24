@@ -35,6 +35,7 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
@@ -54,6 +55,7 @@ import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
+    SearchMerchantGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWithdrawalIDGroup,
@@ -145,6 +147,7 @@ type ExpenseReportSorting = ColumnSortMapping<ExpenseReportListItemType>;
 type TransactionMemberGroupSorting = ColumnSortMapping<TransactionMemberGroupListItemType>;
 type TransactionCardGroupSorting = ColumnSortMapping<TransactionCardGroupListItemType>;
 type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdrawalIDGroupListItemType>;
+type TransactionMerchantGroupSorting = ColumnSortMapping<TransactionMerchantGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -225,6 +228,13 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'bankName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+};
+
+const transactionMerchantGroupColumnNamesToSortingProperty: TransactionMerchantGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
@@ -894,6 +904,13 @@ function isTransactionCardGroupListItemType(item: ListItem): item is Transaction
  */
 function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+}
+
+/**
+ * Type guard that checks if something is a TransactionMerchantGroupListItemType
+ */
+function isTransactionMerchantGroupListItemType(item: ListItem): item is TransactionMerchantGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT;
 }
 
 /**
@@ -2098,6 +2115,41 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
 }
 
 /**
+ * @private
+ * Organizes data into List Sections grouped by merchant for display, for the TransactionMerchantGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMerchantGroupListItemType[], number] {
+    const merchantSections: Record<string, TransactionMerchantGroupListItemType> = {};
+
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const merchantGroup = data[key] as SearchMerchantGroup;
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
+            if (queryJSON && merchantGroup.merchant) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: merchantGroup.merchant}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+
+            merchantSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                transactions: [],
+                transactionsQueryJSON,
+                ...merchantGroup,
+                formattedMerchant: merchantGroup.merchant,
+            };
+        }
+    }
+
+    const merchantSectionsValues = Object.values(merchantSections);
+    return [merchantSectionsValues, merchantSectionsValues.length];
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -2170,6 +2222,8 @@ function getSections({
                 return getCardSections(data, queryJSON, translate, cardFeeds);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
+            case CONST.SEARCH.GROUP_BY.MERCHANT:
+                return getMerchantSections(data, queryJSON);
         }
     }
 
@@ -2209,6 +2263,8 @@ function getSortedSections(
                 return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare, sortBy, sortOrder);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[], localeCompare, sortBy, sortOrder);
+            case CONST.SEARCH.GROUP_BY.MERCHANT:
+                return getSortedMerchantData(data as TransactionMerchantGroupListItemType[], localeCompare, sortBy, sortOrder);
         }
     }
 
@@ -2567,6 +2623,21 @@ function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemTyp
 
 /**
  * @private
+ * Sorts merchant sections based on a specified column and sort order.
+ */
+function getSortedMerchantData(data: TransactionMerchantGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    return getSortedData(
+        data,
+        localeCompare,
+        transactionMerchantGroupColumnNamesToSortingProperty,
+        (a, b) => localeCompare(a.formattedMerchant ?? '', b.formattedMerchant ?? ''),
+        sortBy,
+        sortOrder,
+    );
+}
+
+/**
+ * @private
  * Sorts report actions sections based on a specified column and sort order.
  */
 function getSortedReportActionData(data: ReportActionListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
@@ -2669,7 +2740,7 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): TranslationPaths {
+function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): TranslationPaths | undefined {
     // eslint-disable-next-line default-case
     switch (columnId) {
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
@@ -3585,6 +3656,7 @@ export {
     isTransactionMemberGroupListItemType,
     isTransactionCardGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
+    isTransactionMerchantGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

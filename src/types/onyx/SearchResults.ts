@@ -172,6 +172,21 @@ type SearchWithdrawalIDGroup = {
     state: number;
 };
 
+/** Model of merchant grouped search result */
+type SearchMerchantGroup = {
+    /** Merchant name */
+    merchant: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
@@ -186,7 +201,7 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchMerchantGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -197,4 +212,15 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {ListItemType, ListItemDataType, SearchTask, SearchTransactionAction, SearchDataTypes, SearchResultsInfo, SearchMemberGroup, SearchCardGroup, SearchWithdrawalIDGroup};
+export type {
+    ListItemType,
+    ListItemDataType,
+    SearchTask,
+    SearchTransactionAction,
+    SearchDataTypes,
+    SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
+    SearchMerchantGroup,
+};
