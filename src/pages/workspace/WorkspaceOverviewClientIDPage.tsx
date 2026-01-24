@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -23,7 +23,6 @@ type Props = WithPolicyProps;
 function WorkspaceOverviewClientIDPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [clientID, setClientID] = useState(policy?.clientID);
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CLIENT_ID_FORM>) => {
@@ -72,10 +71,9 @@ function WorkspaceOverviewClientIDPage({policy}: Props) {
                             inputID={INPUT_IDS.CLIENT_ID}
                             label={translate('workspace.common.clientIDInputLabel')}
                             accessibilityLabel={translate('workspace.common.clientIDInputLabel')}
-                            value={clientID ?? ''}
+                            defaultValue={policy?.clientID}
                             spellCheck={false}
                             autoFocus
-                            onChangeText={setClientID}
                         />
                     </View>
                 </FormProvider>
