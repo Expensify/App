@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {Report} from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type ReportPendingFields = Pick<Report, 'pendingAction' | 'pendingFields'>;
 
@@ -24,21 +25,15 @@ type ReportPendingFields = Pick<Report, 'pendingAction' | 'pendingFields'>;
  * Selector to only get pendingAction and pendingFields from reports.
  * This reduces re-renders by not subscribing to all report field changes.
  */
-function selectReportsPendingFields(reports: OnyxCollection<Report>): OnyxCollection<ReportPendingFields> {
-    if (!reports) {
-        return null;
-    }
-    return Object.keys(reports).reduce((acc: Record<string, ReportPendingFields>, key) => {
-        const report = reports[key];
-        if (report) {
-            acc[key] = {
-                pendingAction: report.pendingAction,
-                pendingFields: report.pendingFields,
-            };
-        }
-        return acc;
-    }, {});
-}
+const selectReportsPendingFields = (reports: OnyxCollection<Report>) =>
+    mapOnyxCollectionItems(reports, (report: OnyxEntry<Report>): ReportPendingFields | undefined =>
+        report
+            ? {
+                  pendingAction: report.pendingAction,
+                  pendingFields: report.pendingFields,
+              }
+            : undefined,
+    );
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
