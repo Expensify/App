@@ -57,7 +57,15 @@ import {
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPendingDEWApprove, hasPendingDEWSubmit, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getIOUActionForReportID,
+    getMostRecentActiveDEWApproveFailedAction,
+    getOriginalMessage,
+    getReportAction,
+    hasPendingDEWApprove,
+    hasPendingDEWSubmit,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -510,7 +518,11 @@ function MoneyReportHeader({
             const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, undefined, isArchivedReport);
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             if (hasDEWApproveFailed) {
-                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
+                const dewApproveFailedAction = getMostRecentActiveDEWApproveFailedAction(reportActions);
+                const {automaticAction} = getOriginalMessage(dewApproveFailedAction) ?? {};
+                if (!automaticAction) {
+                    optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
+                }
             } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
                 optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
