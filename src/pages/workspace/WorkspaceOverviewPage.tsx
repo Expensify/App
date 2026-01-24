@@ -645,7 +645,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 }}
                             >
                                 <MenuItemWithTopDescription
-                                    title={policy?.clientID ?? ''}
+                                    title={policy?.clientID}
                                     description={translate('workspace.common.clientID')}
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
