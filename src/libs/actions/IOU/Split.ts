@@ -304,7 +304,7 @@ function splitBillAndOpenReport({
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
-// TODO: remove `allPolicyTags` from this file [ISSUE YET TO BE CREATED]
+// TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
 // `allPolicyTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
@@ -617,7 +617,7 @@ function startSplitBill({
         }
         const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-            // TODO: remove `allPolicyTags` from this file [ISSUE YET TO BE CREATED]
+            // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             policyTags: getPolicyTagsData(participant.policyID),
             policyRecentlyUsedTags,
@@ -1023,7 +1023,7 @@ function updateSplitTransactions({
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    // TODO: remove `allPolicyTags` from this file [ISSUE YET TO BE CREATED]
+    // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
