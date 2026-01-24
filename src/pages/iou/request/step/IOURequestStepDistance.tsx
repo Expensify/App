@@ -449,6 +449,7 @@ function IOURequestStepDistance({
         report,
         navigateBack,
         parentReport,
+        recentWaypoints,
         policy,
         policyTags,
         policyCategories,

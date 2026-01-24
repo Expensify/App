@@ -455,6 +455,7 @@ function IOURequestStepDistanceMap({
         transaction?.transactionID,
         transactionBackup,
         waypoints,
+        recentWaypoints,
     ]);
 
     const renderItem = useCallback(
