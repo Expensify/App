@@ -47,11 +47,14 @@ readonly LINE_ARG="${3:-}"
 validate_rule "$BODY_ARG"
 echo "Comment approved: $COMMENT_STATUS_REASON"
 
+readonly FOOTER=$'\n\n---\n\nPlease rate this suggestion with 👍 or 👎 to help us improve! Reactions are used to monitor reviewer efficiency.'
+readonly COMMENT_BODY="${BODY_ARG}${FOOTER}"
+
 COMMIT_ID=$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')
 readonly COMMIT_ID
 
 PAYLOAD=$(jq -n \
-    --arg body "$BODY_ARG" \
+    --arg body "$COMMENT_BODY" \
     --arg path "$PATH_ARG" \
     --argjson line "$LINE_ARG" \
     --arg commit_id "$COMMIT_ID" \
