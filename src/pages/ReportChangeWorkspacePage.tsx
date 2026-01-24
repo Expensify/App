@@ -86,7 +86,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
                 if (!invite?.policyExpenseChatReportID) {
                     moveIOUReportToPolicy(reportID, policy, false, reportTransactions, isCustomReportNamesBetaEnabled);
                 }
