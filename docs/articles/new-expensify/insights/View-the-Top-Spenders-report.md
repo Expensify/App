@@ -95,7 +95,7 @@ No. The Top Spenders report isn’t exportable. To export expense data:
 
 ## Will more report types like Top Spenders be added?
 
-Yes! Top Spenders is the first of many suggested searches. Upcoming reports will include:
+Yes! Top Spenders is the first of many suggested insights. Upcoming reports will include:
 
 - Spend by category
 - Merchant trends
