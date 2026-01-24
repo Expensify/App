@@ -158,6 +158,7 @@ function useSearchSelectorBase({
         };
     }, [areOptionsInitialized, defaultOptions, contactOptions]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
@@ -211,7 +212,7 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     includeUserToInvite,
                     personalDetails,
-                });
+                }, countryCode, reportAttributesDerived?.reports);
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
                     ...getValidOptionsConfig,
@@ -222,7 +223,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     excludeLogins,
                     personalDetails,
-                });
+                }, countryCode, reportAttributesDerived?.reports);
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
                 return getValidOptions(
                     optionsWithContacts,
@@ -245,6 +246,7 @@ function useSearchSelectorBase({
                         personalDetails,
                     },
                     countryCode,
+                    reportAttributesDerived?.reports,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
@@ -264,7 +266,7 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     includeUserToInvite,
                     personalDetails,
-                });
+                }, countryCode, reportAttributesDerived?.reports);
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
                     ...getValidOptionsConfig,
@@ -281,7 +283,7 @@ function useSearchSelectorBase({
                     includeCurrentUser,
                     shouldAcceptName: true,
                     personalDetails,
-                });
+                }, countryCode, reportAttributesDerived?.reports);
             default:
                 return getEmptyOptions();
         }
@@ -304,6 +306,7 @@ function useSearchSelectorBase({
         selectedOptions,
         includeCurrentUser,
         personalDetails,
+        reportAttributesDerived,
     ]);
 
     const isOptionSelected = useMemo(() => {

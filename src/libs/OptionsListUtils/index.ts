@@ -243,14 +243,6 @@ Onyx.connect({
     },
 });
 
-let reportAttributesDerivedGlobal: ReportAttributesDerivedValue['reports'];
-Onyx.connectWithoutView({
-    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    callback: (value) => {
-        reportAttributesDerivedGlobal = value?.reports ?? {};
-    },
-});
-
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
@@ -474,6 +466,7 @@ function getAlternateText(
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
     isReportArchived: boolean | undefined,
     lastActorDetails: Partial<PersonalDetails> | null = {},
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -482,7 +475,7 @@ function getAlternateText(
     const isExpenseThread = isMoneyRequest(report);
     const formattedLastMessageText =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) || getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived});
+        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) || getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, reportAttributesDerived});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
@@ -617,6 +610,7 @@ function getLastMessageTextForReport({
     isReportArchived = false,
     policyForMovingExpensesID,
     reportMetadata,
+    reportAttributesDerived,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -627,6 +621,7 @@ function getLastMessageTextForReport({
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
     reportMetadata?: OnyxEntry<ReportMetadata>;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -673,7 +668,7 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
-            const reportName = reportAttributesDerivedGlobal?.[iouReport.reportID]?.reportName ?? '';
+            const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ??'';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
@@ -939,16 +934,16 @@ function createOption(
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        result.lastMessageText = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived: !!result.private_isArchived});
+        result.lastMessageText = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived: !!result.private_isArchived, reportAttributesDerived});
         result.alternateText =
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
-                : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
+                : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails, reportAttributesDerived);
 
         const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
         const computedReportName =
-            reportAttributesDerivedGlobal?.[report.reportID]?.reportName ?? '';
-            
+            reportAttributesDerived?.[report.reportID]?.reportName ?? ''
+
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
@@ -1993,7 +1988,12 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, policiesCollection: OnyxCollection<Policy>, config: GetValidReportsConfig): Array<SearchOption<Report>> {
+function prepareReportOptionsForDisplay(
+    options: Array<SearchOption<Report>>,
+    policiesCollection: OnyxCollection<Policy>,
+    config: GetValidReportsConfig,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -2023,7 +2023,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, po
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, !!option.private_isArchived);
+        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, !!option.private_isArchived, {}, reportAttributesDerived);
         const isSelected = isReportSelected(option, selectedOptions);
 
         let isOptionUnread = option.isUnread;
@@ -2159,6 +2159,7 @@ function getValidOptions(
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
@@ -2239,7 +2240,7 @@ function getValidOptions(
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
                 personalDetails,
-            }).at(0);
+            }, reportAttributesDerived).at(0);
         }
 
         if (maxRecentReportElements) {
@@ -2253,7 +2254,7 @@ function getValidOptions(
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
             personalDetails,
-        });
+        }, reportAttributesDerived);
 
         workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
             ...getValidReportsConfig,
@@ -2263,7 +2264,7 @@ function getValidOptions(
             shouldSeparateWorkspaceChat,
             shouldShowGBR,
             personalDetails,
-        });
+        }, reportAttributesDerived);
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
@@ -2379,6 +2380,7 @@ type SearchOptionsConfig = {
     shouldUnreadBeBold?: boolean;
     loginList: OnyxEntry<Login>;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 };
 
 /**
@@ -2400,6 +2402,7 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
+    reportAttributesDerived,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2432,6 +2435,7 @@ function getSearchOptions({
             shouldUnreadBeBold,
         },
         countryCode,
+        reportAttributesDerived,
     );
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);

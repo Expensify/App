@@ -47,6 +47,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
@@ -56,7 +57,7 @@ type SelectedOption = ListItem &
         reportID?: string;
     };
 
-function useOptions() {
+function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -108,6 +109,7 @@ function useOptions() {
             personalDetails: allPersonalDetails,
         },
         countryCode,
+        reportAttributesDerived,
     );
 
     const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
@@ -230,7 +232,8 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
+    const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     const allPersonalDetails = usePersonalDetails();
@@ -253,7 +256,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         userToInvite,
         areOptionsInitialized,
-    } = useOptions();
+    } = useOptions(reportAttributesDerived);
 
     const sections: Section[] = [];
     let firstKeyForList = '';
