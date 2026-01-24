@@ -3829,6 +3829,9 @@ ${
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} 的报销`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card 交易将通过<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>自动导出到使用其创建的“Expensify Card Liability Account”。</muted-text-label>`,
             youCantDowngradeInvoicing: '发票结算的订阅无法降级方案。若要讨论或更改订阅，请联系您的客户经理或 Concierge 获取帮助。',
+            clientID: '客户ID',
+            clientIDInputLabel: '客户ID',
+            clientIDInputHint: '请输入客户的唯一标识符',
         },
         receiptPartners: {
             uber: {

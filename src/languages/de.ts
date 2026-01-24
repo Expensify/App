@@ -3911,6 +3911,9 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-Transaktionen werden automatisch in ein „Expensify Card Liability Account“ exportiert, das mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstellt wurde.</muted-text-label>`,
             youCantDowngradeInvoicing:
                 'Sie können Ihren Tarif bei einem per Rechnung abgerechneten Abonnement nicht herabstufen. Um Ihr Abonnement zu besprechen oder Änderungen daran vorzunehmen, wenden Sie sich an Ihren Account Manager oder Concierge, um Hilfe zu erhalten.',
+            clientID: 'Kunden-ID',
+            clientIDInputLabel: 'Kunden-ID',
+            clientIDInputHint: 'Geben Sie die eindeutige Kennung des Kunden ein',
         },
         receiptPartners: {
             uber: {

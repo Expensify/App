@@ -23,7 +23,7 @@ type Props = WithPolicyProps;
 function WorkspaceOverviewClientIDPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [clientID, setClientID] = useState(() => policy?.clientID ?? '');
+    const [clientID, setClientID] = useState(policy?.clientID);
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CLIENT_ID_FORM>) => {
@@ -72,7 +72,7 @@ function WorkspaceOverviewClientIDPage({policy}: Props) {
                             inputID={INPUT_IDS.CLIENT_ID}
                             label={translate('workspace.common.clientIDInputLabel')}
                             accessibilityLabel={translate('workspace.common.clientIDInputLabel')}
-                            value={clientID}
+                            value={clientID ?? ''}
                             spellCheck={false}
                             autoFocus
                             onChangeText={setClientID}

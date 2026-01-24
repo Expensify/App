@@ -3893,6 +3893,9 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Transakcje kartą Expensify będą automatycznie eksportowane do „Konta zobowiązań karty Expensify”, utworzonego za pomocą <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
             youCantDowngradeInvoicing:
                 'Nie możesz zmienić swojego planu na niższy w ramach subskrypcji rozliczanej fakturą. Aby omówić lub wprowadzić zmiany w swojej subskrypcji, skontaktuj się ze swoim opiekunem klienta lub Concierge, aby uzyskać pomoc.',
+            clientID: 'ID klienta',
+            clientIDInputLabel: 'ID klienta',
+            clientIDInputHint: 'Wprowadź unikalny identyfikator klienta',
         },
         receiptPartners: {
             uber: {
