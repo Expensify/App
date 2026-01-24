@@ -80,6 +80,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getCollectionsFromSearchResults} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -110,10 +111,10 @@ function SearchPage({route}: SearchPageProps) {
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchResults} =
         useSearchContext();
+
+    const {reports: allReports, policies, transactions: allTransactions, transactionViolations: allTransactionViolations} = getCollectionsFromSearchResults(currentSearchResults);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const allTransactions = useAllTransactions();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
@@ -125,10 +126,8 @@ function SearchPage({route}: SearchPageProps) {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -144,6 +143,10 @@ function SearchPage({route}: SearchPageProps) {
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+
+    console.log('allReports', Object.values(allReports).length);
+    console.log('allPolicies', Object.values(policies).length);
+    console.log('allTransactions', Object.values(allTransactions).length);
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
