@@ -87,7 +87,11 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
             ]}
         >
             <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
-                <ImageSVG src={backgroundImage} />
+                <ImageSVG
+                    src={backgroundImage}
+                    // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                    cachePolicy="none"
+                />
             </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
