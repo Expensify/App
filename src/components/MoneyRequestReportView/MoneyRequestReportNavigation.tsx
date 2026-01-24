@@ -24,6 +24,7 @@ type MoneyRequestReportNavigationProps = {
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
+    const [liveReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
@@ -59,7 +60,14 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
-    const allReports = results;
+
+    const allReports = results.filter((id) => {
+        if (!id) {
+            return false;
+        }
+        const liveReport = liveReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
+        return liveReport?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
 
     const currentIndex = allReports.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
@@ -84,7 +92,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             return;
         }
 
-        if (allReports.length > allReportsCount) {
+        if (allReports.length !== allReportsCount) {
             saveLastSearchParams({
                 ...lastSearchQuery,
                 previousLengthOfResults: allReports.length,
@@ -138,7 +146,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             return;
         }
 
-        const prevIndex = (currentIndex - 1) % allReports.length;
+        const prevIndex = (currentIndex - 1 + allReports.length) % allReports.length;
         goToReportId(allReports.at(prevIndex));
     };
 
