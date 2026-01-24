@@ -26,7 +26,7 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
-import useIsReportArchivedCallback from '@hooks/useIsReportArchivedCallback';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -186,7 +186,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
-    const isReportArchivedByID = useIsReportArchivedCallback();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -216,7 +216,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
             undefined,
             undefined,
-            isReportArchivedByID,
+            archivedReportsIdSet,
         )?.reportID;
 
         // It's possible that reports aren't fully loaded yet
@@ -228,7 +228,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
             navigation.setParams({reportID: lastAccessedReportID});
         });
-    }, [isBetaEnabled, isReportArchivedByID, navigation, route.params]);
+    }, [archivedReportsIdSet, isBetaEnabled, navigation, route.params]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
