@@ -18,7 +18,6 @@ import {
     isCardHiddenFromSearch,
 } from './CardUtils';
 import type {CompanyCardFeedIcons} from './CardUtils';
-
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
