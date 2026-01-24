@@ -14,4 +14,4 @@ type ViolationFixParams = {
     isAttendeeTrackingEnabled: boolean | undefined;
 };
 
-export type {ViolationFixParams};
+export default ViolationFixParams;

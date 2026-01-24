@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
-import type {ViolationFixParams} from './types';
+import type ViolationFixParams from './types';
 
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
