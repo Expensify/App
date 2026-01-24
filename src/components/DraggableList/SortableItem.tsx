@@ -35,6 +35,7 @@ function SortableItem({id, children, disabled = false, isFocused = false, isItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
             role="option"
+            aria-selected={isFocused}
             tabIndex={tabIndex}
         >
             {children}

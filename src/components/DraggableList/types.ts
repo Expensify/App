@@ -16,8 +16,8 @@ function getDraggableItemState(item: unknown): DraggableItemState {
     }
 
     return {
-        isDragDisabled: 'isDragDisabled' in item && Boolean(item.isDragDisabled),
-        isDisabled: 'isDisabled' in item && Boolean(item.isDisabled),
+        isDragDisabled: 'isDragDisabled' in item && !!item.isDragDisabled,
+        isDisabled: 'isDisabled' in item && !!item.isDisabled,
     };
 }
 

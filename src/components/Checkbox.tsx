@@ -67,7 +67,7 @@ type CheckboxProps = Partial<ChildrenProps> &
         ref?: ForwardedRef<View>;
 
         /** Tab index for the checkbox */
-        tabIndex?: number;
+        tabIndex?: 0 | -1;
     };
 
 function Checkbox({
