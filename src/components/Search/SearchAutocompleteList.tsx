@@ -36,7 +36,7 @@ import {
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
-    getQueryWithoutAutocompletedPart,
+    getTrimmedUserSearchQueryPreservingComma,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
 import {
@@ -850,29 +850,7 @@ function SearchAutocompleteList({
             }
 
             const fieldKey = focusedItem.mapKey?.includes(':') ? focusedItem.mapKey.split(':').at(0) : focusedItem.mapKey;
-            const isNameField = fieldKey && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
-
-            let trimmedUserSearchQuery;
-            if (isNameField && fieldKey) {
-                const fieldPattern = `${fieldKey}:`;
-                const keyIndex = autocompleteQueryValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
-
-                if (keyIndex !== -1) {
-                    const afterFieldKey = autocompleteQueryValue.substring(keyIndex + fieldPattern.length);
-                    const lastCommaIndex = afterFieldKey.lastIndexOf(',');
-
-                    if (lastCommaIndex !== -1) {
-                        trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
-                    } else {
-                        trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length);
-                    }
-                } else {
-                    trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
-                }
-            } else {
-                trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
-            }
-
+            const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(autocompleteQueryValue, fieldKey);
             setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)}\u00A0`);
             updateAutocompleteSubstitutions(focusedItem);
         },

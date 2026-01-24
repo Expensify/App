@@ -2,8 +2,8 @@ import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType} from '@components/Search/types';
-import CONST from '@src/CONST';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
+import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
@@ -276,6 +276,41 @@ function parseForLiveMarkdown(
         });
 }
 
+/**
+ * Returns the trimmed search query that preserves comma-separated values for "name fields" like to, from, assignee, etc.
+ * This allows users to select multiple users by typing commas between selections.
+ *
+ * Ex: "to:user1," when selecting user2 -> preserves "to:user1," so result becomes "to:user1,user2"
+ * Ex: "to:user1" when selecting user2 -> returns "to:" so result becomes "to:user2"
+ */
+function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldKey: string | undefined): string {
+    if (!fieldKey) {
+        return getQueryWithoutAutocompletedPart(textInputValue);
+    }
+
+    const isNameField = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+
+    if (isNameField) {
+        const fieldPattern = `${fieldKey}:`;
+        const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+
+        if (keyIndex !== -1) {
+            const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);
+            const lastCommaIndex = afterFieldKey.lastIndexOf(',');
+
+            if (lastCommaIndex !== -1) {
+                // Preserves "to:user1," when selecting user2
+                return textInputValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
+            }
+            return textInputValue.substring(0, keyIndex + fieldPattern.length);
+        }
+        return getQueryWithoutAutocompletedPart(textInputValue);
+    }
+
+    const keyIndex = textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`);
+    return keyIndex !== -1 ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
+}
+
 export {
     getAutocompleteCategories,
     getAutocompleteQueryWithComma,
@@ -284,6 +319,7 @@ export {
     getAutocompleteTags,
     getAutocompleteTaxList,
     getQueryWithoutAutocompletedPart,
+    getTrimmedUserSearchQueryPreservingComma,
     parseForAutocomplete,
     parseForLiveMarkdown,
 };
