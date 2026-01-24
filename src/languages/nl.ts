@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Wachtwoord',
         magicCode: 'Magische code',
+        digits: 'cijfers',
         twoFactorCode: 'Tweeledige code',
         workspaces: 'Werkruimtes',
         inbox: 'Inbox',
@@ -635,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
         insights: 'Inzichten',
+        duplicateExpense: 'Dubbele uitgave',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1472,6 +1474,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / uur`,
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
+        correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
     },
     transactionMerge: {
         listPage: {
@@ -5513,7 +5516,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 giveItNameInstruction: 'Maak het uniek genoeg om het te onderscheiden van andere kaarten. Specifieke use-cases zijn zelfs nog beter!',
                 cardName: 'Kaartnaam',
                 letsDoubleCheck: 'Laten we nog eens controleren of alles er goed uitziet.',
-                willBeReady: 'Deze kaart is direct klaar voor gebruik.',
+                willBeReadyToUse: 'Deze kaart is direct klaar voor gebruik.',
+                willBeReadyToShip: 'Deze kaart is direct klaar om te worden verzonden.',
                 cardholder: 'Kaarthouder',
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
