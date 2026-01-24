@@ -115,8 +115,15 @@ class ChatGPTTranslator extends Translator {
             }),
         );
 
+        // Instructions are sent with every request, but prompt caching reduces cost.
+        // First request pays full price, subsequent requests get ~90% discount (only pay ~10%).
+        const CACHED_PROMPT_DISCOUNT = 0.1;
+        const numStrings = stringsToTranslate.length;
+
         for (const instructionTokens of perLocaleInstructionTokens) {
-            totalInputTokens += instructionTokens;
+            // Calculate: full price for first request + discounted price for remaining requests
+            const instructionCost = instructionTokens * (1 + (numStrings - 1) * CACHED_PROMPT_DISCOUNT);
+            totalInputTokens += instructionCost;
         }
 
         return ChatGPTCostEstimator.getTotalEstimatedCost(totalInputTokens, totalOutputTokens);
