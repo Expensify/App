@@ -902,7 +902,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: '这是你的个人空间。可用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！我们来为你完成设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
-        askMeAnything: '随便问我任何问题！',
+        askMeAnything: '问我任何问题！',
         yourSpace: '您的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到 ${roomName}！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用“+”按钮来${additionalText}一笔报销。`,
