@@ -21,10 +21,6 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type ReportPendingFields = Pick<Report, 'pendingAction' | 'pendingFields'>;
 
-/**
- * Selector to only get pendingAction and pendingFields from reports.
- * This reduces re-renders by not subscribing to all report field changes.
- */
 const selectReportsPendingFields = (reports: OnyxCollection<Report>) =>
     mapOnyxCollectionItems(reports, (report: OnyxEntry<Report>): ReportPendingFields | undefined =>
         report
