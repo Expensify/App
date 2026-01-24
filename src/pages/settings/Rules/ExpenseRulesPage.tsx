@@ -70,7 +70,7 @@ function ExpenseRulesPage() {
         return results.length > 0;
     };
     const sortRules = (data: ListItem[]) => {
-        return data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
+        return [...data].sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
     };
 
     const rulesList: ListItem[] = expenseRules.map((rule, index) => {

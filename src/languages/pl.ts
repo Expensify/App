@@ -2391,7 +2391,7 @@ ${amount} dla ${merchant} - ${date}`,
             tax: (value: string) => `stawkę podatku na ${value}`,
             report: (value: string) => `dodaj do raportu o nazwie „${value}”`,
         },
-        newRule: 'Nowa regułę',
+        newRule: 'Nowa reguła',
         addRule: {
             title: 'Dodaj regułę',
             expenseContains: 'Jeśli wydatek zawiera:',

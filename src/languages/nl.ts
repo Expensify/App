@@ -2379,7 +2379,7 @@ ${amount} voor ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Kostenregels',
         subtitle: 'Deze regels zijn van toepassing op je uitgaven. Als je ze indient bij een werkruimte, kunnen de regels van de werkruimte deze overschrijven.', //_/\__/_/  \_,_/\__/\__/\_,_/
-        findRule: 'regel zoeken',
+        findRule: 'Regel zoeken',
         emptyRules: {title: 'Je hebt nog geen regels aangemaakt', subtitle: 'Voeg een regel toe om onkostendeclaraties te automatiseren.'},
         changes: {
             billableUpdate: (value: boolean) => `Uitgave ${value ? 'factureerbaar' : 'niet-declarabel'} bijwerken`,
