@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -51,24 +51,21 @@ function ReportVirtualCardFraudVerifyAccountPage({
         }
     }, [formData?.isLoading, latestIssuedVirtualCardID, cardError, codeError, prevIsLoading]);
 
-    const handleValidateCodeEntered = useCallback(
-        (validateCode: string) => {
-            if (!virtualCard) {
-                return;
-            }
+    const handleValidateCodeEntered = (validateCode: string) => {
+        if (!virtualCard) {
+            return;
+        }
 
-            reportVirtualExpensifyCardFraud(virtualCard, validateCode);
-        },
-        [virtualCard],
-    );
+        reportVirtualExpensifyCardFraud(virtualCard, validateCode);
+    };
 
-    const handleClearError = useCallback(() => {
+    const handleClearError = () => {
         clearValidateCodeActionError(ONYXKEYS.VALIDATE_ACTION_CODE);
         if (!virtualCard?.cardID) {
             return;
         }
         clearCardListErrors(virtualCard.cardID);
-    }, [virtualCard?.cardID]);
+    };
 
     return (
         <ValidateCodeActionContent
