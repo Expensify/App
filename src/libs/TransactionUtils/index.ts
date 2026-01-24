@@ -116,6 +116,7 @@ type TransactionParams = {
     distance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    gpsCoordinates?: string;
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
     count?: number;
     rate?: number;
@@ -149,8 +150,9 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
         return (
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
         );
     }
 
@@ -168,6 +170,25 @@ function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
+/**
+ * todo: Currently there is no way to tell server map transaction object from
+ * server GPS transaction object, this will be discussed and updated later.
+ * To fix this temporarily we set keyForList of GPS waypoints to 'gps_start' and 'gps_end'
+ * and use that to determine if it's a GPS or Map transaction. This should be changed before
+ * the first GPS release.
+ */
+function hasGPSWaypoints(transaction: OnyxEntry<Transaction>) {
+    const waypoints = transaction?.comment?.waypoints;
+
+    if (!waypoints) {
+        return false;
+    }
+
+    const waypoint = Object.values(waypoints).at(0);
+
+    return !!waypoint?.keyForList?.startsWith('gps');
+}
+
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -175,7 +196,17 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
+    return hasDistanceCustomUnit(transaction) && !hasGPSWaypoints(transaction);
+}
+
+function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasGPSWaypoints(transaction);
 }
 
 function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
@@ -270,6 +301,9 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     }
     if (isTimeRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.TIME;
+    }
+    if (isGPSDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
     }
 
     return CONST.IOU.REQUEST_TYPE.MANUAL;
@@ -740,6 +774,10 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'taxCode') && typeof transactionChanges.taxCode === 'string') {
         updatedTransaction.taxCode = transactionChanges.taxCode;
+    }
+
+    if (Object.hasOwn(transactionChanges, 'taxValue') && typeof transactionChanges.taxCode === 'string') {
+        updatedTransaction.taxValue = transactionChanges.taxValue;
     }
 
     if (Object.hasOwn(transactionChanges, 'reimbursable') && typeof transactionChanges.reimbursable === 'boolean') {
@@ -1473,6 +1511,13 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
+ * Check if there is a custom unit out of policy violation in transactionViolations.
+ */
+function hasCustomUnitOutOfPolicyViolation(transactionViolations?: TransactionViolations | null): boolean {
+    return !!transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+}
+
+/**
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(
@@ -2067,9 +2112,18 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 /**
  * Gets the name corresponding to the taxCode that is displayed to the user
  */
-function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
+
+    // transaction?.taxCode may be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode || defaultTaxCode));
+
+    if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
+        return transaction?.taxValue;
+    }
+
+    return taxRate?.modifiedName;
 }
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
@@ -2673,6 +2727,7 @@ export {
     getValidDuplicateTransactionIDs,
     isDistanceRequest,
     isMapDistanceRequest,
+    isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -2703,6 +2758,7 @@ export {
     hasDuplicateTransactions,
     hasBrokenConnectionViolation,
     hasSmartScanFailedOrNoRouteViolation,
+    hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
