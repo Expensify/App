@@ -39,40 +39,6 @@ import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-type CreatePolicyCategoryParams = {
-    policyID: string;
-    categoryName: string;
-    isSetupCategoriesTaskParentReportArchived: boolean;
-    setupCategoryTaskReport: OnyxEntry<Report>;
-    setupCategoryTaskParentReport: OnyxEntry<Report>;
-    currentUserAccountID: number;
-    hasOutstandingChildTask: boolean;
-    parentReportAction: OnyxEntry<ReportAction>;
-    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>;
-    setupCategoriesAndTagsTaskParentReport?: OnyxEntry<Report>;
-    isSetupCategoriesAndTagsTaskParentReportArchived?: boolean;
-    setupCategoriesAndTagsHasOutstandingChildTask?: boolean;
-    setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
-    policyHasTags?: boolean;
-};
-
-type SetWorkspaceCategoryEnabledParams = {
-    policyData: PolicyData;
-    categoriesToUpdate: Record<string, {name: string; enabled: boolean}>;
-    isSetupCategoriesTaskParentReportArchived: boolean;
-    setupCategoryTaskReport: OnyxEntry<Report>;
-    setupCategoryTaskParentReport: OnyxEntry<Report>;
-    currentUserAccountID: number;
-    hasOutstandingChildTask: boolean;
-    parentReportAction: OnyxEntry<ReportAction> | undefined;
-    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>;
-    setupCategoriesAndTagsTaskParentReport?: OnyxEntry<Report>;
-    isSetupCategoriesAndTagsTaskParentReportArchived?: boolean;
-    setupCategoriesAndTagsHasOutstandingChildTask?: boolean;
-    setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
-    policyHasTags?: boolean;
-};
-
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData<
         typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
@@ -362,22 +328,16 @@ function getPolicyCategories(policyID: string) {
     API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
-function setWorkspaceCategoryEnabled({
-    policyData,
-    categoriesToUpdate,
-    isSetupCategoriesTaskParentReportArchived,
-    setupCategoryTaskReport,
-    setupCategoryTaskParentReport,
-    currentUserAccountID,
-    hasOutstandingChildTask,
-    parentReportAction,
-    setupCategoriesAndTagsTaskReport,
-    setupCategoriesAndTagsTaskParentReport,
-    isSetupCategoriesAndTagsTaskParentReportArchived,
-    setupCategoriesAndTagsHasOutstandingChildTask,
-    setupCategoriesAndTagsParentReportAction,
-    policyHasTags,
-}: SetWorkspaceCategoryEnabledParams) {
+function setWorkspaceCategoryEnabled(
+    policyData: PolicyData,
+    categoriesToUpdate: Record<string, {name: string; enabled: boolean}>,
+    isSetupCategoriesTaskParentReportArchived: boolean,
+    setupCategoryTaskReport: OnyxEntry<Report>,
+    setupCategoryTaskParentReport: OnyxEntry<Report>,
+    currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
+) {
     const policyID = policyData.policy?.id;
     const policyCategoriesOptimisticData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
@@ -453,18 +413,6 @@ function setWorkspaceCategoryEnabled({
         hasOutstandingChildTask,
         parentReportAction,
     );
-
-    if (setupCategoriesAndTagsTaskReport && policyHasTags) {
-        appendSetupCategoriesOnboardingData(
-            onyxData,
-            setupCategoriesAndTagsTaskReport,
-            setupCategoriesAndTagsTaskParentReport,
-            isSetupCategoriesAndTagsTaskParentReportArchived ?? false,
-            currentUserAccountID,
-            setupCategoriesAndTagsHasOutstandingChildTask ?? false,
-            setupCategoriesAndTagsParentReportAction,
-        );
-    }
 
     const parameters = {
         policyID,
@@ -672,22 +620,16 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function createPolicyCategory({
-    policyID,
-    categoryName,
-    isSetupCategoriesTaskParentReportArchived,
-    setupCategoryTaskReport,
-    setupCategoryTaskParentReport,
-    currentUserAccountID,
-    hasOutstandingChildTask,
-    parentReportAction,
-    setupCategoriesAndTagsTaskReport,
-    setupCategoriesAndTagsTaskParentReport,
-    isSetupCategoriesAndTagsTaskParentReportArchived,
-    setupCategoriesAndTagsHasOutstandingChildTask,
-    setupCategoriesAndTagsParentReportAction,
-    policyHasTags,
-}: CreatePolicyCategoryParams) {
+function createPolicyCategory(
+    policyID: string,
+    categoryName: string,
+    isSetupCategoriesTaskParentReportArchived: boolean,
+    setupCategoryTaskReport: OnyxEntry<Report>,
+    setupCategoryTaskParentReport: OnyxEntry<Report>,
+    currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction>,
+) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
     appendSetupCategoriesOnboardingData(
         onyxData,
@@ -698,18 +640,6 @@ function createPolicyCategory({
         hasOutstandingChildTask,
         parentReportAction,
     );
-    // Complete the combined "Set up categories and tags" task only if tags already exist
-    if (setupCategoriesAndTagsTaskReport && policyHasTags) {
-        appendSetupCategoriesOnboardingData(
-            onyxData,
-            setupCategoriesAndTagsTaskReport,
-            setupCategoriesAndTagsTaskParentReport,
-            isSetupCategoriesAndTagsTaskParentReportArchived ?? false,
-            currentUserAccountID,
-            setupCategoriesAndTagsHasOutstandingChildTask ?? false,
-            setupCategoriesAndTagsParentReportAction,
-        );
-    }
     const parameters = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),

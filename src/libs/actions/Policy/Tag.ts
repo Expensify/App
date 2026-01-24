@@ -29,10 +29,9 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
-import {completeTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -127,14 +126,7 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData<typeof ONYXKE
     return onyxData;
 }
 
-function createPolicyTag(
-    policyID: string,
-    tagName: string,
-    policyTags: PolicyTagLists = {},
-    setupTagsTaskReport?: OnyxEntry<Report>,
-    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
-    policyHasCustomCategories?: boolean,
-) {
+function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTagLists = {}) {
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
 
@@ -196,19 +188,6 @@ function createPolicyTag(
     };
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
-
-    if (setupTagsTaskReport && (setupTagsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || setupTagsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)) {
-        completeTask(setupTagsTaskReport, false, false, undefined);
-    }
-
-    // Complete the combined "Set up categories and tags" task only if categories already exist
-    if (
-        setupCategoriesAndTagsTaskReport &&
-        policyHasCustomCategories &&
-        (setupCategoriesAndTagsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || setupCategoriesAndTagsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
-    ) {
-        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
-    }
 }
 
 function importPolicyTags(policyID: string, tags: PolicyTag[]) {
