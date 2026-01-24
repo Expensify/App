@@ -1,6 +1,6 @@
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
-import ROUTES from '@src/ROUTES';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import ROUTES from '@src/ROUTES';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
@@ -56,14 +56,7 @@ function navigateAfterOnboarding(
         return;
     }
 
-    const reportID = getReportIDAfterOnboarding(
-        isSmallScreenWidth,
-        canUseDefaultRooms,
-        onboardingPolicyID,
-        onboardingAdminsChatReportID,
-        shouldPreventOpenAdminRoom,
-        archivedReportsIdSet,
-    );
+    const reportID = getReportIDAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom, archivedReportsIdSet);
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }

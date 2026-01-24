@@ -8,8 +8,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -100,7 +100,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             onboardingMessages,
             onboardingPolicyID,
             isBetaEnabled,
-        archivedReportsIdSet,
+            archivedReportsIdSet,
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
         ],
