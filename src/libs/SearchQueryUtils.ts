@@ -35,8 +35,6 @@ import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
