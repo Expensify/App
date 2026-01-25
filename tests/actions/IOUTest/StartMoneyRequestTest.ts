@@ -1,3 +1,4 @@
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {clearMoneyRequest, startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import CONST from '@src/CONST';
@@ -5,6 +6,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+async function getOnyxValue<T>(key: string): Promise<T | null> {
+    return new Promise<T | null>((resolve) => {
+        const connection = Onyx.connect({
+            key: key as OnyxKey,
+            callback: (val) => {
+                Onyx.disconnect(connection);
+                resolve((val ?? null) as T | null);
+            },
+        });
+    });
+}
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -56,33 +69,9 @@ describe('startMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then: All draft transactions should be cleared
-            const draft1AfterClear = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
-            const draft2AfterClear = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
-            const draft3AfterClear = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction3.transactionID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
+            const draft1AfterClear = await getOnyxValue<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`);
+            const draft2AfterClear = await getOnyxValue<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`);
+            const draft3AfterClear = await getOnyxValue<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction3.transactionID}`);
 
             expect(draft1AfterClear).toBeNull();
             expect(draft2AfterClear).toBeNull();
@@ -104,15 +93,7 @@ describe('startMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then: skipConfirmation should be set to true
-            const skipConfirmation = await new Promise<boolean | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
+            const skipConfirmation = await getOnyxValue<boolean>(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
 
             expect(skipConfirmation).toBe(true);
         });
@@ -126,15 +107,7 @@ describe('startMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then: Should complete without errors and set skipConfirmation
-            const skipConfirmation = await new Promise<boolean | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
+            const skipConfirmation = await getOnyxValue<boolean>(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
 
             expect(skipConfirmation).toBe(false);
         });
@@ -145,15 +118,7 @@ describe('startMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then: Should complete without errors and set skipConfirmation
-            const skipConfirmation = await new Promise<boolean | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
+            const skipConfirmation = await getOnyxValue<boolean>(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
 
             expect(skipConfirmation).toBe(false);
         });
@@ -179,24 +144,8 @@ describe('startMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then: All draft transactions should be cleared
-            const draft1AfterStart = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
-            const draft2AfterStart = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
+            const draft1AfterStart = await getOnyxValue<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`);
+            const draft2AfterStart = await getOnyxValue<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`);
 
             expect(draft1AfterStart).toBeNull();
             expect(draft2AfterStart).toBeNull();
@@ -223,24 +172,8 @@ describe('startMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then: All draft transactions should be cleared
-            const draft1AfterStart = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
-            const draft2AfterStart = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val ?? null);
-                    },
-                });
-            });
+            const draft1AfterStart = await getOnyxValue<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`);
+            const draft2AfterStart = await getOnyxValue<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`);
 
             expect(draft1AfterStart).toBeNull();
             expect(draft2AfterStart).toBeNull();
