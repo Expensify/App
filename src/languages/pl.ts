@@ -6313,6 +6313,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             symbols: 'Symbole',
             flags: 'Flagi',
         },
+        emojiNotSelected: 'Emoji nie wybrano',
     },
     newRoomPage: {
         newRoom: 'Nowy pokój',

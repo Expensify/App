@@ -6349,6 +6349,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             symbols: 'Symbole',
             flags: 'Markierungen',
         },
+        emojiNotSelected: 'Emoji nicht ausgewählt',
     },
     newRoomPage: {
         newRoom: 'Neuer Raum',

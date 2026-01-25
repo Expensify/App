@@ -6333,6 +6333,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             symbols: 'Simboli',
             flags: 'Segnalazioni',
         },
+        emojiNotSelected: 'Emoji non selezionata',
     },
     newRoomPage: {
         newRoom: 'Nuova stanza',

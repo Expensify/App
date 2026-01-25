@@ -6314,6 +6314,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             symbols: 'Símbolos',
             flags: 'Bandeiras',
         },
+        emojiNotSelected: 'Emoji não selecionado',
     },
     newRoomPage: {
         newRoom: 'Nova sala',

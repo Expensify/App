@@ -6180,6 +6180,7 @@ ${reportName}
             symbols: '符号',
             flags: '标记',
         },
+        emojiNotSelected: '未选择表情符号',
     },
     newRoomPage: {
         newRoom: '新聊天室',

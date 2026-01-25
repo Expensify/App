@@ -5976,6 +5976,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+        emojiNotSelected: 'Emoji no seleccionado',
         headers: {
             frequentlyUsed: 'Usado frecuentemente',
             smileysAndEmotion: 'Emoticonos y emociones',

@@ -6319,6 +6319,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             symbols: 'Symbolen',
             flags: 'Vlaggen',
         },
+        emojiNotSelected: 'Emoji niet geselecteerd',
     },
     newRoomPage: {
         newRoom: 'Nieuwe ruimte',

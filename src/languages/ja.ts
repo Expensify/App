@@ -6290,6 +6290,7 @@ ${reportName}
             symbols: '記号',
             flags: 'フラグ',
         },
+        emojiNotSelected: '絵文字が選択されていません',
     },
     newRoomPage: {
         newRoom: '新しいルーム',

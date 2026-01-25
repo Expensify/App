@@ -458,7 +458,8 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
-            accessibilityLabel={props.accessibilityLabel}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            accessibilityLabel={props.accessibilityLabel || `${translate('iou.amount')} ${formattedNumber} (${currency})`}
         />
     );
 

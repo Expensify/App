@@ -6220,6 +6220,7 @@ const translations = {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
+        emojiNotSelected: 'Emoji not selected',
         headers: {
             frequentlyUsed: 'Frequently Used',
             smileysAndEmotion: 'Smileys & Emotion',

@@ -2,6 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {useImperativeHandle, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -40,6 +41,7 @@ const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
@@ -100,7 +102,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
                             accessible
-                            accessibilityLabel={`${index + 1}`}
+                            accessibilityLabel={translate('stepCounter', {step: stepName, total: stepNames.length})}
                             aria-current={currentStep === index ? 'step' : undefined}
                             role={CONST.ROLE.BUTTON}
                         >
