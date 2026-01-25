@@ -44,7 +44,7 @@ type ImageCropViewProps = {
 };
 
 function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.Pan(), maskImage, ...props}: ImageCropViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ImageCropCircleMask'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ImageCropCircleMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const containerStyle = StyleUtils.getWidthAndHeightStyle(containerSize, containerSize);

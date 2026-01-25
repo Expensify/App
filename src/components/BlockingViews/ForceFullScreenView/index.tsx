@@ -27,6 +27,4 @@ function ForceFullScreenView({children, shouldForceFullScreen = false}: ForceFul
     return children;
 }
 
-ForceFullScreenView.displayName = 'ForceFullScreenView';
-
 export default ForceFullScreenView;

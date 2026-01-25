@@ -8,7 +8,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import FS from '@libs/Fullstory';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
@@ -42,7 +41,8 @@ function MoneyRequestReportPreview({
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const invoiceReceiverPolicy =
@@ -111,8 +111,14 @@ function MoneyRequestReportPreview({
             name: 'MoneyRequestReportPreview',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
-    }, [iouReportID]);
+        // Small screens navigate to full report view since super wide RHP
+        // is not available on narrow layouts and would break the navigation logic.
+        if (isSmallScreenWidth) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+        } else {
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+        }
+    }, [iouReportID, isSmallScreenWidth]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -136,8 +142,6 @@ function MoneyRequestReportPreview({
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
         />
     );
-
-    const fsClass = FS.getChatFSClass(personalDetailsList, iouReport);
 
     return (
         <MoneyRequestReportPreviewContent
@@ -167,11 +171,9 @@ function MoneyRequestReportPreview({
             isInvoice={isInvoice}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
-            forwardedFSClass={fsClass}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
         />
     );
 }
-
-MoneyRequestReportPreview.displayName = 'MoneyRequestReportPreview';
 
 export default MoneyRequestReportPreview;

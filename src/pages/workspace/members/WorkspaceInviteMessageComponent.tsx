@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,7 +26,7 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
@@ -129,7 +130,7 @@ function WorkspaceInviteMessageComponent({
         // We only want to run this useEffect when the onyx values have loaded
         // We navigate back to the main members screen when the invitation has been sent
         // This is decided when onyx values have loaded and if `invitedEmailsToAccountIDsDraft` is empty
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
     const sendInvitation = () => {
@@ -176,6 +177,9 @@ function WorkspaceInviteMessageComponent({
     };
 
     const policyName = policy?.name;
+    const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
+    const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
+    const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
 
     useEffect(() => {
         return () => {
@@ -191,7 +195,7 @@ function WorkspaceInviteMessageComponent({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceInviteMessageComponent.displayName}
+                testID="WorkspaceInviteMessageComponent"
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}
             >
@@ -230,7 +234,14 @@ function WorkspaceInviteMessageComponent({
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            {shouldShowMemberNames && (
+                            {isInviteNewMemberStep && (
+                                <MenuItemWithTopDescription
+                                    title={invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail}
+                                    description={translate('common.member')}
+                                    interactive={false}
+                                />
+                            )}
+                            {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
                                     title={memberNames}
                                     description={translate('common.members')}
@@ -296,7 +307,5 @@ function WorkspaceInviteMessageComponent({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInviteMessageComponent.displayName = 'WorkspaceInviteMessageComponent';
 
 export default WorkspaceInviteMessageComponent;

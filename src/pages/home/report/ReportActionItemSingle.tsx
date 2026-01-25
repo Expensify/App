@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -125,7 +125,7 @@ function ReportActionItemSingle({
           ]
         : action?.person;
 
-    const showActorDetails = useCallback(() => {
+    const showActorDetails = () => {
         if (details.isWorkspaceActor) {
             showWorkspaceDetails(reportID);
         } else {
@@ -136,14 +136,11 @@ function ReportActionItemSingle({
             }
             showUserDetails(Number(primaryAvatar.id));
         }
-    }, [details.isWorkspaceActor, reportID, iouReportID, details.shouldDisplayAllActors, primaryAvatar.id]);
+    };
 
-    const shouldDisableDetailPage = useMemo(
-        () =>
-            CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID))),
-        [action?.delegateAccountID, details.isWorkspaceActor, details.accountID],
-    );
+    const shouldDisableDetailPage =
+        CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
+        (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID)));
 
     const getBackgroundColor = () => {
         if (isActive) {
@@ -157,7 +154,7 @@ function ReportActionItemSingle({
 
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
+    const formattedDate = DateUtils.getStatusUntilDate(translate, details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
@@ -171,6 +168,7 @@ function ReportActionItemSingle({
                 disabled={shouldDisableDetailPage}
                 accessibilityLabel={details.actorHint}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON}
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
@@ -184,6 +182,7 @@ function ReportActionItemSingle({
                             isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
                         ]}
                         reportID={iouReportID}
+                        chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}
                     />
                 </OfflineWithFeedback>
@@ -199,6 +198,7 @@ function ReportActionItemSingle({
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={details.actorHint}
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON}
                         >
                             {personArray?.map((fragment, index) => (
                                 <ReportActionItemFragment
@@ -225,7 +225,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>}
+                {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
                         {translate('statusPage.toAsVacationDelegate', {
@@ -244,7 +244,5 @@ function ReportActionItemSingle({
         </View>
     );
 }
-
-ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
 export default ReportActionItemSingle;

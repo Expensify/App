@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import {
@@ -7,6 +8,7 @@ import {
     deleteWorkspaceCategories,
     enablePolicyCategories,
     renamePolicyCategory,
+    setPolicyCategoryTax,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
 } from '@libs/actions/Policy/Category';
@@ -85,7 +87,16 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            createPolicyCategory(fakePolicy.id, newCategoryName, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
+            createPolicyCategory({
+                policyID: fakePolicy.id,
+                categoryName: newCategoryName,
+                isSetupCategoriesTaskParentReportArchived: false,
+                setupCategoryTaskReport: undefined,
+                setupCategoryTaskParentReport: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                hasOutstandingChildTask: false,
+                parentReportAction: undefined,
+            });
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -187,7 +198,16 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            setWorkspaceCategoryEnabled(policyData.current, categoriesToUpdate, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
+            setWorkspaceCategoryEnabled({
+                policyData: policyData.current,
+                categoriesToUpdate,
+                isSetupCategoriesTaskParentReportArchived: false,
+                setupCategoryTaskReport: undefined,
+                setupCategoryTaskParentReport: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                hasOutstandingChildTask: false,
+                parentReportAction: undefined,
+            });
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -392,6 +412,205 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
+        });
+    });
+
+    describe('SetPolicyCategoryTax', () => {
+        it('should set expense rule when category expense rule is not present', async () => {
+            // Given a policy
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areCategoriesEnabled = true;
+            const categoryName = 'Fake category';
+            const fakePolicyCategories = {
+                [categoryName]: {
+                    name: categoryName,
+                    enabled: false,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '',
+                    unencodedName: categoryName,
+                    externalID: '',
+                    areCommentsRequired: false,
+                    origin: '',
+                },
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakePolicyCategories);
+
+            setPolicyCategoryTax(fakePolicy, categoryName, 'VAT');
+            await waitForBatchedUpdates();
+
+            // Then the approval rule should be created with the tag name
+            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+
+            expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.condition).toBe(CONST.POLICY.RULE_CONDITIONS.MATCHES);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.field).toBe(CONST.POLICY.FIELDS.CATEGORY);
+            expect(updatedPolicy?.rules?.expenseRules?.[0].tax.field_id_TAX.externalID).toBe('VAT');
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should update expense rule when category expense rule is present', async () => {
+            // Given a policy with approval rules that reference a tag
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areCategoriesEnabled = true;
+            const categoryName = 'Fake category';
+            const fakePolicyCategories = {
+                [categoryName]: {
+                    name: categoryName,
+                    enabled: false,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '',
+                    unencodedName: categoryName,
+                    externalID: '',
+                    areCommentsRequired: false,
+                    origin: '',
+                },
+            };
+
+            // Create expense rule that uses the tag
+            fakePolicy.rules = {
+                expenseRules: [
+                    {
+                        tax: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            field_id_TAX: {
+                                externalID: 'GST',
+                            },
+                        },
+                        applyWhen: [
+                            {
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                field: CONST.POLICY.FIELDS.CATEGORY,
+                                value: categoryName,
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakePolicyCategories);
+
+            setPolicyCategoryTax(fakePolicy, categoryName, 'VAT');
+            await waitForBatchedUpdates();
+
+            // Then the approval rule should be created with the tag name
+            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+
+            expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.condition).toBe(CONST.POLICY.RULE_CONDITIONS.MATCHES);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.field).toBe(CONST.POLICY.FIELDS.CATEGORY);
+            expect(updatedPolicy?.rules?.expenseRules?.[0].tax.field_id_TAX.externalID).toBe('VAT');
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('createPolicyCategory with onboarding task completion', () => {
+        it('should complete SETUP_CATEGORIES_AND_TAGS task when creating category and tags already exist', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const fakeCategories = createRandomPolicyCategories(3);
+            const fakeTags = createRandomPolicyTags('TestTagList', 2);
+            const newCategoryName = 'New category';
+
+            // Create a fake task report for SETUP_CATEGORIES_AND_TAGS
+            const fakeTaskReportID = '123456';
+            const fakeTaskReport = {
+                reportID: fakeTaskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeTaskReportID}`, fakeTaskReport);
+
+            createPolicyCategory({
+                policyID: fakePolicy.id,
+                categoryName: newCategoryName,
+                isSetupCategoriesTaskParentReportArchived: false,
+                setupCategoryTaskReport: undefined,
+                setupCategoryTaskParentReport: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                hasOutstandingChildTask: false,
+                parentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: fakeTaskReport,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                policyHasTags: true,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Verify the category was created
+            const policyCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
+            const newCategory = policyCategories?.[newCategoryName];
+            expect(newCategory?.name).toBe(newCategoryName);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('should NOT complete SETUP_CATEGORIES_AND_TAGS task when creating category but no tags exist', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const fakeCategories = createRandomPolicyCategories(3);
+            const newCategoryName = 'New category without tags';
+
+            // Create a fake task report for SETUP_CATEGORIES_AND_TAGS
+            const fakeTaskReportID = '789012';
+            const fakeTaskReport = {
+                reportID: fakeTaskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeTaskReportID}`, fakeTaskReport);
+
+            createPolicyCategory({
+                policyID: fakePolicy.id,
+                categoryName: newCategoryName,
+                isSetupCategoriesTaskParentReportArchived: false,
+                setupCategoryTaskReport: undefined,
+                setupCategoryTaskParentReport: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                hasOutstandingChildTask: false,
+                parentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: fakeTaskReport,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                policyHasTags: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Verify the category was created
+            const policyCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
+            const newCategory = policyCategories?.[newCategoryName];
+            expect(newCategory?.name).toBe(newCategoryName);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
         });
     });
 });

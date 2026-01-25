@@ -150,6 +150,4 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
     );
 }
 
-BankAccountValidationForm.displayName = 'BankAccountValidationForm';
-
 export default BankAccountValidationForm;

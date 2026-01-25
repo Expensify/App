@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {Policy, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {translateLocal} from '../utils/TestHelper';
@@ -87,6 +87,7 @@ describe('PureReportActionItem', () => {
                             <PureReportActionItem
                                 allReports={undefined}
                                 policies={undefined}
+                                personalPolicyID={undefined}
                                 report={undefined}
                                 reportActions={[]}
                                 parentReportAction={undefined}
@@ -99,6 +100,8 @@ describe('PureReportActionItem', () => {
                                 taskReport={undefined}
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
+                                currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                allTransactionDrafts={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -159,6 +162,14 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(textBeforeLink)).toBeOnTheScreen();
             expect(screen.getByText(linkText)).toBeOnTheScreen();
         });
+
+        it('CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS, {originalID: 'original-report-id'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/created this report for any held expenses from/)).toBeOnTheScreen();
+        });
     });
 
     describe('Manual actions', () => {
@@ -217,6 +228,132 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(Parser.htmlToText(translateLocal('workspaceActions.forcedCorporateUpgrade')))).toBeOnTheScreen();
+        });
+    });
+
+    describe('DEW (Dynamic External Workflow) actions', () => {
+        it('should display DEW queued message for pending SUBMITTED action when policy has DEW enabled and offline', async () => {
+            // Given a SUBMITTED action with pendingAction on a policy with DEW (Dynamic External Workflow) enabled
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false});
+            action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+            const dewPolicy = {
+                id: 'testPolicy',
+                name: 'Test DEW Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            } as const;
+
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}testPolicy`, dewPolicy);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the PureReportActionItem is rendered with the pending SUBMITTED action while offline
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    allReports={undefined}
+                                    personalPolicyID={undefined}
+                                    policies={{testPolicy: dewPolicy as Policy}}
+                                    policy={dewPolicy as Policy}
+                                    report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    reportActions={[]}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    reportMetadata={reportMetadata}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it should display the DEW queued message because submission is pending via external workflow while offline
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.queuedToSubmitViaDEW'))).toBeOnTheScreen();
+        });
+
+        it('should display standard submitted message for pending SUBMITTED action when policy does not have DEW enabled', async () => {
+            // Given a SUBMITTED action with pendingAction on a policy with basic approval mode (no DEW)
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false});
+            action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+            const basicPolicy = {
+                id: 'testPolicy',
+                name: 'Test Basic Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            } as const;
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}testPolicy`, basicPolicy);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the PureReportActionItem is rendered with the pending SUBMITTED action
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    allReports={undefined}
+                                    personalPolicyID={undefined}
+                                    policies={{testPolicy: basicPolicy as Policy}}
+                                    policy={basicPolicy as Policy}
+                                    report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    reportActions={[]}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it should display the standard submitted message and not the DEW queued message
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
         });
     });
 });

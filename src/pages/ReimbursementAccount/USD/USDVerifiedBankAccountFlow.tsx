@@ -88,19 +88,10 @@ function USDVerifiedBankAccountFlow({
     }
 
     if (CurrentStep) {
-        return (
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
-        );
+        return <View style={styles.flex1}>{CurrentStep}</View>;
     }
 
     return null;
 }
-
-USDVerifiedBankAccountFlow.displayName = 'USDVerifiedBankAccountFlow';
 
 export default USDVerifiedBankAccountFlow;

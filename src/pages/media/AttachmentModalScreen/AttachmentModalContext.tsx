@@ -60,7 +60,5 @@ function AttachmentModalContextProvider({children}: ChildrenProps) {
     return <AttachmentModalContext.Provider value={contextValue}>{children}</AttachmentModalContext.Provider>;
 }
 
-AttachmentModalContextProvider.displayName = 'AttachmentModalContextProvider';
-
 export default AttachmentModalContext;
 export {AttachmentModalContextProvider};

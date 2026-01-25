@@ -1,12 +1,11 @@
 import type {FormInputErrors} from '@components/Form/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 import {addErrorMessage} from './ErrorUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 /**
@@ -45,19 +44,17 @@ function validateReportFieldListValueName(
     priorValueName: string,
     listValues: string[],
     inputID: InputID,
+    translate: LocalizedTranslate,
 ): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> {
     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
     if (!isRequiredFulfilled(valueName)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors[inputID] = translateLocal('workspace.reportFields.listValueRequiredError');
+        errors[inputID] = translate('workspace.reportFields.listValueRequiredError');
     } else if (priorValueName !== valueName && listValues.some((currentValueName) => currentValueName === valueName)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors[inputID] = translateLocal('workspace.reportFields.existingListValueError');
+        errors[inputID] = translate('workspace.reportFields.existingListValueError');
     } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
         // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        addErrorMessage(errors, inputID, translateLocal('common.error.characterLimitExceedCounter', {length: [...valueName].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}));
+        addErrorMessage(errors, inputID, translate('common.error.characterLimitExceedCounter', [...valueName].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
     }
 
     return errors;
@@ -72,7 +69,7 @@ function generateFieldID(name: string) {
 /**
  * Gets the initial value for a report field.
  */
-function getReportFieldInitialValue(reportField: PolicyReportField | null): string {
+function getReportFieldInitialValue(reportField: PolicyReportField | null, translate: LocalizedTranslate): string {
     if (!reportField) {
         return '';
     }
@@ -82,8 +79,7 @@ function getReportFieldInitialValue(reportField: PolicyReportField | null): stri
     }
 
     if (reportField.type === CONST.REPORT_FIELD_TYPES.DATE) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('common.currentDate');
+        return translate('common.currentDate');
     }
 
     return reportField.value ?? reportField.defaultValue;
@@ -106,6 +102,13 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
     return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
 }
 
+/**
+ * Checks if a report field name already exists in the policy's field list (case-insensitive).
+ */
+function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string): boolean {
+    return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
+}
+
 export {
     getReportFieldTypeTranslationKey,
     getReportFieldAlternativeTextTranslationKey,
@@ -113,4 +116,5 @@ export {
     generateFieldID,
     getReportFieldInitialValue,
     hasFormulaPartsInInitialValue,
+    isReportFieldNameExisting,
 };

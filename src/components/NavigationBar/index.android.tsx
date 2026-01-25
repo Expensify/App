@@ -18,6 +18,5 @@ function NavigationBar() {
 
     return isSoftKeyNavigation ? <View style={[isOffline ? styles.appBG : styles.translucentNavigationBarBG, styles.stickToBottom, {height: paddingBottom}]} /> : null;
 }
-NavigationBar.displayName = 'NavigationBar';
 
 export default NavigationBar;

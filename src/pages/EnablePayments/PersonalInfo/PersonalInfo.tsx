@@ -81,7 +81,7 @@ function PersonalInfoPage() {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={PersonalInfoPage.displayName}
+            wrapperID="PersonalInfoPage"
             headerTitle={translate('personalInfoStep.personalInfo')}
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={1}
@@ -102,7 +102,5 @@ function PersonalInfoPage() {
         </InteractiveStepWrapper>
     );
 }
-
-PersonalInfoPage.displayName = 'PersonalInfoPage';
 
 export default PersonalInfoPage;

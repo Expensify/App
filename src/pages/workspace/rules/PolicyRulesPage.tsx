@@ -11,7 +11,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import ExpenseReportRulesSection from './ExpenseReportRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
@@ -21,7 +20,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Rules'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Rules']);
 
     const fetchRules = useCallback(() => {
         openPolicyRulesPage(policyID);
@@ -38,7 +37,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <WorkspacePageWithSections
-                testID={PolicyRulesPage.displayName}
+                testID="PolicyRulesPage"
                 shouldUseScrollView
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
@@ -50,13 +49,10 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
-                    <ExpenseReportRulesSection policyID={policyID} />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyRulesPage.displayName = 'PolicyRulesPage';
 
 export default PolicyRulesPage;

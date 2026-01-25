@@ -2,8 +2,8 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -77,9 +77,9 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     return (
         <>
             <SelectionScreen
-                displayName={NetSuiteExportExpensesDestinationSelectPage.displayName}
+                displayName="NetSuiteExportExpensesDestinationSelectPage"
                 title="workspace.accounting.exportAs"
-                sections={[{data}]}
+                data={data}
                 listItem={RadioListItem}
                 onSelectRow={(selection: SelectorType) => selectDestination(selection as MenuListItem)}
                 initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
@@ -97,7 +97,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
                 isVisible={isWarningModalVisible}
                 title={translate('common.areYouSure')}
                 onConfirm={() => {
-                    selectDestination({value: CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT}, true);
+                    selectDestination({value: CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT, keyForList: CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT}, true);
                     setIsWarningModalVisible(false);
                 }}
                 onCancel={() => setIsWarningModalVisible(false)}
@@ -108,7 +108,5 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
         </>
     );
 }
-
-NetSuiteExportExpensesDestinationSelectPage.displayName = 'NetSuiteExportExpensesDestinationSelectPage';
 
 export default withPolicyConnections(NetSuiteExportExpensesDestinationSelectPage);

@@ -46,6 +46,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
             style={style}
             onPress={() => setIsHidden(!isHidden)}
             testID="moderationButton"
+            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.MODERATION_BUTTON}
         >
             <Text
                 style={[styles.buttonSmallText, styles.userSelectNone]}
@@ -70,6 +71,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
                 accessibilityRole={CONST.ROLE.BUTTON}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 accessibilityLabel={item.file?.name || translate('attachmentView.unknownFilename')}
+                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.ITEM}
             >
                 {children}
             </PressableWithoutFeedback>
@@ -107,7 +109,5 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
         </View>
     );
 }
-
-CarouselItem.displayName = 'CarouselItem';
 
 export default CarouselItem;

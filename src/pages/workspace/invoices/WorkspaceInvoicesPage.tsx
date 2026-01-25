@@ -20,7 +20,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -49,7 +49,5 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicesPage.displayName = 'WorkspaceInvoicesPage';
 
 export default WorkspaceInvoicesPage;

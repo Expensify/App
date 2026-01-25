@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,6 +39,7 @@ type AccountSwitcherProps = {
 };
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -183,7 +185,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             <TooltipToRender {...tooltipProps}>
                 <PressableWithFeedback
                     accessible
-                    accessibilityLabel={translate('common.profile')}
+                    accessibilityLabel={`${translate('common.profile')}, ${displayName}, ${Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}`}
                     onPress={onPressSwitcher}
                     ref={buttonRef}
                     interactive={canSwitchAccounts}
@@ -219,7 +221,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                     <View style={styles.justifyContentCenter}>
                                         <Icon
                                             fill={theme.icon}
-                                            src={Expensicons.CaretUpDown}
+                                            src={icons.CaretUpDown}
                                             height={variables.iconSizeSmall}
                                             width={variables.iconSizeSmall}
                                         />
@@ -278,7 +280,5 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         </>
     );
 }
-
-AccountSwitcher.displayName = 'AccountSwitcher';
 
 export default AccountSwitcher;

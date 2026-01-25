@@ -146,7 +146,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
             onOpen,
             setActivePopoverExtraAnchorRef,
             close: closePopover,
-            // eslint-disable-next-line react-compiler/react-compiler
             popover: activePopoverRef.current,
             popoverAnchor: activePopoverAnchor,
             isOpen,
@@ -156,8 +155,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
 
     return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
 }
-
-PopoverContextProvider.displayName = 'PopoverContextProvider';
 
 export default PopoverContextProvider;
 

@@ -51,7 +51,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksLocationsPage.displayName}
+            displayName="QuickbooksLocationsPage"
             headerTitle="workspace.qbo.locations"
             title="workspace.qbo.locationsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -101,7 +101,5 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksLocationsPage.displayName = 'QuickbooksLocationsPage';
 
 export default withPolicyConnections(QuickbooksLocationsPage);

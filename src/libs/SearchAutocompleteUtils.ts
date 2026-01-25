@@ -2,7 +2,7 @@ import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
@@ -134,8 +134,15 @@ const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.TASK,
 }).map((value) => getUserFriendlyValue(value));
 
+const userFriendlyColumnList = new Set(
+    Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP)
+        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).includes(key as SearchColumnType))
+        .map(([, value]) => value),
+);
+
 /**
  * @private
+ * Determines if a specific value in the search syntax can/should be highlighted as valid or not
  */
 function filterOutRangesWithCorrectValue(
     range: SearchAutocompleteQueryRange,
@@ -193,7 +200,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
-            return categoryList.get().includes(range.value);
+            return categoryList.get().includes(range.value) || range.value === CONST.SEARCH.CATEGORY_EMPTY_VALUE;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
@@ -226,6 +233,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+            return userFriendlyColumnList.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
         default:

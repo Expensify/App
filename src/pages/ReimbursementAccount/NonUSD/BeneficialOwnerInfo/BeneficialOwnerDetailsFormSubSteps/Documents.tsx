@@ -217,6 +217,4 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     );
 }
 
-Documents.displayName = 'Documents';
-
 export default Documents;

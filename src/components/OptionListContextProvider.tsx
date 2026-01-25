@@ -114,7 +114,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
             for (const reportKey of changedReportKeys) {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
@@ -145,7 +145,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
             for (const [key, reportAction] of changedReportActionsEntries) {
                 if (!reportAction) {
                     continue;
@@ -237,7 +237,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         });
 
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [personalDetails]);
 
     const initializeOptions = useCallback(() => {
@@ -258,7 +258,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, []);
 
     return (
-        <OptionsListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
+        <OptionsListContext.Provider
             value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
         >
             {children}

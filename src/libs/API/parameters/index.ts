@@ -29,6 +29,7 @@ export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './Up
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
 export type {default as UpdateSageIntacctAccountingMethodParams} from './UpdateSageIntacctAccountingMethodParams';
 export type {default as UpdateQuickbooksDesktopAccountingMethodParams} from './UpdateQuickbooksDesktopAccountingMethodParams';
+export type {default as ShareBankAccountParams} from './ShareBankAccountParams';
 export type {default as RemovePolicyReceiptPartnersConnectionParams} from './RemovePolicyReceiptPartnersConnectionParams';
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
@@ -136,6 +137,7 @@ export type {default as TogglePolicyUberAutoRemovePageParams} from './TogglePoli
 export type {default as InviteToRoomParams} from './InviteToRoomParams';
 export type {default as InviteToGroupChatParams} from './InviteToGroupChatParams';
 export type {default as InviteWorkspaceEmployeesToUberParams} from './InviteWorkspaceEmployeesToUberParams';
+export type {default as UnshareBankAccountParams} from './UnshareBankAccountParams';
 export type {default as RemoveFromRoomParams} from './RemoveFromRoomParams';
 export type {default as RemoveFromGroupChatParams} from './RemoveFromGroupChatParams';
 export type {default as FlagCommentParams} from './FlagCommentParams';
@@ -160,6 +162,7 @@ export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvi
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
+export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
@@ -219,6 +222,7 @@ export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCatego
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyReceiptPartnersParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
+export type {default as EnablePolicyTravelParams} from './EnablePolicyTravelParams';
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
@@ -305,6 +309,7 @@ export type {default as EnablePolicyInvoicingParams} from './EnablePolicyInvoici
 export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
 export type {default as RemoveWorkspaceReportFieldListValueParams} from './RemoveWorkspaceReportFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
+export type {default as OpenPolicyTravelPageParams} from './OpenPolicyTravelPageParams';
 export type {default as OpenPolicyEditCardLimitTypePageParams} from './OpenPolicyEditCardLimitTypePageParams';
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
@@ -344,6 +349,7 @@ export type {default as AddDelegateParams} from './AddDelegateParams';
 export type {default as UpdateDelegateRoleParams} from './UpdateDelegateRoleParams';
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
+export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
@@ -378,6 +384,7 @@ export type {default as AssignCompanyCardParams} from './AssignCompanyCardParams
 export type {default as UnassignCompanyCard} from './UnassignCompanyCard';
 export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
+export type {default as UpdateCardTransactionStartDateParams} from './UpdateCardTransactionStartDateParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
@@ -431,6 +438,7 @@ export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishC
 export type {default as RejectMoneyRequestParams} from './RejectMoneyRequestParams';
 export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';
 export type {default as LockAccountParams} from './LockAccountParams';
+export type {default as RespondToProactiveAppReviewParams} from './RespondToProactiveAppReviewParams';
 export type {default as SetVacationDelegateParams} from './SetVacationDelegateParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
@@ -446,4 +454,12 @@ export type {default as DomainParams} from './DomainParams';
 export type {default as GetScimTokenParams} from './GetScimTokenParams';
 export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';
+export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
+export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
+export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
+export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
+export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
+export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
+export type {default as DeleteDomainParams} from './DeleteDomainParams';
+export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';

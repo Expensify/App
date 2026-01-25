@@ -23,6 +23,7 @@ function LanguagePage() {
         return SORTED_LOCALES.map((locale) => ({
             value: locale,
             text: LOCALE_TO_LANGUAGE_STRING[locale],
+            accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
         }));
@@ -41,7 +42,7 @@ function LanguagePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={LanguagePage.displayName}
+            testID="LanguagePage"
         >
             <HeaderWithBackButton
                 title={translate('languagePage.language')}
@@ -59,7 +60,5 @@ function LanguagePage() {
         </ScreenWrapper>
     );
 }
-
-LanguagePage.displayName = 'LanguagePage';
 
 export default LanguagePage;

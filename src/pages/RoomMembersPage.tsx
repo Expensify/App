@@ -8,12 +8,12 @@ import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonW
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
+import {Plus} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -34,9 +34,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isUserPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportName, getReportPersonalDetailsParticipants, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
+import {
+    getReportForHeader,
+    getReportName,
+    getReportPersonalDetailsParticipants,
+    isChatThread,
+    isDefaultRoom,
+    isPolicyExpenseChat as isPolicyExpenseChatUtils,
+    isUserCreatedPolicyRoom,
+} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -53,7 +63,9 @@ type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalD
 
 function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'FallbackAvatar']);
+    const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
+    const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
@@ -67,6 +79,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
     const isReportArchived = useReportIsArchived(report.reportID);
+    const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -114,7 +127,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     useEffect(() => {
         clearUserSearchPhrase();
         getRoomMembers();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**
@@ -200,7 +213,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         }
     };
 
-    /** Include the search bar when there are 8 or more active members in the selection list */
+    /** Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the selection list */
     const shouldShowTextInput = useMemo(() => {
         // Get the active chat members by filtering out the pending members with delete action
         const activeParticipants = participants.filter((accountID) => {
@@ -274,7 +287,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: details.avatar ?? icons.FallbackAvatar,
                         name: details.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -300,6 +313,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         searchValue,
         selectedMembers,
         session?.accountID,
+        icons.FallbackAvatar,
     ]);
 
     const dismissError = useCallback(
@@ -310,8 +324,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     );
 
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report?.policyID, policy]);
-
-    const headerMessage = searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '';
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
@@ -383,6 +395,16 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, styles.mt3]}>{header}</View>;
     }, [styles, translate, canSelectMultiple]);
 
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.findMember'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+            headerMessage: searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '',
+        }),
+        [data.length, searchValue, translate],
+    );
+
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {
         subtitleKey = isReportArchived ? 'roomMembersPage.roomArchived' : 'roomMembersPage.notAuthorized';
@@ -392,7 +414,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
-            testID={RoomMembersPage.displayName}
+            testID="RoomMembersPage"
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
@@ -403,7 +425,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle)) : getReportName(reportForSubtitle))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);
@@ -431,33 +454,27 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 />
                 <View style={[styles.w100, styles.mt3, styles.flex1]}>
                     <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        sections={[{data, isDisabled: false}]}
-                        shouldShowTextInput={shouldShowTextInput}
-                        textInputLabel={translate('selectionList.findMember')}
+                        data={data}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        textInputValue={searchValue}
-                        onChangeText={setSearchValue}
-                        headerMessage={headerMessage}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleUser(item)}
-                        onCheckboxPress={(item) => toggleUser(item)}
-                        onSelectRow={openRoomMemberDetails}
-                        onSelectAll={() => toggleAllUsers(data)}
-                        showLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
-                        showScrollIndicator
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.mt3]}
-                        customListHeader={customListHeader}
                         ListItem={TableListItem}
+                        onSelectRow={openRoomMemberDetails}
+                        onCheckboxPress={toggleUser}
+                        textInputOptions={textInputOptions}
+                        shouldShowTextInput={shouldShowTextInput}
+                        showLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        onTurnOnSelectionMode={(item) => item && toggleUser(item)}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.mt3]}}
+                        onSelectAll={() => toggleAllUsers(data)}
+                        canSelectMultiple={canSelectMultiple}
+                        customListHeader={customListHeader}
                         onDismissError={dismissError}
+                        turnOnSelectionModeOnLongPress
                     />
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
-
-RoomMembersPage.displayName = 'RoomMembersPage';
 
 export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));

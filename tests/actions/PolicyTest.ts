@@ -5,8 +5,6 @@ import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-// eslint-disable-next-line no-restricted-syntax
-import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -76,6 +74,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -292,6 +293,7 @@ describe('actions/Policy', () => {
                     invoices: true,
                     exportLayouts: true,
                 },
+                localCurrency: 'USD',
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -465,6 +467,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -491,6 +496,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -521,6 +529,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -547,6 +558,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -570,6 +584,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: undefined,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -594,6 +611,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -616,6 +636,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -638,6 +661,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -660,6 +686,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -682,6 +711,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -716,6 +748,9 @@ describe('actions/Policy', () => {
                         enabled: true,
                     },
                 ],
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -782,7 +817,7 @@ describe('actions/Policy', () => {
             expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.USD);
             expect(draft?.employeeList?.[ESH_EMAIL]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
-            expect(draft?.chatReportIDAdmins).toBe(Number(params.adminsChatReportID));
+            expect(draft?.chatReportIDAdmins).toBe(params.adminsChatReportID);
 
             // Report draft should be set for the expense chat
             const expenseReportDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${params.expenseChatReportID}`);
@@ -931,7 +966,7 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyRules', () => {
-        it('should disable preventSelfApproval when the rule feature is turned off', async () => {
+        it('should not reset preventSelfApproval when the rule feature is turned off', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
@@ -956,8 +991,8 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Check if the preventSelfApproval is reset to false
-            expect(policy?.preventSelfApproval).toBeFalsy();
+            // preventSelfApproval should not be reset since it's not part of Rules
+            expect(policy?.preventSelfApproval).toBeTruthy();
             expect(policy?.areRulesEnabled).toBeFalsy();
             expect(policy?.pendingFields?.areRulesEnabled).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
@@ -1062,6 +1097,7 @@ describe('actions/Policy', () => {
             mockFetch?.fail?.();
             Policy.deleteWorkspace({
                 policyID: fakePolicy.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1071,6 +1107,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: {},
                 bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
             });
 
             await waitForBatchedUpdates();
@@ -1152,6 +1189,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: 'test',
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1167,6 +1205,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
             });
 
             await waitForBatchedUpdates();
@@ -1181,21 +1220,35 @@ describe('actions/Policy', () => {
             expect(violations?.every((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION)).toBe(true);
         });
 
-        it('should update active policy ID to personal policy when deleting the active policy', async () => {
-            const personalPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
-            const teamPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+        it('should update active policy ID to most recently created group policy when deleting the active policy', async () => {
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.created = '2020-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const randomGroupPolicy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
+            randomGroupPolicy.created = '2021-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const randomGroupPolicy2 = createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE);
+            randomGroupPolicy2.created = '2022-01-01 10:00:00';
+            randomGroupPolicy2.pendingAction = null;
+
+            const mostRecentlyCreatedGroupPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            mostRecentlyCreatedGroupPolicy.created = '3000-01-01 10:00:00';
+            mostRecentlyCreatedGroupPolicy.pendingAction = null;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`, teamPolicy);
-            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, teamPolicy.id);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${randomGroupPolicy.id}`, randomGroupPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${randomGroupPolicy2.id}`, randomGroupPolicy2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mostRecentlyCreatedGroupPolicy.id}`, mostRecentlyCreatedGroupPolicy);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, randomGroupPolicy.id);
             await waitForBatchedUpdates();
 
-            jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
-
             Policy.deleteWorkspace({
-                policyID: teamPolicy.id,
-                activePolicyID: teamPolicy.id,
-                policyName: teamPolicy.name,
+                policyID: randomGroupPolicy.id,
+                personalPolicyID: personalPolicy.id,
+                activePolicyID: randomGroupPolicy.id,
+                policyName: randomGroupPolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
                 reportsToArchive: [],
@@ -1203,6 +1256,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
             });
             await waitForBatchedUpdates();
 
@@ -1216,7 +1270,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            expect(activePolicyID).toBe(personalPolicy.id);
+            expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
         });
 
         it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {
@@ -1229,6 +1283,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
@@ -1238,6 +1293,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
             });
             await waitForBatchedUpdates();
 
@@ -1266,6 +1322,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
@@ -1275,6 +1332,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
             });
             await waitForBatchedUpdates();
 

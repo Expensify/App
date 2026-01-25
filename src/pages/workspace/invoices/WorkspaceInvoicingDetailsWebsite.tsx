@@ -68,7 +68,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceInvoicingDetailsWebsite.displayName}
+                testID="WorkspaceInvoicingDetailsWebsite"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -99,7 +99,5 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicingDetailsWebsite.displayName = 'WorkspaceInvoicingDetailsWebsite';
 
 export default WorkspaceInvoicingDetailsWebsite;

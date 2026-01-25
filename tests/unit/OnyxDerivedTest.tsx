@@ -129,8 +129,8 @@ describe('OnyxDerived', () => {
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {areAllConnectionsSet: true});
-            const reportAttributesComputedValue = reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {
+            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {areAllConnectionsSet: true});
+            const reportAttributesComputedValue = reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {
                 sourceValues: {
                     [ONYXKEYS.COLLECTION.REPORT]: {
                         [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`],
@@ -370,6 +370,49 @@ describe('OnyxDerived', () => {
                     '1234567890': 'Error message 1',
                     '1234567891': 'Error message 2',
                 });
+            });
+        });
+
+        describe('RBR propagation for IOU reports', () => {
+            it('should correctly propagate and resolve RBR for IOU reports', async () => {
+                renderLocaleContextProvider();
+                await waitForBatchedUpdates();
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+                await waitForBatchedUpdates();
+
+                const parentReport = createRandomReport(2, undefined);
+                const iouReport = {
+                    ...createRandomReport(2, undefined),
+                    chatReportID: parentReport.reportID,
+                    ownerAccountID: 1,
+                    type: CONST.REPORT.TYPE.IOU,
+                    errorFields: {
+                        generic: {
+                            '1234567890': 'Generic error',
+                        },
+                    },
+                };
+
+                // --- Setup ---
+                // Set the reports in Onyx.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await waitForBatchedUpdates();
+
+                // --- Assertion 1: Propagation Works ---
+                // The parent report should have an error RBR because the child IOU report has an error.
+                let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+                // --- Action: Resolve Error ---
+                // Remove the error from the IOU report. This will trigger a partial update.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {errorFields: null});
+                await waitForBatchedUpdates();
+
+                // --- Assertion 2: RBR is Cleared ---
+                // The parent report's RBR should be cleared now that the child's error is gone.
+                derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
             });
         });
     });

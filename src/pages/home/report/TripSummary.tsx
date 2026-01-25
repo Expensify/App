@@ -30,6 +30,4 @@ function TripSummary({reportID}: TripSummaryProps) {
     );
 }
 
-TripSummary.displayName = 'TripSummary';
-
 export default TripSummary;

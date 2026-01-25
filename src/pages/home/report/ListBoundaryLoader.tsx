@@ -74,6 +74,7 @@ function ListBoundaryLoader({
                         onPress={retry}
                         text={translate('listBoundary.tryAgain')}
                         isLoading={isRetrying}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.LIST_BOUNDARY_LOADER_RETRY}
                     />
                 )}
             </View>
@@ -105,7 +106,5 @@ function ListBoundaryLoader({
         );
     }
 }
-
-ListBoundaryLoader.displayName = 'ListBoundaryLoader';
 
 export default ListBoundaryLoader;

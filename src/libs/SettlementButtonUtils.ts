@@ -1,8 +1,8 @@
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemo} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type IconAsset from '@src/types/utils/IconAsset';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
 
@@ -39,6 +39,14 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
             check: (activeRoute: string) => activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(chatReportID)),
             navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
         },
+        {
+            check: (activeRoute: string) => activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: chatReportID})),
+            navigate: () => Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
+        },
+        {
+            check: (activeRoute: string) => activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: chatReportID})),
+            navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
+        },
     ];
 
     if (reportID === undefined) {
@@ -57,6 +65,10 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
         {
             check: (activeRoute: string) => activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
             navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID)),
+        },
+        {
+            check: (activeRoute: string) => activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID})),
+            navigate: () => Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID)),
         },
     ];
 
@@ -80,28 +92,34 @@ const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string
 /**
  * Retrieves SettlementButton payment methods.
  */
-const getSettlementButtonPaymentMethods = (icons: Record<'Building' | 'User', IconAsset>, hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
-    return {
-        [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-            text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
-            icon: icons.User,
-            value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-            key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-        },
-        [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-            text: translate('iou.settleBusiness', {formattedAmount: ''}),
-            icon: icons.Building,
-            value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-        },
-        [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-            text: translate('iou.payElsewhere', {formattedAmount: ''}),
-            icon: Expensicons.CheckCircle,
-            shouldUpdateSelectedIndex: false,
-            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-        },
-    };
+const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const);
+
+    const paymentMethods = useMemo(() => {
+        return {
+            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
+                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
+                icon: icons.User,
+                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            },
+            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
+                text: translate('iou.settleBusiness', {formattedAmount: ''}),
+                icon: icons.Building,
+                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            },
+            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
+                text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                icon: icons.CheckCircle,
+                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                shouldUpdateSelectedIndex: false,
+                key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            },
+        };
+    }, [hasActivatedWallet, translate, icons]);
+
+    return paymentMethods;
 };
 
-export {handleUnvalidatedUserNavigation, getSettlementButtonPaymentMethods};
+export {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods};

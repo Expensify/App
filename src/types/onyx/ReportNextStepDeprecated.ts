@@ -61,6 +61,9 @@ type ReportNextStepDeprecated = {
     /** The icon for the next step */
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 
+    /** Optional custom fill color for the icon */
+    iconFill?: string;
+
     /** Whether the user should take some sort of action in order to unblock the report */
     requiresUserAction?: boolean;
 

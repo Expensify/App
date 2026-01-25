@@ -1,5 +1,4 @@
 /* eslint-disable default-case */
-
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -418,6 +417,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
     switch (key) {
         case 'avatarUrl':
         case 'created':
+        case 'submitted':
+        case 'approved':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -440,6 +441,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'preexistingReportID':
         case 'private_isArchived':
         case 'welcomeMessage':
+        case 'origin':
+        case 'originalID':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -615,6 +618,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -641,6 +646,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
@@ -956,6 +963,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardNumber':
         case 'taxValue':
         case 'groupCurrency':
+        case 'transactionType':
+        case 'transactionThreadReportID':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -978,6 +987,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'originalAmount':
         case 'convertedAmount':
         case 'groupAmount':
+        case 'groupExchangeRate':
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
@@ -1033,6 +1043,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     customUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    units: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     source: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splits: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1043,6 +1054,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1065,10 +1078,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     parentTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1097,8 +1112,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    pendingAutoCategorizationTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    groupExchangeRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1139,6 +1158,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splitExpenses: 'array',
                 isDemoTransaction: 'boolean',
                 splitExpensesTotal: 'number',
+                pendingAutoCategorizationTime: 'string',
+                units: 'object',
+                splitsStartDate: 'string',
+                splitsEndDate: 'string',
+                odometerStart: 'number',
+                odometerEnd: 'number',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1449,7 +1474,7 @@ function getReasonAndReportActionForRBRInLHNRow(
 }
 
 function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
-    const transactionID = TransactionUtilsGetTransactionID(report?.reportID);
+    const transactionID = TransactionUtilsGetTransactionID(report);
 
     return Number(transactionID) > 0
         ? transactionID

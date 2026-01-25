@@ -14,6 +14,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -80,6 +81,7 @@ function TaskPreview({
     style,
     shouldDisplayContextMenu = true,
 }: TaskPreviewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -103,7 +105,7 @@ function TaskPreview({
     const isTaskActionable = canActionTask(taskReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
-    const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
+    const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? icons.FallbackAvatar;
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
@@ -139,6 +141,7 @@ function TaskPreview({
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
+                sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
                     <View style={iconWrapperStyle}>
@@ -154,6 +157,7 @@ function TaskPreview({
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
                     {hasAssignee && (
@@ -182,7 +186,7 @@ function TaskPreview({
                     </View>
                 )}
                 <Icon
-                    src={Expensicons.ArrowRight}
+                    src={icons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
                     additionalStyles={iconWrapperStyle}
                 />
@@ -190,7 +194,5 @@ function TaskPreview({
         </View>
     );
 }
-
-TaskPreview.displayName = 'TaskPreview';
 
 export default withCurrentUserPersonalDetails(TaskPreview);

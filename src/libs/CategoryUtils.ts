@@ -1,6 +1,8 @@
 import {Str} from 'expensify-common';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import {convertToShortDisplayString} from './CurrencyUtils';
@@ -39,9 +41,7 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
 
     const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
 
-    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
-        defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-    });
+    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD));
 }
 
 function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {
@@ -98,9 +98,8 @@ function isCategoryMissing(category: string | undefined): boolean {
     if (!category) {
         return true;
     }
-    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
 
-    return emptyCategories.includes(category ?? '');
+    return category === CONST.SEARCH.CATEGORY_EMPTY_VALUE || category === CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
 }
 
 function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
@@ -114,6 +113,18 @@ function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
 
+function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollection<PolicyCategories>, personalPolicyID: string | undefined) {
+    return Object.fromEntries(
+        Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
+            if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
+                return false;
+            }
+            const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            return availableCategories.length > 0;
+        }),
+    );
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
@@ -125,4 +136,5 @@ export {
     isCategoryMissing,
     isCategoryDescriptionRequired,
     getDecodedCategoryName,
+    getAvailableNonPersonalPolicyCategories,
 };

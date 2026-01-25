@@ -4,6 +4,7 @@ import {emailSelector} from '@selectors/Session';
 import {useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
@@ -37,7 +38,6 @@ function useOnboardingFlowRouter() {
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
     const startedOnboardingFlowRef = useRef(false);
-    const started2FAFlowRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
         canBeMissing: true,
@@ -55,7 +55,7 @@ function useOnboardingFlowRouter() {
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
+        const handle = InteractionManager.runAfterInteractions(() => {
             // Prevent starting the onboarding flow if we are logging in as a new user with short lived token
             if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                 return;
@@ -75,16 +75,6 @@ function useOnboardingFlowRouter() {
 
             if (currentUrl.endsWith('/r')) {
                 // Don't trigger onboarding if we are in the middle of a redirect to a report
-                return;
-            }
-
-            if (shouldShowRequire2FAPage) {
-                if (started2FAFlowRef.current) {
-                    startedOnboardingFlowRef.current = false;
-                    return;
-                }
-                started2FAFlowRef.current = true;
-                Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
                 return;
             }
 
@@ -120,6 +110,7 @@ function useOnboardingFlowRouter() {
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                     startedOnboardingFlowRef.current = true;
+                    Log.info('[Onboarding] Hybrid app onboarding is completed, but NewDot onboarding is not completed, starting NewDot onboarding flow');
                     startOnboardingFlow({
                         onboardingValuesParam: onboardingValues,
                         isUserFromPublicDomain: !!account?.isFromPublicDomain,
@@ -135,6 +126,7 @@ function useOnboardingFlowRouter() {
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                 startedOnboardingFlowRef.current = true;
+                Log.info('[Onboarding] Not a hybrid app, NewDot onboarding is not completed, starting NewDot onboarding flow');
                 startOnboardingFlow({
                     onboardingValuesParam: onboardingValues,
                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
@@ -146,6 +138,10 @@ function useOnboardingFlowRouter() {
                 });
             }
         });
+
+        return () => {
+            handle.cancel();
+        };
     }, [
         isLoadingApp,
         isHybridAppOnboardingCompleted,
@@ -166,7 +162,6 @@ function useOnboardingFlowRouter() {
         currentOnboardingPurposeSelected,
         onboardingInitialPath,
         isOnboardingLoading,
-        shouldShowRequire2FAPage,
     ]);
 
     return {

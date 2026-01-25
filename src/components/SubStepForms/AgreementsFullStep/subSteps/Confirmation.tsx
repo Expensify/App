@@ -142,6 +142,4 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValue
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

@@ -12,6 +12,7 @@ import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCa
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -144,9 +145,28 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         return !indexOutOfRange;
     }, [activePage, hasSiblingCarouselItems, page]);
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
+    const previousUri = usePrevious(uri);
+
+    // Clear cached dimensions and reset loading states when URI changes to ensure the new image get fresh dimensions
+    useEffect(() => {
+        if (previousUri === uri || !previousUri || !uri) {
+            return;
+        }
+        // Clear the content size state to force recalculation of dimensions
+        // This ensures that when an image is rotated and gets a new URI,
+        // we don't use stale cached dimensions from the previous image
+        setInternalContentSize(undefined);
+        setLightboxImageLoaded(false);
+        setFallbackImageLoaded(false);
+        setIsLoading(true);
+        // Don't delete from cache here as other components might still need it
+        // The new URI will get its own cache entry when loaded
+    }, [uri, previousUri]);
+
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || !contentSize || isCanvasLoading) {
             return undefined;
@@ -168,7 +188,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
-    const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
+    const isImageLoaded = !(isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading));
 
     // Resets the lightbox when it becomes inactive
     useEffect(() => {
@@ -208,6 +228,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     );
 
     const isALocalFile = isLocalFile(uri);
+    const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
     return (
         <View
@@ -249,6 +270,9 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                         setContentSize(cachedImageDimensions.get(uri));
                                         setLightboxImageLoaded(false);
                                     }}
+                                    onLoadEnd={() => {
+                                        setIsLoading(false);
+                                    }}
                                 />
                             </MultiGestureCanvas>
                         </View>
@@ -271,19 +295,17 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {isLoading && (!isOffline || isALocalFile) && (
+                    {(!isImageLoaded || previousUri !== uri) && !shouldShowOfflineIndicator && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
                         />
                     )}
-                    {isLoading && !isALocalFile && <AttachmentOfflineIndicator />}
+                    {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
                 </>
             )}
         </View>
     );
 }
-
-Lightbox.displayName = 'Lightbox';
 
 export default Lightbox;

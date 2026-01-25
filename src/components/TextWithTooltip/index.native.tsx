@@ -20,6 +20,4 @@ function TextWithTooltip({testID, text, style, numberOfLines = 1, forwardedFSCla
     );
 }
 
-TextWithTooltip.displayName = 'TextWithTooltip';
-
 export default TextWithTooltip;

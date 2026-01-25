@@ -45,7 +45,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
 function MyComponent() {
     // Load multiple illustrations at once
-    const illustrations = useMemoizedLazyIllustrations(['Building', 'FolderOpen', 'Tag'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Building', 'FolderOpen', 'Tag']);
 
     return (
         <View>
@@ -64,7 +64,7 @@ Same pattern as illustrations, but for Expensify icons:
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
 function NavigationBar() {
-    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'MoneySearch'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'MoneySearch']);
 
     return (
         <View>
@@ -203,7 +203,7 @@ If you're migrating existing code from direct loading to lazy loading:
    import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
    function Component() {
-       const illustrations = useMemoizedLazyIllustrations(['Building'] as const);
+       const illustrations = useMemoizedLazyIllustrations(['Building']);
        return <Icon src={illustrations.Building} />;
    }
    ```
@@ -228,7 +228,7 @@ If you're migrating existing code from direct loading to lazy loading:
    import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
    function Component() {
-       const illustrations = useMemoizedLazyIllustrations(['Building', 'Tag', 'Coins'] as const);
+       const illustrations = useMemoizedLazyIllustrations(['Building', 'Tag', 'Coins']);
        return (
            <View>
                <Icon src={illustrations.Building} />
@@ -255,7 +255,7 @@ If you're migrating existing code from direct loading to lazy loading:
    import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
    function Component() {
-       const icons = useMemoizedLazyExpensifyIcons(['Home'] as const);
+       const icons = useMemoizedLazyExpensifyIcons(['Home']);
        return <Icon src={icons.Home} />;
    }
    ```

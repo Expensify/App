@@ -23,7 +23,7 @@ type WalletQuestionAnswer = {
  *   identity check. Note: This happens in Web-Secure when we call Activate_Wallet during the OnfidoStep.
  */
 function openOnfidoFlow() {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_ONFIDO>> = [
         {
             // Use Onyx.set() since we are resetting the Onfido flow completely.
             onyxMethod: Onyx.METHOD.SET,
@@ -34,7 +34,7 @@ function openOnfidoFlow() {
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_ONFIDO>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_ONFIDO,
@@ -62,7 +62,7 @@ function setKYCWallSource(source?: ValueOf<typeof CONST.KYC_WALL_SOURCE>, chatRe
  * Validates a user's provided details against a series of checks
  */
 function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletParams) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -74,7 +74,7 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -97,7 +97,7 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
  * API request to fetch the userWallet after we call VerifyIdentity
  */
 function verifyIdentity(parameters: VerifyIdentityParams) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_ONFIDO | typeof ONYXKEYS.USER_WALLET>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_ONFIDO,
@@ -116,7 +116,7 @@ function verifyIdentity(parameters: VerifyIdentityParams) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_ONFIDO>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_ONFIDO,
@@ -127,7 +127,7 @@ function verifyIdentity(parameters: VerifyIdentityParams) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_ONFIDO>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_ONFIDO,
@@ -150,7 +150,7 @@ function verifyIdentity(parameters: VerifyIdentityParams) {
  * @param parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
 function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TERMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
@@ -160,7 +160,7 @@ function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TERMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
@@ -171,7 +171,7 @@ function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.WALLET_TERMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
@@ -215,7 +215,7 @@ function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null
 function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: string) {
     const idologyAnswers = JSON.stringify(answers);
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
@@ -225,7 +225,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,

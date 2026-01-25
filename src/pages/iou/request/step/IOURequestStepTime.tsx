@@ -56,9 +56,9 @@ function IOURequestStepTime({
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy) || (isEditPage && isEmptyObject(transaction?.comment?.customUnit));
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
@@ -136,7 +136,7 @@ function IOURequestStepTime({
             onBackButtonPress={navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
-            testID={IOURequestStepTime.displayName}
+            testID="IOURequestStepTime"
             includeSafeAreaPaddingBottom
         >
             <FormProvider
@@ -183,8 +183,6 @@ function IOURequestStepTime({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTime.displayName = 'IOURequestStepTime';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTimeWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTime);

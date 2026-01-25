@@ -68,6 +68,4 @@ function Container({
     );
 }
 
-Container.displayName = 'ModalContainer';
-
 export default Container;

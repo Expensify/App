@@ -79,7 +79,7 @@ function ScheduleCallPage() {
         return () => {
             sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
@@ -159,7 +159,7 @@ function ScheduleCallPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={ScheduleCallPage.displayName}
+            testID="ScheduleCallPage"
         >
             <HeaderWithBackButton
                 title={translate('scheduledCall.book.title')}
@@ -241,7 +241,5 @@ function ScheduleCallPage() {
         </ScreenWrapper>
     );
 }
-
-ScheduleCallPage.displayName = 'ScheduleCallPage';
 
 export default ScheduleCallPage;

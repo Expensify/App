@@ -9,7 +9,7 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
     const tooltipRef = useRef<BoundsObserver>(null);
 
     const isPopoverRelatedToTooltipOpen = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/dot-notation, react-compiler/react-compiler
+        // eslint-disable-next-line @typescript-eslint/dot-notation
         const tooltipNode = (tooltipRef.current?.['_childNode'] as Node | undefined) ?? null;
 
         if (isOpen && popoverAnchor && tooltipNode && ((popoverAnchor instanceof Node && tooltipNode.contains(popoverAnchor)) || tooltipNode === popoverAnchor)) {
@@ -33,7 +33,5 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
         </BaseTooltip>
     );
 }
-
-PopoverAnchorTooltip.displayName = 'PopoverAnchorTooltip';
 
 export default PopoverAnchorTooltip;

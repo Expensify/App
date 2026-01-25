@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import React, {useCallback, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {Keyboard} from 'react-native';
@@ -85,8 +84,6 @@ function ComposerWithSuggestionsE2e({ref, ...props}: ComposerWithSuggestionsProp
         </ComposerWithSuggestions>
     );
 }
-
-ComposerWithSuggestionsE2e.displayName = 'ComposerWithSuggestionsE2e';
 
 export default ComposerWithSuggestionsE2e;
 export {getRerenderCount, resetRerenderCount};

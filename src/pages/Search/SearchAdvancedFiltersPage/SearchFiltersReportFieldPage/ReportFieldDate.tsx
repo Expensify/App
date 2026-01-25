@@ -27,6 +27,4 @@ function ReportFieldDate({field, close}: ReportFieldDateProps) {
     );
 }
 
-ReportFieldDate.displayName = 'ReportFieldDate';
-
 export default ReportFieldDate;

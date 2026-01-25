@@ -46,6 +46,4 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     );
 }
 
-WalletStatementModal.displayName = 'WalletStatementModal';
-
 export default WalletStatementModal;

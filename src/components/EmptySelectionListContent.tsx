@@ -24,7 +24,7 @@ function isContentType(contentType: unknown): contentType is ContentType {
 
 function EmptySelectionListContent({contentType}: EmptySelectionListContentProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
     const {translate} = useLocalize();
 
     if (!isContentType(contentType)) {
@@ -48,7 +48,5 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
         </ScrollView>
     );
 }
-
-EmptySelectionListContent.displayName = 'EmptySelectionListContent';
 
 export default EmptySelectionListContent;

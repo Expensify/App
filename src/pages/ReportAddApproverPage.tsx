@@ -39,10 +39,11 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`, {canBeMissing: true});
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {
@@ -59,11 +60,11 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 if (!email) {
                     return null;
                 }
-                const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? CONST.DEFAULT_NUMBER_ID);
-                const isPendingDelete = employeeList?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const accountID = policyMemberEmailsToAccountIDs[email];
+                const isPendingDelete = employee?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-                // Filter the current report approver and members which are pending for deletion
-                if (report.managerID === accountID || isPendingDelete || !isAllowedToApproveExpenseReport(report, accountID, policy)) {
+                // Filter the current report approver, members which are pending for deletion, or members we cannot map to an account
+                if (!accountID || report.managerID === accountID || isPendingDelete || !isAllowedToApproveExpenseReport(report, accountID, policy)) {
                     return null;
                 }
 
@@ -97,9 +98,10 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             policy,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            reportNextStep,
         );
-        Navigation.dismissModal();
-    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled]);
+        Navigation.dismissToPreviousRHP();
+    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
 
     const button = useMemo(() => {
         return (
@@ -123,7 +125,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
 
     return (
         <ApproverSelectionList
-            testID={ReportAddApproverPage.displayName}
+            testID="ReportAddApproverPage"
             headerTitle={translate('iou.changeApprover.actions.addApprover')}
             onBackButtonPress={() => {
                 Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
@@ -142,7 +144,5 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         />
     );
 }
-
-ReportAddApproverPage.displayName = 'ReportAddApproverPage';
 
 export default withReportOrNotFound()(ReportAddApproverPage);

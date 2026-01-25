@@ -7,7 +7,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -42,10 +42,17 @@ type UserSelectPopupProps = {
 
     /** Function to call when changes are applied */
     onChange: (value: string[]) => void;
+
+    /**
+     * Whether the search input should be displayed.
+     * When undefined, defaults to showing search when user count >= CONST.STANDARD_LIST_ITEM_LIMIT (12 users).
+     * Set to true to always show search, or false to never show search regardless of user count.
+     */
+    isSearchable?: boolean;
 };
 
-function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
-    const selectionListRef = useRef<SelectionListHandle | null>(null);
+function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
+    const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {options} = useOptionsList();
@@ -55,10 +62,12 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((acc, id) => {
             const participant = personalDetails?.[id];
@@ -89,23 +98,26 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            allPolicies,
             draftComments,
             nvpDismissedProductTraining,
+            loginList,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                personalDetails,
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, countryCode]);
+    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [optionsList, cleanSearchTerm, countryCode]);
+    }, [optionsList, cleanSearchTerm, countryCode, loginList]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
@@ -171,21 +183,25 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const dataLength = listData.length;
+    const totalOptionsCount = optionsList.personalDetails.length + optionsList.recentReports.length;
+    const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const textInputOptions = useMemo(
-        () => ({
-            value: searchTerm,
-            label: translate('selectionList.searchForSomeone'),
-            onChangeText: setSearchTerm,
-            headerMessage,
-            disableAutoFocus: !shouldFocusInputOnScreenFocus,
-        }),
-        [searchTerm, translate, headerMessage, shouldFocusInputOnScreenFocus],
+        () =>
+            shouldShowSearchInput
+                ? {
+                      value: searchTerm,
+                      label: translate('selectionList.searchForSomeone'),
+                      onChangeText: setSearchTerm,
+                      headerMessage,
+                      disableAutoFocus: !shouldFocusInputOnScreenFocus,
+                  }
+                : undefined,
+        [searchTerm, translate, headerMessage, shouldFocusInputOnScreenFocus, shouldShowSearchInput],
     );
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
             <SelectionList
                 data={listData}
                 ref={selectionListRef}
@@ -216,5 +232,4 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     );
 }
 
-UserSelectPopup.displayName = 'UserSelectPopup';
 export default memo(UserSelectPopup);

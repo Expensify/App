@@ -11,6 +11,4 @@ function UpdateAppModal(props: UpdateAppModalProps) {
     );
 }
 
-UpdateAppModal.displayName = 'UpdateAppModal';
-
 export default UpdateAppModal;

@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
@@ -20,7 +21,6 @@ function BaseSearchList({
     keyExtractor,
     onScroll,
     ref,
-    isFocused,
     scrollToIndex,
     onEndReached,
     onEndReachedThreshold,
@@ -30,8 +30,11 @@ function BaseSearchList({
     contentContainerStyle,
     flattenedItemsLength,
     newTransactions,
+    selectedTransactions,
+    customCardNames,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
+    const isFocused = useIsFocused();
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -49,7 +52,6 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
-        // eslint-disable-next-line react-compiler/react-compiler
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
     });
@@ -101,7 +103,10 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, isFocused, columns, newTransactions], [focusedIndex, isFocused, columns, newTransactions]);
+    const extraData = useMemo(
+        () => [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
+        [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
+    );
 
     return (
         <AnimatedFlashListComponent
@@ -109,7 +114,7 @@ function BaseSearchList({
             renderItem={renderItemWithKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator
             ref={ref}
             extraData={extraData}
             onEndReached={onEndReached}
@@ -124,7 +129,5 @@ function BaseSearchList({
         />
     );
 }
-
-BaseSearchList.displayName = 'BaseSearchList';
 
 export default BaseSearchList;

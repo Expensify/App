@@ -53,6 +53,4 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
     );
 }
 
-DebugReportActionPreview.displayName = 'DebugReportActionPreview';
-
 export default DebugReportActionPreview;

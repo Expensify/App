@@ -57,6 +57,4 @@ function AddressUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}:
     );
 }
 
-AddressUBO.displayName = 'AddressUBO';
-
 export default AddressUBO;

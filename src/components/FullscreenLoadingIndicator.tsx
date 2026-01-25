@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ExtraLoadingContext} from '@libs/AppState';
 import Navigation from '@libs/Navigation/Navigation';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
@@ -39,6 +40,7 @@ function FullScreenLoadingIndicator({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [showGoBackButton, setShowGoBackButton] = useState(false);
+    useSkeletonSpan('FullScreenLoadingIndicator');
 
     useEffect(() => {
         if (!shouldUseGoBackButton) {
@@ -74,8 +76,6 @@ function FullScreenLoadingIndicator({
         </View>
     );
 }
-
-FullScreenLoadingIndicator.displayName = 'FullScreenLoadingIndicator';
 
 export default FullScreenLoadingIndicator;
 

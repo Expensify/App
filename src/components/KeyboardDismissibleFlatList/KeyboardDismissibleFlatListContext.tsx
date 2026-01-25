@@ -129,6 +129,4 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     return <KeyboardDismissibleFlatListContext.Provider value={value}>{children}</KeyboardDismissibleFlatListContext.Provider>;
 }
 
-KeyboardDismissibleFlatListContextProvider.displayName = 'KeyboardDismissibleFlatListContextProvider';
-
 export {KeyboardDismissibleFlatListContext, KeyboardDismissibleFlatListContextProvider};

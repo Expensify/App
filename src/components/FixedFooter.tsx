@@ -44,6 +44,4 @@ function FixedFooter({style, children, addBottomSafeAreaPadding, addOfflineIndic
     return <View style={[styles.ph5, styles.flexShrink0, footerStyle, style]}>{children}</View>;
 }
 
-FixedFooter.displayName = 'FixedFooter';
-
 export default FixedFooter;

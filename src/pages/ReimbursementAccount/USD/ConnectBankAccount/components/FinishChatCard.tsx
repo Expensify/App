@@ -1,10 +1,11 @@
 import React from 'react';
-import {ChatBubble, Pencil, RotateLeft} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {RotateLeft} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +35,8 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
 
-    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ChatBubble']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
 
     return (
         <ScrollView style={[styles.flex1]}>
@@ -46,14 +48,14 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <MenuItem
-                    icon={ChatBubble}
+                    icon={icons.ChatBubble}
                     title={translate('workspace.bankAccount.finishInChat')}
                     onPress={handleNavigateToConciergeChat}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                     shouldShowRightIcon
                 />
                 <MenuItem
-                    icon={Pencil}
+                    icon={icons.Pencil}
                     title={translate('workspace.bankAccount.updateDetails')}
                     onPress={() => {
                         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
@@ -83,7 +85,5 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
         </ScrollView>
     );
 }
-
-FinishChatCard.displayName = 'FinishChatCard';
 
 export default FinishChatCard;

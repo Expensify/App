@@ -1,18 +1,26 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {AccessibilityState, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
+import type CONST from '@src/CONST';
+import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type BaseListItem from './BaseListItem';
+import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
 import type RadioListItem from './RadioListItem';
 import type SingleSelectListItem from './SingleSelectListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
+import type SplitListItem from './SplitListItem';
+import type TableListItem from './TableListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
+import type UserListItem from './UserListItem';
+import type UserSelectionListItem from './UserSelectionListItem';
 
 type ListItem<K extends string | number = string> = {
     /** Text to display */
@@ -20,6 +28,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Alternate text to display */
     alternateText?: string | null;
+
+    /** Accessibility label for screen readers */
+    accessibilityLabel?: string;
 
     /** Key used internally by React */
     keyForList: K;
@@ -180,6 +191,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
     accessibilityState?: AccessibilityState;
+
+    /** Whether to show the right caret icon */
+    shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -225,6 +239,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
 
+    /** Boolean whether to display the right icon */
+    shouldShowRightCaret?: boolean;
+
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
 
@@ -237,6 +254,15 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
 
+    /** Index of the item in the list */
+    index?: number;
+
+    /** Callback when the input inside the item is focused (if input exists) */
+    onInputFocus?: (item: TItem) => void;
+
+    /** Callback when the input inside the item is blurred (if input exists) */
+    onInputBlur?: (e: BlurEvent) => void;
+
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
 
@@ -245,12 +271,17 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 };
 
 type ValidListItem =
-    | typeof RadioListItem
     | typeof BaseListItem
+    | typeof InviteMemberListItem
     | typeof MultiSelectListItem
+    | typeof RadioListItem
     | typeof SingleSelectListItem
     | typeof SpendCategorySelectorListItem
-    | typeof TravelDomainListItem;
+    | typeof SplitListItem
+    | typeof TableListItem
+    | typeof TravelDomainListItem
+    | typeof UserListItem
+    | typeof UserSelectionListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
@@ -281,6 +312,46 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
 };
+
+type SplitListItemType = ListItem &
+    SplitExpense & {
+        /** Item header text */
+        headerText: string;
+
+        /** Merchant or vendor name */
+        merchant: string;
+
+        /** Currency code */
+        currency: string;
+
+        /** ID of split expense */
+        transactionID: string;
+
+        /** Currency symbol */
+        currencySymbol: string;
+
+        /** Original amount before split */
+        originalAmount: number;
+
+        /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
+        isEditable: boolean;
+
+        /** Current mode for the split editor: amount or percentage */
+        mode: ValueOf<typeof CONST.TAB.SPLIT>;
+
+        /** Percentage value to show when in percentage mode (0-100) */
+        percentage: number;
+
+        /**
+         * Function for updating value (amount or percentage based on mode)
+         */
+        onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => void;
+
+        onInputFocus?: (item: SplitListItemType) => void;
+    };
+
+type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -290,6 +361,8 @@ type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
+
+type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
     /** Whether product training tooltips can be displayed */
@@ -331,6 +404,9 @@ export type {
     SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
+    SplitListItemType,
+    SplitListItemProps,
+    TableListItemProps,
     WorkspaceListItemType,
     UserSelectionListItemProps,
 };

@@ -153,6 +153,5 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
     );
 }
 
-AppleSignIn.displayName = 'AppleSignIn';
 export default AppleSignIn;
 export type {AppleSignInProps};

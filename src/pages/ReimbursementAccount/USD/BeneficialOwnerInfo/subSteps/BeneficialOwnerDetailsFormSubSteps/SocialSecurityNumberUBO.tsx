@@ -58,6 +58,4 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
     );
 }
 
-SocialSecurityNumberUBO.displayName = 'SocialSecurityNumberUBO';
-
 export default SocialSecurityNumberUBO;

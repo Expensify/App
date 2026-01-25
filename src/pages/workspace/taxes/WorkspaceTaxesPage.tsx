@@ -11,10 +11,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -82,8 +82,8 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['Coins'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
+    const illustrations = useMemoizedLazyIllustrations(['Coins']);
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -93,7 +93,6 @@ function WorkspaceTaxesPage({
 
     useEffect(() => {
         fetchTaxes();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -120,7 +119,7 @@ function WorkspaceTaxesPage({
 
             return newSelectedTaxesIDs;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.taxRates?.taxes]);
 
     useSearchBackPress({
@@ -393,7 +392,7 @@ function WorkspaceTaxesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceTaxesPage.displayName}
+                testID="WorkspaceTaxesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -420,24 +419,24 @@ function WorkspaceTaxesPage({
                     />
                 )}
                 <SelectionListWithModal
-                    canSelectMultiple={canSelectMultiple}
-                    turnOnSelectionModeOnLongPress
-                    onTurnOnSelectionMode={(item) => item && toggleTax(item)}
-                    sections={[{data: filteredTaxesList, isDisabled: false}]}
-                    shouldUseDefaultRightHandSideCheckmark={false}
-                    selectedItems={selectedTaxesIDs}
-                    onCheckboxPress={toggleTax}
-                    onSelectRow={navigateToEditTaxRate}
-                    onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
+                    data={filteredTaxesList}
                     ListItem={TableListItem}
-                    listHeaderContent={headerContent}
-                    shouldShowListEmptyContent={false}
-                    customListHeader={getCustomListHeader()}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    selectedItems={selectedTaxesIDs}
+                    onSelectRow={navigateToEditTaxRate}
+                    canSelectMultiple={canSelectMultiple}
+                    onTurnOnSelectionMode={(item) => item && toggleTax(item)}
+                    onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
+                    style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldUseDefaultRightHandSideCheckmark={false}
+                    customListHeader={getCustomListHeader()}
+                    customListHeaderContent={headerContent}
+                    showListEmptyContent={false}
+                    onCheckboxPress={toggleTax}
                     showScrollIndicator={false}
-                    addBottomSafeAreaPadding
+                    turnOnSelectionModeOnLongPress
+                    shouldHeaderBeInsideList
                     shouldShowRightCaret
                 />
                 <ConfirmModal
@@ -458,7 +457,5 @@ function WorkspaceTaxesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesPage.displayName = 'WorkspaceTaxesPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesPage);

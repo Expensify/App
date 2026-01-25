@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {InteractionManager} from 'react-native';
@@ -39,8 +39,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const formRef = useRef<ScrollView>(null);
+    const isDeleting = useRef(false);
 
-    const updateApprovalWorkflowCallback = useCallback(() => {
+    const updateApprovalWorkflowCallback = () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
             return;
         }
@@ -57,13 +58,15 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         InteractionManager.runAfterInteractions(() => {
             updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
         });
-    }, [approvalWorkflow, initialApprovalWorkflow, policy]);
+    };
 
-    const removeApprovalWorkflowCallback = useCallback(() => {
+    const removeApprovalWorkflowCallback = () => {
         if (!initialApprovalWorkflow) {
             return;
         }
 
+        // Mark as deleting to prevent the useEffect from clearing the workflow and causing a blink
+        isDeleting.current = true;
         setIsDeleteModalVisible(false);
         Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -71,9 +74,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             // Remove the approval workflow using the initial data as it could be already edited
             removeApprovalWorkflow(initialApprovalWorkflow, policy);
         });
-    }, [initialApprovalWorkflow, policy]);
+    };
 
-    const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
+    const getApprovalWorkflowData = () => {
         if (!policy || !personalDetails) {
             return {};
         }
@@ -91,7 +94,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             usedApproverEmails: result.usedApproverEmails,
             currentApprovalWorkflow: result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover),
         };
-    }, [personalDetails, policy, route.params.firstApproverEmail, localeCompare]);
+    };
+
+    const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = getApprovalWorkflowData();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || !currentApprovalWorkflow;
@@ -103,6 +108,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         if (!currentApprovalWorkflow) {
+            // Don't clear if we're in the middle of deleting - this prevents the UI from blinking
+            if (isDeleting.current) {
+                return;
+            }
             return clearApprovalWorkflow();
         }
 
@@ -126,7 +135,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceWorkflowsApprovalsEditPage.displayName}
+                testID="WorkspaceWorkflowsApprovalsEditPage"
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -176,7 +185,5 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsApprovalsEditPage.displayName = 'WorkspaceWorkflowsApprovalsEditPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsEditPage);

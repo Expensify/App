@@ -157,7 +157,7 @@ function MoneyRequestAmountForm({
         initializeIsNegative(amount);
 
         // we want to re-initialize the state only when the selected tab
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTab]);
 
     /**
@@ -165,7 +165,7 @@ function MoneyRequestAmountForm({
      */
     const submitAndNavigateToNextPage = useCallback(
         (iouPaymentType?: PaymentMethodType | undefined) => {
-            const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
+            const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
@@ -301,8 +301,6 @@ function MoneyRequestAmountForm({
         </ScrollView>
     );
 }
-
-MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
 export default MoneyRequestAmountForm;
 export type {CurrentMoney, MoneyRequestAmountFormProps};

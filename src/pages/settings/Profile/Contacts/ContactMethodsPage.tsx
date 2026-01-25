@@ -49,17 +49,18 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
         }
 
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo)));
+            Navigation.navigate(
+                ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(navigateBackTo)),
+            );
             return;
         }
-
-        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
+        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(navigateBackTo));
     }, [navigateBackTo, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal]);
 
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={ContactMethodsPage.displayName}
+            testID="ContactMethodsPage"
         >
             <HeaderWithBackButton
                 title={translate('contacts.contactMethods')}
@@ -101,7 +102,5 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ContactMethodsPage.displayName = 'ContactMethodsPage';
 
 export default ContactMethodsPage;

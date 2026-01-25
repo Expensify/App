@@ -21,7 +21,7 @@ function QuickbooksDesktopItemsPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopItemsPage.displayName}
+            displayName="QuickbooksDesktopItemsPage"
             headerTitle="workspace.qbd.items"
             title="workspace.qbd.itemsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -43,7 +43,5 @@ function QuickbooksDesktopItemsPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksDesktopItemsPage.displayName = 'QuickbooksDesktopItemsPage';
 
 export default withPolicyConnections(QuickbooksDesktopItemsPage);

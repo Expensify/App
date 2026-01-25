@@ -93,7 +93,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroExportConfigurationPage.displayName}
+            displayName="XeroExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             headerSubtitle={currentXeroOrganizationName}
             title="workspace.xero.exportDescription"
@@ -124,7 +124,5 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-XeroExportConfigurationPage.displayName = 'XeroExportConfigurationPage';
 
 export default withPolicyConnections(XeroExportConfigurationPage);

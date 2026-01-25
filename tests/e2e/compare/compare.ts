@@ -69,8 +69,7 @@ function compareResults(baselineEntries: Metric | string, compareEntries: Metric
     const compared: Entry[] = [];
 
     if (typeof compareEntries !== 'string' && typeof baselineEntries !== 'string') {
-        // eslint-disable-next-line unicorn/no-array-for-each
-        names.forEach((name: string) => {
+        for (const name of names) {
             const current = compareEntries[name];
             const baseline = baselineEntries[name];
 
@@ -80,7 +79,7 @@ function compareResults(baselineEntries: Metric | string, compareEntries: Metric
             if (baseline && current) {
                 compared.push(buildCompareEntry(name, deltaStats, currentStats, metricForTest[name]));
             }
-        });
+        }
     }
     const significance = compared.filter((item) => item.isDurationDiffOfSignificance);
 

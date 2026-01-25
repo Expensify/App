@@ -48,7 +48,7 @@ function RulesReceiptRequiredAmountPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesReceiptRequiredAmountPage.displayName}
+                testID="RulesReceiptRequiredAmountPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.receiptRequiredAmount')}
@@ -84,7 +84,5 @@ function RulesReceiptRequiredAmountPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesReceiptRequiredAmountPage.displayName = 'RulesReceiptRequiredAmountPage';
 
 export default RulesReceiptRequiredAmountPage;

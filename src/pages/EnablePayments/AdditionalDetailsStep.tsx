@@ -133,7 +133,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                 shouldShowOfflineIndicator={false}
                 style={[styles.flex1, styles.pt0]}
                 keyboardAvoidingViewBehavior="height"
-                testID={AdditionalDetailsStep.displayName}
+                testID="AdditionalDetailsStep"
             >
                 <HeaderWithBackButton
                     title={translate('additionalDetailsStep.headerTitle')}
@@ -177,6 +177,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
@@ -187,6 +188,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <AddressFormFields
                         inputKeys={{
@@ -197,6 +199,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         }}
                         streetTranslationKey={fieldNameTranslationKeys.addressStreet}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
@@ -209,6 +212,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         defaultValue={currentUserPersonalDetails.phoneNumber}
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={DatePicker}
@@ -219,6 +223,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         minDate={minDate}
                         maxDate={maxDate}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
@@ -229,13 +234,12 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         role={CONST.ROLE.PRESENTATION}
                         maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </FormProvider>
             </View>
         </>
     );
 }
-
-AdditionalDetailsStep.displayName = 'AdditionalDetailsStep';
 
 export default withCurrentUserPersonalDetails(AdditionalDetailsStep);

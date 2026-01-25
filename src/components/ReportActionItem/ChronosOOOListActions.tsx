@@ -73,6 +73,4 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
     );
 }
 
-ChronosOOOListActions.displayName = 'ChronosOOOListActions';
-
 export default ChronosOOOListActions;

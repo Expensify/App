@@ -28,7 +28,7 @@ type CardTypeStepProps = {
 function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'VirtualCard'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'VirtualCard']);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
@@ -59,7 +59,7 @@ function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) 
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardTypeStep.displayName}
+            wrapperID="CardTypeStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
@@ -99,7 +99,5 @@ function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) 
         </InteractiveStepWrapper>
     );
 }
-
-CardTypeStep.displayName = 'CardTypeStep';
 
 export default CardTypeStep;

@@ -22,6 +22,4 @@ function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsPro
     );
 }
 
-QuickEmojiReactions.displayName = 'QuickEmojiReactions';
-
 export default QuickEmojiReactions;

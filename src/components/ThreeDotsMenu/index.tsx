@@ -44,6 +44,8 @@ function ThreeDotsMenu({
     isNested = false,
     shouldSelfPosition = false,
     threeDotsMenuRef,
+    sentryLabel,
+    isContainerFocused = true,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
@@ -54,7 +56,7 @@ function ThreeDotsMenu({
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
@@ -99,13 +101,12 @@ function ThreeDotsMenu({
         hidePopoverMenu,
         onThreeDotsPress,
     }));
-
     useEffect(() => {
-        if (!isBehindModal || !isPopupMenuVisible) {
+        if ((!isBehindModal || !isPopupMenuVisible) && isContainerFocused) {
             return;
         }
         hidePopoverMenu();
-    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
+    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
         if (!getMenuPosition || !isPopupMenuVisible) {
@@ -153,6 +154,7 @@ function ThreeDotsMenu({
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
+                        sentryLabel={sentryLabel}
                     >
                         <Icon
                             src={icon ?? expensifyIcons.ThreeDots}
@@ -164,7 +166,7 @@ function ThreeDotsMenu({
             <PopoverMenu
                 onClose={hidePopoverMenu}
                 onModalHide={() => setRestoreFocusType(undefined)}
-                isVisible={isPopupMenuVisible && !isBehindModal}
+                isVisible={isPopupMenuVisible && !isBehindModal && isContainerFocused}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {
@@ -181,7 +183,5 @@ function ThreeDotsMenu({
         </>
     );
 }
-
-ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
 export default ThreeDotsMenu;

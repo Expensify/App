@@ -1,5 +1,5 @@
 import React from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -17,13 +17,14 @@ type FullPageOfflineBlockingViewProps = ChildrenProps & {
 function FullPageOfflineBlockingView({children, addBottomSafeAreaPadding = true, addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding}: FullPageOfflineBlockingViewProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
 
     const theme = useTheme();
 
     if (isOffline) {
         return (
             <BlockingView
-                icon={Expensicons.OfflineCloud}
+                icon={icons.OfflineCloud}
                 iconColor={theme.offline}
                 title={translate('common.youAppearToBeOffline')}
                 subtitle={translate('common.thisFeatureRequiresInternet')}
@@ -35,7 +36,5 @@ function FullPageOfflineBlockingView({children, addBottomSafeAreaPadding = true,
 
     return children;
 }
-
-FullPageOfflineBlockingView.displayName = 'FullPageOfflineBlockingView';
 
 export default FullPageOfflineBlockingView;

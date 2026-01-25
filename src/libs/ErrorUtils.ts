@@ -1,13 +1,15 @@
 import mapValues from 'lodash/mapValues';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors, TranslationKeyError, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {translate, translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): TranslationPaths {
     switch (response.jsonCode) {
@@ -94,11 +96,16 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: O
 function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: OnyxEntry<TOnyxData>): Errors {
     const errors = onyxData?.errors ?? {};
 
-    if (Object.keys(errors).length === 0) {
+    if (isEmptyValueObject(errors)) {
         return {};
     }
 
     const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    const currentLocale = IntlStore.getCurrentLocale();
+
+    if (errors[key] === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
+        return {key: translate(currentLocale, 'bankAccount.error.sameDepositAndWithdrawalAccount')};
+    }
 
     return {key: errors[key]};
 }
@@ -110,7 +117,7 @@ type OnyxDataWithErrorFields = {
 function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>, fieldName: string): Errors {
     const errorsForField = onyxData?.errorFields?.[fieldName] ?? {};
 
-    if (Object.keys(errorsForField).length === 0) {
+    if (isEmptyValueObject(errorsForField)) {
         return {};
     }
 
@@ -121,7 +128,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
 function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>, fieldName: string): Errors {
     const errorsForField = onyxData?.errorFields?.[fieldName] ?? {};
 
-    if (Object.keys(errorsForField).length === 0) {
+    if (isEmptyValueObject(errorsForField)) {
         return {};
     }
 
@@ -135,7 +142,7 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
 function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>): Errors {
     const errorFields = onyxData?.errorFields ?? {};
 
-    if (Object.keys(errorFields).length === 0) {
+    if (isEmptyValueObject(errorFields)) {
         return {};
     }
 
@@ -145,7 +152,7 @@ function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorField
 }
 
 function getLatestError(errors?: Errors): Errors {
-    if (!errors || Object.keys(errors).length === 0) {
+    if (!errors || isEmptyValueObject(errors)) {
         return {};
     }
 

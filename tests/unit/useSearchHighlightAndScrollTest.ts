@@ -16,12 +16,6 @@ jest.mock('@rnmapbox/maps', () => ({
     MarkerView: {},
     setAccessToken: jest.fn(),
 }));
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-    getCurrentPosition: jest.fn(),
-    watchPosition: jest.fn(),
-    clearWatch: jest.fn(),
-}));
 
 const mockUseIsFocused = jest.fn().mockReturnValue(true);
 
@@ -31,6 +25,7 @@ afterEach(() => {
 
 describe('useSearchHighlightAndScroll', () => {
     const baseProps: UseSearchHighlightAndScroll = {
+        shouldUseLiveData: false,
         searchResults: {
             data: {
                 personalDetailsList: {},

@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -45,12 +46,14 @@ function BaseListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
+    shouldShowRightCaret = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const pressableRef = useRef<View>(null);
 
@@ -75,6 +78,12 @@ function BaseListItem<TItem extends ListItem>({
 
         return rightHandSideComponent;
     };
+
+    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
+
+    const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+
+    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark;
 
     return (
         <OfflineWithFeedback
@@ -103,7 +112,7 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={item.text ?? ''}
+                accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
                 role={getButtonRole(true)}
                 isNested
                 hoverDimmingValue={1}
@@ -136,9 +145,19 @@ function BaseListItem<TItem extends ListItem>({
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark && (
+                    {shouldShowRBRIndicator && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>
+                            <Icon
+                                testID={CONST.DOT_INDICATOR_TEST_ID}
+                                src={Expensicons.DotIndicator}
+                                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
+                            />
+                        </View>
+                    )}
+
+                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
                         <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
                             accessible={false}
                         >
                             <View>
@@ -149,24 +168,24 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+
+                    {rightHandSideComponentRender()}
+                    {shouldShowRightCaret && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
                             <Icon
-                                testID={CONST.DOT_INDICATOR_TEST_ID}
-                                src={Expensicons.DotIndicator}
-                                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
+                                src={icons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
                             />
                         </View>
                     )}
-
-                    {rightHandSideComponentRender()}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
 }
-
-BaseListItem.displayName = 'BaseListItem';
 
 export default BaseListItem;

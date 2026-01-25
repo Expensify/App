@@ -24,6 +24,4 @@ function TestDriveModalNavigator() {
     );
 }
 
-TestDriveModalNavigator.displayName = 'TestDriveModalNavigator';
-
 export default TestDriveModalNavigator;

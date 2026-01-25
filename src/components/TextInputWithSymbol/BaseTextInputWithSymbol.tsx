@@ -25,6 +25,7 @@ function BaseTextInputWithSymbol({
     symbolTextStyle,
     isNegative = false,
     ref,
+    disabled,
     ...rest
 }: BaseTextInputWithSymbolProps) {
     const {fromLocaleDigit} = useLocalize();
@@ -58,6 +59,7 @@ function BaseTextInputWithSymbol({
                 onChangeAmount={setFormattedAmount}
                 placeholder={placeholder}
                 ref={ref}
+                disabled={disabled}
                 selection={selection}
                 onSelectionChange={(event: TextInputSelectionChangeEvent) => {
                     onSelectionChange(event);
@@ -78,7 +80,5 @@ function BaseTextInputWithSymbol({
         </>
     );
 }
-
-BaseTextInputWithSymbol.displayName = 'BaseTextInputWithSymbol';
 
 export default BaseTextInputWithSymbol;

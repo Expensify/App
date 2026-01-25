@@ -126,11 +126,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
-        if (shouldShowRequire2FAPage) {
-            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
-        }
-
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
         // If we have a transition URL, don't restore last visited path - let React Navigation handle it
@@ -171,7 +166,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         return undefined;
 
         // The initialState value is relevant only on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // https://reactnavigation.org/docs/themes
@@ -279,7 +274,5 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         </NavigationContainer>
     );
 }
-
-NavigationRoot.displayName = 'NavigationRoot';
 
 export default NavigationRoot;

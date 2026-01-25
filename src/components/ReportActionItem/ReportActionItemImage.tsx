@@ -6,13 +6,14 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isFetchingWaypointsFromServer, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -102,7 +103,6 @@ function ReportActionItemImage({
     isSingleImage = true,
     readonly = false,
     shouldMapHaveBorderRadius,
-    isFromReviewDuplicates = false,
     mergeTransactionID,
     onPress,
     shouldUseFullHeight,
@@ -113,6 +113,7 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
@@ -149,7 +150,7 @@ function ReportActionItemImage({
             // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
-            fallbackIcon: Expensicons.Receipt,
+            fallbackIcon: icons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
 
@@ -184,16 +185,16 @@ function ReportActionItemImage({
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID,
+                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
                                     transaction?.transactionID,
                                     readonly,
-                                    isFromReviewDuplicates,
                                     mergeTransactionID,
                                 ),
                             )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}
                     >
                         <ReceiptImage
                             {...propsObj}
@@ -217,7 +218,5 @@ function ReportActionItemImage({
         />
     );
 }
-
-ReportActionItemImage.displayName = 'ReportActionItemImage';
 
 export default ReportActionItemImage;

@@ -123,5 +123,4 @@ function SuggestedSearchSkeleton() {
     );
 }
 
-SuggestedSearchSkeleton.displayName = 'SuggestedSearchSkeleton';
 export default SuggestedSearchSkeleton;

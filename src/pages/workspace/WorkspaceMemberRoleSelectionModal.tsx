@@ -45,7 +45,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
-                testID={WorkspaceMemberDetailsRoleSelectionModal.displayName}
+                testID="WorkspaceMemberDetailsRoleSelectionModal"
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -67,8 +67,6 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
         </Modal>
     );
 }
-
-WorkspaceMemberDetailsRoleSelectionModal.displayName = 'WorkspaceMemberDetailsRoleSelectionModal';
 
 export type {ListItemType};
 

@@ -108,7 +108,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportAddCustomSegmentContent.displayName}
+            displayName="NetSuiteImportAddCustomSegmentContent"
             headerTitle={`workspace.netsuite.import.importCustomFields.customSegments.${customSegmentType ? `addForm.${customSegmentType}AddTitle` : 'addText'}` as TranslationPaths}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -144,7 +144,5 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
         </ConnectionLayout>
     );
 }
-
-NetSuiteImportAddCustomSegmentContent.displayName = 'NetSuiteImportAddCustomSegmentContent';
 
 export default NetSuiteImportAddCustomSegmentContent;

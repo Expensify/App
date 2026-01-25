@@ -114,7 +114,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceCategoriesSettingsPage.displayName}
+                testID="WorkspaceCategoriesSettingsPage"
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
@@ -161,7 +161,5 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCategoriesSettingsPage.displayName = 'WorkspaceCategoriesSettingsPage';
 
 export default withPolicyConnections(WorkspaceCategoriesSettingsPage);

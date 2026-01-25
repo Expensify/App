@@ -3,6 +3,7 @@ import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +16,8 @@ type WorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorP
 
 function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTravelPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const goBack = () => {
         Navigation.goBack(route.params?.backTo ?? ROUTES.TRAVEL_UPGRADE.route);
@@ -30,6 +33,10 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             engagementChoice: undefined,
             currency: params.currency,
             file: params.avatarFile as File,
+            introSelected,
+            activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
         });
         goBack();
     };
@@ -37,7 +44,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={WorkspaceConfirmationForTravelPage.displayName}
+            testID="WorkspaceConfirmationForTravelPage"
         >
             <WorkspaceConfirmationForm
                 onBackButtonPress={goBack}
@@ -46,7 +53,5 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
         </ScreenWrapper>
     );
 }
-
-WorkspaceConfirmationForTravelPage.displayName = 'WorkspaceConfirmationForTravelPage';
 
 export default WorkspaceConfirmationForTravelPage;
