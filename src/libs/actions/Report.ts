@@ -3978,19 +3978,8 @@ function leaveRoom(reportID: string, currentUserAccountID: number, isWorkspaceMe
     navigateToMostRecentReport(report);
 }
 
-function buildInviteToRoomOnyxData(report: OnyxEntry<Report>, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
-    const reportID = report?.reportID;
-    if (!reportID) {
-        Log.warn('buildInviteToRoomOnyxData called with no reportID');
-        return {
-            optimisticData: [],
-            successData: [],
-            failureData: [],
-            isGroupChat: false,
-            inviteeEmails: [],
-            newAccountIDs: [],
-        };
-    }
+function buildInviteToRoomOnyxData(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    const reportID = report.reportID;
     const reportMetadata = getReportMetadata(reportID);
     const isGroupChat = isGroupChatReportUtils(report);
 
@@ -4012,7 +4001,7 @@ function buildInviteToRoomOnyxData(report: OnyxEntry<Report>, inviteeEmailsToAcc
             reportParticipants[accountID] = participant;
             return reportParticipants;
         },
-        {...report?.participants},
+        {...report.participants},
     );
 
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);

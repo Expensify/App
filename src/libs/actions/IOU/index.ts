@@ -6038,7 +6038,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const chatReportParticipants = chatReport?.participants;
-    if (!chatReportParticipants?.[accountantAccountID]) {
+    if (chatReport && !chatReportParticipants?.[accountantAccountID]) {
         const {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
