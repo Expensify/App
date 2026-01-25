@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyData from '@hooks/usePolicyData';
+import usePolicy from '@hooks/usePolicy';
 import {importPolicyTags} from '@libs/actions/Policy/Tag';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,11 +34,12 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const policyData = usePolicyData(policyID);
-    const {policy, tags: policyTags} = policyData;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED;
+
     const {setIsClosing} = useCloseImportPage();
 
     const getColumnRoles = (): ColumnRole[] => {
@@ -112,9 +113,9 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
 
         if (tags) {
             setIsImportingTags(true);
-            importPolicyTags(policyData, tags);
+            importPolicyTags(policyID, tags);
         }
-    }, [validate, spreadsheet, containsHeader, policyTagLists, policyData]);
+    }, [validate, spreadsheet, containsHeader, policyTagLists, policyID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

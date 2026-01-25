@@ -195,20 +195,16 @@ function createPolicyTag(policyData: PolicyData, tagName: string) {
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
-function importPolicyTags(policyData: PolicyData, tags: PolicyTag[]) {
+function importPolicyTags(policyID: string, tags: PolicyTag[]) {
     const onyxData = updateImportSpreadsheetData(tags.length);
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const optimisticTags = tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}));
 
     const parameters = {
-        policyID: policyData.policy?.id,
+        policyID,
         tags: JSON.stringify(optimisticTags),
     };
-
-    const optimisticTagLists = Object.fromEntries(optimisticTags.map((tag) => [tag.name, {tags: {[tag.name]: tag}}]));
-
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, optimisticTagLists);
 
     API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
 }
