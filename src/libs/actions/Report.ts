@@ -1596,11 +1596,11 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
 /**
  * This will navigate to an existing thread, or create a new one if necessary
  *
- * @param childReportID The reportID we are trying to open
+ * @param childReport The report we are trying to open
  * @param parentReportAction the parent comment of a thread
- * @param parentReportID The reportID of the parent
+ * @param parentReport The parent report
  */
-function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: Partial<ReportAction>, parentReport: OnyxEntry<Report>) {
+function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>) {
     if (childReport?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
     } else {
@@ -1617,14 +1617,15 @@ function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentRepo
             notificationPreference: getChildReportNotificationPreference(parentReportAction),
             parentReportActionID: parentReportAction.reportActionID,
             parentReportID: parentReport?.reportID,
-            optimisticReportID: childReport?.reportID,
+            optimisticReportID: parentReportAction.childReportID,
         });
 
-        if (!childReport?.reportID) {
+        const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
+        if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
             openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
         } else {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`, newChat);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
 
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));
