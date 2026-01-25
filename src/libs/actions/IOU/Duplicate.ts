@@ -34,19 +34,11 @@ import {
     getAllTransactionViolations,
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
+    getRecentWaypoints,
     getUserAccountID,
     requestMoney,
     trackExpense,
 } from '.';
-
-// TODO: remove `recentWaypoints` from this file [https://github.com/Expensify/App/issues/80270]
-// `recentWaypoints` was moved here temporarily from `src/libs/actions/IOU/index.ts` during the `Deprecate Onyx.connect` refactor.
-// All uses of this variable should be replaced with `useOnyx`.
-let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
-Onyx.connect({
-    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val ?? []),
-});
 
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();
@@ -496,6 +488,7 @@ function duplicateExpenseTransaction({
 
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
+    const recentWaypoints = getRecentWaypoints();
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport);
     const transactionDetails = getTransactionDetails(transaction);
