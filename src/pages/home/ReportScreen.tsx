@@ -855,9 +855,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat();
+            navigateToConciergeChat(conciergeReportID);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {
