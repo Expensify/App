@@ -7,49 +7,51 @@ import CONST from '@src/CONST';
 // Mock all necessary components to avoid rendering issues
 jest.mock('@components/Checkbox', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MockCheckbox = ({onPress, isChecked, disabled, accessibilityLabel}: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const ReactNative = jest.requireActual('react-native');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const {Pressable, Text} = ReactNative;
+    function MockCheckbox({onPress, isChecked, disabled, accessibilityLabel}: any) {
+        const RN = jest.requireActual<typeof import('react-native')>('react-native');
+        const {Pressable, Text} = RN;
         return (
             <Pressable
                 onPress={onPress}
                 disabled={disabled}
                 accessibilityLabel={accessibilityLabel}
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 accessibilityState={{checked: isChecked, disabled}}
                 testID="checkbox"
             >
-                {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
                 <Text>{isChecked ? 'checked' : 'unchecked'}</Text>
             </Pressable>
         );
-    };
+    }
+    MockCheckbox.displayName = 'MockCheckbox';
     return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: MockCheckbox,
     };
 });
 
-jest.mock('@components/Icon', () => ({
-    __esModule: true,
-    default: () => null,
-}));
+jest.mock('@components/Icon', () => {
+    function MockIcon() {
+        return null;
+    }
+    MockIcon.displayName = 'MockIcon';
+    return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __esModule: true,
+        default: MockIcon,
+    };
+});
 
 jest.mock('@components/TextWithTooltip', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MockTextWithTooltip = ({text}: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const ReactNative = jest.requireActual('react-native');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const {Text} = ReactNative;
-        {
-            /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
-        }
+    function MockTextWithTooltip({text}: any) {
+        const RN = jest.requireActual<typeof import('react-native')>('react-native');
+        const {Text} = RN;
         return <Text>{text}</Text>;
-    };
+    }
+    MockTextWithTooltip.displayName = 'MockTextWithTooltip';
     return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: MockTextWithTooltip,
     };
@@ -57,17 +59,14 @@ jest.mock('@components/TextWithTooltip', () => {
 
 jest.mock('@components/SelectionListWithSections/Search/TextCell', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MockTextCell = ({text}: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const ReactNative = jest.requireActual('react-native');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const {Text} = ReactNative;
-        {
-            /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
-        }
+    function MockTextCell({text}: any) {
+        const RN = jest.requireActual<typeof import('react-native')>('react-native');
+        const {Text} = RN;
         return <Text testID="TextCell">{text}</Text>;
-    };
+    }
+    MockTextCell.displayName = 'MockTextCell';
     return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: MockTextCell,
     };
@@ -75,28 +74,35 @@ jest.mock('@components/SelectionListWithSections/Search/TextCell', () => {
 
 jest.mock('@components/SelectionListWithSections/Search/TotalCell', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MockTotalCell = ({total}: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const ReactNative = jest.requireActual('react-native');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const {Text} = ReactNative;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    function MockTotalCell({total}: any) {
+        const RN = jest.requireActual<typeof import('react-native')>('react-native');
+        const {Text} = RN;
         const formatted = `$${(total / 100).toFixed(2)}`;
         return <Text testID="TotalCell">{formatted}</Text>;
-    };
+    }
+    MockTotalCell.displayName = 'MockTotalCell';
     return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: MockTotalCell,
     };
 });
 
-jest.mock('@components/SelectionListWithSections/Search/ExpandCollapseArrowButton', () => ({
-    __esModule: true,
-    default: () => null,
-}));
+jest.mock('@components/SelectionListWithSections/Search/ExpandCollapseArrowButton', () => {
+    function MockExpandCollapseArrowButton() {
+        return null;
+    }
+    MockExpandCollapseArrowButton.displayName = 'MockExpandCollapseArrowButton';
+    return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __esModule: true,
+        default: MockExpandCollapseArrowButton,
+    };
+});
 
 // Mock necessary dependencies
 jest.mock('@hooks/useLocalize', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         translate: jest.fn((key: string) => key),
@@ -104,6 +110,7 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         isLargeScreenWidth: false,
@@ -114,6 +121,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 
 jest.mock('@hooks/useTheme', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         icon: '#000000',
@@ -121,11 +129,13 @@ jest.mock('@hooks/useTheme', () => ({
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({}),
 }));
 
 jest.mock('@hooks/useStyleUtils', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         getReportTableColumnStyles: jest.fn(() => ({})),
