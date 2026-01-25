@@ -1,10 +1,10 @@
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
 import DateUtils from '@libs/DateUtils';
+import {getFileValidationErrorText, getImageDimensionsAfterResize} from '@libs/fileDownload/FileUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import {translate} from '@libs/Localize';
+import CONST from '@src/CONST';
 
 jest.useFakeTimers();
 jest.mock('react-native-image-size');
@@ -254,7 +254,7 @@ describe('FileUtils', () => {
             (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 4000, height: 3000});
 
             const file = {uri: 'file://test.jpg', name: 'test.jpg', type: 'image/jpeg'};
-            const result = await FileUtils.getImageDimensionsAfterResize(file);
+            const result = await getImageDimensionsAfterResize(file);
 
             expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
             expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
@@ -266,7 +266,7 @@ describe('FileUtils', () => {
 
             const file = {uri: 'file://large-image.jpg', name: 'large-image.jpg', type: 'image/jpeg'};
 
-            await expect(FileUtils.getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+            await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
         });
 
         it('should not throw for images at exactly the maximum pixel count', async () => {
@@ -275,22 +275,22 @@ describe('FileUtils', () => {
 
             const file = {uri: 'file://max-size.jpg', name: 'max-size.jpg', type: 'image/jpeg'};
 
-            await expect(FileUtils.getImageDimensionsAfterResize(file)).resolves.toBeDefined();
+            await expect(getImageDimensionsAfterResize(file)).resolves.toBeDefined();
         });
     });
 
     describe('getFileValidationErrorText', () => {
-        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+        const mockTranslate = ((path: string) => path) as LocaleContextProps['translate'];
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
-            const result = FileUtils.getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+            const result = getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
 
-            expect(result.title).toBe('Attachment error');
-            expect(result.reason).toBe('Image dimensions are too large to process. Please use a smaller image.');
+            expect(result.title).toBe('attachmentPicker.attachmentError');
+            expect(result.reason).toBe('attachmentPicker.imageDimensionsTooLarge');
         });
 
         it('should return empty strings for null validation error', () => {
-            const result = FileUtils.getFileValidationErrorText(mockTranslate, null);
+            const result = getFileValidationErrorText(mockTranslate, null);
 
             expect(result.title).toBe('');
             expect(result.reason).toBe('');
