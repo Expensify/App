@@ -5,8 +5,6 @@ import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Hourglass} from '@components/Icon/Expensicons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -53,8 +51,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'FallbackAvatar']);
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Trashcan', 'FallbackAvatar', 'Hourglass'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -132,7 +130,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
                     {!cardholder?.validated && (
                         <MenuItem
-                            icon={Hourglass}
+                            icon={icons.Hourglass}
                             iconStyles={styles.mln2}
                             descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
                             description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
@@ -144,7 +142,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     <MenuItem
                         label={translate('workspace.card.issueNewCard.cardholder')}
                         title={displayName}
-                        icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
+                        icon={cardholder?.avatar ?? icons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         description={Str.removeSMSDomain(cardholder?.login ?? '')}
                         interactive={false}
@@ -206,7 +204,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         />
                     </OfflineWithFeedback>
                     <MenuItem
-                        icon={expensifyIcons.MoneySearch}
+                        icon={icons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         style={styles.mt3}
                         onPress={() => {
@@ -222,7 +220,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         }}
                     />
                     <MenuItem
-                        icon={Expensicons.Trashcan}
+                        icon={icons.Trashcan}
                         title={translate('workspace.expensifyCard.deactivate')}
                         style={styles.mb1}
                         onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}

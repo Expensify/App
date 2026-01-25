@@ -12,6 +12,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 
@@ -21,8 +22,8 @@ type PromotedAction = {
 
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
-type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
+type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport, icons: Record<'Pin' | 'QrCode', IconAsset>) => PromotedAction> & {
+    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, icons: Record<'Pin' | 'QrCode', IconAsset>, backTo?: string) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string; currentUserAccountID: number}) => PromotedAction;
 } & {
@@ -38,13 +39,13 @@ type PromotedActionsBarProps = {
 };
 
 const PromotedActions = {
-    pin: (report) => ({
+    pin: (report, icons) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
-        ...getPinMenuItem(report),
+        ...getPinMenuItem(report, icons.Pin),
     }),
-    share: (report, backTo) => ({
+    share: (report, icons, backTo) => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...getShareMenuItem(report, backTo),
+        ...getShareMenuItem(report, icons.QrCode, backTo),
     }),
     join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,

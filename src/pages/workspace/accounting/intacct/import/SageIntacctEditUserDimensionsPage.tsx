@@ -5,10 +5,10 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +34,7 @@ import DimensionTypeSelector from './DimensionTypeSelector';
 type SageIntacctEditUserDimensionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION>;
 
 function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimensionsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -127,7 +128,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                     <View style={[styles.mhn5]}>
                         <MenuItem
                             title={translate('common.remove')}
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             onPress={() => setIsDeleteModalOpen(true)}
                         />
                     </View>

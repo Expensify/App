@@ -1,8 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,10 +31,9 @@ import useDownloadAttachment from './hooks/useDownloadAttachment';
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID} = route.params;
 
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Trashcan', 'Camera'] as const);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
@@ -251,7 +248,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             const menuItems = [];
             if (shouldShowReplaceReceiptButton) {
                 menuItems.push({
-                    icon: expensifyIcons.Camera,
+                    icon: icons.Camera,
                     text: translate('common.replace'),
                     onSelected: () => {
                         Navigation.dismissModal({
@@ -288,7 +285,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 !hasMissingSmartscanFields(transaction, transactionReport)
             ) {
                 menuItems.push({
-                    icon: Expensicons.Trashcan,
+                    icon: icons.Trashcan,
                     text: translate('receipt.deleteReceipt'),
                     onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
                     shouldCallAfterModalHide: true,
@@ -306,13 +303,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             transaction,
             shouldShowDeleteReceiptButton,
             transactionReport,
-            expensifyIcons.Camera,
+            icons.Camera,
             translate,
             action,
             iouType,
             report?.reportID,
             icons.Download,
             onDownloadAttachment,
+            icons.Trashcan,
         ],
     );
 

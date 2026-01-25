@@ -62,6 +62,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Bookmark',
         'Pencil',
+        'Trashcan',
         'Receipt',
         'ChatBubbles',
         'MoneyBag',
@@ -69,6 +70,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'MoneyHourglass',
         'CreditCardHourglass',
         'Bank',
+        'User',
     ] as const);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
