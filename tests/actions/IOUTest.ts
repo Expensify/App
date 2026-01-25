@@ -3549,6 +3549,19 @@ describe('actions/IOU', () => {
                 });
 
                 await waitForBatchedUpdates();
+
+                // Then a new report and transaction should be created since report was undefined
+                const allReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
+                const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+
+                // Should have created at least one report
+                expect(Object.keys(allReports ?? {}).length).toBeGreaterThanOrEqual(1);
+
+                // Should have created a transaction
+                expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
+
+                const createdTransaction = Object.values(allTransactions ?? {}).at(0) as Transaction | undefined;
+                expect(createdTransaction).toBeTruthy();
             });
         });
     });
