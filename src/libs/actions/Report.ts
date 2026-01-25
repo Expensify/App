@@ -1600,13 +1600,11 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
  * @param parentReportAction the parent comment of a thread
  * @param parentReportID The reportID of the parent
  */
-function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
-    const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
+function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: Partial<ReportAction>, parentReport: OnyxEntry<Report>) {
     if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
     } else {
         const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
         const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
         const newChat = buildOptimisticChatReport({
@@ -1618,15 +1616,15 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             oldPolicyName: parentReport?.policyName ?? '',
             notificationPreference: getChildReportNotificationPreference(parentReportAction),
             parentReportActionID: parentReportAction.reportActionID,
-            parentReportID,
-            optimisticReportID: childReportID,
+            parentReportID: parentReport?.reportID,
+            optimisticReportID: childReport?.reportID,
         });
 
-        if (!childReportID) {
+        if (!childReport?.reportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
             openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
         } else {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`, newChat);
         }
 
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));

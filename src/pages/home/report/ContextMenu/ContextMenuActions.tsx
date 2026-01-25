@@ -368,17 +368,16 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
-            const originalReportID = getOriginalReportID(reportID, reportAction);
+        onPress: (closePopover, {reportAction, childReport, originalReport}) => {
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
+                        navigateToAndOpenChildReport(childReport, reportAction, originalReport);
                     });
                 });
                 return;
             }
-            navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
+            navigateToAndOpenChildReport(childReport, reportAction, originalReport);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
