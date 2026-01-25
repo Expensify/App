@@ -262,6 +262,11 @@ describe('useSearchHighlightAndScroll', () => {
         const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest
             .spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute')
             .mockImplementationOnce(jest.fn());
+        // We need to mock requestAnimationFrame to mimic long Onyx merge overhead
+        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+            callback(performance.now());
+            return 0;
+        });
 
         await Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[baseProps.queryJSON.type]: {'3': true}});
 

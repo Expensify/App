@@ -241,10 +241,20 @@ function useSearchHighlightAndScroll({
             (id) => transactionIDsToHighlight[id] && newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`),
         );
 
-        const timer = setTimeout(() => {
-            mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
-        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
-        return () => clearTimeout(timer);
+        // We need to use requestAnimationFrame here to ensure that setTimeout actually starts
+        // only after the user has navigated to the "Reports > Expenses" page.
+        // Otherwise, there is still a chance we might miss the timing because setTimeout runs too early,
+        // causing the highlight not to appear.
+        let timer: NodeJS.Timeout;
+        const animation = requestAnimationFrame(() => {
+            timer = setTimeout(() => {
+                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
+            }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
+        });
+        return () => {
+            clearTimeout(timer);
+            cancelAnimationFrame(animation);
+        };
     }, [transactionIDsToHighlight, queryJSON.type, newSearchResultKeys]);
 
     // Remove transactionIDsToHighlight when the user leaves the current search type
