@@ -162,7 +162,7 @@ function IOURequestStepDistanceManual({
                         currentUserEmailParam,
                         isASAPSubmitBetaEnabled,
                         parentReportNextStep,
-                        recentWaypoints: recentWaypoints,
+                        recentWaypoints,
                     });
                 }
                 Navigation.goBack(backTo);
