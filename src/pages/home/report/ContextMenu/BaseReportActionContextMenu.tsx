@@ -6,13 +6,13 @@ import {InteractionManager, View} from 'react-native';
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,7 +37,6 @@ import {
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
     isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
 } from '@libs/ReportUtils';
-import shouldEnableContextMenuEnterShortcut from '@libs/shouldEnableContextMenuEnterShortcut';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,8 +109,6 @@ type BaseReportActionContextMenuProps = {
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
-type MenuItemRefs = Record<string, ContextMenuItemHandle | null>;
-
 function BaseReportActionContextMenu({
     type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor,
@@ -133,6 +130,7 @@ function BaseReportActionContextMenu({
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const icons = useMemoizedLazyExpensifyIcons([
         'Download',
         'ThreeDots',
@@ -154,7 +152,6 @@ function BaseReportActionContextMenu({
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
@@ -199,7 +196,7 @@ function BaseReportActionContextMenu({
     const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const transactionThreadReportID = useMemo(
         () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
@@ -319,23 +316,6 @@ function BaseReportActionContextMenu({
         }
     };
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        (event) => {
-            if (!menuItemRefs.current[focusedIndex]) {
-                return;
-            }
-
-            // Ensures the event does not cause side-effects beyond the context menu, e.g. when an outside element is focused
-            if (event) {
-                event.stopPropagation();
-            }
-
-            menuItemRefs.current[focusedIndex]?.triggerPressAndUpdateSuccess?.();
-            setFocusedIndex(-1);
-        },
-        {isActive: shouldEnableArrowNavigation && shouldEnableContextMenuEnterShortcut, shouldPreventDefault: false},
-    );
     useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => {
@@ -406,6 +386,9 @@ function BaseReportActionContextMenu({
                             policyTags,
                             translate,
                             harvestReport,
+                            isDelegateAccessRestricted,
+                            showDelegateNoAccessModal,
+                            currentUserAccountID,
                         };
 
                         if ('renderContent' in contextAction) {
@@ -422,9 +405,6 @@ function BaseReportActionContextMenu({
 
                         return (
                             <ContextMenuItem
-                                ref={(ref) => {
-                                    menuItemRefs.current[index] = ref;
-                                }}
                                 buttonRef={isMenuAction ? threeDotRef : {current: null}}
                                 icon={icon}
                                 text={text ?? ''}

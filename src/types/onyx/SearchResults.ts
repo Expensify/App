@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionListWithSections/Sear
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
@@ -170,11 +171,6 @@ type SearchWithdrawalIDGroup = {
     /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
     state: number;
 };
-
-/**
- * A utility type that creates a record where all keys are strings that start with a specified prefix.
- */
-type PrefixedRecord<Prefix extends string, ValueType> = Record<`${Prefix}${string}`, ValueType>;
 
 /** Model of search results */
 type SearchResults = {
