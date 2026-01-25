@@ -46,18 +46,27 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
     const isEditing = issueNewCard?.isEditing;
+    const nextStep = useMemo(() => {
+        if (isEditing) {
+            return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
+        }
+        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
+            return CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS;
+        }
+        return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
+    }, [isBetaEnabled, isEditing, issueNewCard?.data?.cardType]);
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
             const limit = convertToBackendAmount(Number(values?.limit));
             setIssueNewCardStepAndData({
-                step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS,
+                step: nextStep,
                 data: {limitType: typeSelected, limit},
                 isEditing: false,
                 policyID,
             });
         },
-        [isEditing, typeSelected, policyID],
+        [nextStep, typeSelected, policyID],
     );
 
     const handleBackButtonPress = useCallback(() => {

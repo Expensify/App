@@ -5,6 +5,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -53,6 +54,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
+    const {timezone} = useCurrentUserPersonalDetails();
 
     const submitButton = useRef<View>(null);
 
@@ -93,12 +95,12 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without magic code when user has extended access
             // If this fails, the effect above will redirect to the magic code page
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', data);
+            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', data, timezone?.selected);
         } else {
             // Navigate to magic code page
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, backTo));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled, backTo]);
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, backTo, timezone?.selected]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
@@ -153,7 +155,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                     description={translate('workspace.card.issueNewCard.limit')}
                     title={convertToShortDisplayString(data?.limit, data?.currency)}
                     shouldShowRightIcon
-                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.limitType')}

@@ -72,8 +72,6 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
 
             if (endDate < startDate) {
                 errors[INPUT_IDS.VALID_THRU] = translate('iou.error.endDateBeforeStartDate');
-            } else if (endDate.getTime() === startDate.getTime()) {
-                errors[INPUT_IDS.VALID_THRU] = translate('iou.error.endDateSameAsStartDate');
             }
         }
         return errors;

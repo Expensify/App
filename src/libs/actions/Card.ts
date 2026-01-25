@@ -1,3 +1,5 @@
+import {endOfDay, parse, startOfDay} from 'date-fns';
+import {fromZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -22,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ReplacementReason = 'damaged' | 'stolen';
@@ -774,12 +777,26 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
+function formatValidFromDate(fromDate: string, timezone: SelectedTimezone): string {
+    const localDate = parse(fromDate, 'yyyy-MM-dd', new Date());
+    const midnightLocal = startOfDay(localDate);
+    const midnightUTC = fromZonedTime(midnightLocal, timezone);
+    return midnightUTC.toISOString();
+}
+
+function formatValidThruDate(thruDate: string, timezone: SelectedTimezone): string {
+    const localDate = parse(thruDate, 'yyyy-MM-dd', new Date());
+    const endOfDayLocal = endOfDay(localDate);
+    const endOfDayUTC = fromZonedTime(endOfDayLocal, timezone);
+    return endOfDayUTC.toISOString();
+}
+
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData, timezone?: SelectedTimezone) {
     if (!data) {
         return;
     }
 
-    const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
+    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru} = data;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
@@ -822,6 +839,8 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         cardTitle,
         validateCode,
         domainAccountID,
+        validFrom: validFrom && timezone ? formatValidFromDate(validFrom, timezone) : undefined,
+        validThru: validThru && timezone ? formatValidThruDate(validThru, timezone) : undefined,
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
