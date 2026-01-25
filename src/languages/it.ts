@@ -302,6 +302,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'Scansione',
         analyzing: 'Analisi in corso...',
         addCardTermsOfService: 'Termini di servizio di Expensify',
+        expensifyLogo: 'Expensify',
         perPerson: 'per persona',
         phone: 'Telefono',
         phoneNumber: 'Numero di telefono',
@@ -7129,6 +7130,14 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
     qrCodes: {
         copy: 'Copia URL',
         copied: 'Copiato!',
+        qrCode: 'Codice QR',
+    },
+    socials: {
+        podcast: 'Expensify su Podcast',
+        twitter: 'Expensify su Twitter',
+        instagram: 'Expensify su Instagram',
+        facebook: 'Expensify su Facebook',
+        linkedin: 'Expensify su LinkedIn',
     },
     moderation: {
         flagDescription: 'Tutti i messaggi contrassegnati saranno inviati a un moderatore per la revisione.',

@@ -85,13 +85,19 @@ function HeaderWithBackButton({
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
+            const progressBarAccessibilityLabel = stepCounter ? translate('stepCounter', stepCounter) : `${progressBarPercentage}%`;
             return (
                 <>
                     {/* Reserves as much space for the middleContent as possible */}
                     <View style={styles.flexGrow1} />
                     {/* Uses absolute positioning so that it's always centered instead of being affected by the
                     presence or absence of back/close buttons to the left/right of it */}
-                    <View style={styles.headerProgressBarContainer}>
+                    <View
+                        accessible
+                        accessibilityLabel={progressBarAccessibilityLabel}
+                        accessibilityRole={CONST.ROLE.PROGRESSBAR}
+                        style={styles.headerProgressBarContainer}
+                    >
                         <View style={styles.headerProgressBar}>
                             <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
                         </View>

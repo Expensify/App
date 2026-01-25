@@ -66,6 +66,7 @@ const translations: TranslationDeepObject<typeof en> = {
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
+        expensifyLogo: 'Expensify',
         perPerson: 'por persona',
         signIn: 'Conectarse',
         signInWithGoogle: 'Iniciar sesión con Google',
@@ -7233,6 +7234,14 @@ ${amount} para ${merchant} - ${date}`,
     qrCodes: {
         copy: 'Copiar URL',
         copied: '¡Copiado!',
+        qrCode: 'Código QR',
+    },
+    socials: {
+        podcast: 'Expensify en Podcast',
+        twitter: 'Expensify en Twitter',
+        instagram: 'Expensify en Instagram',
+        facebook: 'Expensify en Facebook',
+        linkedin: 'Expensify en LinkedIn',
     },
     actionableMentionWhisperOptions: {
         inviteToSubmitExpense: 'Invitar a enviar gastos',

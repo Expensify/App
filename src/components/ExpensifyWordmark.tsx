@@ -6,6 +6,7 @@ import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import ProductionLogo from '@assets/images/expensify-logo--prod.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
 import useEnvironment from '@hooks/useEnvironment';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {environment} = useEnvironment();
+    const {translate} = useLocalize();
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[environment];
 
@@ -36,6 +38,9 @@ function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
 
     return (
         <View
+            accessible
+            accessibilityLabel={translate('common.expensifyLogo')}
+            accessibilityRole={CONST.ROLE.IMG}
             style={[
                 StyleUtils.getSignInWordmarkWidthStyle(shouldUseNarrowLayout, environment),
                 StyleUtils.getHeight(shouldUseNarrowLayout ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),

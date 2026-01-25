@@ -302,6 +302,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: '扫描中',
         analyzing: '正在分析...',
         addCardTermsOfService: 'Expensify 服务条款',
+        expensifyLogo: 'Expensify',
         perPerson: '每人',
         phone: '电话',
         phoneNumber: '电话号码',
@@ -6945,6 +6946,14 @@ ${reportName}
     qrCodes: {
         copy: '复制 URL',
         copied: '已复制！',
+        qrCode: '二维码',
+    },
+    socials: {
+        podcast: 'Expensify 播客',
+        twitter: 'Expensify Twitter',
+        instagram: 'Expensify Instagram',
+        facebook: 'Expensify Facebook',
+        linkedin: 'Expensify LinkedIn',
     },
     moderation: {
         flagDescription: '所有被标记的消息都会发送给版主进行审核。',
