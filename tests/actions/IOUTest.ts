@@ -72,7 +72,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
@@ -2474,11 +2474,7 @@ describe('actions/IOU', () => {
 
     describe('createDistanceRequest', () => {
         it('does not trigger notifyNewAction when doing the money request in a money request report', async () => {
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
@@ -2501,11 +2497,8 @@ describe('actions/IOU', () => {
         });
 
         it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
             createDistanceRequest({
                 report: {reportID: '123'},
                 participants: [],
@@ -2528,11 +2521,8 @@ describe('actions/IOU', () => {
         });
 
         it('correctly sets quickAction', async () => {
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 iouType: CONST.IOU.TYPE.SPLIT,
@@ -2585,11 +2575,7 @@ describe('actions/IOU', () => {
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
             await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
@@ -2640,11 +2626,7 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             // When creating a distance request
             createDistanceRequest({
@@ -2705,11 +2687,7 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             // When creating a split distance request
             createDistanceRequest({
@@ -2773,11 +2751,7 @@ describe('actions/IOU', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request
                 createDistanceRequest({
@@ -2827,11 +2801,7 @@ describe('actions/IOU', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with zero distance
                 createDistanceRequest({
@@ -2896,11 +2866,7 @@ describe('actions/IOU', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a split distance request
                 createDistanceRequest({
@@ -2952,11 +2918,7 @@ describe('actions/IOU', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with odometer values
                 createDistanceRequest({
@@ -3012,11 +2974,7 @@ describe('actions/IOU', () => {
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with a new currency
                 createDistanceRequest({
@@ -3071,11 +3029,7 @@ describe('actions/IOU', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, fakeCategories);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with a category
                 createDistanceRequest({
@@ -3144,11 +3098,7 @@ describe('actions/IOU', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
                 await Onyx.set(ONYXKEYS.NVP_RECENT_WAYPOINTS, []);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with waypoints
                 createDistanceRequest({
@@ -3197,11 +3147,7 @@ describe('actions/IOU', () => {
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with EUR currency
                 createDistanceRequest({
@@ -3249,11 +3195,7 @@ describe('actions/IOU', () => {
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 const largeAmount = 999999999;
 
@@ -3304,11 +3246,7 @@ describe('actions/IOU', () => {
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 const specialComment = 'Trip with special chars: <>&"\'äöü中文🚗';
 
@@ -3357,11 +3295,7 @@ describe('actions/IOU', () => {
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When API fails
                 mockFetch?.pause?.();
@@ -3425,11 +3359,7 @@ describe('actions/IOU', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a billable distance request
                 createDistanceRequest({
@@ -3492,11 +3422,7 @@ describe('actions/IOU', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with tax
                 createDistanceRequest({
@@ -3554,11 +3480,7 @@ describe('actions/IOU', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
 
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with attendees
                 createDistanceRequest({
@@ -3602,11 +3524,7 @@ describe('actions/IOU', () => {
             });
 
             it('handles distance request with undefined report', async () => {
-                let recentWaypoints: RecentWaypoint[] = [];
-                await getOnyxData({
-                    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                    callback: (val) => (recentWaypoints = val ?? []),
-                });
+                const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with undefined report
                 createDistanceRequest({
@@ -3631,9 +3549,6 @@ describe('actions/IOU', () => {
                 });
 
                 await waitForBatchedUpdates();
-
-                // Function should handle undefined report gracefully
-                // (may create new reports or handle the error)
             });
         });
     });
