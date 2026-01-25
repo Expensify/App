@@ -528,6 +528,7 @@ function ReportActionItemMessageEdit({
                                     ref.current = el;
                                 }
                             }}
+                            autoFocus={!shouldUseNarrowLayout}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}

@@ -85,6 +85,7 @@ function AppDownloadLinksPage() {
                         iconRight={item.iconRight}
                         shouldBlockSelection
                         shouldShowRightIcon
+                        role={CONST.ROLE.LINK}
                     />
                 ))}
             </ScrollView>
