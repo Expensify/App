@@ -819,6 +819,7 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();

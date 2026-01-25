@@ -53,6 +53,7 @@ function IOURequestStepDistanceGPS({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
@@ -113,6 +114,7 @@ function IOURequestStepDistanceGPS({
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             gpsCoordinates,
             gpsDistance: distance,
+            allTransactionDrafts,
         });
     };
 
