@@ -29,12 +29,20 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
+import {completeTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+/**
+ * Checks if a task report is incomplete (not approved)
+ */
+function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
+    return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
+}
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -126,13 +134,18 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData<typeof ONYXKE
     return onyxData;
 }
 
-function createPolicyTag(policyData: PolicyData, tagName: string) {
-    const {policy, tags} = policyData;
-    const policyID = policy?.id;
-    const tagList = PolicyUtils.getTagLists(tags)?.at(0) ?? ({} as PolicyTagList);
+function createPolicyTag(
+    policyData: PolicyData,
+    tagName: string,
+    setupTagsTaskReport?: OnyxEntry<Report>,
+    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
+    policyHasCustomCategories?: boolean,
+) {
+     const {policyID, policy, tags: policyTags} = policyData;
+    const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
     const tagListsOptimisticData = {
-        [tagList.name]: {
+        [policyTag.name]: {
             tags: {
                 [newTagName]: {
                     name: newTagName,
@@ -157,7 +170,7 @@ function createPolicyTag(policyData: PolicyData, tagName: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagList.name]: {
+                    [policyTag.name]: {
                         tags: {
                             [newTagName]: {
                                 errors: null,
@@ -173,7 +186,7 @@ function createPolicyTag(policyData: PolicyData, tagName: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagList.name]: {
+                    [policyTag.name]: {
                         tags: {
                             [newTagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
@@ -193,6 +206,14 @@ function createPolicyTag(policyData: PolicyData, tagName: string) {
     };
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
+
+    if (isTaskIncomplete(setupTagsTaskReport)) {
+        completeTask(setupTagsTaskReport, false, false, undefined);
+    }
+
+    if (isTaskIncomplete(setupCategoriesAndTagsTaskReport) && policyHasCustomCategories) {
+        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
+    }
 }
 
 function importPolicyTags(policyID: string, tags: PolicyTag[]) {
