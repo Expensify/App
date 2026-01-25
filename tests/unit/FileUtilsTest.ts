@@ -1,8 +1,10 @@
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import CONST from '../../src/CONST';
-import DateUtils from '../../src/libs/DateUtils';
-import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import CONST from '@src/CONST';
+import DateUtils from '@libs/DateUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {translate} from '@libs/Localize';
 
 jest.useFakeTimers();
 jest.mock('react-native-image-size');
@@ -278,13 +280,13 @@ describe('FileUtils', () => {
     });
 
     describe('getFileValidationErrorText', () => {
-        const mockTranslate = (key: string) => key;
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
             const result = FileUtils.getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
 
-            expect(result.title).toBe('attachmentPicker.attachmentError');
-            expect(result.reason).toBe('attachmentPicker.imageDimensionsTooLarge');
+            expect(result.title).toBe('Attachment error');
+            expect(result.reason).toBe('Image dimensions are too large to process. Please use a smaller image.');
         });
 
         it('should return empty strings for null validation error', () => {
