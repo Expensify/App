@@ -5,14 +5,14 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenChildReport} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
-import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 
 type ReportActionItemThreadProps = {
     /** Number of comments under the thread */
