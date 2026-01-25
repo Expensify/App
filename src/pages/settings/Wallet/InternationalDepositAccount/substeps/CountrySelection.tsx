@@ -122,10 +122,8 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
                 onSelectRow={onSelectionChange}
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={currentCountry}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
-                shouldUpdateFocusedIndex
                 shouldStopPropagation
             />
         </FullPageOfflineBlockingView>
