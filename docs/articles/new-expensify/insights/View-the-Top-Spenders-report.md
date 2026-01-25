@@ -61,9 +61,9 @@ Click any row to view that member's individual expenses.
 
 ## Can you customize the Top Spenders report?
 
-No. The Top Spenders report is a pre-built suggested search so you can review spending activity at a glance.
+Yes - you can adjust filters like date range, workspace, or employee to explore spending trends. However, the **Top Spenders** report is a built-in suggested search, so you can’t save changes to it directly.
 
-To create your own custom report: 
+To create and save a custom report: 
 
 1. Go to the **Reports** or **Expenses** tab.
 2. Use filters to adjust grouping and timeframes.
@@ -87,7 +87,7 @@ Workspace Admins and finance teams use the Top Spenders report to:
 
 ## Can you export the Top Spenders report?
 
-No. The Top Spenders report isn’t exportable. To export expense data:
+Not directly — the Top Spenders report can’t be exported with its grouped totals or summary data. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
 
 1. Go to the **Reports** tab.
 2. Apply filters to create your own view.
@@ -98,6 +98,7 @@ No. The Top Spenders report isn’t exportable. To export expense data:
 Yes! Top Spenders is the first of many suggested insights. Upcoming reports will include:
 
 - Spend by category
+- Spend over time
 - Merchant trends
 - Other insights visible under the **Reports** tab
 
