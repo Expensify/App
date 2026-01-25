@@ -1,19 +1,7 @@
-import Onyx from 'react-native-onyx';
 import * as IOU from '@userActions/IOU';
 import {startSplitBill} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-
-// TODO: remove `recentWaypoints` from this file [https://github.com/Expensify/App/issues/80268]
-// `recentWaypoints` was moved here temporarily from `src/libs/actions/IOU/index.ts` during the `Deprecate Onyx.connect` refactor.
-// All uses of this variable should be replaced with `useOnyx`.
-let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
-Onyx.connect({
-    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val ?? []),
-});
 
 export default function handleFileRetry(message: ReceiptError, file: File, dismissError: () => void, setShouldShowErrorModal: (value: boolean) => void) {
     const retryParams: IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | IOU.CreateTrackExpenseParams | IOU.RequestMoneyInformation =
@@ -43,7 +31,6 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             trackExpenseParams.transactionParams.receipt = file;
             trackExpenseParams.isRetry = true;
             trackExpenseParams.shouldPlaySound = false;
-            trackExpenseParams.recentWaypointsCollection = recentWaypoints;
             IOU.trackExpense(trackExpenseParams);
             break;
         }
