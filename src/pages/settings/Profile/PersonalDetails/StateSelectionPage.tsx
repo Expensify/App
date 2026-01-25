@@ -12,6 +12,7 @@ import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
 type State = keyof typeof COMMON_CONST.STATES;
@@ -48,10 +49,26 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const searchResults = useMemo(
-        () => searchOptions(searchValue, countryStates, currentState ? [currentState] : []),
-        [countryStates, searchValue, currentState],
-    );
+    const orderedCountryStates = useMemo(() => {
+        if (!currentState || countryStates.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return countryStates;
+        }
+
+        const selected: Option[] = [];
+        const remaining: Option[] = [];
+
+        for (const option of countryStates) {
+            if (option.value === currentState) {
+                selected.push(option);
+            } else {
+                remaining.push(option);
+            }
+        }
+
+        return [...selected, ...remaining];
+    }, [countryStates, currentState]);
+
+    const searchResults = useMemo(() => searchOptions(searchValue, orderedCountryStates), [orderedCountryStates, searchValue]);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountryState = useCallback(
