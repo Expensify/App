@@ -31,15 +31,17 @@ const useReducedMotion = (): boolean => {
 
         AccessibilityInfo.isReduceMotionEnabled()
             .then((enabled) => {
-                if (isMounted) {
-                    setIsReduceMotionEnabled(enabled);
+                if (!isMounted) {
+                    return;
                 }
+                setIsReduceMotionEnabled(enabled);
             })
             .catch(() => {
                 // If the check fails, default to false (animations enabled)
-                if (isMounted) {
-                    setIsReduceMotionEnabled(false);
+                if (!isMounted) {
+                    return;
                 }
+                setIsReduceMotionEnabled(false);
             });
 
         const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setIsReduceMotionEnabled);
