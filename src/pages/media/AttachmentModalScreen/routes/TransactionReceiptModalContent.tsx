@@ -419,6 +419,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         onPress={exitCropMode}
                         text={translate('common.cancel')}
                         icon={Expensicons.Close}
+                        style={styles.transactionReceiptButton}
                     />
                     <Button
                         success
@@ -427,6 +428,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         isLoading={isCropSaving}
                         isDisabled={!cropRect || isCropSaving}
                         icon={Expensicons.Checkmark}
+                        style={styles.transactionReceiptButton}
                     />
                 </View>
             );
@@ -445,6 +447,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         text={translate('common.rotate')}
                         isLoading={isRotating}
                         isDisabled={isRotating}
+                        style={styles.transactionReceiptButton}
                     />
                 )}
                 {!!shouldShowRotateAndCropReceiptButton && (
@@ -452,6 +455,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         icon={Expensicons.Crop}
                         onPress={enterCropMode}
                         text={translate('receipt.crop')}
+                        style={styles.transactionReceiptButton}
                     />
                 )}
                 {!!shouldShowReplaceReceiptButton && (
@@ -472,6 +476,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             });
                         }}
                         text={translate('common.replace')}
+                        style={styles.transactionReceiptButton}
                     />
                 )}
             </View>
