@@ -44,7 +44,7 @@ function UploadPowerform<TFormID extends keyof OnyxFormValuesMapping>({defaultVa
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             return getFieldRequiredErrors(values, [inputID], translate);
         },
-        [inputID],
+        [inputID, translate],
     );
 
     const handleSelectFile = (files: FileObject[]) => {

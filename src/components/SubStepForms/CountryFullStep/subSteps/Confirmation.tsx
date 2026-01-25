@@ -66,9 +66,12 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
         onNext();
     };
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return getFieldRequiredErrors(values, [COUNTRY], translate);
-    }, []);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            return getFieldRequiredErrors(values, [COUNTRY], translate);
+        },
+        [translate],
+    );
 
     useEffect(() => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);

@@ -41,7 +41,7 @@ function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID,
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             return getFieldRequiredErrors(values, pushRowFieldsIDs, translate);
         },
-        [pushRowFieldsIDs],
+        [pushRowFieldsIDs, translate],
     );
 
     return (
