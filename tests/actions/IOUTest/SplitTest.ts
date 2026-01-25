@@ -3,19 +3,21 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {requestMoney} from '@libs/actions/IOU';
+import {getReportPreviewAction, requestMoney} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
+import {addComment, openReport} from '@libs/actions/Report';
 import {rand64} from '@libs/NumberUtils';
-import {getOriginalMessage, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
+import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
+import {getOriginalMessage, getReportAction, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {RecentlyUsedTags, Report, ReportActions, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
@@ -25,6 +27,7 @@ import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import getOnyxValue from '../../utils/getOnyxValue';
 import type {MockFetch} from '../../utils/TestHelper';
@@ -1340,6 +1343,206 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             });
         });
         expect(originalTransactionThread).toBe(undefined);
+    });
+
+    it('should delete the original transaction thread report regardless of whether there are visible comments, and update the comment count of the preview report', async () => {
+        const chatReportID = 'report123';
+        const reportID = 'report456';
+        const transactionID = 'transaction123';
+        const previewActionID = 'action123';
+        const iouActionID = 'action123';
+
+        const chatReport: Report = {
+            ...createRandomReport(0, undefined),
+            policyID: CONST.POLICY.ID_FAKE,
+            parentReportID: undefined,
+            parentReportActionID: undefined,
+            reportID: chatReportID,
+            type: 'chat',
+        };
+        let previewAction: OnyxEntry<ReportAction> = {
+            ...createRandomReportAction(0),
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            reportActionID: previewActionID,
+            childMoneyRequestCount: 1,
+            childVisibleActionCount: 0,
+            originalMessage: {linkedReportID: reportID},
+        };
+        const iouReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.IOU,
+            chatReportID: chatReport.reportID,
+            parentReportID: chatReport.reportID,
+            parentReportActionID: previewAction.reportActionID,
+            reportID,
+        };
+        const transaction: Transaction = {
+            amount: 100,
+            currency: 'USD',
+            transactionID,
+            reportID: iouReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+        };
+
+        let iouAction: OnyxEntry<ReportAction> = {
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+                iouReportID: iouReport.reportID,
+            }),
+            reportActionID: iouActionID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, iouReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            [previewActionID]: previewAction,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [iouActionID]: iouAction,
+        });
+        await waitForBatchedUpdates();
+
+        const thread = buildTransactionThread(iouAction, iouReport);
+
+        expect(thread.participants).toEqual({
+            [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+        });
+
+        const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+        const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+        jest.advanceTimersByTime(10);
+        openReport(thread.reportID, '', userLogins, thread, iouAction?.reportActionID);
+        await waitForBatchedUpdates();
+
+        let transactionThreadReportActions: OnyxEntry<ReportActions>;
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
+            callback: (val) => (transactionThreadReportActions = val),
+        });
+        await waitForBatchedUpdates();
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    expect(report).toBeTruthy();
+                    resolve();
+                },
+            });
+        });
+
+        jest.advanceTimersByTime(10);
+
+        // When a comment is added
+        addComment(
+            thread,
+            thread.reportID,
+            [
+                {report: iouReport, reportAction: iouAction, shouldDisplayNewMarker: false},
+                {report: chatReport, reportAction: previewAction, shouldDisplayNewMarker: false},
+            ],
+            'test comment',
+            CONST.DEFAULT_TIME_ZONE,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the report should have 2 actions
+        expect(Object.values(transactionThreadReportActions ?? {}).length).toBe(2);
+
+        iouAction = getReportAction(iouReport.reportID, iouActionID);
+        previewAction = getReportAction(chatReport.reportID, previewActionID);
+        expect(iouAction?.childVisibleActionCount).toBe(1);
+        expect(previewAction?.childVisibleActionCount).toBe(1);
+
+        await waitForBatchedUpdates();
+
+        const draftTransaction: OnyxEntry<Transaction> = {
+            ...transaction,
+            comment: {
+                originalTransactionID: transaction.transactionID,
+            },
+        };
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReportNameValuePairs = value;
+            },
+        });
+
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+            },
+            searchContext: {
+                currentSearchHash: -2,
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport,
+            firstIOU: iouAction,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then we expect the reportPreview to update with new childVisibleActionCount
+        previewAction = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;
+        expect(previewAction).toBeTruthy();
+        expect(previewAction?.childVisibleActionCount).toEqual(0);
+        expect(previewAction?.childCommenterCount).toEqual(0);
+
+        // Then the transaction thread report should be deleted
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
+                waitForCollectionCallback: false,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    expect(report).toBeFalsy();
+                    resolve();
+                },
+            });
+        });
     });
 
     it('should remove the original transaction from the search snapshot data', async () => {

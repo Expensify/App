@@ -61,6 +61,7 @@ import {
     getAllPersonalDetails,
     getAllReports,
     getAllTransactions,
+    getCleanUpTransactionThreadReportOnyxData,
     getDeleteTrackExpenseInformation,
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
@@ -1317,17 +1318,18 @@ function updateSplitTransactions({
                     errors: null,
                 },
             };
-            const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
-                value: null,
+            const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
+                transactionThreadID: firstIOU.childReportID,
+                shouldDeleteTransactionThread: !!firstIOU.childReportID,
+                reportAction: firstIOU,
             });
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: updatedReportAction,
             });
+            optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
+            successData.push(...cleanUpTransactionThreadReportOnyxData.successData);
 
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1339,11 +1341,7 @@ function updateSplitTransactions({
                     },
                 },
             });
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
-                value: transactionThread ?? null,
-            });
+            failureData.push(...cleanUpTransactionThreadReportOnyxData.failureData);
         }
 
         optimisticData.push({
