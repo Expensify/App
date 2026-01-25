@@ -311,6 +311,9 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /** Whether the right hand side component contains interactive elements (buttons, inputs, etc.) that need individual focus for accessibility */
+    hasInteractiveRightHandSideComponent?: boolean;
 };
 
 type SplitListItemType = ListItem &

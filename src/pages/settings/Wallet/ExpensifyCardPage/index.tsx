@@ -232,6 +232,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             interactive={false}
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
+                                            hasInteractiveRightComponent={!isSignedInAsDelegate}
                                             rightComponent={
                                                 !isSignedInAsDelegate ? (
                                                     <Button
@@ -313,6 +314,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 interactive={false}
                                                 titleStyle={styles.walletCardNumber}
                                                 shouldShowRightComponent
+                                                hasInteractiveRightComponent={!isSignedInAsDelegate}
                                                 rightComponent={
                                                     !isSignedInAsDelegate ? (
                                                         <Button

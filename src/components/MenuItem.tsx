@@ -418,6 +418,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether item should be accessible */
         shouldBeAccessible?: boolean;
 
+        /** Whether the right component contains interactive elements (buttons, inputs, etc.) that need individual focus for accessibility */
+        hasInteractiveRightComponent?: boolean;
+
         /** Whether item should be focusable with keyboard */
         tabIndex?: 0 | -1;
     };
@@ -556,6 +559,7 @@ function MenuItem({
     rootWrapperStyle,
     role = CONST.ROLE.MENUITEM,
     shouldBeAccessible = true,
+    hasInteractiveRightComponent = false,
     tabIndex = 0,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
@@ -760,7 +764,7 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={role}
                                 accessibilityLabel={accessibilityLabel ?? defaultAccessibilityLabel}
-                                accessible={shouldBeAccessible && !(shouldShowRightComponent && rightComponent)}
+                                accessible={shouldBeAccessible && !(shouldShowRightComponent && rightComponent && hasInteractiveRightComponent)}
                                 tabIndex={tabIndex}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
