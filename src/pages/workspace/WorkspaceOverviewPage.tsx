@@ -107,9 +107,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const hasExistingCards = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
+
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
+        hasExistingCards || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
@@ -220,6 +222,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const hasWorkspaceDeleteErrorOffline = !!hasExistingCards && !!isOffline;
+    const [hasShowWorkspaceDeleteErrorOffline, setHasShowWorkspaceDeleteErrorOffline] = useState(false);
 
     const confirmDelete = useCallback(() => {
         if (!policy?.id || !policyName) {
@@ -239,9 +243,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            hasWorkspaceDeleteErrorOffline,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
+
+            if (hasWorkspaceDeleteErrorOffline) {
+                return;
+            }
+
             goBackFromInvalidPolicy();
         }
     }, [
@@ -258,6 +268,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         activePolicyID,
         bankAccountList,
         personalPolicyID,
+        hasWorkspaceDeleteErrorOffline,
     ]);
 
     const handleLeaveWorkspace = useCallback(() => {
@@ -272,6 +283,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const hideDeleteWorkspaceErrorModal = () => {
         setIsDeleteWorkspaceErrorModalOpen(false);
+        if (hasWorkspaceDeleteErrorOffline) {
+            return;
+        }
         clearDeleteWorkspaceError(policy?.id);
     };
 
@@ -283,6 +297,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [isLoadingBill]);
 
     useEffect(() => {
+        if (hasWorkspaceDeleteErrorOffline && policyLastErrorMessage) {
+            return;
+        }
+
+        setHasShowWorkspaceDeleteErrorOffline(true);
+        setIsDeleteWorkspaceErrorModalOpen(true);
+    }, [hasWorkspaceDeleteErrorOffline, isFocused, isPendingDelete, policyLastErrorMessage, prevIsPendingDelete]);
+
+    useEffect(() => {
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
             return;
         }
@@ -291,9 +314,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             goBackFromInvalidPolicy();
             return;
         }
+
         setIsDeleteModalOpen(false);
+        if (hasShowWorkspaceDeleteErrorOffline) {
+            return;
+        }
         setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
+    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage, hasShowWorkspaceDeleteErrorOffline]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot(account?.canDowngrade)) {
