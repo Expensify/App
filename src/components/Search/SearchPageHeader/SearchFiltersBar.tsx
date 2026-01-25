@@ -521,6 +521,7 @@ function SearchFiltersBar({
                     closeOverlay={closeOverlay}
                     onChange={handleWorkspaceChange}
                     isSearchable={shouldShowWorkspaceSearchInput}
+                    shouldMoveSelectedItemsToTopOnOpen
                 />
             );
         },
