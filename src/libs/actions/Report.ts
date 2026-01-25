@@ -2526,9 +2526,23 @@ function toggleSubscribeToChildReport(
         openReport(childReportID);
         const parentReportActionID = parentReportAction?.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
-            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, currentUserAccountID, parentReport?.reportID, parentReportActionID);
+            updateNotificationPreference(
+                childReportID,
+                prevNotificationPreference,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                currentUserAccountID,
+                parentReport?.reportID,
+                parentReportActionID,
+            );
         } else {
-            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, currentUserAccountID, parentReport?.reportID, parentReportActionID);
+            updateNotificationPreference(
+                childReportID,
+                prevNotificationPreference,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                currentUserAccountID,
+                parentReport?.reportID,
+                parentReportActionID,
+            );
         }
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])];
