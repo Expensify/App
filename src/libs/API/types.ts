@@ -178,6 +178,7 @@ const WRITE_COMMANDS = {
     UPDATE_POLICY_CATEGORY_GL_CODE: 'UpdatePolicyCategoryGLCode',
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
     DELETE_POLICY_REPORT_FIELD: 'DeletePolicyReportField',
+    DELETE_POLICY_INVOICE_FIELD: 'DeletePolicyInvoiceField',
     SET_POLICY_TAGS_REQUIRED: 'SetPolicyTagsRequired',
     SET_POLICY_TAG_LISTS_REQUIRED: 'SetPolicyTagListsRequired',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
@@ -367,9 +368,13 @@ const WRITE_COMMANDS = {
     CLOSE_SIDE_PANEL: 'CloseSidePanel',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
     CREATE_WORKSPACE_INVOICE_FIELD: 'CreatePolicyInvoiceField',
+    CREATE_WORKSPACE_INVOICE_FIELD_LIST_VALUE: 'CreatePolicyInvoiceFieldOption',
     CREATE_WORKSPACE_REPORT_FIELD: 'CreatePolicyReportField',
+    UPDATE_WORKSPACE_INVOICE_FIELD_INITIAL_VALUE: 'SetPolicyInvoiceFieldDefault',
     UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE: 'SetPolicyReportFieldDefault',
+    ENABLE_WORKSPACE_INVOICE_FIELD_LIST_VALUE: 'EnablePolicyInvoiceFieldOption',
     ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE: 'EnablePolicyReportFieldOption',
+    REMOVE_WORKSPACE_INVOICE_FIELD_LIST_VALUE: 'RemovePolicyInvoiceFieldOption',
     CREATE_WORKSPACE_REPORT_FIELD_LIST_VALUE: 'CreatePolicyReportFieldOption',
     REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE: 'RemovePolicyReportFieldOption',
     UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION: 'UpdateNetSuiteSyncTaxConfiguration',
@@ -702,6 +707,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE]: Parameters.UpdatePolicyCategoryPayrollCodeParams;
     [WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE]: Parameters.UpdatePolicyCategoryGLCodeParams;
     [WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD]: Parameters.DeletePolicyReportField;
+    [WRITE_COMMANDS.DELETE_POLICY_INVOICE_FIELD]: Parameters.DeletePolicyInvoiceField;
     [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
     [WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED]: Parameters.SetPolicyTagsRequired;
     [WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED]: Parameters.SetPolicyTagListsRequired;
@@ -959,11 +965,15 @@ type WriteCommandParameters = {
 
     // Workspace report field parameters
     [WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD]: Parameters.CreateWorkspaceReportFieldParams;
-    [WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD]: Parameters.CreateWorkspaceReportFieldParams;
+    [WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD]: Parameters.CreateWorkspaceInvoiceFieldParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE]: Parameters.UpdateWorkspaceReportFieldInitialValueParams;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_INVOICE_FIELD_INITIAL_VALUE]: Parameters.UpdateWorkspaceInvoiceFieldInitialValueParams;
     [WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE]: Parameters.EnableWorkspaceReportFieldListValueParams;
+    [WRITE_COMMANDS.ENABLE_WORKSPACE_INVOICE_FIELD_LIST_VALUE]: Parameters.EnableWorkspaceInvoiceFieldListValueParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD_LIST_VALUE]: Parameters.CreateWorkspaceReportFieldListValueParams;
+    [WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD_LIST_VALUE]: Parameters.CreateWorkspaceInvoiceFieldListValueParams;
     [WRITE_COMMANDS.REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE]: Parameters.RemoveWorkspaceReportFieldListValueParams;
+    [WRITE_COMMANDS.REMOVE_WORKSPACE_INVOICE_FIELD_LIST_VALUE]: Parameters.RemoveWorkspaceInvoiceFieldListValueParams;
 
     [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TAX_SOLUTION_ID]: Parameters.UpdateNetSuiteGenericTypeParams<'taxSolutionID', string>;
@@ -1147,7 +1157,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_TAGS_PAGE: 'OpenPolicyTagsPage',
     OPEN_POLICY_TAXES_PAGE: 'OpenPolicyTaxesPage',
     OPEN_POLICY_REPORT_FIELDS_PAGE: 'OpenPolicyReportFieldsPage',
-    OPEN_POLICY_INVOICE_FIELDS_PAGE: 'OpenPolicyInvoiceFieldsPage',
+    OPEN_POLICY_INVOICES_PAGE: 'OpenPolicyInvoicesPage',
     OPEN_POLICY_RULES_PAGE: 'OpenPolicyRulesPage',
     OPEN_POLICY_EXPENSIFY_CARDS_PAGE: 'OpenPolicyExpensifyCardsPage',
     OPEN_POLICY_TRAVEL_PAGE: 'OpenPolicyTravelPage',
@@ -1233,7 +1243,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_TAGS_PAGE]: Parameters.OpenPolicyTagsPageParams;
     [READ_COMMANDS.OPEN_POLICY_TAXES_PAGE]: Parameters.OpenPolicyTaxesPageParams;
     [READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE]: Parameters.OpenPolicyReportFieldsPageParams;
-    [READ_COMMANDS.OPEN_POLICY_INVOICE_FIELDS_PAGE]: Parameters.OpenPolicyReportFieldsPageParams;
+    [READ_COMMANDS.OPEN_POLICY_INVOICES_PAGE]: Parameters.OpenPolicyReportFieldsPageParams;
     [READ_COMMANDS.OPEN_POLICY_RULES_PAGE]: Parameters.OpenPolicyRulesPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_INVITE_PAGE]: Parameters.OpenWorkspaceInvitePageParams;
     [READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST]: Parameters.OpenDraftWorkspaceRequestParams;

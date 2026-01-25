@@ -7,24 +7,24 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldsEditValuePageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
+type InvoiceFieldsEditValuePageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE>;
 
-function ReportFieldsEditValuePage({
+function InvoiceFieldsEditValuePage({
     policy,
     route: {
         params: {policyID, valueIndex},
     },
-}: ReportFieldsEditValuePageProps) {
+}: InvoiceFieldsEditValuePageProps) {
     return (
         <FieldsEditValuePage
             policy={policy}
             policyID={policyID}
             valueIndex={valueIndex}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            testID="ReportFieldsEditValuePage"
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
+            testID="InvoiceFieldsEditValuePage"
         />
     );
 }
 
-export default withPolicyAndFullscreenLoading(ReportFieldsEditValuePage);
+export default withPolicyAndFullscreenLoading(InvoiceFieldsEditValuePage);

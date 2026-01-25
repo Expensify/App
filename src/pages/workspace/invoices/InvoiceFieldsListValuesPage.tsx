@@ -8,22 +8,22 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
+type InvoiceFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES>;
 
-function ReportFieldsListValuesPage({
+function InvoiceFieldsListValuesPage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: ReportFieldsListValuesPageProps) {
+}: InvoiceFieldsListValuesPageProps) {
     return (
         <FieldsListValuesPage
             policy={policy}
             policyID={policyID}
             reportFieldID={reportFieldID}
-            isInvoicePage={false}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            isInvoicePage
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
             getValueSettingsRoute={(isInvoiceRoute, id, valueIndex, fieldID) =>
                 isInvoiceRoute
                     ? ROUTES.WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS.getRoute(id, valueIndex, fieldID)
@@ -32,9 +32,9 @@ function ReportFieldsListValuesPage({
             getAddValueRoute={(isInvoiceRoute, id, fieldID) =>
                 isInvoiceRoute ? ROUTES.WORKSPACE_INVOICE_FIELDS_ADD_VALUE.getRoute(id, fieldID) : ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(id, fieldID)
             }
-            testID="ReportFieldsListValuesPage"
+            testID="InvoiceFieldsListValuesPage"
         />
     );
 }
 
-export default withPolicyAndFullscreenLoading(ReportFieldsListValuesPage);
+export default withPolicyAndFullscreenLoading(InvoiceFieldsListValuesPage);

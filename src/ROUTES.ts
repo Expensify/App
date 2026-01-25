@@ -1888,6 +1888,35 @@ const ROUTES = {
         route: 'workspaces/:policyID/invoices/company-website',
         getRoute: (policyID: string) => `workspaces/${policyID}/invoices/company-website` as const,
     },
+    WORKSPACE_INVOICE_FIELDS_CREATE: {
+        route: 'workspaces/:policyID/invoices/newInvoiceField',
+        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/newInvoiceField` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_SETTINGS: {
+        route: 'workspaces/:policyID/invoices/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/invoices/${encodeURIComponent(reportFieldID)}/edit` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_LIST_VALUES: {
+        route: 'workspaces/:policyID/invoices/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/invoices/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_ADD_VALUE: {
+        route: 'workspaces/:policyID/invoices/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/invoices/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS: {
+        route: 'workspaces/:policyID/invoices/:valueIndex/:reportFieldID?',
+        getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
+            `workspaces/${policyID}/invoices/${valueIndex}/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_EDIT_VALUE: {
+        route: 'workspaces/:policyID/invoices/newInvoiceField/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `workspaces/${policyID}/invoices/newInvoiceField/${valueIndex}/edit` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE: {
+        route: 'workspaces/:policyID/invoices/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/invoices/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
+    },
     WORKSPACE_MEMBERS: {
         route: 'workspaces/:policyID/members',
         getRoute: (policyID: string | undefined) => {
@@ -2239,14 +2268,10 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_REPORT_FIELD: {
         route: 'workspaces/:policyID/reports/newReportField',
-        getRoute: (policyID: string, target?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>) => {
+        getRoute: (policyID: string) => {
             const baseRoute = `workspaces/${policyID}/reports/newReportField` as const;
 
-            if (!target) {
-                return baseRoute;
-            }
-
-            return `${baseRoute}?target=${encodeURIComponent(target)}` as const;
+            return baseRoute;
         },
     },
     WORKSPACE_REPORT_FIELDS_SETTINGS: {

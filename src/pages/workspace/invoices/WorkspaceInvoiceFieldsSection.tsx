@@ -22,7 +22,7 @@ import {enablePolicyInvoiceFields} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
-import {openPolicyInvoiceFieldsPage} from '@userActions/Policy/ReportField';
+import {openPolicyInvoicesPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,17 +59,17 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const fetchReportFields = useCallback(() => {
-        openPolicyInvoiceFieldsPage(policyID);
+    const fetchInvoiceFields = useCallback(() => {
+        openPolicyInvoicesPage(policyID);
     }, [policyID]);
     const invoiceFieldsEnabled = policy?.areInvoiceFieldsEnabled ?? policy?.areReportFieldsEnabled;
     const invoiceFieldsPendingAction = policy?.pendingFields?.areInvoiceFieldsEnabled ?? policy?.pendingFields?.areReportFieldsEnabled;
 
-    const {isOffline} = useNetwork({onReconnect: fetchReportFields});
+    const {isOffline} = useNetwork({onReconnect: fetchInvoiceFields});
 
     useEffect(() => {
-        fetchReportFields();
-    }, [fetchReportFields]);
+        fetchInvoiceFields();
+    }, [fetchInvoiceFields]);
 
     const invoiceFields = useMemo<InvoiceFieldListItem[]>(() => {
         if (!policy?.fieldList) {
@@ -91,7 +91,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
 
     const navigateToReportFieldSettings = useCallback(
         (item: InvoiceFieldListItem) => {
-            Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, item.fieldID));
+            Navigation.navigate(ROUTES.WORKSPACE_INVOICE_FIELDS_SETTINGS.getRoute(policyID, item.fieldID));
         },
         [policyID],
     );
@@ -183,7 +183,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                                     <MenuItem
                                         onPress={() =>
                                             Navigation.navigate(
-                                                ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID, CONST.REPORT_FIELD_TARGETS.INVOICE),
+                                                ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.getRoute(policyID),
                                             )
                                         }
                                         title={translate('workspace.reportFields.addField')}

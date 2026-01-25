@@ -13,12 +13,13 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {clearSubrates, setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isPerDiemRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -75,6 +76,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
@@ -87,6 +89,21 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         } else {
             Navigation.goBack(backTo);
         }
+    };
+
+    const updateDistanceRateForReport = (nextReportID: string | undefined, nextPolicyID: string | undefined) => {
+        if (!transaction || !isDistanceRequest(transaction)) {
+            return;
+        }
+
+        const nextPolicy = nextPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${nextPolicyID}`] : undefined;
+        const nextRateID = DistanceRequestUtils.getCustomUnitRateID({
+            reportID: nextReportID,
+            isPolicyExpenseChat: !!nextPolicy,
+            policy: nextPolicy,
+            lastSelectedDistanceRates,
+        });
+        setCustomUnitRateID(transaction.transactionID, nextRateID);
     };
 
     const handleGlobalCreateReport = (item: TransactionGroupListItem) => {
@@ -107,6 +124,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         const currentPolicyID = perDiemOriginalPolicy?.id;
         const newPolicyID = reportOrDraftReportFromValue?.policyID;
         const policyChanged = currentPolicyID && newPolicyID && currentPolicyID !== newPolicyID;
+
+        updateDistanceRateForReport(item.value, newPolicyID ?? item.policyID);
 
         const newPolicy = newPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicyID}`] : undefined;
         const newPerDiemCustomUnit = getPerDiemCustomUnit(newPolicy);
@@ -152,6 +171,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 },
                 !isEditing,
             );
+
+            updateDistanceRateForReport(item.value, item.policyID);
 
             if (isEditing) {
                 changeTransactionsReport({
@@ -200,6 +221,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
+            updateDistanceRateForReport(CONST.REPORT.UNREPORTED_REPORT_ID, undefined);
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled,
