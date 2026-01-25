@@ -11680,7 +11680,6 @@ function prepareRejectMoneyRequestData(
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
     const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
-    let movedTransactionAction;
 
     // Build successData and failureData to prevent duplication
     const successData: Array<
@@ -12212,7 +12211,6 @@ function prepareRejectMoneyRequestData(
         value: {
             [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
             [optimisticRejectReportActionComment.reportActionID]: optimisticRejectReportActionComment,
-            ...(movedTransactionAction ? {[movedTransactionAction.reportActionID]: movedTransactionAction} : {}),
         },
     });
 

@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
+import type {TransactionThreadInfo} from '@libs/API/parameters';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -999,10 +1000,10 @@ describe('Transaction', () => {
             // Verify that movedReportActionID is undefined in the API call parameters
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const parameters = apiWriteCall?.[1] as {transactionIDToReportActionAndThreadData: string};
-            const transactionData = JSON.parse(parameters.transactionIDToReportActionAndThreadData);
+            const transactionData = JSON.parse(parameters.transactionIDToReportActionAndThreadData) as Record<string, TransactionThreadInfo>;
 
             // The movedReportActionID should be undefined when moving from a draft report
-            expect(transactionData[transaction.transactionID].movedReportActionID).toBeUndefined();
+            expect(transactionData[transaction.transactionID]?.movedReportActionID).toBeUndefined();
 
             mockAPIWrite.mockRestore();
         });
@@ -1059,10 +1060,10 @@ describe('Transaction', () => {
             // Verify that movedReportActionID is defined in the API call parameters
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const parameters = apiWriteCall?.[1] as {transactionIDToReportActionAndThreadData: string};
-            const transactionData = JSON.parse(parameters.transactionIDToReportActionAndThreadData);
+            const transactionData = JSON.parse(parameters.transactionIDToReportActionAndThreadData) as Record<string, TransactionThreadInfo>;
 
             // The movedReportActionID should be defined when moving from a non-draft report
-            expect(transactionData[transaction.transactionID].movedReportActionID).toBeDefined();
+            expect(transactionData[transaction.transactionID]?.movedReportActionID).toBeDefined();
 
             mockAPIWrite.mockRestore();
         });
