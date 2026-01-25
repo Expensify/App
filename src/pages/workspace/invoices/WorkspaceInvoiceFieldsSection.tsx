@@ -62,8 +62,8 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
     const fetchInvoiceFields = useCallback(() => {
         openPolicyInvoicesPage(policyID);
     }, [policyID]);
-    const invoiceFieldsEnabled = policy?.areInvoiceFieldsEnabled ?? policy?.areReportFieldsEnabled;
-    const invoiceFieldsPendingAction = policy?.pendingFields?.areInvoiceFieldsEnabled ?? policy?.pendingFields?.areReportFieldsEnabled;
+    const invoiceFieldsEnabled = policy?.areInvoiceFieldsEnabled;
+    const invoiceFieldsPendingAction = policy?.pendingFields?.areInvoiceFieldsEnabled;
 
     const {isOffline} = useNetwork({onReconnect: fetchInvoiceFields});
 
