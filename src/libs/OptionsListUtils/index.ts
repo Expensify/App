@@ -2620,7 +2620,7 @@ function formatSectionsFromSearchTerm(
     selectedOptions: SearchOptionData[],
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
-    privateIsArchived: string | undefined,
+    privateIsArchivedMap: Record<string, string | undefined>,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
@@ -2636,6 +2636,7 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                          const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                           return isReportPolicyExpenseChat
                               ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, reportAttributesDerived)
                               : getParticipantsOption(participant, personalDetails);
@@ -2664,6 +2665,7 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                      const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                       return isReportPolicyExpenseChat
                           ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, reportAttributesDerived)
                           : getParticipantsOption(participant, personalDetails);

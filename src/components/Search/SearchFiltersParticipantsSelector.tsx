@@ -116,7 +116,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${selectedOptions.at(0)?.reportID}`],
+            privateIsArchivedMap,
             personalDetails,
             true,
             undefined,

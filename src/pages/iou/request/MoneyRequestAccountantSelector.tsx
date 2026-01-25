@@ -152,7 +152,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatOptions.recentReports.at(0)?.reportID}`],
+            privateIsArchivedMap,
             personalDetails,
             true,
             undefined,

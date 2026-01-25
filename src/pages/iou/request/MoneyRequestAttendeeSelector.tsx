@@ -209,7 +209,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             initialSelectedOptions,
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
-            privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${initialSelectedOptions.at(0)?.reportID}`],
+            privateIsArchivedMap,
             personalDetails,
             true,
             undefined,

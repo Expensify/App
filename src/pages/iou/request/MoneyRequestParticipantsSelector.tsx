@@ -289,7 +289,7 @@ function MoneyRequestParticipantsSelector({
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             [],
             [],
-            privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participants.at(0)?.reportID}`],
+            privateIsArchivedMap,
             personalDetails,
             true,
             undefined,

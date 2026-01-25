@@ -265,7 +265,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
-        privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${selectedOptions.at(0)?.reportID}`],
+        privateIsArchivedMap,
         allPersonalDetails,
         undefined,
         undefined,
