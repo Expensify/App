@@ -40,6 +40,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 onPress={() => onSelect(index)}
                 onLongPress={() => {}}
                 accessibilityLabel={accessibilityLabelExtractor(item, index)}
+                role={CONST.ROLE.MENUITEM}
             >
                 {renderSuggestionMenuItem(item, index)}
             </PressableWithFeedback>
