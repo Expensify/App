@@ -269,6 +269,7 @@ const translations = {
         zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
+        digits: 'digits',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         inbox: 'Inbox',
@@ -623,6 +624,7 @@ const translations = {
         actionRequired: 'Action required',
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
+        duplicateExpense: 'Duplicate expense',
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
@@ -1460,6 +1462,7 @@ const translations = {
             ratePreview: (rate: string) => `${rate} / hour`,
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
+        correctDistanceRateError: 'Fix the distance rate error and try again.',
     },
     transactionMerge: {
         listPage: {
@@ -5443,7 +5446,8 @@ const translations = {
                 giveItNameInstruction: 'Make it unique enough to tell apart from other cards. Specific use cases are even better!',
                 cardName: 'Card name',
                 letsDoubleCheck: 'Let’s double check that everything looks right.',
-                willBeReady: 'This card will be ready to use immediately.',
+                willBeReadyToUse: 'This card will be ready to use immediately.',
+                willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
                 cardType: 'Card type',
                 limit: 'Limit',
@@ -7155,6 +7159,11 @@ const translations = {
         notification: {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
+        },
+        signOutWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to discard the trip and sign out?',
+            confirm: 'Discard and sign out',
         },
         locationServicesRequiredModal: {
             title: 'Location access required',
