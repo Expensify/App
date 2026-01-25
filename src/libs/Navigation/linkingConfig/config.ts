@@ -272,6 +272,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS]: {
+                            path: ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: {
+                            path: ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: {
+                            path: ROUTES.SETTINGS_WALLET_TRANSACTIONS_IMPORTED.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
                             path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                             exact: true,
@@ -767,6 +779,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_TRANSACTIONS]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_TRANSACTIONS.route,
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,

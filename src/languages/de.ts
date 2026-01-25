@@ -4866,6 +4866,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             assign: 'Zuweisen',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            importTransactions: {
+                title: 'Transaktionen aus Datei importieren',
+                description: 'Bitte passen Sie die Einstellungen für Ihre Datei an, die beim Import angewendet werden.',
+                cardDisplayName: 'Kartenname',
+                currency: 'Währung',
+                transactionsAreReimbursable: 'Transaktionen sind erstattungsfähig',
+                flipAmountSign: 'Betragsvorzeichen umkehren',
+                importButton: 'Transaktionen importieren',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',

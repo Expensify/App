@@ -379,6 +379,15 @@ const ROUTES = {
     },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS: 'settings/wallet/import-transactions',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET: {
+        route: 'settings/wallet/import-transactions-spreadsheet/:cardID?',
+        getRoute: (cardID?: number) => (cardID ? `settings/wallet/import-transactions-spreadsheet/${cardID}` : 'settings/wallet/import-transactions-spreadsheet') as const,
+    },
+    SETTINGS_WALLET_TRANSACTIONS_IMPORTED: {
+        route: 'settings/wallet/transactions-imported/:cardID?',
+        getRoute: (cardID?: number) => (cardID ? `settings/wallet/transactions-imported/${cardID}` : 'settings/wallet/transactions-imported') as const,
+    },
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged` as const,
@@ -2447,6 +2456,11 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: {
         route: 'workspaces/:policyID/company-cards/settings/statement-close-date',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/statement-close-date` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_IMPORT_TRANSACTIONS: {
+        route: 'workspaces/:policyID/company-cards/:feed/import-transactions',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) =>
+            `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/import-transactions` as const,
     },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
