@@ -5237,7 +5237,7 @@ type UpdateMoneyRequestDistanceParams = {
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     waypoints?: WaypointCollection;
-    recentWaypointsCollection: OnyxTypes.RecentWaypoint[] | undefined;
+    recentWaypointsCollection: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     distance?: number;
     routes?: Routes;
     policy: OnyxEntry<OnyxTypes.Policy>;
