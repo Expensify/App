@@ -462,7 +462,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                                     data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
-                                                    listFooterContent={<View style={[shouldUseNarrowLayout && styles.mb3]} />}
+                                                    listFooterContent={listFooterContent}
                                                     mode={CONST.TAB.SPLIT.DATE}
                                                 />
                                                 {footerContent}
