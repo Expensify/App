@@ -162,15 +162,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
             op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         });
-
-        if (!shouldUseNarrowLayout && isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-            navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
-            return;
-        }
-
         Navigation.navigate(ROUTES.HOME);
-    }, [selectedTab, shouldUseNarrowLayout]);
+    }, [selectedTab]);
 
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
 

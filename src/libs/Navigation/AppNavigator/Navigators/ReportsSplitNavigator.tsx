@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -27,11 +27,14 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
+    // Determine if the current URL indicates a transition.
+    const isTransitioning = useMemo(() => {
+        const currentURL = getCurrentUrl();
+        return currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+    }, []);
+
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
-        // Determine if the current URL indicates a transition.
-        const isTransitioning = currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
-
         const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
         if (reportIdFromPath) {
             return reportIdFromPath;
@@ -51,13 +54,6 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
-    const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
-
-    const reportScreenInitialParams = {
-        reportID: initialReportID,
-        openOnAdminRoom: isOpenOnAdminRoom ? true : undefined,
-    };
-
     return (
         <FreezeWrapper>
             <Split.Navigator
@@ -74,7 +70,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
                 />
                 <Split.Screen
                     name={SCREENS.REPORT}
-                    initialParams={reportScreenInitialParams}
+                    initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
                     getComponent={loadReportScreen}
                 />
             </Split.Navigator>

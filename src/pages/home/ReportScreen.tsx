@@ -109,7 +109,6 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
-import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
@@ -165,6 +164,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
+    const firstRenderRef = useRef(true);
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
@@ -311,14 +311,13 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
+    const wasReportAccessibleRef = useRef(false);
+
     const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
-
-    const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
-
     const indexOfLinkedMessage = useMemo(
         (): number => reportActions.findIndex((obj) => reportActionIDFromRoute && String(obj.reportActionID) === String(reportActionIDFromRoute)),
         [reportActions, reportActionIDFromRoute],
@@ -387,6 +386,14 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
 
+    useEffect(() => {
+        if (!report?.reportID) {
+            wasReportAccessibleRef.current = false;
+            return;
+        }
+        wasReportAccessibleRef.current = true;
+    }, [report?.reportID]);
+
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
         (prioritizeBackTo = false) => {
@@ -419,55 +426,40 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         [isInSidePanel, backTo, isInNarrowPaneModal, closeSidePanel],
     );
 
-    const headerView = useMemo(() => {
-        if (isTransactionThreadView) {
-            return (
-                <MoneyRequestHeader
-                    report={report}
-                    policy={policy}
-                    parentReportAction={parentReportAction}
-                    onBackButtonPress={onBackButtonPress}
-                />
-            );
-        }
+    let headerView = (
+        <HeaderView
+            reportID={reportIDFromRoute}
+            onNavigationMenuButtonClicked={onBackButtonPress}
+            report={report}
+            parentReportAction={parentReportAction}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
+            isInSidePanel={isInSidePanel}
+        />
+    );
 
-        if (isMoneyRequestOrInvoiceReport) {
-            return (
-                <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
-                    reportActions={reportActions}
-                    onBackButtonPress={onBackButtonPress}
-                />
-            );
-        }
-
-        return (
-            <HeaderView
-                reportID={reportIDFromRoute}
-                onNavigationMenuButtonClicked={onBackButtonPress}
+    if (isTransactionThreadView) {
+        headerView = (
+            <MoneyRequestHeader
                 report={report}
+                policy={policy}
                 parentReportAction={parentReportAction}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                isInSidePanel={isInSidePanel}
+                onBackButtonPress={onBackButtonPress}
             />
         );
-    }, [
-        isTransactionThreadView,
-        isMoneyRequestOrInvoiceReport,
-        report,
-        policy,
-        parentReportAction,
-        onBackButtonPress,
-        transactionThreadReportID,
-        reportMetadata.isLoadingInitialReportActions,
-        reportActions,
-        reportIDFromRoute,
-        shouldUseNarrowLayout,
-        isInSidePanel,
-    ]);
+    }
+
+    if (isMoneyRequestOrInvoiceReport) {
+        headerView = (
+            <MoneyReportHeader
+                report={report}
+                policy={policy}
+                transactionThreadReportID={transactionThreadReportID}
+                isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
+                reportActions={reportActions}
+                onBackButtonPress={onBackButtonPress}
+            />
+        );
+    }
 
     useEffect(() => {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
@@ -486,7 +478,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
-    const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
+    const lastReportActionIDFromRoute = usePrevious(!firstRenderRef.current ? reportActionIDFromRoute : undefined);
 
     const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
 
@@ -522,39 +514,25 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const currentReportIDFormRoute = route.params?.reportID;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo((): boolean => {
-        const isLoading = isLoadingApp !== false || !!isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
-        const reportExists = !!reportID || !!isOptimisticDelete || !!userLeavingStatus;
-        const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
+    const shouldShowNotFoundPage = useMemo(
+        (): boolean => {
+            if (shouldShowNotFoundLinkedAction) {
+                return true;
+            }
 
-        if (shouldShowNotFoundLinkedAction) {
-            return true;
-        }
+            if (isLoadingApp !== false) {
+                return false;
+            }
 
-        if (isLoading) {
-            return false;
-        }
+            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+                return true;
+            }
 
-        if (firstRender) {
-            return false;
-        }
-
-        if (!reportExists) {
-            return true;
-        }
-
-        return isInvalidReportPath;
-    }, [
-        shouldShowNotFoundLinkedAction,
-        isLoadingApp,
-        isLoadingReportData,
-        reportMetadata?.isLoadingInitialReportActions,
-        reportID,
-        isOptimisticDelete,
-        userLeavingStatus,
-        currentReportIDFormRoute,
-        firstRender,
-    ]);
+            return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
+    );
 
     const createOneTransactionThreadReport = useCallback(() => {
         const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -739,7 +717,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
-        if (firstRender) {
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
             setFirstRender(false);
             return;
         }
@@ -833,30 +812,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         deletedParentAction,
         prevDeletedParentAction,
     ]);
-
-    useEffect(() => {
-        if (!reportWasDeleted) {
-            return;
-        }
-
-        // Only redirect if focused
-        if (!isFocused) {
-            return;
-        }
-
-        // Try to navigate to parent report if available
-        if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
-            Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
-            });
-            return;
-        }
-
-        // Fallback to Concierge
-        Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat();
-        });
-    }, [reportWasDeleted, isFocused, deletedReportParentID]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {
