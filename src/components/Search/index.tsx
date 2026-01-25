@@ -961,22 +961,6 @@ function Search({
         }
 
         if (areItemsGrouped) {
-            // Trigger searches for all groups to load their transactions (only for merchant grouping)
-            if (validGroupBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
-                for (const item of filteredData as TransactionGroupListItemType[]) {
-                    if (!item.transactionsQueryJSON || isExpenseReportType) {
-                        continue;
-                    }
-                    handleSearch({
-                        queryJSON: item.transactionsQueryJSON,
-                        searchKey: undefined,
-                        offset: 0,
-                        shouldCalculateTotals: false,
-                        isLoading: false,
-                    });
-                }
-            }
-
             setSelectedTransactions(
                 Object.fromEntries(
                     (filteredData as TransactionGroupListItemType[]).flatMap((item) =>

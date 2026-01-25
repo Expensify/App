@@ -50,7 +50,7 @@ jest.mock('@components/Icon', () => {
 jest.mock('@components/TextWithTooltip', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function MockTextWithTooltip({text}: any) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const RN = jest.requireActual('react-native');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const Text = RN.Text;
@@ -68,7 +68,7 @@ jest.mock('@components/TextWithTooltip', () => {
 jest.mock('@components/SelectionListWithSections/Search/TextCell', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function MockTextCell({text}: any) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const RN = jest.requireActual('react-native');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const Text = RN.Text;
@@ -86,7 +86,7 @@ jest.mock('@components/SelectionListWithSections/Search/TextCell', () => {
 jest.mock('@components/SelectionListWithSections/Search/TotalCell', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function MockTotalCell({total}: any) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const RN = jest.requireActual('react-native');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const Text = RN.Text;
