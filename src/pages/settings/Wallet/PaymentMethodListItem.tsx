@@ -150,6 +150,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                 shouldOverlay
                                 isNested
                                 threeDotsMenuRef={threeDotsMenuRef}
+                                disabled={item.disabled}
                             />
                         </View>
                     ) : undefined
