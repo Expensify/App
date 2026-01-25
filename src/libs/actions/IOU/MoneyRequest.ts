@@ -26,6 +26,7 @@ import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
+    getRecentWaypoints,
     requestMoney,
     resetSplitShares,
     setCustomUnitRateID,
@@ -451,15 +452,6 @@ function handleMoneyRequestStepScanParticipants({
     }
 }
 
-// TODO: remove `recentWaypoints` from this file [https://github.com/Expensify/App/issues/80267]
-// `recentWaypoints` was moved here temporarily from `src/libs/actions/IOU/index.ts` during the `Deprecate Onyx.connect` refactor.
-// All uses of this variable should be replaced with `useOnyx`.
-let recentWaypoints: RecentWaypoint[] = [];
-Onyx.connect({
-    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val ?? []),
-});
-
 function handleMoneyRequestStepDistanceNavigation({
     iouType,
     report,
@@ -495,6 +487,7 @@ function handleMoneyRequestStepDistanceNavigation({
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
+    const recentWaypoints = getRecentWaypoints();
 
     if (transaction?.splitShares && !isManualDistance) {
         resetSplitShares(transaction);
