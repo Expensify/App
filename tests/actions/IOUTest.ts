@@ -9762,18 +9762,8 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then the transaction should be updated with the new waypoints data and modified waypoints should be set
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        if (transaction?.modifiedWaypoints) {
-                            expect(transaction.modifiedWaypoints).toEqual(fakeWaypoints);
-                            resolve();
-                        }
-                    },
-                });
-            });
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.modifiedWaypoints).toEqual(fakeWaypoints);
         });
 
         it('should filter pending recent waypoints when distance is not provided', async () => {
@@ -9855,20 +9845,8 @@ describe('actions/IOU', () => {
 
             // Then the recent waypoints should be updated, filtering out pending waypoints
             // This is tested indirectly by checking if the update was processed
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        // When distance is not provided, the transaction should still be updated
-                        // but the recent waypoints filter logic is applied on the API call
-                        if (transaction?.transactionID) {
-                            expect(transaction.transactionID).toBe(transactionID);
-                            resolve();
-                        }
-                    },
-                });
-            });
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.transactionID).toBe(transactionID);
         });
 
         it('should handle complete distance expense workflow with multiple waypoint updates', async () => {
@@ -9937,24 +9915,15 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Verify the transaction was updated with complete route information
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        if (transaction?.modifiedWaypoints) {
-                            // Verify all waypoints are present
-                            expect(Object.keys(transaction.modifiedWaypoints)).toHaveLength(3);
-                            expect(transaction.modifiedWaypoints.waypoint0).toBeDefined();
-                            expect(transaction.modifiedWaypoints.waypoint1).toBeDefined();
-                            expect(transaction.modifiedWaypoints.waypoint2).toBeDefined();
-                            // Verify specific waypoint details
-                            expect(transaction.modifiedWaypoints.waypoint1?.name).toBe('Client Meeting');
-                            resolve();
-                        }
-                    },
-                });
-            });
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const waypoints = transaction?.modifiedWaypoints;
+            expect(Object.keys(waypoints ?? {})).toHaveLength(3);
+            expect(waypoints?.waypoint0).toBeDefined();
+            expect(waypoints?.waypoint1).toBeDefined();
+            expect(waypoints?.waypoint2).toBeDefined();
+            // Verify specific waypoint details
+            expect(waypoints?.waypoint1?.name).toBe('Client Meeting');
+            expect(waypoints?.waypoint2?.address).toBe('Los Angeles');
         });
 
         it('QA: should handle edge cases and invalid inputs gracefully', async () => {
@@ -10010,16 +9979,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Verify transaction still exists and wasn't corrupted - use synchronous check
-            const transactionAfterUpdate = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    waitForCollectionCallback: false,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        resolve(transaction ?? null);
-                    },
-                });
-            });
+            const transactionAfterUpdate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
             // Transaction should still exist with valid ID
             expect(transactionAfterUpdate?.transactionID).toBe(transactionID);
@@ -10065,16 +10025,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Verify second transaction
-            const transaction2AfterUpdate = await new Promise<Transaction | null>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`,
-                    waitForCollectionCallback: false,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        resolve(transaction ?? null);
-                    },
-                });
-            });
+            const transaction2AfterUpdate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`);
 
             expect(transaction2AfterUpdate?.transactionID).toBe(transactionID2);
         });
