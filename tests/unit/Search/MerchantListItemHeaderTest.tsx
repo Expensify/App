@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 jest.mock('@components/Checkbox', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function MockCheckbox({onPress, isChecked, disabled, accessibilityLabel}: any) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const RN = jest.requireActual('react-native');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const Pressable = RN.Pressable;
