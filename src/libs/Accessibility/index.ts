@@ -18,6 +18,32 @@ const useScreenReaderStatus = (): boolean => {
     return isScreenReaderEnabled;
 };
 
+/**
+ * Hook that returns whether the user has enabled the "reduce motion" accessibility setting.
+ * This is used to disable animations for users who are sensitive to motion.
+ * Works on iOS, Android, and Web (via react-native-web which uses prefers-reduced-motion media query).
+ */
+const useReducedMotion = (): boolean => {
+    const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
+
+    useEffect(() => {
+        AccessibilityInfo.isReduceMotionEnabled()
+            .then(setIsReduceMotionEnabled)
+            .catch(() => {
+                // If the check fails, default to false (animations enabled)
+                setIsReduceMotionEnabled(false);
+            });
+
+        const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setIsReduceMotionEnabled);
+
+        return () => {
+            subscription?.remove();
+        };
+    }, []);
+
+    return isReduceMotionEnabled;
+};
+
 const getHitSlopForSize = ({x, y}: HitSlop) => {
     /* according to https://developer.apple.com/design/human-interface-guidelines/ios/visual-design/adaptivity-and-layout/
     the minimum tappable area is 44x44 points */
@@ -50,4 +76,5 @@ export default {
     moveAccessibilityFocus,
     useScreenReaderStatus,
     useAutoHitSlop,
+    useReducedMotion,
 };
