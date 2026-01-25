@@ -92,6 +92,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
+                personalDetails,
             },
             countryCode,
         );
@@ -114,6 +115,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         betas,
         action,
         countryCode,
+        personalDetails,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -182,7 +184,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant?.reportID}`];
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, privateIsArchived, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, reportAttributesDerived)
+                        : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });

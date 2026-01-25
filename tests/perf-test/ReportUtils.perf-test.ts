@@ -204,7 +204,7 @@ describe('ReportUtils', () => {
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants, [CONST.BETAS.ALL]));
+        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants));
     });
 
     test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {
