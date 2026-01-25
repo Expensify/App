@@ -2779,15 +2779,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -2829,15 +2827,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction should be created with zero/negative-zero amount
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -2898,15 +2894,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a split transaction should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 expect(Object.values(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
@@ -2947,15 +2941,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -3061,15 +3053,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction with the category should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -3125,15 +3115,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 expect(Object.values(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
@@ -3174,15 +3162,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction with EUR currency should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -3224,15 +3210,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction with the large amount should be created (negated)
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -3275,15 +3259,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -3324,15 +3306,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then optimistic transaction should exist with pending action
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -3390,15 +3370,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a billable transaction should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -3454,15 +3432,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction with tax info should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -3507,15 +3483,13 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then a transaction with attendees should be created
-                const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.TRANSACTION,
-                        waitForCollectionCallback: true,
-                        callback: (transactions) => {
-                            Onyx.disconnect(connection);
-                            resolve(transactions);
-                        },
-                    });
+                let allTransactions: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        allTransactions = transactions;
+                    },
                 });
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
@@ -4471,15 +4445,13 @@ describe('actions/IOU', () => {
             expect(createIOUAction && getOriginalMessage(createIOUAction)?.IOUReportID).toBe(iouReport?.reportID);
 
             // When fetching all transactions from Onyx
-            const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (transactions) => {
-                        Onyx.disconnect(connection);
-                        resolve(transactions);
-                    },
-                });
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
             });
 
             // Then we should find a specific transaction with relevant properties
