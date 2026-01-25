@@ -195,7 +195,7 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
         } else {
             requestMoney({
@@ -560,7 +560,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
                 return;
             }

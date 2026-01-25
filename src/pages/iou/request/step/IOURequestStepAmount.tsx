@@ -277,7 +277,7 @@ function IOURequestStepAmount({
                         introSelected,
                         activePolicyID,
                         quickAction,
-                        recentWaypointsCollection: recentWaypoints,
+                        recentWaypoints,
                     });
                     return;
                 }

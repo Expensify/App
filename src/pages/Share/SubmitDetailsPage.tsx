@@ -159,7 +159,7 @@ function SubmitDetailsPage({
                 activePolicyID,
                 introSelected,
                 quickAction,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
         } else {
             requestMoney({

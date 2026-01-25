@@ -726,7 +726,7 @@ describe('Unread Indicators', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
-            recentWaypointsCollection: recentWaypoints,
+            recentWaypoints,
         });
         await waitForBatchedUpdates();
 

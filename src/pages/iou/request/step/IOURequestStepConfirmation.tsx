@@ -801,7 +801,7 @@ function IOURequestStepConfirmation({
                     introSelected,
                     activePolicyID,
                     quickAction,
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
             }
         },

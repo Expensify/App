@@ -516,7 +516,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -617,7 +617,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -707,7 +707,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -760,7 +760,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -844,7 +844,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -897,7 +897,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -971,7 +971,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1027,7 +1027,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1082,7 +1082,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1136,7 +1136,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1207,7 +1207,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1298,7 +1298,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1354,7 +1354,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1415,7 +1415,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1471,7 +1471,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1522,7 +1522,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1577,7 +1577,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1624,7 +1624,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1679,7 +1679,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1738,7 +1738,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1792,7 +1792,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -1845,7 +1845,7 @@ describe('actions/IOU', () => {
                     introSelected: undefined,
                     activePolicyID: undefined,
                     quickAction: undefined,
-                    recentWaypointsCollection: [],
+                    recentWaypoints: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -3135,7 +3135,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
 
             mockFetch?.resume?.();
@@ -3201,7 +3201,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -7089,7 +7089,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
 
             await waitForBatchedUpdates();
@@ -8749,7 +8749,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

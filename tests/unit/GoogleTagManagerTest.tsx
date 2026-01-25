@@ -203,7 +203,7 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
-            recentWaypointsCollection: recentWaypoints,
+            recentWaypoints,
         });
 
         await waitForBatchedUpdatesWithAct();

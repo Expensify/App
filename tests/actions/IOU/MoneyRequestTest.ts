@@ -528,7 +528,7 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 shouldHandleNavigation: true,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
@@ -826,7 +826,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -894,7 +894,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
         });
 
