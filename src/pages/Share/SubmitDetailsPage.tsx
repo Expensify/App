@@ -69,7 +69,7 @@ function SubmitDetailsPage({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -111,7 +111,9 @@ function SubmitDetailsPage({
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-        return participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
+        return participant?.accountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived);
     });
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
@@ -156,7 +158,6 @@ function SubmitDetailsPage({
                 activePolicyID,
                 introSelected,
                 quickAction,
-                allBetas,
             });
         } else {
             requestMoney({
@@ -190,7 +191,6 @@ function SubmitDetailsPage({
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 transactionViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                allBetas,
                 quickAction,
             });
         }
@@ -279,6 +279,7 @@ function SubmitDetailsPage({
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
                         isManualDistanceRequest={false}
+                        isGPSDistanceRequest={false}
                         onPDFLoadError={() => {
                             if (errorTitle) {
                                 return;

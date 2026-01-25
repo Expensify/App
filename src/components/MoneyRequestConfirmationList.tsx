@@ -24,6 +24,7 @@ import {
     setIndividualShare,
     setMoneyRequestAmount,
     setMoneyRequestCategory,
+    setMoneyRequestDistance,
     setMoneyRequestMerchant,
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
@@ -35,6 +36,7 @@ import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {calculateGPSDistance} from '@libs/GPSDraftDetailsUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
@@ -164,6 +166,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is an odometer distance expense */
     isOdometerDistanceRequest?: boolean;
 
+    /** Whether the expense is a GPS distance expense */
+    isGPSDistanceRequest: boolean;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -229,6 +234,7 @@ function MoneyRequestConfirmationList({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isGPSDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -388,6 +394,19 @@ function MoneyRequestConfirmationList({
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
 
+    // Update GPS distance whenever the current distance unit differs from the one that was used
+    // to calculate the distance stored in transaction.comment.customUnit.quantity
+    const gpsDistance = transaction?.comment?.customUnit?.quantity;
+    const gpsDistanceWithCurrentDistanceUnit = calculateGPSDistance(distance, unit);
+    const shouldUpdateGpsDistance = gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
+    useEffect(() => {
+        if (!shouldUpdateGpsDistance || !transactionID || isReadOnly) {
+            return;
+        }
+
+        setMoneyRequestDistance(transactionID, gpsDistanceWithCurrentDistanceUnit, true);
+    }, [shouldUpdateGpsDistance, transactionID, isReadOnly, gpsDistanceWithCurrentDistanceUnit]);
+
     let amountToBeUsed = iouAmount;
 
     if (shouldCalculateDistanceAmount) {
@@ -538,14 +557,18 @@ function MoneyRequestConfirmationList({
     const taxPercentage =
         getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
         (isMovingTransactionFromTrackExpense ? getTaxValue(policyForMovingExpenses, transaction, transaction?.taxCode ?? defaultTaxCode) : '');
-    const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
+    const taxAmount =
+        isMovingTransactionFromTrackExpense && transaction?.taxAmount
+            ? Math.abs(transaction?.taxAmount ?? 0)
+            : calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
+
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID || isReadOnly || !shouldShowTax) {
+        if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -1215,6 +1238,7 @@ function MoneyRequestConfirmationList({
             isDistanceRequest={isDistanceRequest}
             isManualDistanceRequest={isManualDistanceRequest}
             isOdometerDistanceRequest={isOdometerDistanceRequest}
+            isGPSDistanceRequest={isGPSDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
             isMerchantEmpty={isMerchantEmpty}
