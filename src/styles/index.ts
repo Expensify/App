@@ -5659,7 +5659,7 @@ const staticStyles = (theme: ThemeColors) =>
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
-        transactionReceiptButton:{
+        transactionReceiptButton: {
             width: variables.transactionReceiptButtonWidth,
         },
     }) satisfies StaticStyles;
