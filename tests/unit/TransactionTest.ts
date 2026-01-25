@@ -946,6 +946,126 @@ describe('Transaction', () => {
 
             expect(nextStepMessage).toEqual('Waiting for You to submit %expenses.');
         });
+
+        it('should not create MOVED_TRANSACTION action when moving expenses from a Draft report', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            // Create a draft (open) report as the source
+            const draftReport = {
+                ...createRandomReport(10, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const transaction = generateTransaction({
+                reportID: draftReport.reportID,
+            });
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: draftReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                allTransactions,
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockAPIWrite).toHaveBeenCalled();
+
+            // Verify that movedReportActionID is undefined in the API call parameters
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const parameters = apiWriteCall?.[1] as {transactionIDToReportActionAndThreadData: string};
+            const transactionData = JSON.parse(parameters.transactionIDToReportActionAndThreadData);
+
+            // The movedReportActionID should be undefined when moving from a draft report
+            expect(transactionData[transaction.transactionID].movedReportActionID).toBeUndefined();
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('should create MOVED_TRANSACTION action when moving expenses from a non-Draft report', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            // Create a submitted (non-draft) report as the source
+            const submittedReport = {
+                ...createRandomReport(11, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const transaction = generateTransaction({
+                reportID: submittedReport.reportID,
+            });
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: submittedReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${submittedReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                allTransactions,
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockAPIWrite).toHaveBeenCalled();
+
+            // Verify that movedReportActionID is defined in the API call parameters
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const parameters = apiWriteCall?.[1] as {transactionIDToReportActionAndThreadData: string};
+            const transactionData = JSON.parse(parameters.transactionIDToReportActionAndThreadData);
+
+            // The movedReportActionID should be defined when moving from a non-draft report
+            expect(transactionData[transaction.transactionID].movedReportActionID).toBeDefined();
+
+            mockAPIWrite.mockRestore();
+        });
     });
 
     describe('getAllNonDeletedTransactions', () => {
