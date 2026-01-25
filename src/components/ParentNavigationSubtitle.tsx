@@ -141,6 +141,11 @@ function ParentNavigationSubtitle({
                 return;
             }
 
+            if (Navigation.getTopmostSuperWideRHPReportID() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                Navigation.dismissToSuperWideRHP();
+                return;
+            }
+
             // If the parent report is already displayed underneath RHP, simply dismiss the modal
             if (Navigation.getTopmostReportId() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 Navigation.dismissModal();

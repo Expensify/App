@@ -64,7 +64,7 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, envir
 
     return (
         <View style={[styles.flexRow, styles.renderHTML, styles.w100, styles.mt2]}>
-            <RenderHTML html={translate('workspace.rules.individualExpenseRules.subtitle', {categoriesPageLink, tagsPageLink})} />
+            <RenderHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />
         </View>
     );
 }
