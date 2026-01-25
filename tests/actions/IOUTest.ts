@@ -2495,7 +2495,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2522,7 +2522,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -2551,7 +2551,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
@@ -2572,7 +2572,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
                 policyRecentlyUsedCurrencies: [],
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
@@ -2610,7 +2610,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: initialCurrencies,
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
 
             await waitForBatchedUpdates();
@@ -2667,7 +2667,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             waitForBatchedUpdates();
 
@@ -2733,7 +2733,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             waitForBatchedUpdates();
 
@@ -2799,7 +2799,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -2853,7 +2853,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -2926,7 +2926,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -2979,7 +2979,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3037,7 +3037,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: initialCurrencies,
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3101,7 +3101,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3169,7 +3169,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3222,7 +3222,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3276,7 +3276,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3331,7 +3331,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3384,7 +3384,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3454,7 +3454,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3522,7 +3522,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3579,7 +3579,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
@@ -3627,7 +3627,7 @@ describe('actions/IOU', () => {
                     transactionViolations: {},
                     quickAction: undefined,
                     policyRecentlyUsedCurrencies: [],
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();

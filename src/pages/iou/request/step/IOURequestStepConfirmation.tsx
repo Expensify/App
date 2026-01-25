@@ -877,7 +877,7 @@ function IOURequestStepConfirmation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
         },
         [

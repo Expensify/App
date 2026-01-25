@@ -591,7 +591,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                recentWaypointsCollection: recentWaypoints,
+                recentWaypoints,
             });
             return;
         }
