@@ -71,7 +71,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
             setIsPDSandFSGDownloadedTouched(true);
             return getFieldRequiredErrors(values, STEP_FIELDS, translate);
         },
-        [STEP_FIELDS],
+        [STEP_FIELDS, translate],
     );
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
