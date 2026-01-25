@@ -760,7 +760,7 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={role}
                                 accessibilityLabel={accessibilityLabel ?? defaultAccessibilityLabel}
-                                accessible={shouldBeAccessible}
+                                accessible={shouldBeAccessible && !(shouldShowRightComponent && rightComponent)}
                                 tabIndex={tabIndex}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}

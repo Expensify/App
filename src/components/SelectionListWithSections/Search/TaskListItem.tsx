@@ -73,6 +73,7 @@ function TaskListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             forwardedFSClass={fsClass}
+            hasInteractiveChildren
         >
             <TaskListItemRow
                 item={taskItem}

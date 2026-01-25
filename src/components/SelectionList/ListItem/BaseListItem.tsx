@@ -114,6 +114,7 @@ function BaseListItem<TItem extends ListItem>({
                 interactive={item.isInteractive}
                 accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
                 role={getButtonRole(true)}
+                accessible={!rightHandSideComponent}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
