@@ -1,5 +1,4 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
@@ -15,10 +14,9 @@ import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, RecentWaypoint, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
