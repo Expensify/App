@@ -1,13 +1,13 @@
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {saveReportDraftComment} from '@libs/actions/Report';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isMoneyRequest, isMoneyRequestReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
+import {saveReportDraftComment} from './Report';
 
 /**
  * replaceOptimisticReportWithActualReport
@@ -32,6 +32,7 @@ import type {Report, ReportActions} from '@src/types/onyx';
  */
 
 let allReportDraftComments: Record<string, string | undefined> = {};
+// Draft comments are cached only for transferring to the preexisting report; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
@@ -41,6 +42,7 @@ Onyx.connectWithoutView({
 let allReports: OnyxCollection<Report>;
 
 const allReportActions: OnyxCollection<ReportActions> = {};
+// Report actions are cached only to resolve parent actions for IOU cleanup; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -144,6 +146,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
     });
 }
 
+// Reports are observed only to detect preexistingReportID and run replacement; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
