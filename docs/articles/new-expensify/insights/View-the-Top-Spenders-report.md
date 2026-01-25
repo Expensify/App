@@ -45,7 +45,7 @@ The Top Spenders report is powered by a saved search query using Expensify's gro
 
 - The **top 10 expense submitters** from last month  
 - The **total amount spent** by each person  
-- The **number of expenses** each person submitted
+- The **number of expenses** by each person
 ---
 
 ## How to interpret Top Spenders report data
