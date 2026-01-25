@@ -23,7 +23,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getHeaderMessage, getParticipantsOption} from '@libs/OptionsListUtils';
+import {formatMemberForList, getHeaderMessage, getParticipantsOption} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -123,14 +123,14 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
         for (const personalDetail of searchOptions.personalDetails) {
             allMembers.push({
-                ...personalDetail,
+                ...formatMemberForList(personalDetail),
                 isSelected: selectedLogins.has(personalDetail.login),
             });
         }
 
         if (searchOptions.userToInvite) {
             allMembers.push({
-                ...searchOptions.userToInvite,
+                ...formatMemberForList(searchOptions.userToInvite),
                 isSelected: selectedLogins.has(searchOptions.userToInvite.login),
             });
         }
@@ -143,7 +143,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     continue;
                 }
                 allMembers.push({
-                    ...selected,
+                    ...formatMemberForList(selected),
                     isSelected: true,
                 });
                 if (selected.login) {

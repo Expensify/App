@@ -184,7 +184,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                         selected: selectedAccountIDsSet.has(participant.accountID),
                     };
                     const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                    return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participantData, reportAttributesDerived) : getParticipantsOption(participantData, personalDetails);
+                    return isReportPolicyExpenseChat
+                        ? getPolicyExpenseReportOption(participantData, personalDetails, reportAttributesDerived)
+                        : getParticipantsOption(participantData, personalDetails);
                 }) as OptionData[]),
                 ...sortedSectionData,
             ];

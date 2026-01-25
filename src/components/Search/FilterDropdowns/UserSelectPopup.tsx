@@ -121,9 +121,9 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         });
     }, [optionsList, cleanSearchTerm, countryCode, loginList]);
 
-    const listData = useMemo(() => {
-        const initialOptions: Array<Option & {keyForList: string}> = [];
-        const remainingOptions: Array<Option & {keyForList: string}> = [];
+    const listData = useMemo<Array<Option & {keyForList: string; isSelected: boolean}>>(() => {
+        const initialOptions: Array<Option & {keyForList: string; isSelected: boolean}> = [];
+        const remainingOptions: Array<Option & {keyForList: string; isSelected: boolean}> = [];
 
         const personalDetailOptions = filteredOptions.personalDetails.map((participant) => ({
             ...participant,

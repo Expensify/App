@@ -62,7 +62,7 @@ function MultiSelectPopup<T extends string>({
     const {windowHeight} = useWindowDimensions();
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const initialSelectedValuesRef = useRef(new Set(value.map((item) => item.value)));
+    const initialSelectedValuesRef = useRef<Set<string>>(new Set(value.map((item) => item.value)));
 
     const listData: ListItem[] = useMemo(() => {
         const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items;

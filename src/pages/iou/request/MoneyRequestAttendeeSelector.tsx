@@ -119,11 +119,17 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         maxRecentReportsToShow: 5,
     });
 
-    const formattedInitialSelectedOptions = useMemo(
+    const formattedInitialSelectedOptions = useMemo<OptionData[]>(
         () =>
             initialSelectedOptionsRef.current.map((option) => {
                 const isPolicyExpenseChat = option.isPolicyExpenseChat ?? false;
-                return isPolicyExpenseChat ? getPolicyExpenseReportOption(option, personalDetails, reportAttributesDerived) : getParticipantsOption(option, personalDetails);
+                const participant = isPolicyExpenseChat
+                    ? getPolicyExpenseReportOption(option, personalDetails, reportAttributesDerived)
+                    : getParticipantsOption(option, personalDetails);
+                return {
+                    ...participant,
+                    reportID: participant.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
+                };
             }),
         [personalDetails, reportAttributesDerived],
     );
@@ -286,10 +292,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             const participant = orderedSearchOptions.userToInvite.isPolicyExpenseChat
                 ? getPolicyExpenseReportOption(orderedSearchOptions.userToInvite, personalDetails, reportAttributesDerived)
                 : getParticipantsOption(orderedSearchOptions.userToInvite, personalDetails);
-            if (matchesSearchTerm(participant)) {
+            const participantOption: OptionData = {
+                ...participant,
+                reportID: participant.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
+            };
+            if (matchesSearchTerm(participantOption)) {
                 newSections.push({
                     title: undefined,
-                    data: [participant],
+                    data: [participantOption],
                     shouldShow: true,
                 });
             }
