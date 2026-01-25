@@ -1,61 +1,94 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import MerchantListItemHeader from '@components/SelectionListWithSections/Search/MerchantListItemHeader';
 import type {TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 
 // Mock all necessary components to avoid rendering issues
-jest.mock('@components/Checkbox', () => ({
-    __esModule: true,
-    default: ({onPress, isChecked, isIndeterminate, disabled, accessibilityLabel}: any) => {
-        const React = require('react');
-        const {Pressable, Text} = require('react-native');
-        return React.createElement(
-            Pressable,
-            {
-                onPress,
-                disabled,
-                accessibilityLabel,
-                accessibilityState: {checked: isChecked, disabled},
-                testID: 'checkbox',
-            },
-            React.createElement(Text, {}, isChecked ? 'checked' : 'unchecked'),
+jest.mock('@components/Checkbox', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MockCheckbox = ({onPress, isChecked, disabled, accessibilityLabel}: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const ReactNative = jest.requireActual('react-native');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const {Pressable, Text} = ReactNative;
+        return (
+            <Pressable
+                onPress={onPress}
+                disabled={disabled}
+                accessibilityLabel={accessibilityLabel}
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                accessibilityState={{checked: isChecked, disabled}}
+                testID="checkbox"
+            >
+                {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+                <Text>{isChecked ? 'checked' : 'unchecked'}</Text>
+            </Pressable>
         );
-    },
-}));
+    };
+    return {
+        __esModule: true,
+        default: MockCheckbox,
+    };
+});
 
 jest.mock('@components/Icon', () => ({
     __esModule: true,
     default: () => null,
 }));
 
-jest.mock('@components/TextWithTooltip', () => ({
-    __esModule: true,
-    default: ({text}: any) => {
-        const React = require('react');
-        const {Text} = require('react-native');
-        return React.createElement(Text, {}, text);
-    },
-}));
+jest.mock('@components/TextWithTooltip', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MockTextWithTooltip = ({text}: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const ReactNative = jest.requireActual('react-native');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const {Text} = ReactNative;
+        {
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
+        }
+        return <Text>{text}</Text>;
+    };
+    return {
+        __esModule: true,
+        default: MockTextWithTooltip,
+    };
+});
 
-jest.mock('@components/SelectionListWithSections/Search/TextCell', () => ({
-    __esModule: true,
-    default: ({text}: any) => {
-        const React = require('react');
-        const {Text} = require('react-native');
-        return React.createElement(Text, {testID: 'TextCell'}, text);
-    },
-}));
+jest.mock('@components/SelectionListWithSections/Search/TextCell', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MockTextCell = ({text}: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const ReactNative = jest.requireActual('react-native');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const {Text} = ReactNative;
+        {
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
+        }
+        return <Text testID="TextCell">{text}</Text>;
+    };
+    return {
+        __esModule: true,
+        default: MockTextCell,
+    };
+});
 
-jest.mock('@components/SelectionListWithSections/Search/TotalCell', () => ({
-    __esModule: true,
-    default: ({total, currency}: any) => {
-        const React = require('react');
-        const {Text} = require('react-native');
+jest.mock('@components/SelectionListWithSections/Search/TotalCell', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MockTotalCell = ({total}: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const ReactNative = jest.requireActual('react-native');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const {Text} = ReactNative;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const formatted = `$${(total / 100).toFixed(2)}`;
-        return React.createElement(Text, {testID: 'TotalCell'}, formatted);
-    },
-}));
+        return <Text testID="TotalCell">{formatted}</Text>;
+    };
+    return {
+        __esModule: true,
+        default: MockTotalCell,
+    };
+});
 
 jest.mock('@components/SelectionListWithSections/Search/ExpandCollapseArrowButton', () => ({
     __esModule: true,
@@ -114,36 +147,36 @@ describe('MerchantListItemHeader', () => {
     };
 
     it('should render merchant name', () => {
-        const {getByText} = render(
+        render(
             <MerchantListItemHeader
                 merchant={mockMerchant}
                 canSelectMultiple={false}
             />,
         );
 
-        expect(getByText('Test Merchant')).toBeTruthy();
+        expect(screen.getByText('Test Merchant')).toBeTruthy();
     });
 
     it('should render checkbox when canSelectMultiple is true', () => {
-        const {getByLabelText} = render(
+        render(
             <MerchantListItemHeader
                 merchant={mockMerchant}
                 canSelectMultiple
             />,
         );
 
-        expect(getByLabelText('common.select')).toBeTruthy();
+        expect(screen.getByLabelText('common.select')).toBeTruthy();
     });
 
     it('should not render checkbox when canSelectMultiple is false', () => {
-        const {queryByLabelText} = render(
+        render(
             <MerchantListItemHeader
                 merchant={mockMerchant}
                 canSelectMultiple={false}
             />,
         );
 
-        expect(queryByLabelText('common.select')).toBeNull();
+        expect(screen.queryByLabelText('common.select')).toBeNull();
     });
 
     it('should use formattedMerchant when available', () => {
@@ -153,18 +186,18 @@ describe('MerchantListItemHeader', () => {
             formattedMerchant: 'Formatted Merchant',
         };
 
-        const {getByText} = render(
+        render(
             <MerchantListItemHeader
                 merchant={merchantWithFormatted}
                 canSelectMultiple={false}
             />,
         );
 
-        expect(getByText('Formatted Merchant')).toBeTruthy();
+        expect(screen.getByText('Formatted Merchant')).toBeTruthy();
     });
 
     it('should handle disabled state', () => {
-        const {getByLabelText} = render(
+        render(
             <MerchantListItemHeader
                 merchant={mockMerchant}
                 canSelectMultiple
@@ -172,12 +205,13 @@ describe('MerchantListItemHeader', () => {
             />,
         );
 
-        const checkbox = getByLabelText('common.select');
+        const checkbox = screen.getByLabelText('common.select');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(checkbox.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('should handle checked state', () => {
-        const {getByLabelText} = render(
+        render(
             <MerchantListItemHeader
                 merchant={mockMerchant}
                 canSelectMultiple
@@ -185,13 +219,15 @@ describe('MerchantListItemHeader', () => {
             />,
         );
 
-        const checkbox = getByLabelText('common.select');
+        const checkbox = screen.getByLabelText('common.select');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(checkbox.props.accessibilityState?.checked).toBe(true);
     });
 
     it('should render expense count in large screen columns', () => {
-        // Update the mock for this specific test
-        const mockUseResponsiveLayout = require('@hooks/useResponsiveLayout').default;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const mockUseResponsiveLayout = jest.requireMock('@hooks/useResponsiveLayout').default;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         mockUseResponsiveLayout.mockReturnValueOnce({
             isLargeScreenWidth: true,
             isSmallScreenWidth: false,
@@ -201,7 +237,7 @@ describe('MerchantListItemHeader', () => {
 
         const columns = [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES];
 
-        const {getByText} = render(
+        render(
             <MerchantListItemHeader
                 merchant={mockMerchant}
                 canSelectMultiple={false}
@@ -210,6 +246,6 @@ describe('MerchantListItemHeader', () => {
         );
 
         // The count is rendered as text
-        expect(getByText('5')).toBeTruthy();
+        expect(screen.getByText('5')).toBeTruthy();
     });
 });
