@@ -55,11 +55,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 jest.mock('@libs/ReportUtils', () => {
-    const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
+    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
     const mockGenerateReportID = jest.fn().mockReturnValue('9876');
     return {
-        ...originalModule,
+        ...actual,
         generateReportID: mockGenerateReportID,
         buildOptimisticChatReport: jest.fn().mockImplementation((params: Record<string, unknown>) => {
             const optimisticReportID = typeof params.optimisticReportID === 'string' ? params.optimisticReportID : undefined;
@@ -71,8 +73,9 @@ jest.mock('@libs/ReportUtils', () => {
             };
         }),
         getPolicyExpenseChat: jest.fn().mockImplementation(() => ({reportID: MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID, hasOutstandingChildRequest: false})),
-    };
+    } as typeof actual;
 });
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
 const currentHash = 12345;
 jest.mock('@src/libs/SearchQueryUtils', () => ({
