@@ -2,8 +2,15 @@ import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
-import {getFileValidationErrorText, getImageDimensionsAfterResize} from '@libs/fileDownload/FileUtils';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {
+    ANDROID_SAFE_FILE_NAME_LENGTH,
+    appendTimeToFileName,
+    canvasFallback,
+    getFileValidationErrorText,
+    getImageDimensionsAfterResize,
+    splitExtensionFromFileName,
+    validateAttachment,
+} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 
 jest.useFakeTimers();
@@ -19,19 +26,19 @@ const createFileNameFromLength = ({length, extension}: {length: number; extensio
 describe('FileUtils', () => {
     describe('splitExtensionFromFileName', () => {
         it('should return correct file name and extension', () => {
-            const file = FileUtils.splitExtensionFromFileName('image.jpg');
+            const file = splitExtensionFromFileName('image.jpg');
             expect(file.fileName).toEqual('image');
             expect(file.fileExtension).toEqual('jpg');
         });
 
         it('should return correct file name and extension even with multiple dots on the file name', () => {
-            const file = FileUtils.splitExtensionFromFileName('image.pdf.jpg');
+            const file = splitExtensionFromFileName('image.pdf.jpg');
             expect(file.fileName).toEqual('image.pdf');
             expect(file.fileExtension).toEqual('jpg');
         });
 
         it('should return empty extension if the file name does not have it', () => {
-            const file = FileUtils.splitExtensionFromFileName('image');
+            const file = splitExtensionFromFileName('image');
             expect(file.fileName).toEqual('image');
             expect(file.fileExtension).toEqual('');
         });
@@ -39,13 +46,13 @@ describe('FileUtils', () => {
 
     describe('appendTimeToFileName', () => {
         it('should append current time to the end of the file name', () => {
-            const actualFileName = FileUtils.appendTimeToFileName('image.jpg');
+            const actualFileName = appendTimeToFileName('image.jpg');
             const expectedFileName = `image-${DateUtils.getDBTime()}.jpg`;
             expect(actualFileName).toEqual(expectedFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
         });
 
         it('should append current time to the end of the file name without extension', () => {
-            const actualFileName = FileUtils.appendTimeToFileName('image');
+            const actualFileName = appendTimeToFileName('image');
             const expectedFileName = `image-${DateUtils.getDBTime()}`;
             expect(actualFileName).toEqual(expectedFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
         });
@@ -62,10 +69,10 @@ describe('FileUtils', () => {
             });
 
             it('should truncate the file name to safe length when length exceeds the safe length', () => {
-                const fileNameExceedingSafeLength = createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1, extension: 'doc'});
+                const fileNameExceedingSafeLength = createFileNameFromLength({length: ANDROID_SAFE_FILE_NAME_LENGTH + 1, extension: 'doc'});
 
-                const actualFileName = FileUtils.appendTimeToFileName(fileNameExceedingSafeLength);
-                const expectedTruncatedFileName = `${createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH - 24})}-${DateUtils.getDBTime()}.doc`;
+                const actualFileName = appendTimeToFileName(fileNameExceedingSafeLength);
+                const expectedTruncatedFileName = `${createFileNameFromLength({length: ANDROID_SAFE_FILE_NAME_LENGTH - 24})}-${DateUtils.getDBTime()}.doc`;
 
                 expect(actualFileName).toEqual(expectedTruncatedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
             });
@@ -86,10 +93,10 @@ describe('FileUtils', () => {
                 });
 
                 it('should not truncate the file name even when length exceeds the Android safe length', () => {
-                    const fileNameExceedingAndroidSafeLength = createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1, extension: 'doc'});
+                    const fileNameExceedingAndroidSafeLength = createFileNameFromLength({length: ANDROID_SAFE_FILE_NAME_LENGTH + 1, extension: 'doc'});
 
-                    const actualFileName = FileUtils.appendTimeToFileName(fileNameExceedingAndroidSafeLength);
-                    const expectedFileName = `${createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1})}-${DateUtils.getDBTime()}.doc`;
+                    const actualFileName = appendTimeToFileName(fileNameExceedingAndroidSafeLength);
+                    const expectedFileName = `${createFileNameFromLength({length: ANDROID_SAFE_FILE_NAME_LENGTH + 1})}-${DateUtils.getDBTime()}.doc`;
 
                     expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
                 });
@@ -100,49 +107,49 @@ describe('FileUtils', () => {
     describe('validateAttachment', () => {
         it('should not return FILE_TOO_SMALL when validating small attachment', () => {
             const file = createMockFile('file.csv', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: false});
+            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: false});
             expect(error).not.toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
         });
 
         it('should return FILE_TOO_SMALL when validating small receipt', () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
+            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
         });
 
         it('should return FILE_TOO_LARGE for large non-image file', () => {
             const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
-            const error = FileUtils.validateAttachment(file);
+            const error = validateAttachment(file);
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
         });
 
         it('should return FILE_TOO_LARGE_MULTIPLE when checking multiple files', () => {
             const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
-            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: true, isValidatingReceipts: false});
+            const error = validateAttachment(file, {isValidatingMultipleFiles: true, isValidatingReceipts: false});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE);
         });
 
         it('should return WRONG_FILE_TYPE for invalid receipt extension', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
+            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should prioritize WRONG_FILE_TYPE over FILE_TOO_LARGE for receipts', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
+            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should return WRONG_FILE_TYPE_MULTIPLE when checking multiple invalid receipt files', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10);
-            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: true, isValidatingReceipts: true});
+            const error = validateAttachment(file, {isValidatingMultipleFiles: true, isValidatingReceipts: true});
             expect(error).toBe(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE);
         });
 
         it('should return empty string for valid image receipt', () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
-            const error = FileUtils.validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
+            const error = validateAttachment(file, {isValidatingMultipleFiles: false, isValidatingReceipts: true});
             expect(error).toBe('');
         });
     });
@@ -199,7 +206,7 @@ describe('FileUtils', () => {
 
             const blob = new Blob(['test'], {type: 'image/heic'});
 
-            await expect(FileUtils.canvasFallback(blob, 'test.heic')).rejects.toThrow('Canvas fallback not supported in this browser');
+            await expect(canvasFallback(blob, 'test.heic')).rejects.toThrow('Canvas fallback not supported in this browser');
         });
 
         it('should successfully convert HEIC to JPEG', async () => {
@@ -207,7 +214,7 @@ describe('FileUtils', () => {
             const mockBlob = new Blob(['converted'], {type: 'image/jpeg'});
             mockCanvas.toBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(mockBlob));
 
-            const result = await FileUtils.canvasFallback(blob, 'expense.heic');
+            const result = await canvasFallback(blob, 'expense.heic');
 
             expect(result).toBeInstanceOf(File);
             expect(result.type).toBe(CONST.IMAGE_FILE_FORMAT.JPEG);
@@ -224,7 +231,7 @@ describe('FileUtils', () => {
             const mockBlob = new Blob(['converted'], {type: 'image/jpeg'});
             mockCanvas.toBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(mockBlob));
 
-            await FileUtils.canvasFallback(blob, 'test.heic');
+            await canvasFallback(blob, 'test.heic');
 
             expect(mockCanvas.width).toBe(4096);
             expect(mockCanvas.height).toBe(2000);
@@ -234,14 +241,14 @@ describe('FileUtils', () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
             mockCanvas.getContext.mockReturnValue(null);
 
-            await expect(FileUtils.canvasFallback(blob, 'test.heic')).rejects.toThrow('Could not get canvas context');
+            await expect(canvasFallback(blob, 'test.heic')).rejects.toThrow('Could not get canvas context');
         });
 
         it('should reject when toBlob returns null', async () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
             mockCanvas.toBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(null));
 
-            await expect(FileUtils.canvasFallback(blob, 'test.heic')).rejects.toThrow('Canvas conversion failed - returned null blob');
+            await expect(canvasFallback(blob, 'test.heic')).rejects.toThrow('Canvas conversion failed - returned null blob');
         });
     });
 
