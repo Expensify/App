@@ -464,7 +464,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         lastDistanceExpenseType,
                         targetAccountPersonalDetails,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
-                        isFromFloatingActionButton: true
+                        isFromFloatingActionButton: true,
                     });
                 });
             };
