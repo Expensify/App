@@ -712,7 +712,7 @@ type CreateTrackExpenseParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    recentWaypointsCollection: OnyxTypes.RecentWaypoint[] | undefined;
+    recentWaypointsCollection: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
