@@ -1,6 +1,7 @@
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
@@ -12,7 +13,7 @@ import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type ReportActionItemThreadProps = {
     /** Number of comments under the thread */
@@ -21,8 +22,8 @@ type ReportActionItemThreadProps = {
     /** Time of the most recent reply */
     mostRecentReply: string;
 
-    /** ID of current report */
-    reportID: string | undefined;
+    /** The current report */
+    report: OnyxEntry<Report>;
 
     /** All the data of the action item */
     reportAction: ReportAction;
@@ -40,13 +41,11 @@ type ReportActionItemThreadProps = {
     onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
 };
 
-function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, reportID, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
+function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, report, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
     const {translate, datetimeToCalendarTime} = useLocalize();
-
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
