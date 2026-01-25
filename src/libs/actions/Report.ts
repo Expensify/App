@@ -2524,7 +2524,7 @@ function toggleSubscribeToChildReport(
 ) {
     if (childReportID) {
         openReport(childReportID);
-        const parentReportActionID = parentReportAction?.reportActionID;
+        const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
                 childReportID,
@@ -2545,7 +2545,7 @@ function toggleSubscribeToChildReport(
             );
         }
     } else {
-        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])];
+        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const newChat = buildOptimisticChatReport({
             participantList: participantAccountIDs,
             reportName: ReportActionsUtils.getReportActionText(parentReportAction),
@@ -2560,7 +2560,7 @@ function toggleSubscribeToChildReport(
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
         openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction?.reportActionID);
+        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction.reportActionID);
     }
 }
 
