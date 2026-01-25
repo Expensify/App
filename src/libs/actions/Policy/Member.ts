@@ -873,36 +873,12 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    policy: OnyxEntry<Policy>,
+    policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     policyExpenseChatNotificationPreference?: NotificationPreference,
 ) {
-    if (!policy?.id) {
-        Log.warn('buildAddMembersToWorkspaceOnyxData: Policy ID is undefined');
-        return {
-            optimisticData: [],
-            successData: [],
-            failureData: [],
-            optimisticAnnounceChat: {
-                announceChatData: {
-                    onyxOptimisticData: [],
-                    onyxSuccessData: [],
-                    onyxFailureData: [],
-                },
-                announceChatReportID: '',
-                announceChatReportActionID: '',
-            },
-            membersChats: {
-                onyxOptimisticData: [],
-                onyxSuccessData: [],
-                onyxFailureData: [],
-                reportCreationData: {},
-            },
-            logins: [],
-        };
-    }
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
