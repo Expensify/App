@@ -142,8 +142,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== selectedCurrentUser.accountID);
         }
 
+        const selectedIDsSet = new Set(initialSelectedOptions.map((option) => option.accountID));
+
         // If the current user is not selected, add them to the top of the list
-        if (!selectedCurrentUser && chatOptions.currentUserOption && !initialSelectedOptions.some((option) => option.accountID === chatOptions.currentUserOption?.accountID)) {
+        if (!selectedCurrentUser && chatOptions.currentUserOption && !selectedIDsSet.has(chatOptions.currentUserOption?.accountID)) {
             const formattedName = getDisplayNameForParticipant({
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
@@ -154,18 +156,17 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sectionData.push(chatOptions.currentUserOption);
         }
 
-        const selectedIDsSet = new Set(initialSelectedOptions.map((option) => option.accountID));
         const unselectedFormattedSectionData = formattedResults.section.data.filter((option) => !selectedIDsSet.has(option.accountID));
         if (unselectedFormattedSectionData.length) {
             sectionData.push(...(unselectedFormattedSectionData as OptionData[]));
         }
 
-        const unselectedRecentReports = chatOptions.recentReports.filter((report) => !initialSelectedOptions.some((selectedOption) => selectedOption.accountID === report.accountID));
+        const unselectedRecentReports = chatOptions.recentReports.filter((report) => !selectedIDsSet.has(report.accountID));
         if (unselectedRecentReports) {
             sectionData.push(...unselectedRecentReports);
         }
 
-        const unselectedPersonalDetails = chatOptions.personalDetails.filter((detail) => !initialSelectedOptions.some((selectedOption) => selectedOption.accountID === detail.accountID));
+        const unselectedPersonalDetails = chatOptions.personalDetails.filter((detail) => !selectedIDsSet.has(detail.accountID));
         if (unselectedPersonalDetails) {
             sectionData.push(...unselectedPersonalDetails);
         }
@@ -175,11 +176,12 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         let sortedSectionData = sectionData.sort((a, b) => localeCompare(a?.login?.toLowerCase() ?? '', b?.login?.toLowerCase() ?? ''));
 
         if (initialSelectedOptions.length && cleanSearchTerm === '') {
+            const selectedAccountIDsSet = new Set(selectedOptions.map((option) => option.accountID));
             sortedSectionData = [
                 ...(initialSelectedOptions.map((participant) => {
                     const participantData = {
                         ...participant,
-                        selected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+                        selected: selectedAccountIDsSet.has(participant.accountID),
                     };
                     const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                     return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participantData, reportAttributesDerived) : getParticipantsOption(participantData, personalDetails);

@@ -233,8 +233,25 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         // Add any selected options not present in combined list (defensive)
         const seenLogins = new Set(combined.map((option) => option.login));
+        const matchesSearchTerm = (option: OptionData) => {
+            if (!cleanSearchTerm) {
+                return true;
+            }
+            const haystacks = [
+                option.searchText,
+                option.login,
+                option.text,
+                option.alternateText,
+            ]
+                .filter(Boolean)
+                .map((value) => value?.toLowerCase());
+            return haystacks.some((value) => value?.includes(cleanSearchTerm));
+        };
         for (const option of selectedOptions) {
             if (option.login && seenLogins.has(option.login)) {
+                continue;
+            }
+            if (!matchesSearchTerm(option)) {
                 continue;
             }
             combined.push(option);

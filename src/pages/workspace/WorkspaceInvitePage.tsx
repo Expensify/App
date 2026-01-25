@@ -117,6 +117,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
         const selectedLogins = new Set(selectedOptions.map(({login}) => login));
         const selectedAccountIDs = new Set(selectedOptions.map(({accountID}) => accountID));
+        const isSearching = debouncedSearchTerm.trim().length > 0;
 
         const allMembers: MemberForList[] = [];
 
@@ -135,23 +136,24 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         // Add any selected items not present in searchOptions (defensive)
-        const seenLogins = new Set(allMembers.map((member) => member.login));
-        for (const selected of selectedOptions) {
-            if (selected.login && seenLogins.has(selected.login)) {
-                continue;
-            }
-            allMembers.push({
-                ...selected,
-                isSelected: true,
-            });
-            if (selected.login) {
-                seenLogins.add(selected.login);
+        if (!isSearching) {
+            const seenLogins = new Set(allMembers.map((member) => member.login));
+            for (const selected of selectedOptions) {
+                if (selected.login && seenLogins.has(selected.login)) {
+                    continue;
+                }
+                allMembers.push({
+                    ...selected,
+                    isSelected: true,
+                });
+                if (selected.login) {
+                    seenLogins.add(selected.login);
+                }
             }
         }
 
         let data = allMembers;
 
-        const isSearching = debouncedSearchTerm.trim().length > 0;
         if (!isSearching && allMembers.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD && initialSelectedAccountIDs.size > 0) {
             const initialMembers: MemberForList[] = [];
             const remainingMembers: MemberForList[] = [];

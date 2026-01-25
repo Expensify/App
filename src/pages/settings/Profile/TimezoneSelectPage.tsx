@@ -89,6 +89,11 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
         return [...selected, ...remaining];
     }, [timezoneOptions]);
 
+    const initiallyFocusedItemKey = useMemo(
+        () => orderedTimezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList,
+        [orderedTimezoneOptions, timezone.selected],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -103,7 +108,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 ListItem={RadioListItem}
                 onSelectRow={saveSelectedTimezone}
                 textInputOptions={textInputOptions}
-                initiallyFocusedItemKey={orderedTimezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
+                initiallyFocusedItemKey={initiallyFocusedItemKey}
                 isDisabled={timezone.automatic}
                 shouldShowTooltips={false}
                 shouldSingleExecuteRowSelect
