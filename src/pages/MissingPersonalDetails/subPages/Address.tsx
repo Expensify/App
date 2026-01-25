@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import type {CountryZipRegex, CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
+import type {CountryZipRegex, CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,7 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 const STEP_FIELDS = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.ZIP_POST_CODE, INPUT_IDS.COUNTRY];
 
-function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepProps) {
+function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
