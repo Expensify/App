@@ -936,10 +936,10 @@ Onyx.connectWithoutView({
 // TODO: remove `recentWaypoints` from this file (https://github.com/Expensify/App/issues/73024)
 // `recentWaypoints` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
-let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
+let deprecatedRecentWaypoints: OnyxTypes.RecentWaypoint[] = [];
 Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val ?? []),
+    callback: (val) => (deprecatedRecentWaypoints = val ?? []),
 });
 
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
@@ -6644,7 +6644,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 
-    const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
+    const recentServerValidatedWaypoints = deprecatedRecentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
@@ -7646,7 +7646,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         };
     }
 
-    const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
+    const recentServerValidatedWaypoints = deprecatedRecentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
