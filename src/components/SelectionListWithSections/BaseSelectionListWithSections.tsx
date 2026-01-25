@@ -124,6 +124,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDebounceScrolling = false,
     shouldPreventActiveCellVirtualization = false,
     shouldScrollToFocusedIndex = true,
+    shouldScrollToTopOnSelect = true,
     isSmallScreenWidth,
     onContentSizeChange,
     listItemTitleStyles,
@@ -486,7 +487,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (sections.length > 1 && !isItemSelected(item)) {
+                if (shouldScrollToTopOnSelect && sections.length > 1 && !isItemSelected(item)) {
                     // If we're selecting an item, scroll to its position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
