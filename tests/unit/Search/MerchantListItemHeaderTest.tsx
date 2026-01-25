@@ -1,106 +1,74 @@
-/* eslint-disable @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import MerchantListItemHeader from '@components/SelectionListWithSections/Search/MerchantListItemHeader';
 import type {TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 
-// Mock all necessary components to avoid rendering issues
 jest.mock('@components/Checkbox', () => {
-    function MockCheckbox({onPress, isChecked, disabled, accessibilityLabel}: any) {
-        const RN = jest.requireActual('react-native');
-        const Pressable = RN.Pressable;
-        const Text = RN.Text;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, react/function-component-definition -- test mock
+    const MockCheckbox = ({onPress, isChecked, disabled, accessibilityLabel}: any) => {
+        // eslint-disable-next-line no-restricted-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- using RN primitives in test
+        const {Pressable, Text} = require('react-native');
         return (
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- test mock
             <Pressable
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- test mock
                 onPress={onPress}
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- test mock
                 disabled={disabled}
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- test mock
                 accessibilityLabel={accessibilityLabel}
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- test mock
                 accessibilityState={{checked: isChecked, disabled}}
                 testID="checkbox"
             >
                 <Text>{isChecked ? 'checked' : 'unchecked'}</Text>
             </Pressable>
         );
-    }
-    MockCheckbox.displayName = 'MockCheckbox';
-    return {
-        __esModule: true,
-        default: MockCheckbox,
     };
+    return MockCheckbox;
 });
 
-jest.mock('@components/Icon', () => {
-    function MockIcon() {
-        return null;
-    }
-    MockIcon.displayName = 'MockIcon';
-    return {
-        __esModule: true,
-        default: MockIcon,
-    };
-});
+jest.mock('@components/Icon', () => () => null);
 
 jest.mock('@components/TextWithTooltip', () => {
-    function MockTextWithTooltip({text}: any) {
-        const RN = jest.requireActual('react-native');
-        const Text = RN.Text;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, react/function-component-definition -- test mock
+    const MockTextWithTooltip = ({text}: any) => {
+        // eslint-disable-next-line no-restricted-imports, @typescript-eslint/no-unsafe-assignment -- test mock
+        const {Text} = require('react-native');
         return <Text>{text}</Text>;
-    }
-    MockTextWithTooltip.displayName = 'MockTextWithTooltip';
-    return {
-        __esModule: true,
-        default: MockTextWithTooltip,
     };
+    return MockTextWithTooltip;
 });
 
 jest.mock('@components/SelectionListWithSections/Search/TextCell', () => {
-    function MockTextCell({text}: any) {
-        const RN = jest.requireActual('react-native');
-        const Text = RN.Text;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, react/function-component-definition -- test mock
+    const MockTextCell = ({text}: any) => {
+        // eslint-disable-next-line no-restricted-imports, @typescript-eslint/no-unsafe-assignment -- test mock
+        const {Text} = require('react-native');
         return <Text testID="TextCell">{text}</Text>;
-    }
-    MockTextCell.displayName = 'MockTextCell';
-    return {
-        __esModule: true,
-        default: MockTextCell,
     };
+    return MockTextCell;
 });
 
 jest.mock('@components/SelectionListWithSections/Search/TotalCell', () => {
-    function MockTotalCell({total}: any) {
-        const RN = jest.requireActual('react-native');
-        const Text = RN.Text;
-        const formatted = `$${(total / 100).toFixed(2)}`;
-        return <Text testID="TotalCell">{formatted}</Text>;
-    }
-    MockTotalCell.displayName = 'MockTotalCell';
-    return {
-        __esModule: true,
-        default: MockTotalCell,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, react/function-component-definition -- test mock
+    const MockTotalCell = ({total}: any) => {
+        // eslint-disable-next-line no-restricted-imports, @typescript-eslint/no-unsafe-assignment -- test mock
+        const {Text} = require('react-native');
+        return <Text testID="TotalCell">{`$${(total / 100).toFixed(2)}`}</Text>;
     };
+    return MockTotalCell;
 });
 
-jest.mock('@components/SelectionListWithSections/Search/ExpandCollapseArrowButton', () => {
-    function MockExpandCollapseArrowButton() {
-        return null;
-    }
-    MockExpandCollapseArrowButton.displayName = 'MockExpandCollapseArrowButton';
-    return {
-        __esModule: true,
-        default: MockExpandCollapseArrowButton,
-    };
-});
+jest.mock('@components/SelectionListWithSections/Search/ExpandCollapseArrowButton', () => () => null);
 
-// Mock necessary dependencies
-jest.mock('@hooks/useLocalize', () => ({
-    __esModule: true,
-    default: () => ({
-        translate: jest.fn((key: string) => key),
-    }),
+jest.mock('@hooks/useLocalize', () => () => ({
+    translate: (key: string) => key,
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- CJS interop
     __esModule: true,
     default: jest.fn(() => ({
         isLargeScreenWidth: false,
@@ -110,25 +78,16 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     })),
 }));
 
-jest.mock('@hooks/useTheme', () => ({
-    __esModule: true,
-    default: () => ({
-        icon: '#000000',
-    }),
+jest.mock('@hooks/useTheme', () => () => ({
+    icon: '#000000',
 }));
 
-jest.mock('@hooks/useThemeStyles', () => ({
-    __esModule: true,
-    default: () => ({}),
-}));
+jest.mock('@hooks/useThemeStyles', () => () => ({}));
 
-jest.mock('@hooks/useStyleUtils', () => ({
-    __esModule: true,
-    default: () => ({
-        getReportTableColumnStyles: jest.fn(() => ({})),
-        getIconWidthAndHeightStyle: jest.fn(() => ({width: 36, height: 36})),
-        getWidthAndHeightStyle: jest.fn(() => ({})),
-    }),
+jest.mock('@hooks/useStyleUtils', () => () => ({
+    getReportTableColumnStyles: () => ({}),
+    getIconWidthAndHeightStyle: () => ({width: 36, height: 36}),
+    getWidthAndHeightStyle: () => ({}),
 }));
 
 describe('MerchantListItemHeader', () => {
@@ -203,6 +162,7 @@ describe('MerchantListItemHeader', () => {
         );
 
         const checkbox = screen.getByLabelText('common.select');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- test props check
         expect(checkbox.props.accessibilityState?.disabled).toBe(true);
     });
 
@@ -216,11 +176,14 @@ describe('MerchantListItemHeader', () => {
         );
 
         const checkbox = screen.getByLabelText('common.select');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- test props check
         expect(checkbox.props.accessibilityState?.checked).toBe(true);
     });
 
     it('should render expense count in large screen columns', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- test mock
         const mockUseResponsiveLayout = jest.requireMock('@hooks/useResponsiveLayout').default;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- test mock
         mockUseResponsiveLayout.mockReturnValueOnce({
             isLargeScreenWidth: true,
             isSmallScreenWidth: false,
@@ -237,8 +200,6 @@ describe('MerchantListItemHeader', () => {
                 columns={columns}
             />,
         );
-
-        // The count is rendered as text
         expect(screen.getByText('5')).toBeTruthy();
     });
 });
