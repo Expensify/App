@@ -192,7 +192,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         }
 
         if (policyIDParam) {
-            openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
+            // When preserving the current step (e.g., coming back online), also preserve the draft
+            // to prevent losing user selections made while offline
+            openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam, preserveCurrentStep);
         }
     }
 
