@@ -9728,7 +9728,7 @@ describe('actions/IOU', () => {
             const fakePolicy = createRandomPolicy(Number(policyID));
             const transactionThreadReport = {reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.EXPENSE} as Report;
             const parentReport = {reportID: parentReportID, type: CONST.REPORT.TYPE.IOU} as Report;
-            const recentWaypointsCollection: RecentWaypoint[] = [];
+            const recentWaypoints: RecentWaypoint[] = [];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
@@ -9743,7 +9743,7 @@ describe('actions/IOU', () => {
                 transactionThreadReport,
                 parentReport,
                 waypoints: fakeWaypoints,
-                recentWaypointsCollection,
+                recentWaypoints,
                 distance: 5000,
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -9799,7 +9799,7 @@ describe('actions/IOU', () => {
                 },
             };
 
-            const recentWaypointsCollection: RecentWaypoint[] = [
+            const recentWaypoints: RecentWaypoint[] = [
                 {
                     keyForList: 'waypoint_validated',
                     lat: 40.7128,
@@ -9837,7 +9837,7 @@ describe('actions/IOU', () => {
                 waypoints: {
                     waypoint0: {lat: 40.7128, lng: -74.006, address: 'NYC', name: 'NYC', keyForList: 'nyc_key'},
                 },
-                recentWaypointsCollection,
+                recentWaypoints,
                 distance: undefined, // No distance provided
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -9919,7 +9919,7 @@ describe('actions/IOU', () => {
                 transactionThreadReport,
                 parentReport,
                 waypoints: updatedWaypoints,
-                recentWaypointsCollection: [],
+                recentWaypoints: [],
                 distance: 350000, // 350 miles in meters
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -9995,7 +9995,7 @@ describe('actions/IOU', () => {
                 transactionThreadReport,
                 parentReport,
                 waypoints: emptyWaypoints,
-                recentWaypointsCollection: [],
+                recentWaypoints: [],
                 distance: undefined, // No distance change
                 policy: fakePolicy,
                 policyTagList: undefined,
@@ -10050,7 +10050,7 @@ describe('actions/IOU', () => {
                 waypoints: {
                     waypoint0: {keyForList: 'start', lat: 0, lng: 0, address: 'Start', name: 'Start'},
                 },
-                recentWaypointsCollection: [],
+                recentWaypoints: [],
                 distance: undefined,
                 policy: fakePolicy,
                 policyTagList: undefined,

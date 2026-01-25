@@ -415,7 +415,7 @@ function IOURequestStepDistanceMap({
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,
-                    recentWaypointsCollection: recentWaypoints,
+                    recentWaypoints: recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     policyTagList: policyTags,

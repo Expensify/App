@@ -5237,7 +5237,7 @@ type UpdateMoneyRequestDistanceParams = {
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     waypoints?: WaypointCollection;
-    recentWaypointsCollection: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     distance?: number;
     routes?: Routes;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -5258,7 +5258,7 @@ function updateMoneyRequestDistance({
     transactionThreadReport,
     parentReport,
     waypoints,
-    recentWaypointsCollection = [],
+    recentWaypoints = [],
     distance,
     routes = undefined,
     policy,
@@ -5308,7 +5308,7 @@ function updateMoneyRequestDistance({
     }
 
     if (!distance) {
-        const recentServerValidatedWaypoints = recentWaypointsCollection.filter((item) => !item.pendingAction);
+        const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
         onyxData?.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
