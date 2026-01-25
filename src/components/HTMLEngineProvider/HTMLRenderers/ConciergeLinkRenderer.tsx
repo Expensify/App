@@ -39,7 +39,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
             onPress={navigateToConciergeChat}
             suppressHighlighting
             accessible
-            accessibilityRole={CONST.ROLE.LINK}
+            role={CONST.ROLE.LINK}
         >
             <TNodeChildrenRenderer tnode={tnode} />
         </Text>

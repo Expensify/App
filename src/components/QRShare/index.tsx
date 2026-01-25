@@ -73,7 +73,7 @@ function QRShare({
             <View
                 accessible
                 accessibilityLabel={translate('qrCodes.qrCode')}
-                accessibilityRole={CONST.ROLE.IMG}
+                role={CONST.ROLE.IMG}
             >
                 <QRCode
                     getRef={(svg) => (svgRef.current = svg)}

@@ -107,8 +107,8 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
                 accessible
-                accessibilityLabel={displayName}
-                accessibilityRole={CONST.ROLE.LINK}
+                accessibilityLabel={displayName || undefined}
+                role={CONST.ROLE.LINK}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>

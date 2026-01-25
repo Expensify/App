@@ -95,7 +95,7 @@ function HeaderWithBackButton({
                     <View
                         accessible
                         accessibilityLabel={progressBarAccessibilityLabel}
-                        accessibilityRole={CONST.ROLE.PROGRESSBAR}
+                        role={CONST.ROLE.PROGRESSBAR}
                         style={styles.headerProgressBarContainer}
                     >
                         <View style={styles.headerProgressBar}>
