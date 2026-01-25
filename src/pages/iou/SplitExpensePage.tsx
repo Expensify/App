@@ -33,9 +33,9 @@ import {
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
-    updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
