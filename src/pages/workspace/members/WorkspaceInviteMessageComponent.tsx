@@ -147,7 +147,15 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if ((backTo as string)?.endsWith('members')) {
+        // Check if coming from approval workflow expenses-from page
+        // We check if the path starts with the expenses-from route (not contains, to avoid matching nested backTo params)
+        const backToStr = backTo as string;
+        if (backToStr?.startsWith(`workspaces/${policyID}/workflows/approvals/expenses-from`)) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        if (backToStr?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
         }

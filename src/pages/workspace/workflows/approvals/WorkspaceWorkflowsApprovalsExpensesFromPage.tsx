@@ -1,8 +1,10 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -136,14 +138,29 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         buttonText = translate('common.buttonConfirm');
     }
 
+    const navigateToInvitePage = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
+    };
+
     const button = (
-        <FormAlertWithSubmitButton
-            isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
-            buttonText={buttonText}
-            onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
-            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-            enabledWhenOffline
-        />
+        <View>
+            <View style={[styles.mb3, styles.alignItemsCenter]}>
+                <PressableWithFeedback
+                    onPress={navigateToInvitePage}
+                    accessibilityLabel={translate('workspace.invite.invitePeople')}
+                    role={CONST.ROLE.LINK}
+                >
+                    <Text style={[styles.link]}>{translate('workspace.invite.invitePeople')}</Text>
+                </PressableWithFeedback>
+            </View>
+            <FormAlertWithSubmitButton
+                isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
+                buttonText={buttonText}
+                onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                enabledWhenOffline
+            />
+        </View>
     );
 
     const toggleMember = (members: SelectionListApprover[]) => setSelectedMembers(members);
