@@ -2,6 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import getOnyxValue from 'tests/utils/getOnyxValue';
 import {trackExpense} from '@libs/actions/IOU';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
@@ -11,8 +12,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FundList, RecentWaypoint} from '@src/types/onyx';
-import {getOnyxData} from '../utils/TestHelper';
+import type {FundList} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
@@ -170,11 +170,8 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
-        let recentWaypoints: RecentWaypoint[] = [];
-        await getOnyxData({
-            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-            callback: (val) => (recentWaypoints = val ?? []),
-        });
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
         trackExpense({
             report: {reportID: '123'},
             isDraftPolicy: true,

@@ -10,7 +10,7 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {QuickAction, RecentWaypoint} from '@src/types/onyx';
+import type {QuickAction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
@@ -18,7 +18,6 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -495,11 +494,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
@@ -785,11 +780,7 @@ describe('MoneyRequest', () => {
 
             expect(IOU.resetSplitShares).not.toHaveBeenCalled();
 
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
@@ -853,11 +844,7 @@ describe('MoneyRequest', () => {
                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            let recentWaypoints: RecentWaypoint[] = [];
-            await getOnyxData({
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                callback: (val) => (recentWaypoints = val ?? []),
-            });
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
