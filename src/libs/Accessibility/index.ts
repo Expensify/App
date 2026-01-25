@@ -27,16 +27,25 @@ const useReducedMotion = (): boolean => {
     const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
+
         AccessibilityInfo.isReduceMotionEnabled()
-            .then(setIsReduceMotionEnabled)
+            .then((enabled) => {
+                if (isMounted) {
+                    setIsReduceMotionEnabled(enabled);
+                }
+            })
             .catch(() => {
                 // If the check fails, default to false (animations enabled)
-                setIsReduceMotionEnabled(false);
+                if (isMounted) {
+                    setIsReduceMotionEnabled(false);
+                }
             });
 
         const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setIsReduceMotionEnabled);
 
         return () => {
+            isMounted = false;
             subscription?.remove();
         };
     }, []);
