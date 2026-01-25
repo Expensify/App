@@ -43,7 +43,7 @@ Suggestion: Web navigation tabs with **Top spenders** selected under **Reports**
 
 The Top Spenders report is powered by a saved search query using Expensify's grouping and filtering engine. The report shows:
 
-- The **top 10 expense submitters** from last month  
+- The **top expense submitters** from last month  
 - The **total amount spent** by each person  
 - The **number of expenses** by each person
 ---
