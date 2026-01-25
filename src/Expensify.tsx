@@ -20,9 +20,10 @@ import CONST from './CONST';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
+import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';
 import usePriorityMode from './hooks/usePriorityChange';
-import {updateLastRoute} from './libs/actions/App';
+import {confirmReadyToOpenApp, openApp, updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import {openReportFromDeepLink} from './libs/actions/Link';
@@ -101,6 +102,8 @@ type ExpensifyProps = {
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
+    const hasLoggedDelegateMismatchRef = useRef(false);
+    const hasHandledMissingIsLoadingAppRef = useRef(false);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
@@ -120,6 +123,9 @@ function Expensify() {
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const {isOffline} = useNetwork();
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
 
@@ -350,6 +356,37 @@ function Expensify() {
         }
         disconnect({stashedCredentials, stashedSession});
     }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
+
+    useEffect(() => {
+        if (hasLoggedDelegateMismatchRef.current || !hasLoadedApp || isLoadingApp) {
+            return;
+        }
+        const delegators = account?.delegatedAccess?.delegators ?? [];
+        const hasDelegatorMatch = !!session?.email && delegators.some((delegator) => delegator.email === session.email);
+        const shouldLogMismatch = hasDelegatorMatch && !!account?.primaryLogin && !account?.delegatedAccess?.delegate;
+        if (!shouldLogMismatch) {
+            return;
+        }
+        hasLoggedDelegateMismatchRef.current = true;
+        Log.info('[Delegate] Missing delegate field after switch', false, {
+            sessionAccountID: session?.accountID,
+            delegatorsCount: delegators.length,
+            hasPrimaryLogin: !!account?.primaryLogin,
+        });
+    }, [account?.delegatedAccess?.delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, session?.accountID, session?.email]);
+
+    useEffect(() => {
+        if (hasHandledMissingIsLoadingAppRef.current || !isOnyxMigrated || !hasLoadedApp || isLoadingApp !== undefined || isOffline) {
+            return;
+        }
+        hasHandledMissingIsLoadingAppRef.current = true;
+        Log.info('[Onyx] isLoadingApp missing after app is ready', false, {
+            sessionAccountID: session?.accountID,
+            hasLoadedApp: !!hasLoadedApp,
+        });
+        confirmReadyToOpenApp();
+        openApp();
+    }, [hasLoadedApp, isLoadingApp, isOffline, isOnyxMigrated, session?.accountID]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
