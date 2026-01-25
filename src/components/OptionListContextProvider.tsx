@@ -118,7 +118,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             for (const reportKey of changedReportKeys) {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                const {reportOption} = processReport(report, personalDetails, reportAttributes?.reports);
+                const {reportOption} = processReport(report, personalDetails, reports, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -152,7 +152,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 }
 
                 const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails, reportAttributes?.reports);
+                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails, reports, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -215,7 +215,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                     continue;
                 }
 
-                const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports, {showPersonalDetails: true}, reports);
+                const chatReport = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
+                const newReportOption = createOptionFromReport(report, personalDetails, chatReport, reportAttributes?.reports, {showPersonalDetails: true});
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                 newReportOptions.push({
                     newReportOption,

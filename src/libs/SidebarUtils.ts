@@ -657,11 +657,11 @@ function getOptionData({
     localeCompare,
     isReportArchived,
     lastActionReport,
+    chatReport,
     movedFromReport,
     movedToReport,
     currentUserAccountID,
     visibleReportActionsData,
-    chatReport,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -678,10 +678,10 @@ function getOptionData({
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report> | undefined;
+    chatReport: OnyxEntry<Report>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
-    chatReport?: OnyxEntry<Report>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for

@@ -2674,7 +2674,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, {showChatPreviewLine: true});
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, {}, {showChatPreviewLine: true});
 
             expect(result.alternateText).toBe('Iron Man owes ₫34');
         });
@@ -2707,7 +2707,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, undefined, reports);
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, reports);
 
             expect(result.reportID).toBe(reportID);
             expect(typeof result.text).toBe('string');
@@ -2725,8 +2725,8 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await waitForBatchedUpdates();
 
-            // Should not throw when reports is undefined
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, undefined);
+            // Should not throw when reports is empty
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, {});
 
             expect(result.reportID).toBe(report.reportID);
         });
@@ -2807,7 +2807,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
-            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false});
+            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, chatReport: undefined, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
@@ -2825,7 +2825,14 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [submittedAction.reportActionID]: submittedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}});
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    chatReport: undefined,
+                    isReportArchived: false,
+                    visibleReportActionsDataParam: {},
+                });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
         });
@@ -2844,7 +2851,14 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [approvedAction.reportActionID]: approvedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}});
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    chatReport: undefined,
+                    isReportArchived: false,
+                    visibleReportActionsDataParam: {},
+                });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
         });
@@ -2863,7 +2877,14 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}});
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    chatReport: undefined,
+                    isReportArchived: false,
+                    visibleReportActionsDataParam: {},
+                });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
         });
@@ -2879,7 +2900,14 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
-                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}});
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    chatReport: undefined,
+                    isReportArchived: false,
+                    visibleReportActionsDataParam: {},
+                });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
         });
@@ -2894,7 +2922,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
-            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false});
+            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, chatReport: undefined, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
         it('REROUTE action', async () => {
@@ -2908,7 +2936,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
-            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false});
+            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, chatReport: undefined, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
         it('MOVED action', async () => {
@@ -2922,7 +2950,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [movedAction.reportActionID]: movedAction,
             });
-            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false});
+            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, chatReport: undefined, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
         });
         it('DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', async () => {
@@ -2940,7 +2968,7 @@ describe('OptionsListUtils', () => {
             });
 
             // When getting the last message text for the report
-            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false});
+            const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, chatReport: undefined, isReportArchived: false});
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
             expect(lastMessage).toBe(Parser.htmlToText(getDynamicExternalWorkflowRoutedMessage(action, translateLocal)));
@@ -2964,6 +2992,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                chatReport: undefined,
                 isReportArchived: false,
                 visibleReportActionsDataParam: {},
             });
@@ -3008,6 +3037,7 @@ describe('OptionsListUtils', () => {
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
+                    chatReport: undefined,
                     isReportArchived: false,
                     policy,
                     reportMetadata,
@@ -3038,7 +3068,14 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}});
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    chatReport: undefined,
+                    isReportArchived: false,
+                    visibleReportActionsDataParam: {},
+                });
                 expect(lastMessage).toBe(customErrorMessage);
             });
 
@@ -3061,7 +3098,14 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false, visibleReportActionsDataParam: {}});
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    chatReport: undefined,
+                    isReportArchived: false,
+                    visibleReportActionsDataParam: {},
+                });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
         });
@@ -3293,7 +3337,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, personalDetails, {}, undefined);
 
             // Then it should return an option with isSelfDM and alternateText set
             expect(result.isSelfDM).toBe(true);
@@ -3313,7 +3357,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, personalDetails, {}, undefined);
 
             // Then it should return an option with invoice room text and alternateText
             expect(result.isInvoiceRoom).toBe(true);
@@ -3335,7 +3379,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, undefined);
+            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, {}, undefined);
 
             // Then it should return an option with unknownUserDetails data
             expect(result.text).toBe('Unknown User');
@@ -3356,7 +3400,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, personalDetails, {}, undefined);
 
             // Then it should return an option with workspace name
             expect(result.text).toBe(POLICY.name);
@@ -3383,7 +3427,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getReportDisplayOption with custom personalDetails
-            const result = getReportDisplayOption(report, undefined, customPersonalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, customPersonalDetails, {}, undefined);
 
             // Then it should use the custom personalDetails parameter
             expect(result).toBeDefined();
@@ -3400,7 +3444,7 @@ describe('OptionsListUtils', () => {
             const emptyPersonalDetails: PersonalDetailsList = {};
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, {}, undefined);
 
             // Then it should not throw and return a valid option
             expect(result).toBeDefined();
@@ -3412,7 +3456,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption with undefined report
-            const result = getReportDisplayOption(undefined, undefined, personalDetails, undefined);
+            const result = getReportDisplayOption(undefined, undefined, personalDetails, {}, undefined);
 
             // Then it should return a valid option (createOption handles undefined)
             expect(result).toBeDefined();
@@ -3779,7 +3823,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3802,7 +3846,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3822,7 +3866,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, {}, undefined);
+            const option = getReportDisplayOption(report, undefined, {}, {}, undefined);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3846,7 +3890,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -3870,7 +3914,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, {}, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, {}, {}, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
