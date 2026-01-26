@@ -318,6 +318,8 @@ const translations = {
         downloading: 'Downloading',
         // @context Indicates that a file is currently being uploaded (sent to the server), not downloaded.
         uploading: 'Uploading',
+        // @context Status indicator shown when Concierge AI is processing a request
+        thinking: 'Thinking...',
         // @context as a verb, not a noun
         pin: 'Pin',
         unPin: 'Unpin',

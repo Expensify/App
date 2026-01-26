@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         download: 'Descargar',
         downloading: 'Descargando',
         uploading: 'Subiendo',
+        thinking: 'Pensando...',
         pin: 'Fijar',
         unPin: 'Desfijar',
         back: 'Volver',
