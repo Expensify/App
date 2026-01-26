@@ -8,7 +8,6 @@ import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -89,17 +88,22 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
 type BrickRoadIndicatorIconProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    dotIndicatorIcon?: IconAsset;
 };
 
-function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
+function BrickRoadIndicatorIcon({brickRoadIndicator, dotIndicatorIcon}: BrickRoadIndicatorIconProps) {
     const theme = useTheme();
 
-    return brickRoadIndicator ? (
+    if (!brickRoadIndicator || !dotIndicatorIcon) {
+        return null;
+    }
+
+    return (
         <Icon
-            src={Expensicons.DotIndicator}
+            src={dotIndicatorIcon}
             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
         />
-    ) : null;
+    );
 }
 
 function WorkspacesListRow({
@@ -129,8 +133,8 @@ function WorkspacesListRow({
     const theme = useTheme();
     const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
-    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass', 'DotIndicator'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow'] as const);
 
     const workspaceTypeIcon = useCallback(
         (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
@@ -207,7 +211,10 @@ function WorkspacesListRow({
             {!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
-                        <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
+                        <BrickRoadIndicatorIcon
+                            brickRoadIndicator={brickRoadIndicator}
+                            dotIndicatorIcon={icons.DotIndicator}
+                        />
                     </View>
                     <ThreeDotsMenu
                         isContainerFocused={isFocused}

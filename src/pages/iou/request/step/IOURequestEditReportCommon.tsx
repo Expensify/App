@@ -1,8 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
@@ -62,7 +60,7 @@ function IOURequestEditReportCommon({
     createReport,
     isPerDiemRequest,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document'] as const);
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -285,7 +283,7 @@ function IOURequestEditReportCommon({
                                 onPress={removeFromReport}
                                 title={translate('iou.removeFromReport')}
                                 description={translate('iou.moveToPersonalSpace')}
-                                icon={Expensicons.Close}
+                                icon={icons.Close}
                             />
                         )}
                         {createReportOption}

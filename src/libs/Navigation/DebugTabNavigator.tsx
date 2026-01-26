@@ -3,7 +3,6 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
@@ -20,12 +19,12 @@ type IconAndTitle = {
     title: string;
 };
 
-function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Info', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Info' | 'Eye', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
     switch (route) {
         case CONST.DEBUG.DETAILS:
             return {icon: icons.Info, title: translate('debug.details')};
         case CONST.DEBUG.JSON:
-            return {icon: Expensicons.Eye, title: translate('debug.JSON')};
+            return {icon: icons.Eye, title: translate('debug.JSON')};
         case CONST.DEBUG.REPORT_ACTIONS:
             return {icon: icons.Document, title: translate('debug.reportActions')};
         case CONST.DEBUG.REPORT_ACTION_PREVIEW:
@@ -52,7 +51,7 @@ type DebugTabNavigatorProps = {
 };
 
 function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Exclamation', 'Info']);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Exclamation', 'Info', 'Eye'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();

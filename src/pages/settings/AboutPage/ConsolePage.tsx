@@ -7,8 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import InvertedFlatList from '@components/InvertedFlatList';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -42,7 +40,7 @@ const filterBy = {
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
 function ConsolePage() {
-    const icons = useMemoizedLazyExpensifyIcons(['All', 'Download', 'Globe', 'UploadAlt']);
+    const icons = useMemoizedLazyExpensifyIcons(['All', 'Checkmark', 'CheckCircle', 'Download', 'Filter', 'Globe', 'UploadAlt'] as const);
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: false});
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [input, setInput] = useState('');
@@ -65,7 +63,7 @@ function ConsolePage() {
                 icon: icons.All,
                 text: translate('common.all'),
                 iconFill: activeFilterIndex === filterBy.all ? theme.iconSuccessFill : theme.icon,
-                iconRight: Expensicons.Checkmark,
+                iconRight: icons.Checkmark,
                 shouldShowRightIcon: activeFilterIndex === filterBy.all,
                 success: activeFilterIndex === filterBy.all,
                 onSelected: () => {
@@ -76,7 +74,7 @@ function ConsolePage() {
                 icon: icons.Globe,
                 text: translate('common.network'),
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
-                iconRight: Expensicons.CheckCircle,
+                iconRight: icons.CheckCircle,
                 shouldShowRightIcon: activeFilterIndex === filterBy.network,
                 success: activeFilterIndex === filterBy.network,
                 onSelected: () => {
@@ -84,7 +82,7 @@ function ConsolePage() {
                 },
             },
         ],
-        [activeFilterIndex, icons.All, icons.Globe, theme.icon, theme.iconSuccessFill, translate],
+        [activeFilterIndex, icons.All, icons.Checkmark, icons.CheckCircle, icons.Globe, theme.icon, theme.iconSuccessFill, translate],
     );
 
     const prevLogs = useRef<OnyxEntry<CapturedLogs>>({});
@@ -165,7 +163,7 @@ function ConsolePage() {
                 onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={menuItems}
-                threeDotsMenuIcon={Expensicons.Filter}
+                threeDotsMenuIcon={icons.Filter}
                 threeDotsMenuIconFill={theme.icon}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>

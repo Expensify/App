@@ -28,12 +28,12 @@ type EditReportFieldDropdownPageProps = {
 };
 
 function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [], [recentlyUsedReportFields, fieldKey, localeCompare]);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const itemRightSideComponent = useCallback(
         (item: ListItem) => {
             if (item.text === fieldValue) {
@@ -47,7 +47,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
 
             return null;
         },
-        [fieldValue, icons.Checkmark, theme.iconSuccessFill],
+        [icons.Checkmark, theme.iconSuccessFill, fieldValue],
     );
 
     const [sections, headerMessage] = useMemo(() => {

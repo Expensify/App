@@ -54,6 +54,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'Bookmark',
         'Checkmark',
         'Pencil',
+        'Trashcan',
         'Receipt',
         'ChatBubbles',
         'MoneyBag',
@@ -61,6 +62,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'MoneyHourglass',
         'CreditCardHourglass',
         'Bank',
+        'User',
     ] as const);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);

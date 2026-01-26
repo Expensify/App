@@ -110,6 +110,7 @@ function ReportActionItemMessageEdit({
     shouldDisableEmojiPicker = false,
     ref,
 }: ReportActionItemMessageEditProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close'] as const);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const {email} = useCurrentUserPersonalDetails();
     const theme = useTheme();
@@ -155,7 +156,6 @@ function ReportActionItemMessageEdit({
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
