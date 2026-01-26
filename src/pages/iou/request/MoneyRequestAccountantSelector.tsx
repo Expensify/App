@@ -58,6 +58,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -153,6 +154,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             personalDetails,
             true,
             undefined,
+            reports,
             reportAttributesDerived,
         );
         newSections.push(formatResults.section);
@@ -180,7 +182,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    if (isPolicyExpenseChat) {
+                        const expenseReport = participant?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] : undefined;
+                        const chatReport = expenseReport?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`] : undefined;
+                        return getPolicyExpenseReportOption(participant, expenseReport, chatReport, reportAttributesDerived);
+                    }
+                    return getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -207,6 +214,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         translate,
         loginList,
         countryCode,
+        reports,
     ]);
 
     const selectAccountant = useCallback(

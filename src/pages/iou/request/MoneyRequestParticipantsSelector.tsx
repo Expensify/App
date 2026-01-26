@@ -117,6 +117,7 @@ function MoneyRequestParticipantsSelector({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -290,6 +291,7 @@ function MoneyRequestParticipantsSelector({
             personalDetails,
             true,
             undefined,
+            reports,
             reportAttributesDerived,
         );
 
@@ -338,7 +340,12 @@ function MoneyRequestParticipantsSelector({
                 title: undefined,
                 data: [availableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    if (isPolicyExpenseChat) {
+                        const expenseReport = participant?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] : undefined;
+                        const chatReport = expenseReport?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`] : undefined;
+                        return getPolicyExpenseReportOption(participant, expenseReport, chatReport, reportAttributesDerived);
+                    }
+                    return getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -368,6 +375,7 @@ function MoneyRequestParticipantsSelector({
         isPerDiemRequest,
         showImportContacts,
         inputHelperText,
+        reports,
     ]);
 
     /**
