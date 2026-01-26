@@ -89,7 +89,7 @@ function getTagListSections({
         tagSections.push({
             // "Selected" section
             title: '',
-            sectionIndex: 0,
+            shouldShow: false,
             data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
 
@@ -105,7 +105,7 @@ function getTagListSections({
         tagSections.push({
             // "Search" section
             title: '',
-            sectionIndex: 1,
+            shouldShow: true,
             data: getTagsOptions(tagsForSearch, selectedOptions),
         });
 
@@ -116,7 +116,7 @@ function getTagListSections({
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            sectionIndex: 2,
+            shouldShow: false,
             data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
         });
 
@@ -134,7 +134,7 @@ function getTagListSections({
         tagSections.push({
             // "Selected" section
             title: '',
-            sectionIndex: 3,
+            shouldShow: true,
             data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
     }
@@ -145,7 +145,7 @@ function getTagListSections({
         tagSections.push({
             // "Recent" section
             title: translate('common.recent'),
-            sectionIndex: 4,
+            shouldShow: true,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
     }
@@ -153,7 +153,7 @@ function getTagListSections({
     tagSections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
-        sectionIndex: 5,
+        shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
 
