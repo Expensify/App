@@ -283,9 +283,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const hideDeleteWorkspaceErrorModal = () => {
         setIsDeleteWorkspaceErrorModalOpen(false);
-        if (hasWorkspaceDeleteErrorOffline) {
-            return;
-        }
         clearDeleteWorkspaceError(policy?.id);
     };
 
@@ -297,13 +294,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [isLoadingBill]);
 
     useEffect(() => {
-        if (hasWorkspaceDeleteErrorOffline && policyLastErrorMessage) {
+        if (!isOffline || !policyLastErrorMessage) {
             return;
         }
 
         setHasShowWorkspaceDeleteErrorOffline(true);
         setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [hasWorkspaceDeleteErrorOffline, isFocused, isPendingDelete, policyLastErrorMessage, prevIsPendingDelete]);
+    }, [policyLastErrorMessage]);
 
     useEffect(() => {
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
@@ -311,14 +308,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         if (!policyLastErrorMessage) {
+            if (hasShowWorkspaceDeleteErrorOffline) {
+                return;
+            }
             goBackFromInvalidPolicy();
             return;
         }
 
         setIsDeleteModalOpen(false);
-        if (hasShowWorkspaceDeleteErrorOffline) {
-            return;
-        }
+
         setIsDeleteWorkspaceErrorModalOpen(true);
     }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage, hasShowWorkspaceDeleteErrorOffline]);
 
