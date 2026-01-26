@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -200,8 +201,35 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     }
 }
 
-function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, policyRulesModifiedFields: any, policyID: string): string {
-    return '';
+function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, policyRulesModifiedFields: PolicyRulesModifiedFields, policyID: string): string {
+    let index = 0;
+    const modificationCount = Object.keys(policyRulesModifiedFields).length;
+    const fragments = [];
+
+    for (const [key, value] of Object.entries(policyRulesModifiedFields)) {
+        const isFirst = index === 0;
+        const isLast = index === modificationCount - 1;
+
+        let message = '';
+
+        if ((key === 'reimbursable' || key === 'billable') && value) {
+            message += `marked the expense as "${key}"`;
+        } else if ((key === 'reimbursable' || key === 'billable') && !value) {
+            message += `marked the expense as "non-${key}"`;
+        } else if (isFirst) {
+            message += `set the ${key} to "${value}"`;
+        } else {
+            message += `${key} to "${value}"`;
+        }
+
+        const shouldAddAnd = isLast && !isFirst;
+        fragments.push(shouldAddAnd ? `and ${message}` : message);
+
+        index++;
+    }
+
+    const policyRulesHref = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}/rules`;
+    return `${fragments.join(', ')} via <a href="${policyRulesHref}">workspace rules</a>`;
 }
 
 /**
@@ -724,9 +752,9 @@ function getForReportActionTemp({
     const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
     if (hasPolicyRulesModifiedFields) {
         const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
-        const policyRulesModifiedFieldsMessage = getPolicyRulesModifiedFieldsMessage(translate, policyRulesModifiedFields, policyID);
-        if (policyRulesModifiedFieldsMessage) {
-            setFragments.push(policyRulesModifiedFieldsMessage);
+
+        if (policyRulesModifiedFields && policyID) {
+            return getPolicyRulesModifiedFieldsMessage(translate, policyRulesModifiedFields, policyID);
         }
     }
 

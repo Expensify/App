@@ -1250,6 +1250,7 @@ export type {
     PaymentMethodType,
     OriginalMessageSource,
     Decision,
+    PolicyRulesModifiedFields,
     OriginalMessageChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
