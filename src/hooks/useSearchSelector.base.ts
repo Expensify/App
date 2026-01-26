@@ -201,18 +201,27 @@ function useSearchSelectorBase({
                     loginList,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
-                    betas: betas ?? [],
-                    includeP2P: true,
-                    includeSelectedOptions: false,
-                    excludeLogins,
-                    includeRecentReports,
-                    maxElements: maxResults,
-                    maxRecentReportElements: maxRecentReportsToShow,
-                    searchString: computedSearchTerm,
-                    includeUserToInvite,
-                    personalDetails,
-                }, countryCode, reportAttributesDerived?.reports);
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    {
+                        betas: betas ?? [],
+                        includeP2P: true,
+                        includeSelectedOptions: false,
+                        excludeLogins,
+                        includeRecentReports,
+                        maxElements: maxResults,
+                        maxRecentReportElements: maxRecentReportsToShow,
+                        searchString: computedSearchTerm,
+                        includeUserToInvite,
+                        personalDetails,
+                    },
+                    countryCode,
+                    reportAttributesDerived?.reports,
+                );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
                     ...getValidOptionsConfig,
@@ -268,22 +277,31 @@ function useSearchSelectorBase({
                     personalDetails,
                 }, countryCode, reportAttributesDerived?.reports);
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
-                    ...getValidOptionsConfig,
-                    betas: betas ?? [],
-                    includeP2P: true,
-                    includeSelectedOptions: false,
-                    excludeLogins,
-                    loginsToExclude: excludeLogins,
-                    includeRecentReports,
-                    maxElements: maxResults,
-                    maxRecentReportElements: maxRecentReportsToShow,
-                    searchString: computedSearchTerm,
-                    includeUserToInvite,
-                    includeCurrentUser,
-                    shouldAcceptName: true,
-                    personalDetails,
-                }, countryCode, reportAttributesDerived?.reports);
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    {
+                        ...getValidOptionsConfig,
+                        betas: betas ?? [],
+                        includeP2P: true,
+                        includeSelectedOptions: false,
+                        excludeLogins,
+                        loginsToExclude: excludeLogins,
+                        includeRecentReports,
+                        maxElements: maxResults,
+                        maxRecentReportElements: maxRecentReportsToShow,
+                        searchString: computedSearchTerm,
+                        includeUserToInvite,
+                        includeCurrentUser,
+                        shouldAcceptName: true,
+                        personalDetails,
+                    },
+                    countryCode,
+                    reportAttributesDerived?.reports,
+                );
             default:
                 return getEmptyOptions();
         }
