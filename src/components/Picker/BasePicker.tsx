@@ -9,6 +9,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,7 @@ function BasePicker<TPickerValue>({
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const [isHighlighted, setIsHighlighted] = useState(false);
 
@@ -206,8 +208,11 @@ function BasePicker<TPickerValue>({
                         allowFontScaling: false,
                     }}
                     pickerProps={{
+                        role: CONST.ROLE.COMBOBOX,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'aria-label': label ?? translate('languagePage.language'),
+                        tabIndex: isDisabled ? -1 : 0,
                         ref: picker,
-                        tabIndex: -1,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
