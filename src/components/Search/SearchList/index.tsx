@@ -129,9 +129,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
-    /** Whether all transactions have been loaded from snapshots in group-by views */
-    hasLoadedAllTransactions?: boolean;
-
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -184,7 +181,6 @@ function SearchList({
     onDEWModalOpen,
     isDEWBetaEnabled,
     selectedTransactions,
-    hasLoadedAllTransactions,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -495,7 +491,7 @@ function SearchList({
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems;
 
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -505,7 +501,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
+                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems)}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
