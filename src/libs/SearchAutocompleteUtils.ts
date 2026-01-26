@@ -190,8 +190,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
-            // Normalize by replacing thin spaces (U+2009) with regular spaces to match translated values
-            const normalizedValue = range.value.replaceAll('\u2009', ' ');
+            // Normalize by replacing thin spaces (U+2009) with regular spaces and lowercasing for case-insensitive matching
+            const normalizedValue = range.value.replaceAll('\u2009', ' ').toLowerCase();
             return translatedStatusSet.get().has(normalizedValue);
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:

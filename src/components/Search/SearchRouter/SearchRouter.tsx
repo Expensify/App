@@ -299,7 +299,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, false, translate);
             if (!updatedQuery) {
                 return;
             }
@@ -316,7 +316,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery, translate],
     );
 
     const setTextAndUpdateSelection = useCallback(

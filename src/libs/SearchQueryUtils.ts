@@ -46,7 +46,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
-import {formatTranslatedValue, getStatusOptions} from './SearchTranslationUtils';
+import {formatTranslatedValue, getAllStatusOptions, getStatusOptions} from './SearchTranslationUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -423,23 +423,46 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     return undefined;
 }
 
-function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString) {
+function normalizeStatusValue(value: string, translate: LocaleContextProps['translate'], type: SearchDataTypes): string {
+    const statusOptions = getStatusOptions(translate, type);
+    const statusMap = new Map(statusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
+    const allStatusOptions = getAllStatusOptions(translate);
+    const allStatusMap = new Map(allStatusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
+    const normalizedValue = formatTranslatedValue(value.replaceAll('\u2009', ' '));
+    return statusMap.get(normalizedValue) ?? allStatusMap.get(normalizedValue) ?? value;
+}
+
+function normalizeStatusValues(status: SearchStatus, translate: LocaleContextProps['translate'], type: SearchDataTypes): SearchStatus {
+    if (Array.isArray(status)) {
+        return status.map((value) => normalizeStatusValue(value, translate, type));
+    }
+
+    return normalizeStatusValue(status, translate, type);
+}
+
+function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString, translate?: LocaleContextProps['translate']) {
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
-        const flatFilters = getFilters(result);
-
-        // Add the full input and hash to the results
         result.inputQuery = query;
-        result.flatFilters = flatFilters;
-        const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
-        result.hash = primaryHash;
-        result.recentSearchHash = recentSearchHash;
-        result.similarSearchHash = similarSearchHash;
 
         delete result.rawFilterList;
         if (rawQuery) {
             result.rawFilterList = getRawFilterListFromQuery(rawQuery);
         }
+
+        if (translate && result.status) {
+            const type = result.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+            result.status = normalizeStatusValues(result.status, translate, type);
+        }
+
+        const flatFilters = getFilters(result);
+        result.flatFilters = flatFilters;
+
+        // Add the full input and hash to the results
+        const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
+        result.hash = primaryHash;
+        result.recentSearchHash = recentSearchHash;
+        result.similarSearchHash = similarSearchHash;
 
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
@@ -1075,9 +1098,23 @@ type GetDisplayQueryFiltersForKeyParams = {
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
+    translate?: LocaleContextProps['translate'];
+    type?: SearchDataTypes;
 };
 
-function getDisplayQueryFiltersForKey({key, queryFilter, personalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID}: GetDisplayQueryFiltersForKeyParams) {
+function getDisplayQueryFiltersForKey({
+    key,
+    queryFilter,
+    personalDetails,
+    reports,
+    taxRates,
+    cardList,
+    cardFeeds,
+    policies,
+    currentUserAccountID,
+    translate,
+    type,
+}: GetDisplayQueryFiltersForKeyParams) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
         const taxRateNames = taxRateIDs
@@ -1135,10 +1172,26 @@ function getDisplayQueryFiltersForKey({key, queryFilter, personalDetails, report
         }, [] as QueryFilter[]);
     }
 
-    return queryFilter.map((filter) => ({
-        operator: filter.operator,
-        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
-    }));
+    return queryFilter.map((filter) => {
+        const filterValue = filter.value.toString();
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type) {
+            const statusOptions = getStatusOptions(translate, type);
+            const statusOption = statusOptions.find((option) => option.value === filterValue);
+            if (statusOption) {
+                return {operator: filter.operator, value: formatTranslatedValue(statusOption.text)};
+            }
+            const allStatusOptions = getAllStatusOptions(translate);
+            const fallbackStatusOption = allStatusOptions.find((option) => option.value === filterValue);
+            if (fallbackStatusOption) {
+                return {operator: filter.operator, value: formatTranslatedValue(fallbackStatusOption.text)};
+            }
+        }
+
+        return {
+            operator: filter.operator,
+            value: getFilterDisplayValue(key, getUserFriendlyValue(filterValue), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
+        };
+    });
 }
 
 function formatDefaultRawFilterSegment(
@@ -1198,6 +1251,11 @@ function formatDefaultRawFilterSegment(
             if (statusOption) {
                 return sanitizeSearchValue(formatTranslatedValue(statusOption.text));
             }
+            const allStatusOptions = getAllStatusOptions(translate);
+            const fallbackStatusOption = allStatusOptions.find((option) => option.value === val);
+            if (fallbackStatusOption) {
+                return sanitizeSearchValue(formatTranslatedValue(fallbackStatusOption.text));
+            }
         }
         return sanitizeSearchValue(getUserFriendlyValue(val));
     });
@@ -1236,15 +1294,34 @@ function buildUserReadableQueryString(
         const statusOptions = getStatusOptions(translate, type);
         const statusOption = statusOptions.find((option) => option.value === statusValue);
         if (!statusOption) {
-            return getUserFriendlyValue(statusValue);
+            const allStatusOptions = getAllStatusOptions(translate);
+            const fallbackStatusOption = allStatusOptions.find((option) => option.value === statusValue);
+            if (!fallbackStatusOption) {
+                return getUserFriendlyValue(statusValue);
+            }
+            return formatTranslatedValue(fallbackStatusOption.text);
         }
         return formatTranslatedValue(statusOption.text);
     };
 
-    if (rawFilterList && rawFilterList.length > 0) {
+    const normalizedRawFilterList =
+        translate && type && status && rawFilterList
+            ? rawFilterList.map((rawFilter) => {
+                  if (rawFilter.key !== CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS) {
+                      return rawFilter;
+                  }
+
+                  return {
+                      ...rawFilter,
+                      value: Array.isArray(status) ? status : [status],
+                  };
+              })
+            : rawFilterList;
+
+    if (normalizedRawFilterList && normalizedRawFilterList.length > 0) {
         const segments: string[] = [];
 
-        for (const rawFilter of rawFilterList) {
+        for (const rawFilter of normalizedRawFilterList) {
             if (!rawFilter) {
                 continue;
             }
@@ -1280,6 +1357,8 @@ function buildUserReadableQueryString(
                 cardFeeds,
                 policies,
                 currentUserAccountID,
+                translate,
+                type,
             });
 
             if (!displayQueryFilters.length) {
@@ -1327,6 +1406,8 @@ function buildUserReadableQueryString(
             cardFeeds,
             policies,
             currentUserAccountID,
+            translate,
+            type,
         });
 
         if (!displayQueryFilters.length) {
@@ -1448,8 +1529,8 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
-function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false) {
-    const queryJSON = buildSearchQueryJSON(query);
+function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, translate?: LocaleContextProps['translate']) {
+    const queryJSON = buildSearchQueryJSON(query, undefined, translate);
 
     if (!queryJSON) {
         Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} user query failed to parse`, {}, false);

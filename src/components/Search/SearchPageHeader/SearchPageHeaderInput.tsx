@@ -201,7 +201,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const submitSearch = useCallback(
         (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, translate);
 
             if (!updatedQuery) {
                 return;
@@ -221,7 +221,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 setAutocompleteQueryValue('');
             }
         },
-        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery],
+        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, translate],
     );
 
     const onListItemPress = useCallback(

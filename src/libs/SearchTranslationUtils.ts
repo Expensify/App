@@ -81,6 +81,18 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
     }
 }
 
+function getAllStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
+    const optionsByValue = new Map<string, MultiSelectItem<SingularSearchStatus>>();
+    for (const type of Object.values(CONST.SEARCH.DATA_TYPES)) {
+        for (const option of getStatusOptions(translate, type as SearchDataTypes)) {
+            if (!optionsByValue.has(option.value)) {
+                optionsByValue.set(option.value, option);
+            }
+        }
+    }
+    return [...optionsByValue.values()];
+}
+
 /**
  * Formats translated text for use in search queries.
  * Converts to lowercase and replaces regular spaces with thin spaces (U+2009)
@@ -95,17 +107,24 @@ function formatTranslatedValue(text: string): string {
  * Values are lowercased for case-insensitive matching.
  */
 function getAllTranslatedStatusValues(translate: LocalizedTranslate): Set<string> {
-    return new Set(
-        Object.values(CONST.SEARCH.DATA_TYPES)
-            .map((type) => getStatusOptions(translate, type as SearchDataTypes))
-            .flat()
-            .map((option) => option.text.toLowerCase()),
-    );
+    const translatedValues = Object.values(CONST.SEARCH.DATA_TYPES)
+        .map((type) => getStatusOptions(translate, type as SearchDataTypes))
+        .flat()
+        .map((option) => option.text.toLowerCase());
+
+    const internalValues = Object.values(CONST.SEARCH.STATUS)
+        .map((statusGroup) => Object.values(statusGroup))
+        .flat()
+        .filter((value): value is string => !!value)
+        .map((value) => value.toLowerCase());
+
+    return new Set([...translatedValues, ...internalValues]);
 }
 
 export {
     getStatusOptions,
     getHasOptions,
+    getAllStatusOptions,
     getExpenseStatusOptions,
     getExpenseReportedStatusOptions,
     getInvoiceStatusOptions,
