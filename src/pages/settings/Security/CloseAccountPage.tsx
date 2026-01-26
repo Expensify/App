@@ -53,13 +53,12 @@ function CloseAccountPage() {
     useEffect(() => () => clearError(), []);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
-        (async () => {
-            const result = await showCloseAccountWarningModal();
+        showCloseAccountWarningModal().then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
             closeAccount(values.reasonForLeaving);
-        })();
+        });
     };
 
     const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;

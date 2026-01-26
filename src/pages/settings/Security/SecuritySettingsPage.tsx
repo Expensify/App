@@ -342,8 +342,7 @@ function SecuritySettingsPage() {
                 modalClose(() => {
                     setShouldShowDelegatePopoverMenu(false);
                     setSelectedEmail(undefined);
-                    (async () => {
-                        const result = await showRemoveCopilotModal();
+                    showRemoveCopilotModal().then((result) => {
                         if (result.action === ModalActions.CLOSE) {
                             setSelectedDelegate(undefined);
                         } else {
@@ -354,7 +353,7 @@ function SecuritySettingsPage() {
                             removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                             setSelectedDelegate(undefined);
                         }
-                    })();
+                    });
                 });
             },
         },
