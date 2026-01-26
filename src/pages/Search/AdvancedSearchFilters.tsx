@@ -38,7 +38,8 @@ import {
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
 } from '@libs/SearchQueryUtils';
-import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
+import {getStatusOptions} from '@libs/SearchUIUtils';
+import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
