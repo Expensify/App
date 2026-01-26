@@ -382,7 +382,8 @@ describe('getViolationsOnyxData', () => {
                 iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
-            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const iouReport = {reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE} as Report;
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
             expect(result.value).toEqual(
                 expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
             );
