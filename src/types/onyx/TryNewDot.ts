@@ -26,6 +26,11 @@ type TryNewDot = {
         isLockedToNewDot?: boolean;
 
         /**
+         * Indicates whether the user is forced to use the NewApp on mobile.
+         */
+        isLockedToNewApp?: boolean;
+
+        /**
          * Array of dismissed reasons with timestamps.
          */
         dismissedReasons?: Array<{

@@ -1,6 +1,7 @@
 import {differenceInDays} from 'date-fns';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import getPlatform from '@libs/getPlatform';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -96,6 +97,12 @@ function TroubleshootPage() {
     }, [tryNewDot?.classicRedirect]);
 
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
+        const platform = getPlatform();
+        const isMobileApp = [CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(platform as 'ios' | 'android');
+        if (tryNewDot?.classicRedirect?.isLockedToNewApp && isMobileApp) {
+            return null;
+        }
+
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
             return null;
         }

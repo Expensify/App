@@ -63,6 +63,11 @@ function shouldUseOldApp(tryNewDot: TryNewDot) {
     if (isEmptyObject(tryNewDot) || isEmptyObject(tryNewDot.classicRedirect)) {
         return true;
     }
+
+    if (tryNewDot.classicRedirect.isLockedToNewApp) {
+        return false;
+    }
+    
     return tryNewDot.classicRedirect.dismissed;
 }
 
