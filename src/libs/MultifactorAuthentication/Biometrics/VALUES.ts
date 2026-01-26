@@ -56,6 +56,7 @@ const REASON = {
         VALIDATE_CODE_MISSING: 'Validate code is missing',
     },
     KEYSTORE: {
+        KEY_PAIR_GENERATED: 'Key pair generated successfully',
         KEY_DELETED: 'Key successfully deleted from SecureStore',
         REGISTRATION_REQUIRED: 'Key is stored locally but not found on server',
         KEY_MISSING: 'Key is missing',

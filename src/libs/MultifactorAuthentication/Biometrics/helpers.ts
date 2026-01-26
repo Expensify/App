@@ -10,13 +10,16 @@ import type {
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationScenarioResponseWithSuccess,
 } from '@components/MultifactorAuthentication/config/types';
+import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationFactor,
+    MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationPartialStatus,
     MultifactorAuthenticationReason,
     MultifactorAuthenticationResponseMap,
+    ResponseDetails,
 } from './types';
 import VALUES, {MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS} from './VALUES';
 
@@ -163,6 +166,72 @@ const transformMultifactorAuthenticationActionResponse = <T extends MultifactorA
     };
 };
 
+const registerMultifactorAuthenticationPostMethod = (
+    status: MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioResponseWithSuccess, true>,
+    failedFactor?: MultifactorAuthenticationFactor,
+): MultifactorAuthenticationPartialStatus<boolean> => {
+    const {successful} = status.value;
+
+    return {
+        ...status,
+        value: successful,
+        step: {
+            requiredFactorForNextStep: failedFactor,
+            wasRecentStepSuccessful: successful,
+            isRequestFulfilled: !failedFactor,
+        },
+        reason: status.reason,
+    };
+};
+
+function createKeyInfoObject({publicKey}: {publicKey: string}): MultifactorAuthenticationKeyInfo<'biometric'> {
+    // rawId should be the base64url-encoded public key itself, serving as a unique credential identifier
+    const rawId: Base64URLString = publicKey;
+    const type = VALUES.ED25519_TYPE;
+    const response: ResponseDetails<'biometric'> = {
+        biometric: {
+            publicKey,
+            algorithm: -8 as const, // ED25519 per COSE spec
+        },
+    };
+
+    return {
+        rawId,
+        type,
+        response,
+    };
+}
+
+async function processMultifactorAuthenticationRegistration(
+    params: Partial<AllMultifactorAuthenticationFactors> & {publicKey: string},
+): Promise<MultifactorAuthenticationPartialStatus<boolean>> {
+    const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, VALUES.FACTOR_COMBINATIONS.REGISTRATION);
+
+    if (factorsCheckResult.value !== true) {
+        return registerMultifactorAuthenticationPostMethod(
+            {
+                ...factorsCheckResult,
+                value: {httpCode: undefined, successful: false},
+            },
+            factorsCheckResult.step.requiredFactorForNextStep,
+        );
+    }
+
+    const keyInfo = createKeyInfoObject(params);
+
+    const {httpCode, reason} = await registerAuthenticationKey({
+        keyInfo,
+        validateCode: params.validateCode,
+    });
+
+    const successful = String(httpCode).startsWith('2');
+
+    return registerMultifactorAuthenticationPostMethod({
+        value: {successful, httpCode},
+        reason,
+    });
+}
+
 /**
  * Processes a multifactor authentication scenario by validating factors and calling the scenario action.
  */
@@ -231,4 +300,10 @@ function isChallengeSigned(challenge: MultifactorAuthenticationChallengeObject |
     return 'rawId' in challenge;
 }
 
-export {processMultifactorAuthenticationScenario as processScenario, decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, isChallengeSigned, parseHttpRequest};
+export {
+    processMultifactorAuthenticationScenario as processScenario,
+    decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage,
+    isChallengeSigned,
+    processMultifactorAuthenticationRegistration as processRegistration,
+    parseHttpRequest,
+};
