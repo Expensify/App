@@ -5,7 +5,7 @@
  * we should also send the unholdReportActionID.
  */
 type TransactionThreadInfo = {
-    movedReportActionID: string;
+    movedReportActionID?: string;
     moneyRequestPreviewReportActionID: string;
     transactionThreadReportID?: string;
     transactionThreadCreatedReportActionID?: string;

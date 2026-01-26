@@ -31,6 +31,7 @@ import {
     getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
+    isOpenReport,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
@@ -1251,32 +1252,42 @@ function changeTransactionsReport({
         }
 
         // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
-        const movedAction =
-            reportID === CONST.REPORT.UNREPORTED_REPORT_ID
-                ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID)
-                : buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
+        // Skip creating system messages when moving expenses from a Draft report
+        const isSourceReportDraft = isOpenReport(oldReport);
+        const buildMovedAction = () => {
+            if (isSourceReportDraft) {
+                return undefined;
+            }
+            if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                return buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
+            }
+            return buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
+        };
+        const movedAction = buildMovedAction();
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[movedAction?.reportActionID]: movedAction},
-        });
+        if (movedAction) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[movedAction.reportActionID]: movedAction},
+            });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[movedAction?.reportActionID]: {pendingAction: null}},
-        });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[movedAction.reportActionID]: {pendingAction: null}},
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[movedAction?.reportActionID]: null},
-        });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[movedAction.reportActionID]: null},
+            });
+        }
 
         // Create base transaction data object
         const baseTransactionData = {
-            movedReportActionID: movedAction.reportActionID,
+            movedReportActionID: movedAction?.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
             ...(oldIOUAction && !oldIOUAction.childReportID
                 ? {
