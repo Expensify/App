@@ -32,12 +32,14 @@
     from: "from",
     card: "card",
     "withdrawal-id": "withdrawn",
+    category: "category",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
     from: "asc",
     card: "asc",
     "withdrawal-id": "desc",
+    category: "asc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
