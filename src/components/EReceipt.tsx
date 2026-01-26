@@ -94,11 +94,13 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                 </View>
                 <View style={styles.eReceiptContentContainer}>
                     <View>
-                        <ImageSVG
-                            src={icons.ReceiptBody}
-                            fill={theme.textColorfulBackground}
-                            contentFit="fill"
-                        />
+                    <ImageSVG
+                        src={icons.ReceiptBody}
+                        fill={theme.textColorfulBackground}
+                        contentFit="fill"
+                        // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                        cachePolicy="none"
+                    />
                         <View style={styles.eReceiptContentWrapper}>
                             <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
                                 <View
