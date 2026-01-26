@@ -754,12 +754,16 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON('type:expense limit:');
 
             expect(queryJSON?.limit).toBeUndefined();
+            const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
+            expect(keywordFilter?.filters.some((f) => f.value === 'limit:')).toBe(true);
         });
 
         it('treats negated limit as keyword since limit is non-negatable', () => {
             const queryJSON = buildSearchQueryJSON('type:expense -limit:10');
 
             expect(queryJSON?.limit).toBeUndefined();
+            const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
+            expect(keywordFilter?.filters.some((f) => f.value === '-limit:10')).toBe(true);
         });
     });
 
