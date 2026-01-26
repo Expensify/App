@@ -302,6 +302,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'スキャン中',
         analyzing: '分析中...',
         addCardTermsOfService: 'Expensify 利用規約',
+        expensifyLogo: 'Expensify',
         perPerson: '1人あたり',
         phone: '電話番号',
         phoneNumber: '電話番号',
@@ -7070,6 +7071,14 @@ ${reportName}
     qrCodes: {
         copy: 'URLをコピー',
         copied: 'コピーしました！',
+        qrCode: 'QRコード',
+    },
+    socials: {
+        podcast: 'ExpensifyのPodcast',
+        twitter: 'ExpensifyのTwitter',
+        instagram: 'ExpensifyのInstagram',
+        facebook: 'ExpensifyのFacebook',
+        linkedin: 'ExpensifyのLinkedIn',
     },
     moderation: {
         flagDescription: 'フラグが付けられたすべてのメッセージは、モデレーターによる確認のために送信されます。',

@@ -295,6 +295,7 @@ const translations = {
         scanning: 'Scanning',
         analyzing: 'Analyzing...',
         addCardTermsOfService: 'Expensify Terms of Service',
+        expensifyLogo: 'Expensify',
         perPerson: 'per person',
         phone: 'Phone',
         phoneNumber: 'Phone number',
@@ -7022,6 +7023,14 @@ const translations = {
     qrCodes: {
         copy: 'Copy URL',
         copied: 'Copied!',
+        qrCode: 'QR code',
+    },
+    socials: {
+        podcast: 'Expensify on Podcast',
+        twitter: 'Expensify on Twitter',
+        instagram: 'Expensify on Instagram',
+        facebook: 'Expensify on Facebook',
+        linkedin: 'Expensify on LinkedIn',
     },
     moderation: {
         flagDescription: 'All flagged messages will be sent to a moderator for review.',

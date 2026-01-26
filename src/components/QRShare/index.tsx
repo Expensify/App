@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {QRShareProps} from './types';
 
 function QRShare({
@@ -36,7 +37,7 @@ function QRShare({
     const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg | undefined>(undefined);
@@ -69,17 +70,23 @@ function QRShare({
                 </View>
             )}
 
-            <QRCode
-                getRef={(svg) => (svgRef.current = svg)}
-                url={url}
-                svgLogo={svgLogo}
-                svgLogoFillColor={svgLogoFillColor}
-                logoBackgroundColor={logoBackgroundColor}
-                logo={logo}
-                size={size ?? qrCodeSize}
-                logoRatio={logoRatio}
-                logoMarginRatio={logoMarginRatio}
-            />
+            <View
+                accessible
+                accessibilityLabel={translate('qrCodes.qrCode')}
+                role={CONST.ROLE.IMG}
+            >
+                <QRCode
+                    getRef={(svg) => (svgRef.current = svg)}
+                    url={url}
+                    svgLogo={svgLogo}
+                    svgLogoFillColor={svgLogoFillColor}
+                    logoBackgroundColor={logoBackgroundColor}
+                    logo={logo}
+                    size={size ?? qrCodeSize}
+                    logoRatio={logoRatio}
+                    logoMarginRatio={logoMarginRatio}
+                />
+            </View>
 
             {!!title && (
                 <Text

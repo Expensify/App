@@ -82,6 +82,7 @@ function PressableWithDelayToggle({
     iconStyles,
     icon,
     ref,
+    accessible = true,
     accessibilityRole,
     shouldHaveActiveBackground,
     iconWidth = variables.iconSizeSmall,
@@ -128,6 +129,7 @@ function PressableWithDelayToggle({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
             onPress={updatePressState}
+            accessible={accessible}
             accessibilityLabel={tooltipTexts}
             suppressHighlighting={inline ? true : undefined}
             accessibilityRole={accessibilityRole}

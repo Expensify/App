@@ -302,6 +302,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanning: 'Scannen',
         analyzing: 'Analyseren...',
         addCardTermsOfService: 'Expensify-servicevoorwaarden',
+        expensifyLogo: 'Expensify',
         perPerson: 'per persoon',
         phone: 'Telefoon',
         phoneNumber: 'Telefoonnummer',
@@ -7111,6 +7112,14 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
     qrCodes: {
         copy: 'URL kopiëren',
         copied: 'Gekopieerd!',
+        qrCode: 'QR-code',
+    },
+    socials: {
+        podcast: 'Expensify op Podcast',
+        twitter: 'Expensify op Twitter',
+        instagram: 'Expensify op Instagram',
+        facebook: 'Expensify op Facebook',
+        linkedin: 'Expensify op LinkedIn',
     },
     moderation: {
         flagDescription: 'Alle gemarkeerde berichten worden ter beoordeling naar een moderator gestuurd.',
