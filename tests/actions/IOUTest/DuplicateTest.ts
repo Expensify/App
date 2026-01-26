@@ -22,7 +22,7 @@ import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import {createRandomReport} from '../../utils/collections/reports';
-import createRandomTransaction from '../../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -701,11 +701,11 @@ describe('actions/Duplicate', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                customUnitPolicyID: '',
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 allTransactionDrafts: {},
-                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -758,11 +758,11 @@ describe('actions/Duplicate', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                customUnitPolicyID: '',
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 allTransactionDrafts: {},
-                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -820,7 +820,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 allTransactionDrafts,
-                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -870,7 +869,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 allTransactionDrafts: undefined,
-                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -934,7 +932,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 allTransactionDrafts,
-                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
