@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -13,19 +14,23 @@ function usePoliciesWithCardFeedErrors() {
     const cleanPolicies = Object.values(policies ?? {}).filter((policy) => policy?.id);
 
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
-    const policiesWithCardFeedErrors: Policy[] = [];
-    for (const [workspaceAccountID, hasErrors] of Object.entries(shouldShowRbrForWorkspaceAccountID)) {
-        if (!hasErrors) {
-            continue;
+    const policiesWithCardFeedErrors = useMemo(() => {
+        const p: Policy[] = [];
+        for (const [workspaceAccountID, hasErrors] of Object.entries(shouldShowRbrForWorkspaceAccountID)) {
+            if (!hasErrors) {
+                continue;
+            }
+
+            const policyWithCardFeedErrors = cleanPolicies.find((policy) => policy?.workspaceAccountID === Number(workspaceAccountID));
+            if (!policyWithCardFeedErrors) {
+                continue;
+            }
+
+            p.push(policyWithCardFeedErrors);
         }
 
-        const policyWithCardFeedErrors = cleanPolicies.find((policy) => policy?.workspaceAccountID === Number(workspaceAccountID));
-        if (!policyWithCardFeedErrors) {
-            continue;
-        }
-
-        policiesWithCardFeedErrors.push(policyWithCardFeedErrors);
-    }
+        return p;
+    }, [cleanPolicies, shouldShowRbrForWorkspaceAccountID]);
 
     return {
         policiesWithCardFeedErrors,
