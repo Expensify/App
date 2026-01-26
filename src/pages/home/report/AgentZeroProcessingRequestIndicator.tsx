@@ -14,11 +14,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type AgentZeroProcessingRequestIndicatorProps = {
     reportID: string;
-    label?: string;
+    isProcessing: boolean;
     reasoningHistory?: string[];
 };
 
-function AgentZeroProcessingRequestIndicator({reportID, label, reasoningHistory = []}: AgentZeroProcessingRequestIndicatorProps) {
+function AgentZeroProcessingRequestIndicator({reportID, isProcessing, reasoningHistory = []}: AgentZeroProcessingRequestIndicatorProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -31,28 +31,27 @@ function AgentZeroProcessingRequestIndicator({reportID, label, reasoningHistory 
     const isAnyoneTyping = usersTyping.length > 0;
 
     const hasReasoningHistory = reasoningHistory.length > 0;
-    const hasContent = !!label || hasReasoningHistory;
 
-    if (isOffline || isAnyoneTyping || !hasContent) {
+    if (isOffline || isAnyoneTyping || !isProcessing) {
         return null;
     }
+
+    const toggleExpanded = () => {
+        setIsExpanded(!isExpanded);
+    };
 
     if (!hasReasoningHistory) {
         return (
             <View style={styles.chatItemComposeSecondaryRowOffset}>
                 <Text
                     style={styles.chatItemComposeSecondaryRowSubText}
-                    numberOfLines={2}
+                    numberOfLines={1}
                 >
-                    {label}
+                    {translate('common.thinking')}
                 </Text>
             </View>
         );
     }
-
-    const toggleExpanded = () => {
-        setIsExpanded(!isExpanded);
-    };
 
     return (
         <View style={styles.chatItemComposeSecondaryRowOffset}>
@@ -74,15 +73,13 @@ function AgentZeroProcessingRequestIndicator({reportID, label, reasoningHistory 
             </PressableWithFeedback>
             {isExpanded && (
                 <View style={[styles.mt2, styles.ml2, styles.pl3, styles.borderLeft]}>
-                    {reasoningHistory.map((reasoning, index) => (
+                    {reasoningHistory.map((item, index) => (
                         <View
                             key={`reasoning-${index}`}
                             style={styles.mb2}
                         >
-                            <Text style={[styles.chatItemComposeSecondaryRowSubText, styles.textStrong]}>{reasoning.split('\n')[0]}</Text>
-                            {reasoning.split('\n').length > 1 && (
-                                <Text style={styles.chatItemComposeSecondaryRowSubText}>{reasoning.split('\n').slice(1).join('\n')}</Text>
-                            )}
+                            <Text style={[styles.chatItemComposeSecondaryRowSubText, styles.textStrong]}>{item.split('\n')[0]}</Text>
+                            {item.split('\n').length > 1 && <Text style={styles.chatItemComposeSecondaryRowSubText}>{item.split('\n').slice(1).join('\n')}</Text>}
                         </View>
                     ))}
                 </View>
