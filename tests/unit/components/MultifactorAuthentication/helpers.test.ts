@@ -1,12 +1,16 @@
-import type {Writable} from 'type-fest';
+import type {ValueOf, Writable} from 'type-fest';
 import {
+    convertResultIntoMultifactorAuthenticationStatus,
     createAuthorizeErrorStatus,
     doesDeviceSupportBiometrics,
     getAuthTypeName,
+    getOutcomePath,
     getOutcomePaths,
+    getOutcomeRoute,
     isBiometryConfigured,
     isValidScenario,
     resetKeys,
+    shouldAllowBiometrics,
     shouldClearScenario,
     Status,
 } from '@components/MultifactorAuthentication/helpers';
@@ -504,6 +508,129 @@ describe('MultifactorAuthentication helpers', () => {
             expect(result.value).toEqual(newStatus);
             expect(result.reason).toBe('No action has been made yet');
             expect(result.headerTitle).toBe('New title');
+        });
+    });
+
+    describe('shouldAllowBiometrics', () => {
+        it('should return true when biometrics is the allowed type', () => {
+            const result = shouldAllowBiometrics([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS]);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for other authentication types', () => {
+            // Assuming there might be other types, we test with a different value
+            expect(shouldAllowBiometrics(['OTHER_TYPE' as ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>])).toBe(false);
+        });
+    });
+
+    describe('getOutcomeRoute', () => {
+        it('should return not found route when path is undefined', () => {
+            const result = getOutcomeRoute(undefined);
+            expect(typeof result).toBe('string');
+        });
+
+        it('should return outcome route for valid path', () => {
+            const result = getOutcomeRoute('biometrics-test-success');
+            expect(typeof result).toBe('string');
+        });
+    });
+
+    describe('getOutcomePath', () => {
+        it('should construct outcome path with scenario prefix and success suffix', () => {
+            const result = getOutcomePath('biometrics-test', 'success');
+            expect(result).toContain('success');
+            expect(result).toContain('biometrics-test');
+        });
+
+        it('should construct outcome path with scenario prefix and failure suffix', () => {
+            const result = getOutcomePath('biometrics-test', 'failure');
+            expect(result).toContain('failure');
+            expect(result).toContain('biometrics-test');
+        });
+
+        it('should use default prefix when scenario is undefined', () => {
+            const result = getOutcomePath(undefined, 'success');
+            expect(result).toContain('biometrics-test');
+            expect(result).toContain('success');
+        });
+    });
+
+    describe('convertResultIntoMultifactorAuthenticationStatus', () => {
+        it('should convert status with scenario and type', () => {
+            const sourceStatus: MultifactorAuthenticationStatus<boolean> = {
+                value: true,
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ACTION_MADE_YET,
+                step: {
+                    wasRecentStepSuccessful: true,
+                    isRequestFulfilled: true,
+                    requiredFactorForNextStep: undefined,
+                },
+                scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST,
+                headerTitle: 'Test',
+                title: 'Test',
+                description: 'Test',
+                outcomePaths: {successOutcome: 'biometrics-test-success', failureOutcome: 'biometrics-test-failure'},
+            };
+
+            const result = convertResultIntoMultifactorAuthenticationStatus(
+                sourceStatus,
+                CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST,
+                CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION,
+                false,
+            );
+
+            expect(result).toHaveProperty('value');
+            expect(result.value).toHaveProperty('type');
+            expect(result.value).toHaveProperty('payload');
+        });
+
+        it('should extract payload from scenario parameters', () => {
+            const sourceStatus: MultifactorAuthenticationPartialStatus<boolean> = {
+                value: true,
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ACTION_MADE_YET,
+                step: {
+                    wasRecentStepSuccessful: true,
+                    isRequestFulfilled: true,
+                    requiredFactorForNextStep: undefined,
+                },
+            };
+
+            const params = {validateCode: 123456, customParam: 'test'};
+
+            const result = convertResultIntoMultifactorAuthenticationStatus(
+                sourceStatus,
+                CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST,
+                CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION,
+                params,
+            );
+
+            expect(result.value).toHaveProperty('payload');
+        });
+
+        it('should handle false params by setting payload to undefined', () => {
+            const sourceStatus: MultifactorAuthenticationStatus<boolean> = {
+                value: true,
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ACTION_MADE_YET,
+                step: {
+                    wasRecentStepSuccessful: true,
+                    isRequestFulfilled: true,
+                    requiredFactorForNextStep: undefined,
+                },
+                scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST,
+                headerTitle: 'Test',
+                title: 'Test',
+                description: 'Test',
+                outcomePaths: {successOutcome: 'biometrics-test-success', failureOutcome: 'biometrics-test-failure'},
+            };
+
+            const result = convertResultIntoMultifactorAuthenticationStatus(
+                sourceStatus,
+                CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST,
+                CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION,
+                false,
+            );
+
+            expect(result.value.payload).toBeUndefined();
         });
     });
 });
