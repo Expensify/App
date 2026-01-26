@@ -469,6 +469,10 @@ function getForReportAction({
         buildMessageFragmentForValue(translateLocal, oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
+    const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage;
+    if (hasPolicyRulesModifiedFields) {
+    }
+
     const message =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.changed')}`, changeFragments) +
