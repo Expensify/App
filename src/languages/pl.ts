@@ -501,7 +501,7 @@ const translations: TranslationDeepObject<typeof en> = {
         role: 'Rola',
         currency: 'Waluta',
         groupCurrency: 'Waluta grupy',
-        rate: 'Oceń',
+        rate: 'Stawka',
         emptyLHN: {
             title: 'Juhu! Wszystko nadrobione.',
             subtitleText1: 'Znajdź czat za pomocą',
@@ -636,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
         originalAmount: 'Kwota pierwotna',
         insights: 'Analizy',
+        duplicateExpense: 'Zduplikowany wydatek',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1472,6 +1473,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / godzina`,
             amountTooLargeError: 'Całkowita kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
+        correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
     },
     transactionMerge: {
         listPage: {
@@ -8035,6 +8037,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             button: 'Pobierz aplikację',
         },
         notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby dokończyć'},
+        signOutWarningTripInProgress: {title: 'Śledzenie GPS w toku', prompt: 'Czy na pewno chcesz porzucić podróż i się wylogować?', confirm: 'Odrzuć i wyloguj się'},
         locationServicesRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             confirm: 'Otwórz ustawienia',

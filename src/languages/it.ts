@@ -636,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Totale non rimborsabile',
         originalAmount: 'Importo originale',
         insights: 'Analisi',
+        duplicateExpense: 'Spesa duplicata',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1196,7 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: 'Elimina resoconto',
+        deleteReport: 'Elimina report',
         deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
         settledExpensify: 'Pagato',
         done: 'Fatto',
@@ -1474,6 +1475,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / ora`,
             amountTooLargeError: 'L’importo totale è troppo elevato. Riduci le ore o diminuisci la tariffa.',
         },
+        correctDistanceRateError: "Correggi l'errore nella tariffa della distanza e riprova.",
     },
     transactionMerge: {
         listPage: {
@@ -8074,6 +8076,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             button: 'Scarica l’app',
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
+        signOutWarningTripInProgress: {title: 'Tracciamento GPS in corso', prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?', confirm: 'Annulla e disconnettiti'},
         locationServicesRequiredModal: {
             title: 'È necessario l’accesso alla posizione',
             confirm: 'Apri impostazioni',
