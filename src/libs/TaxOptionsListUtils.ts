@@ -12,7 +12,7 @@ type TaxRatesOption = {
     searchText?: string;
     tooltipText?: string;
     isDisabled?: boolean;
-    keyForList?: string;
+    keyForList: string;
     isSelected?: boolean;
     pendingAction?: OnyxCommon.PendingAction;
 };
@@ -41,10 +41,10 @@ function sortTaxRates(taxRates: TaxRates, localeCompare: LocaleContextProps['loc
  * Builds the options for taxRates
  */
 function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
-    return taxRates.map(({code, modifiedName, isDisabled, isSelected, pendingAction}) => ({
+    return taxRates.map(({code, modifiedName, isDisabled, isSelected, pendingAction}, index) => ({
         code,
         text: modifiedName,
-        keyForList: modifiedName,
+        keyForList: `${modifiedName}-${index}`,
         searchText: modifiedName,
         tooltipText: modifiedName,
         isDisabled: !!isDisabled || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
