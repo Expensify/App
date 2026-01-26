@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList} from '@src/types/onyx';
 
-const nonPersonalAndWorkspaceCardListConfig = createOnyxDerivedValueConfig({
+export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST,
     dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST],
     compute: ([cardList, workspaceCardFeeds], {areAllConnectionsSet, currentValue}) => {
@@ -15,5 +15,3 @@ const nonPersonalAndWorkspaceCardListConfig = createOnyxDerivedValueConfig({
         return mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, cardList, true);
     },
 });
-
-export default nonPersonalAndWorkspaceCardListConfig;

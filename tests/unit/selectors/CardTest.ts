@@ -74,7 +74,7 @@ describe('filterCardsHiddenFromSearch', () => {
     });
 
     it('filters out invalid card objects (missing cardID or bank)', () => {
-        const validCard = createRandomExpensifyCard(1);
+        const validCard = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN});
         const invalidCard1 = {cardID: 2} as Card;
         const invalidCard2 = {bank: 'vcf'} as Card;
 

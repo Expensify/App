@@ -26,17 +26,22 @@ const renderLocaleContextProvider = () => {
     );
 };
 
-describe('OnyxDerived', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-        initOnyxDerivedValues();
-    });
+const onyxDerivedTestSetup = () => {
+    Onyx.clear();
+    Onyx.init({keys: ONYXKEYS});
+    initOnyxDerivedValues();
+};
 
-    beforeEach(async () => {
-        await Onyx.clear();
+describe('OnyxDerived', () => {
+    beforeEach(() => {
+        Onyx.clear();
     });
 
     describe('reportAttributes', () => {
+        beforeAll(() => {
+            onyxDerivedTestSetup();
+        });
+
         const mockReport: Report = {
             reportID: `test_1`,
             reportName: 'Test Report',
@@ -419,6 +424,10 @@ describe('OnyxDerived', () => {
     });
 
     describe('nonPersonalAndWorkspaceCardList', () => {
+        beforeAll(async () => {
+            onyxDerivedTestSetup();
+        });
+
         it('returns empty object when dependencies are not set', async () => {
             await waitForBatchedUpdates();
             const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
