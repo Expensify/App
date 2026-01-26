@@ -147,7 +147,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                 shouldValidateOnBlur={false}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.confirmWorkspace.title')}</Text>
+                    <Text style={styles.textHeadlineH1} accessibilityRole="header">{translate('onboarding.confirmWorkspace.title')}</Text>
                 </View>
                 <View style={styles.mb5}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.confirmWorkspace.subtitle')}</Text>

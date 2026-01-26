@@ -196,7 +196,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 >
                     <View>
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                            <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmail.title')}</Text>
+                            <Text style={styles.textHeadlineH1} accessibilityRole="header">{translate('onboarding.workEmail.title')}</Text>
                         </View>
                         <View style={styles.mb2}>
                             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>

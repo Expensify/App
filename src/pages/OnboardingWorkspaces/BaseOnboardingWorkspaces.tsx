@@ -165,7 +165,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 showScrollIndicator
                 customListHeader={
                     <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
+                        <Text style={styles.textHeadlineH1} accessibilityRole="header">{translate('onboarding.joinAWorkspace')}</Text>
                         <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
                     </View>
                 }

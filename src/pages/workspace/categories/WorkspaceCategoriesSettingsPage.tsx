@@ -100,7 +100,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
 
     const selectionListHeaderContent = (
         <View style={[styles.mh5, styles.mt2, styles.mb1]}>
-            <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
+            <Text style={[styles.headerText]} accessibilityRole="header">{translate('workspace.categories.defaultSpendCategories')}</Text>
             <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
         </View>
     );

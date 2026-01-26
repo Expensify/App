@@ -603,7 +603,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             // We do this so that we can reference the height in `getItemLayout` –
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]} accessibilityRole="header">
                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );

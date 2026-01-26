@@ -102,7 +102,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                 </View>
             ) : (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmailValidation.title')}</Text>
+                    <Text style={styles.textHeadlineH1} accessibilityRole="header">{translate('onboarding.workEmailValidation.title')}</Text>
                     <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
                     <ValidateCodeForm
                         handleSubmitForm={validateAccountAndMerge}

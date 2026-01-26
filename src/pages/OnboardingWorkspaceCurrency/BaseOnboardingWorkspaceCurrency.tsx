@@ -58,7 +58,7 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                <Text style={styles.textHeadlineH1}>{translate('common.currency')}</Text>
+                <Text style={styles.textHeadlineH1} accessibilityRole="header">{translate('common.currency')}</Text>
             </View>
             <CurrencySelectionList
                 listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}

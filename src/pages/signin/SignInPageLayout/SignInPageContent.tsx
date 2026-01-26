@@ -42,6 +42,7 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
                                         !shouldUseNarrowLayout ? styles.textAlignLeft : {},
                                         styles.mb5,
                                     ]}
+                                    accessibilityRole="header"
                                 >
                                     {welcomeHeader}
                                 </Text>

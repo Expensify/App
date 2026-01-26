@@ -673,7 +673,7 @@ function AdvancedSearchFilters() {
                                         style={[styles.reportHorizontalRule]}
                                     />
                                 )}
-                                <Text style={[styles.headerText, styles.reportHorizontalRule, index === 0 ? null : styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                                <Text style={[styles.headerText, styles.reportHorizontalRule, index === 0 ? null : styles.mt4, styles.mb2]} accessibilityRole="header">{translate(section.titleTranslationKey)}</Text>
                                 {section.items.map((item) => {
                                     return (
                                         <MenuItemWithTopDescription
