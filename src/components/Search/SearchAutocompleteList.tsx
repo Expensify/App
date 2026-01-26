@@ -643,7 +643,6 @@ function SearchAutocompleteList({
         statusAutocompleteList,
         feedAutoCompleteList,
         cardAutocompleteList,
-        translate,
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
