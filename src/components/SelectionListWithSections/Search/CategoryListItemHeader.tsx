@@ -59,7 +59,7 @@ function CategoryListItemHeader<TItem extends ListItem>({
     const {translate} = useLocalize();
     // formattedCategory is pre-decoded in SearchUIUtils, just translate empty values
     const rawCategory = categoryItem.formattedCategory ?? categoryItem.category;
-    const categoryName = !rawCategory || rawCategory === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('search.uncategorized') : rawCategory;
+    const categoryName = !rawCategory || rawCategory === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('reportLayout.uncategorized') : rawCategory;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]: (

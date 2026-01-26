@@ -22,7 +22,6 @@ type SearchHeaderIcons = {
     Profile?: IconAsset;
     CreditCard?: IconAsset;
     Bank?: IconAsset;
-    Folder?: IconAsset;
 };
 
 const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
@@ -427,7 +426,7 @@ function SearchTableHeader({
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
     // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
-    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard', 'Folder'] : []) satisfies SearchHeaderIcons;
+    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard'] : []) satisfies SearchHeaderIcons;
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
