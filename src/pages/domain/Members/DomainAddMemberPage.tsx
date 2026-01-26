@@ -45,12 +45,12 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const isSubmitDisabled = !domainName || !email || isEmailInvalid || isUserAlreadyAMember;
 
     const handleSubmit = () => {
-        if (isSubmitDisabled) {
+        if (isSubmitDisabled || !defaultSecurityGroupID) {
             return;
         }
 
         setEmail('');
-        addMemberToDomain(domainAccountID, fullEmail, defaultSecurityGroupID ?? '');
+        addMemberToDomain(domainAccountID, fullEmail, defaultSecurityGroupID);
         Navigation.dismissModal();
     };
 

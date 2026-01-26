@@ -61,7 +61,12 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerIcon={illustrations.Profile}
             headerContent={renderHeaderButtons}
             getCustomRowProps={getCustomRowProps}
-            onDismissError={(item) => clearAddMemberError(domainAccountID, item.accountID, item.login, defaultSecurityGroupID ?? '')}
+            onDismissError={(item) => {
+                if (!defaultSecurityGroupID) {
+                    return;
+                }
+                clearAddMemberError(domainAccountID, item.accountID, item.login, defaultSecurityGroupID);
+            }}
         />
     );
 }
