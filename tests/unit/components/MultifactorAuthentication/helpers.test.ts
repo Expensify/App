@@ -1,9 +1,31 @@
-import {getAuthTypeName, getOutcomePaths, isValidScenario, resetKeys, shouldClearScenario, Status} from '@components/MultifactorAuthentication/helpers';
+import type {Writable} from 'type-fest';
+import {
+    createAuthorizeErrorStatus,
+    doesDeviceSupportBiometrics,
+    getAuthTypeName,
+    getOutcomePaths,
+    isBiometryConfigured,
+    isValidScenario,
+    resetKeys,
+    shouldClearScenario,
+    Status,
+} from '@components/MultifactorAuthentication/helpers';
+import type {BiometricsStatus} from '@components/MultifactorAuthentication/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
-import type {MultifactorAuthenticationPartialStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
+import {requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore');
+jest.mock('@userActions/MultifactorAuthentication');
+jest.mock('@libs/MultifactorAuthentication/Biometrics/SecureStore', () => ({
+    SECURE_STORE_VALUES: {
+        AUTH_TYPE: {
+            BIOMETRICS: {CODE: 'BIOMETRICS', NAME: 'Biometrics'},
+            PIN: {CODE: 'PIN', NAME: 'PIN'},
+        },
+    },
+}));
 
 describe('MultifactorAuthentication helpers', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -222,6 +244,266 @@ describe('MultifactorAuthentication helpers', () => {
             // Verify both methods were called
             expect(privateKeyStoreDelete).toHaveBeenCalledWith(accountID);
             expect(publicKeyStoreDelete).toHaveBeenCalledWith(accountID);
+        });
+    });
+
+    describe('doesDeviceSupportBiometrics', () => {
+        it('should return true if biometrics is supported', () => {
+            (PublicKeyStore.supportedAuthentication as Writable<typeof PublicKeyStore.supportedAuthentication>) = {biometrics: true, credentials: false};
+            expect(doesDeviceSupportBiometrics()).toBe(true);
+        });
+
+        it('should return true if credentials is supported', () => {
+            (PublicKeyStore.supportedAuthentication as Writable<typeof PublicKeyStore.supportedAuthentication>) = {biometrics: false, credentials: true};
+            expect(doesDeviceSupportBiometrics()).toBe(true);
+        });
+
+        it('should return false if neither is supported', () => {
+            (PublicKeyStore.supportedAuthentication as Writable<typeof PublicKeyStore.supportedAuthentication>) = {biometrics: false, credentials: false};
+            expect(doesDeviceSupportBiometrics()).toBe(false);
+        });
+
+        it('should return true if both are supported', () => {
+            (PublicKeyStore.supportedAuthentication as Writable<typeof PublicKeyStore.supportedAuthentication>) = {biometrics: true, credentials: true};
+            expect(doesDeviceSupportBiometrics()).toBe(true);
+        });
+    });
+
+    describe('isBiometryConfigured', () => {
+        it('should return configuration status for an account', async () => {
+            const accountID = 12345;
+            (PublicKeyStore.get as jest.Mock).mockResolvedValue({value: 'localPublicKey'});
+            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({publicKeys: ['remotePublicKey', 'localPublicKey']});
+
+            const result = await isBiometryConfigured(accountID);
+
+            expect(result).toEqual({
+                isAnyDeviceRegistered: true,
+                isBiometryRegisteredLocally: true,
+                isLocalPublicKeyInAuth: true,
+            });
+        });
+
+        it('should handle no local key', async () => {
+            const accountID = 12345;
+            (PublicKeyStore.get as jest.Mock).mockResolvedValue({value: null});
+            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({publicKeys: ['remotePublicKey']});
+
+            const result = await isBiometryConfigured(accountID);
+
+            expect(result.isBiometryRegisteredLocally).toBe(false);
+            expect(result.isLocalPublicKeyInAuth).toBe(false);
+        });
+
+        it('should handle no remote keys', async () => {
+            const accountID = 12345;
+            (PublicKeyStore.get as jest.Mock).mockResolvedValue({value: 'localPublicKey'});
+            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({publicKeys: []});
+
+            const result = await isBiometryConfigured(accountID);
+
+            expect(result.isAnyDeviceRegistered).toBe(false);
+            expect(result.isLocalPublicKeyInAuth).toBe(false);
+        });
+    });
+
+    describe('createAuthorizeErrorStatus', () => {
+        it('should create error status with failed step', () => {
+            const errorStatus: MultifactorAuthenticationPartialStatus<boolean, true> = {
+                value: false,
+                type: 0,
+                reason: 'An error occurred',
+            };
+
+            const updater = createAuthorizeErrorStatus(errorStatus);
+            const prevStatus: MultifactorAuthenticationStatus<boolean> = {
+                value: true,
+                reason: 'No action has been made yet',
+                type: undefined,
+                step: {
+                    wasRecentStepSuccessful: true,
+                    isRequestFulfilled: false,
+                    requiredFactorForNextStep: undefined,
+                },
+                scenario: undefined,
+                headerTitle: 'Test',
+                title: 'Test',
+                description: 'Test',
+                outcomePaths: {
+                    successOutcome: 'biometrics-test-success',
+                    failureOutcome: 'biometrics-test-failure',
+                },
+            };
+
+            const result = updater(prevStatus);
+
+            expect(result.value).toBe(false);
+            expect(result.reason).toBe('An error occurred');
+            expect(result.step.wasRecentStepSuccessful).toBe(false);
+            expect(result.step.isRequestFulfilled).toBe(true);
+        });
+    });
+
+    describe('Status.createBaseStep', () => {
+        it('should create a successful fulfilled step', () => {
+            const step = Status.createBaseStep(true, true);
+
+            expect(step.wasRecentStepSuccessful).toBe(true);
+            expect(step.isRequestFulfilled).toBe(true);
+            expect(step.requiredFactorForNextStep).toBeUndefined();
+        });
+
+        it('should create a failed unfulfilled step with required factor', () => {
+            const step = Status.createBaseStep(false, false, CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE);
+
+            expect(step.wasRecentStepSuccessful).toBe(false);
+            expect(step.isRequestFulfilled).toBe(false);
+            expect(step.requiredFactorForNextStep).toBe(CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE);
+        });
+    });
+
+    describe('Status.createUnsupportedDeviceStatus', () => {
+        it('should clear biometric flags for unsupported devices', () => {
+            const prevStatus: MultifactorAuthenticationStatus<BiometricsStatus> = {
+                value: {
+                    isAnyDeviceRegistered: true,
+                    isBiometryRegisteredLocally: true,
+                    isLocalPublicKeyInAuth: true,
+                },
+                reason: 'No action has been made yet',
+                step: {wasRecentStepSuccessful: true, isRequestFulfilled: true, requiredFactorForNextStep: undefined},
+                scenario: undefined,
+                headerTitle: 'Test',
+                title: 'Test',
+                description: 'Test',
+                outcomePaths: {successOutcome: 'biometrics-test-success', failureOutcome: 'biometrics-test-failure'},
+            };
+
+            const result = Status.createUnsupportedDeviceStatus(prevStatus);
+
+            expect(result.value.isAnyDeviceRegistered).toBe(true);
+            expect(result.value.isBiometryRegisteredLocally).toBe(false);
+            expect(result.value.isLocalPublicKeyInAuth).toBe(false);
+        });
+    });
+
+    describe('Status.createValidateCodeMissingStatus', () => {
+        it('should set validate code as required factor', () => {
+            const prevStatus: MultifactorAuthenticationStatus<BiometricsStatus> = {
+                value: {isAnyDeviceRegistered: false, isBiometryRegisteredLocally: false, isLocalPublicKeyInAuth: false},
+                reason: 'Validate code is missing',
+                step: {wasRecentStepSuccessful: undefined, isRequestFulfilled: true, requiredFactorForNextStep: undefined},
+                scenario: undefined,
+                headerTitle: 'Test',
+                title: 'Test',
+                description: 'Test',
+                outcomePaths: {successOutcome: 'biometrics-test-success', failureOutcome: 'biometrics-test-failure'},
+            };
+
+            const result = Status.createValidateCodeMissingStatus(prevStatus);
+
+            expect(result.step.requiredFactorForNextStep).toBe(CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE);
+            expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.VALIDATE_CODE_MISSING);
+        });
+    });
+
+    describe('Status.createCancelStatus', () => {
+        it('should return a status updater that marks request as fulfilled', () => {
+            const prevStatus: MultifactorAuthenticationStatus<BiometricsStatus> = {
+                value: {isAnyDeviceRegistered: false, isBiometryRegisteredLocally: false, isLocalPublicKeyInAuth: false},
+                reason: 'No action has been made yet',
+                step: {wasRecentStepSuccessful: true, isRequestFulfilled: false, requiredFactorForNextStep: undefined},
+                scenario: undefined,
+                headerTitle: 'Test',
+                title: 'Test',
+                description: 'Test',
+                outcomePaths: {successOutcome: 'biometrics-test-success', failureOutcome: 'biometrics-test-failure'},
+            };
+
+            const updater = Status.createCancelStatus(true);
+            const result = updater(prevStatus);
+
+            expect(result.step.isRequestFulfilled).toBe(true);
+            expect(result.step.wasRecentStepSuccessful).toBe(true);
+            expect(result.step.requiredFactorForNextStep).toBeUndefined();
+        });
+
+        it('should preserve previous status fields', () => {
+            const prevStatus: MultifactorAuthenticationStatus<BiometricsStatus> = {
+                value: {isAnyDeviceRegistered: true, isBiometryRegisteredLocally: false, isLocalPublicKeyInAuth: false},
+                reason: 'No action has been made yet',
+                step: {wasRecentStepSuccessful: true, isRequestFulfilled: false, requiredFactorForNextStep: undefined},
+                scenario: undefined,
+                headerTitle: 'Title',
+                title: 'Test Title',
+                description: 'Description',
+                outcomePaths: {successOutcome: 'biometrics-test-success', failureOutcome: 'biometrics-test-failure'},
+            };
+
+            const updater = Status.createCancelStatus(false);
+            const result = updater(prevStatus);
+
+            expect(result.value).toEqual(prevStatus.value);
+            expect(result.reason).toBe(prevStatus.reason);
+            expect(result.headerTitle).toBe(prevStatus.headerTitle);
+        });
+    });
+
+    describe('Status.createRefreshStatusStatus', () => {
+        it('should update biometric status with new values', () => {
+            const prevStatus: MultifactorAuthenticationStatus<BiometricsStatus> = {
+                value: {isAnyDeviceRegistered: false, isBiometryRegisteredLocally: false, isLocalPublicKeyInAuth: false},
+                reason: 'No action has been made yet',
+                step: {wasRecentStepSuccessful: undefined, isRequestFulfilled: true, requiredFactorForNextStep: undefined},
+                scenario: undefined,
+                headerTitle: 'Test',
+                title: 'Test',
+                description: 'Test',
+                outcomePaths: {successOutcome: 'biometrics-test-success', failureOutcome: 'biometrics-test-failure'},
+            };
+
+            const newStatus: BiometricsStatus = {
+                isAnyDeviceRegistered: true,
+                isBiometryRegisteredLocally: true,
+                isLocalPublicKeyInAuth: true,
+            };
+
+            const updater = Status.createRefreshStatusStatus(newStatus);
+            const result = updater(prevStatus);
+
+            expect(result.value).toEqual(newStatus);
+            expect(result.reason).toBe(prevStatus.reason);
+        });
+
+        it('should optionally overwrite other status fields', () => {
+            const prevStatus: MultifactorAuthenticationStatus<BiometricsStatus> = {
+                value: {isAnyDeviceRegistered: false, isBiometryRegisteredLocally: false, isLocalPublicKeyInAuth: false},
+                reason: 'No action has been made yet',
+                step: {wasRecentStepSuccessful: undefined, isRequestFulfilled: true, requiredFactorForNextStep: undefined},
+                scenario: undefined,
+                headerTitle: 'Test',
+                title: 'Test',
+                description: 'Test',
+                outcomePaths: {successOutcome: 'biometrics-test-success', failureOutcome: 'biometrics-test-failure'},
+            };
+
+            const newStatus: BiometricsStatus = {
+                isAnyDeviceRegistered: true,
+                isBiometryRegisteredLocally: true,
+                isLocalPublicKeyInAuth: true,
+            };
+
+            const overwriteStatus = {
+                reason: 'No action has been made yet',
+                headerTitle: 'New title',
+            } as const;
+
+            const updater = Status.createRefreshStatusStatus(newStatus, overwriteStatus);
+            const result = updater(prevStatus);
+
+            expect(result.value).toEqual(newStatus);
+            expect(result.reason).toBe('No action has been made yet');
+            expect(result.headerTitle).toBe('New title');
         });
     });
 });
