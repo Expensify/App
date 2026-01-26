@@ -69,6 +69,7 @@ import {
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
+    getCardConnectionBrokenMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -135,6 +136,7 @@ import {
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isActionOfType,
+    isCardBrokenConnectionAction,
     isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
@@ -349,6 +351,9 @@ type PureReportActionItemProps = {
     /** Whether the room is a chronos report */
     isChronosReport?: boolean;
 
+    /** All cards */
+    cardList?: OnyxTypes.CardList;
+
     /** Function to toggle emoji reaction */
     toggleEmojiReaction?: (
         reportID: string | undefined,
@@ -485,6 +490,7 @@ function PureReportActionItem({
     iouReportOfLinkedReport,
     emojiReactions,
     linkedTransactionRouteError,
+    cardList,
     isUserValidated,
     parentReport,
     personalDetails,
@@ -1568,6 +1574,10 @@ function PureReportActionItem({
                     policyID={report?.policyID}
                 />
             );
+        } else if (isCardBrokenConnectionAction(action)) {
+            const cardID = getOriginalMessage(action)?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            children = <ReportActionItemBasicMessage message={getCardConnectionBrokenMessage(action, card, translate)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
@@ -2068,6 +2078,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.taskReport, nextProps.taskReport) &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
+        deepEqual(prevProps.cardList, nextProps.cardList) &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
         prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID &&
         prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction

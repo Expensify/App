@@ -226,6 +226,7 @@ type ViolationsRterParams = {
     member?: string;
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
     companyCardPageURL?: string;
+    connectionLink?: string;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
@@ -625,6 +626,11 @@ type RoutedDueToDEWParams = {
     to: string;
 };
 
+type ConciergeBrokenCardConnectionParams = {
+    cardName: string;
+    connectionLink: string;
+};
+
 export type {
     SettlementAccountReconciliationParams,
     ToggleImportTitleParams,
@@ -690,6 +696,7 @@ export type {
     RemovedTheRequestParams,
     MovedFromReportParams,
     RenamedRoomActionParams,
+    ConciergeBrokenCardConnectionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportPolicyNameParams,

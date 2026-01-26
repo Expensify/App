@@ -14,13 +14,14 @@ type ViolationMessagesProps = {
     textStyle?: StyleProp<TextStyle>;
     canEdit: boolean;
     companyCardPageURL?: string;
+    connectionLink?: string;
 };
 
-export default function ViolationMessages({violations, isLast, containerStyle, textStyle, canEdit, companyCardPageURL}: ViolationMessagesProps) {
+export default function ViolationMessages({violations, isLast, containerStyle, textStyle, canEdit, companyCardPageURL, connectionLink}: ViolationMessagesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const violationMessages = useMemo(
-        () => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)]),
+        () => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink)]),
         [canEdit, translate, violations, companyCardPageURL],
     );
 
