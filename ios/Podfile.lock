@@ -2486,7 +2486,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller (1.18.5):
+  - react-native-keyboard-controller (1.20.6):
     - boost
     - DoubleConversion
     - fast_float
@@ -2504,7 +2504,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.18.5)
+    - react-native-keyboard-controller/common (= 1.20.6)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2515,7 +2515,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller/common (1.18.5):
+  - react-native-keyboard-controller/common (1.20.6):
     - boost
     - DoubleConversion
     - fast_float
@@ -2573,7 +2573,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-pager-view (7.0.2):
+  - react-native-pager-view (8.0.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2600,6 +2600,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - SocketRocket
+    - SwiftUIIntrospect (~> 1.0)
     - Yoga
   - react-native-pdf (7.0.2):
     - boost
@@ -4156,6 +4157,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - Sentry/HybridSDK (8.57.2)
   - SocketRocket (0.7.1)
+  - SwiftUIIntrospect (1.3.0)
   - Turf (2.8.0)
   - TweetNacl (1.0.2)
   - UMAppLoader (6.0.8)
@@ -4188,8 +4190,6 @@ DEPENDENCIES:
   - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - ExpoVideo (from `../node_modules/expo-video/ios`)
   - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
-  - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
-  - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
@@ -4367,6 +4367,7 @@ SPEC REPOS:
     - SDWebImageWebPCoder
     - Sentry
     - SocketRocket
+    - SwiftUIIntrospect
     - Turf
     - TweetNacl
 
@@ -4783,10 +4784,10 @@ SPEC CHECKSUMS:
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-image-picker: 1722f5d3dc5de5039d423e290dc31a717ba9605e
   react-native-key-command: 7538df85ed26502b2a929c0584235459b26c7a91
-  react-native-keyboard-controller: c4ca61f44d66c2f8987a7e67e9b78e80dc965c45
+  react-native-keyboard-controller: 40b005f1202d68566a2d058ddc148a3ea8d73288
   react-native-launch-arguments: d4759f7591e2766e6c5ec746b7032429edaf7058
   react-native-netinfo: f94b3a0fc305e812f3f615989d99299d7110c2ae
-  react-native-pager-view: b93d2fcd4dc06c519b8ad0ceddaf183fb5fa32e7
+  react-native-pager-view: c62ab82db28e2d11e7809c59085e2984a45979c5
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
   react-native-performance: a7a65d0b0f3055c5db33e1433e4345143ef6a100
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
@@ -4857,6 +4858,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   Sentry: 83a3814c3ca042874b39c5c5bdffb6570d4d760e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
+  SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: 145337733539f9af9b3dd97eeaa7f3bd97cacb23
