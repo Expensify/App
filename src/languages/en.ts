@@ -5139,6 +5139,10 @@ const translations = {
                 title: 'Rules',
                 subtitle: 'Require receipts, flag high spend, and more.',
             },
+            timeTracking: {
+                title: 'Time',
+                subtitle: 'Set an hourly billable rate for employees to get paid for their time.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Examples:',

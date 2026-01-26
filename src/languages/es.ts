@@ -4890,6 +4890,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Reglas',
                 subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
             },
+            timeTracking: {
+                title: 'Tiempo',
+                subtitle: 'Establece una tarifa facturable por hora para que los empleados reciban pago por su tiempo.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',

@@ -129,7 +129,7 @@ describe('TransactionPreviewUtils', () => {
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
             const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps});
 
-            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.card'}]));
+            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.card'}]));
             expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
         });
 
