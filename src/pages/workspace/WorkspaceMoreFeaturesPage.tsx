@@ -271,7 +271,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 enablePolicyTimeTracking(policyID, isEnabled);
             },
             onPress: () => {
-                // TODO: Navigate to the Time Tracking settings page when implemented.
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID));
             },
         });
     }
