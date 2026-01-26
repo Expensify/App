@@ -259,7 +259,7 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
 
-    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
+    const {displayLabel: agentZeroDisplayLabel, reasoningHistory: agentZeroReasoningHistory, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -648,6 +648,7 @@ function ReportActionCompose({
                         <AgentZeroProcessingRequestIndicator
                             reportID={reportID}
                             label={agentZeroDisplayLabel}
+                            reasoningHistory={agentZeroReasoningHistory}
                         />
                         <ReportTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (

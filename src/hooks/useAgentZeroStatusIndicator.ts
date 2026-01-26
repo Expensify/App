@@ -1,9 +1,12 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import * as ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
+import {subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 type AgentZeroStatusState = {
     displayLabel?: string;
+    reasoningHistory: string[];
     kickoffWaitingIndicator: () => void;
 };
 
@@ -149,11 +152,45 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     const [displayLabel, setDisplayLabel] = useState<string>();
     const [serverLabelVersion, setServerLabelVersion] = useState(0);
     const [waitingSessionVersion, setWaitingSessionVersion] = useState<number | null>(null);
+    const [reasoningHistory, setReasoningHistory] = useState<string[]>([]);
 
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fillerIndexRef = useRef<number>(0);
     const nextDelayRef = useRef<number>(INITIAL_FILLER_DELAY_MS);
     const baseLabelRef = useRef<string>(serverLabel ?? '');
+
+    // Subscribe to Pusher reasoning events and local store changes
+    useEffect(() => {
+        if (!isConciergeChat || !reportID) {
+            return;
+        }
+
+        // Subscribe to Pusher events for reasoning
+        subscribeToReportReasoningEvents(reportID);
+
+        // Subscribe to local store changes
+        const unsubscribeFromStore = ConciergeReasoningStore.subscribe((changedReportID, state) => {
+            if (changedReportID !== reportID) {
+                return;
+            }
+            setReasoningHistory(state ? state.entries.map((entry) => entry.reasoning) : []);
+        });
+
+        // Initialize with current state
+        setReasoningHistory(ConciergeReasoningStore.getReasoningHistory(reportID));
+
+        return () => {
+            unsubscribeFromStore();
+            unsubscribeFromReportReasoningChannel(reportID);
+        };
+    }, [reportID, isConciergeChat]);
+
+    // Clear reasoning when server label clears (final message arrived)
+    useEffect(() => {
+        if (!serverLabel && reasoningHistory.length > 0) {
+            ConciergeReasoningStore.clearReasoning(reportID);
+        }
+    }, [serverLabel, reasoningHistory.length, reportID]);
 
     useEffect(() => {
         setServerLabelVersion((version) => version + 1);
@@ -243,9 +280,10 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     return useMemo(
         () => ({
             displayLabel,
+            reasoningHistory,
             kickoffWaitingIndicator,
         }),
-        [displayLabel, kickoffWaitingIndicator],
+        [displayLabel, reasoningHistory, kickoffWaitingIndicator],
     );
 }
 
