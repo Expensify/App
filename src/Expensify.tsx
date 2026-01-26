@@ -7,6 +7,7 @@ import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
+import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import {InitialURLContext} from './components/InitialURLContextProvider';
@@ -19,12 +20,15 @@ import CONST from './CONST';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
+import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';
 import usePriorityMode from './hooks/usePriorityChange';
-import {updateLastRoute} from './libs/actions/App';
+import {confirmReadyToOpenApp, openApp, updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import {openReportFromDeepLink} from './libs/actions/Link';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import './libs/actions/replaceOptimisticReportWithActualReport';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken} from './libs/actions/Session';
 import * as User from './libs/actions/User';
@@ -98,6 +102,8 @@ type ExpensifyProps = {
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
+    const hasLoggedDelegateMismatchRef = useRef(false);
+    const hasHandledMissingIsLoadingAppRef = useRef(false);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
@@ -117,8 +123,12 @@ function Expensify() {
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const {isOffline} = useNetwork();
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -247,9 +257,6 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata)) {
-            return;
-        }
         setTimeout(() => {
             const appState = AppState.currentState;
             Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
@@ -285,11 +292,34 @@ function Expensify() {
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         setIsAuthenticatedAtStartup(isAuthenticated);
+
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.onURLListenerAdded();
+        }
+
+        return () => {
+            appStateChangeListener.current?.remove();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
+
+    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
+    useEffect(() => {
+        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
+    }, []);
+
+    useEffect(() => {
+        if (isLoadingOnyxValue(sessionMetadata)) {
+            return;
+        }
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
             if (url) {
-                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+                if (conciergeReportID === undefined) {
+                    Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
+                }
+                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated, conciergeReportID);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -297,29 +327,18 @@ function Expensify() {
 
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
+            if (conciergeReportID === undefined) {
+                Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
+            }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
+            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, conciergeReportID);
         });
-        if (CONFIG.IS_HYBRID_APP) {
-            HybridAppModule.onURLListenerAdded();
-        }
 
         return () => {
-            if (appStateChangeListener.current) {
-                appStateChangeListener.current.remove();
-            }
-            if (!linkingChangeListener.current) {
-                return;
-            }
-            linkingChangeListener.current.remove();
+            linkingChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [sessionMetadata?.status]);
-
-    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
-    useEffect(() => {
-        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
+    }, [sessionMetadata?.status, conciergeReportID]);
 
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
@@ -348,6 +367,37 @@ function Expensify() {
         disconnect({stashedCredentials, stashedSession});
     }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
 
+    useEffect(() => {
+        if (hasLoggedDelegateMismatchRef.current || !hasLoadedApp || isLoadingApp) {
+            return;
+        }
+        const delegators = account?.delegatedAccess?.delegators ?? [];
+        const hasDelegatorMatch = !!session?.email && delegators.some((delegator) => delegator.email === session.email);
+        const shouldLogMismatch = hasDelegatorMatch && !!account?.primaryLogin && !account?.delegatedAccess?.delegate;
+        if (!shouldLogMismatch) {
+            return;
+        }
+        hasLoggedDelegateMismatchRef.current = true;
+        Log.info('[Delegate] Missing delegate field after switch', false, {
+            sessionAccountID: session?.accountID,
+            delegatorsCount: delegators.length,
+            hasPrimaryLogin: !!account?.primaryLogin,
+        });
+    }, [account?.delegatedAccess?.delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, session?.accountID, session?.email]);
+
+    useEffect(() => {
+        if (hasHandledMissingIsLoadingAppRef.current || !isOnyxMigrated || !hasLoadedApp || isLoadingApp !== undefined || isOffline) {
+            return;
+        }
+        hasHandledMissingIsLoadingAppRef.current = true;
+        Log.info('[Onyx] isLoadingApp missing after app is ready', false, {
+            sessionAccountID: session?.accountID,
+            hasLoadedApp: !!hasLoadedApp,
+        });
+        confirmReadyToOpenApp();
+        openApp();
+    }, [hasLoadedApp, isLoadingApp, isOffline, isOnyxMigrated, session?.accountID]);
+
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -362,7 +412,9 @@ function Expensify() {
             {shouldInit && (
                 <>
                     <GrowlNotification ref={growlRef} />
-                    <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    <DelegateNoAccessModalProvider>
+                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    </DelegateNoAccessModalProvider>
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
