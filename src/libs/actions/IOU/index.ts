@@ -12569,46 +12569,49 @@ function initSplitExpense(
     const transactionDetails = getTransactionDetails(transaction);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
-    // Calculate merchant for distance transactions
-    let merchant: string | undefined;
-    let customUnit: TransactionCustomUnit | undefined;
+    const splitAmounts = [
+        calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
+        calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
+    ];
+    const splitCustomUnits: (TransactionCustomUnit | undefined)[] = [undefined, undefined];
+    const splitMerchants: (string | undefined)[] = [undefined, undefined];
+
     if (isDistanceRequestTransactionUtils(transaction)) {
-        let quantity: number | undefined;
-        if (transaction?.comment?.customUnit?.quantity) {
-            quantity = transaction?.comment?.customUnit?.quantity;
-        } else if (transaction?.routes?.route0?.distance && transaction?.comment?.customUnit?.distanceUnit) {
-            quantity = DistanceRequestUtils.convertDistanceUnit(transaction?.routes?.route0?.distance, transaction?.comment?.customUnit?.distanceUnit);
-        } else {
-            quantity = undefined;
-        }
-        const splittedQuantity = quantity ? Number((quantity / 2).toFixed(CONST.DISTANCE_DECIMAL_PLACES)) : 0;
-
-        customUnit =
-            transaction?.comment?.customUnit && quantity
-                ? {
-                      ...(transaction?.comment?.customUnit ?? {}),
-                      quantity: splittedQuantity,
-                  }
-                : undefined;
-
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
         const {unit, rate} = mileageRate;
         const currency = mileageRate?.currency ?? transactionDetails?.currency ?? CONST.CURRENCY.USD;
-        merchant = getDistanceMerchantForSplitExpense(splittedQuantity, unit, rate, currency, transactionDetails?.currency);
+
+        if (rate && rate > 0 && transaction?.comment?.customUnit) {
+            for (let i = 0; i < 2; i++) {
+                if (splitAmounts[i] !== 0) {
+                    // Calculate distance from amount and rate: distance = amount / rate
+                    // Both amount and rate are in cents, so the result is in distance units
+                    const distanceInUnits = Math.abs(splitAmounts[i]) / rate;
+                    const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+
+                    splitCustomUnits[i] = {
+                        ...(transaction.comment.customUnit ?? {}),
+                        quantity,
+                    };
+
+                    splitMerchants[i] = getDistanceMerchantForSplitExpense(distanceInUnits, unit, rate, currency, transactionDetails?.currency);
+                }
+            }
+        }
     }
 
     const splitExpenses = [
         initSplitExpenseItemData(transaction, {
-            amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
+            amount: splitAmounts[0],
             transactionID: NumberUtils.rand64(),
-            customUnit,
-            merchant,
+            customUnit: splitCustomUnits[0],
+            merchant: splitMerchants[0],
         }),
         initSplitExpenseItemData(transaction, {
-            amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
+            amount: splitAmounts[1],
             transactionID: NumberUtils.rand64(),
-            customUnit,
-            merchant,
+            customUnit: splitCustomUnits[1],
+            merchant: splitMerchants[1],
         }),
     ];
 
