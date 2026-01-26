@@ -68,6 +68,7 @@ function useOptions() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const allPersonalDetails = usePersonalDetails();
 
     const {
         options: listOptions,
@@ -104,6 +105,7 @@ function useOptions() {
             betas: betas ?? [],
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
+            personalDetails: allPersonalDetails,
         },
         countryCode,
     );
