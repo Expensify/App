@@ -6685,6 +6685,11 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta età massima della spesa a "${newValue}" giorni`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima della spesa cambiata a "${newValue}" giorni (in precedenza "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima spesa rimossa (precedentemente "${oldValue}" giorni)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} report approvati con pagamento automatico`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `imposta la soglia per il pagamento automatico dei report approvati su "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `ha modificato la soglia per il pagamento automatico dei report approvati in "${newLimit}" (in precedenza "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: "rimosso la soglia per l'approvazione automatica dei report di pagamento",
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
