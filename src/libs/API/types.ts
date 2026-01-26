@@ -535,6 +535,7 @@ const WRITE_COMMANDS = {
     UPDATE_SAML_ENABLED: 'UpdateSAMLEnabled',
     UPDATE_SAML_REQUIRED: 'UpdateSAMLRequired',
     CREATE_DOMAIN: 'CreateDomain',
+    ADD_DOMAIN_MEMBER: 'AddDomainMember',
     SET_TECHNICAL_CONTACT_EMAIL: 'SetTechnicalContactEmail',
     TOGGLE_CONSOLIDATED_DOMAIN_BILLING: 'ToggleConsolidatedDomainBilling',
     ADD_DOMAIN_ADMIN: 'AddDomainAdmin',
@@ -1101,6 +1102,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN]: Parameters.RemoveDomainAdminParams;
     [WRITE_COMMANDS.DELETE_DOMAIN]: Parameters.DeleteDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
+    [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: Parameters.AddMemberToDomainParams;
 };
 
 const READ_COMMANDS = {
