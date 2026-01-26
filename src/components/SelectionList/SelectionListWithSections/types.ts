@@ -46,7 +46,12 @@ type SectionHeader = {
     isDisabled: boolean;
 };
 
-type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number; type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW};
+type SectionListItem<TItem extends ListItem> = TItem & {
+    flatIndex: number;
+    type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW;
+    /** Unique key for FlashList rendering, containing section info  */
+    flatListKey: string;
+};
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 

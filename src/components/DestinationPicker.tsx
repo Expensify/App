@@ -28,14 +28,13 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const selectedCountryName = selectedDestination?.split('#').at(0);
 
     const getSelectedOptions = (): Destination[] => {
-        if (!selectedCountryName) {
+        if (!selectedDestination) {
             return [];
         }
 
-        const selectedRate = customUnit?.rates?.[selectedCountryName];
+        const selectedRate = customUnit?.rates?.[selectedDestination];
         if (!selectedRate?.customUnitRateID) {
             return [];
         }
@@ -64,7 +63,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
     const shouldShowTextInput = destinationsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const destinationData = sections?.at(0)?.data ?? [];
-    const selectedOptionKey = destinationData.find((destination) => destination.keyForList === selectedCountryName)?.keyForList;
+    const selectedOptionKey = destinationData.find((destination) => destination.keyForList === selectedDestination)?.keyForList;
 
     const textInputOptions = {
         value: searchValue,
@@ -86,6 +85,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
             initiallyFocusedItemKey={selectedOptionKey}
             shouldHideKeyboardOnScroll={false}
             shouldUpdateFocusedIndex
+            disableMaintainingScrollPosition
         />
     );
 }

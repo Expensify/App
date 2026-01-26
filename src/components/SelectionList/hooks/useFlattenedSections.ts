@@ -45,13 +45,14 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
         let focusedIndex = -1;
         let itemsTotalCount = 0;
 
-        for (const section of sections) {
+        for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+            const section = sections[sectionIndex];
             if (section.title) {
                 disabledIndices.push(data.length);
                 data.push({
                     type: CONST.SECTION_LIST_ITEM_TYPE.HEADER,
                     title: section.title,
-                    keyForList: `header-${section.title}`,
+                    keyForList: `${sectionIndex}-${section.title}`,
                     isDisabled: true,
                 });
             }
@@ -63,7 +64,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                     ...item,
                     type: CONST.SECTION_LIST_ITEM_TYPE.ROW,
                     isDisabled: section.isDisabled === true || item.isDisabled === true,
-                    keyForList: `${item.keyForList}#${itemsTotalCount}`,
+                    flatListKey: `${sectionIndex}-${item.keyForList}`,
                 } as SectionListItem<TItem>;
                 data.push(itemData);
 
