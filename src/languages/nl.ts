@@ -7842,6 +7842,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedgekeurd moeten worden</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur dit bonnetje om\n<strong>de proefrit te voltooien!</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
@@ -8019,7 +8020,6 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         domainAdmins: 'Domeinbeheerders',
     },
     gps: {
-        tooltip: 'GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.',
         disclaimer: 'Gebruik GPS om een uitgave van je reis te maken. Tik hieronder op Start om het volgen te beginnen.',
         error: {failedToStart: 'Locatiebijhouding starten is mislukt.', failedToGetPermissions: 'Verkrijgen van vereiste locatierechten mislukt.'},
         trackingDistance: 'Afstand bijhouden...',

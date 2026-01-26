@@ -7800,6 +7800,7 @@ ${reportName}
         },
         outstandingFilter: '<tooltip><strong>承認が必要</strong>な経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS 追跡を進行中です！完了したら、下で追跡を停止してください。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
@@ -7972,7 +7973,6 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         domainAdmins: 'ドメイン管理者',
     },
     gps: {
-        tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
         disclaimer: '移動中の経路から、GPS を使って経費を作成しましょう。下の「開始」をタップして追跡を始めてください。',
         error: {failedToStart: '位置情報の追跡を開始できませんでした。', failedToGetPermissions: '必要な位置情報の権限を取得できませんでした。'},
         trackingDistance: '距離を追跡中...',

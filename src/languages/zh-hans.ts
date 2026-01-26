@@ -7656,6 +7656,7 @@ ${reportName}
         },
         outstandingFilter: '<tooltip>筛选<strong>需要批准</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS 跟踪进行中！完成后，请在下方停止跟踪。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
@@ -7814,7 +7815,6 @@ ${reportName}
         domainAdmins: '域管理员',
     },
     gps: {
-        tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',
         disclaimer: '使用 GPS 根据您的行程创建报销。点击下方的“开始”以开始跟踪。',
         error: {failedToStart: '启动位置跟踪失败。', failedToGetPermissions: '获取必需的位置权限失败。'},
         trackingDistance: '正在跟踪距离…',
