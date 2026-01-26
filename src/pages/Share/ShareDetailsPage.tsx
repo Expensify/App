@@ -19,7 +19,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addAttachmentWithComment, addComment, getCurrentUserAccountID, openReport} from '@libs/actions/Report';
+import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -118,7 +118,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     }
 
     const isDraft = isDraftReport(reportOrAccountID);
-    const currentUserID = getCurrentUserAccountID();
 
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
@@ -140,7 +139,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     openReport(
                         report.reportID,
                         '',
-                        displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],
+                        displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
                         report,
                         undefined,
                         undefined,

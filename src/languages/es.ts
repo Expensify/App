@@ -483,6 +483,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Prueba de biometría',
+            authenticationSuccessful: 'Autenticación exitosa',
+            successfullyAuthenticatedUsing: ({authType}) => `Te has autenticado exitosamente con ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometría (${registered ? 'Registrada' : 'No registrada'})`,
+            yourAttemptWasUnsuccessful: 'Tu intento de autenticación fue fallido.',
+            youCouldNotBeAuthenticated: 'No se pudo autenticar',
+            areYouSureToReject: '¿Estás seguro? El intento de autenticación será rechazado si cierras esta pantalla.',
+            rejectAuthentication: 'Rechazar autenticación',
+            test: 'Prueba',
+            biometricsAuthentication: 'Autenticación biométrica',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Por favor, activa la verificación de rostro/huella digital o establece un código de acceso en tus ',
+            link: 'ajustes del sistema',
+            end: '.',
+        },
+        oops: 'Ups, algo salió mal',
+        looksLikeYouRanOutOfTime: '¡Parece que se te acabó el tiempo! Por favor, inténtalo de nuevo en el comercio.',
+        youRanOutOfTime: 'Se te acabó el tiempo',
+        letsVerifyItsYou: 'Verifiquemos que eres tú',
+        verifyYourself: {
+            biometrics: 'Verifícate con tu rostro o huella dactilar',
+        },
+        enableQuickVerification: {
+            biometrics: 'Activa la verificación rápida y segura usando tu rostro o huella dactilar. No se requieren contraseñas ni códigos.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
         successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
@@ -590,6 +619,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `¿Estás seguro de que quieres eliminar este ${type}?`;
         },
         onlyVisible: 'Visible sólo para',
+        explain: 'Explicar',
+        explainMessage: 'Por favor explícame esto.',
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
         leaveThread: 'Dejar hilo',
@@ -1182,6 +1213,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} a ${rate} / hora`,
             hrs: 'h',
         },
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Explicar</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
@@ -5873,6 +5905,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Reglas de categoría',
                 approver: 'Aprobador',
                 requireDescription: 'Requerir descripción',
+                requireFields: 'Requerir campos',
+                requiredFieldsTitle: 'Campos obligatorios',
+                requiredFieldsDescription: (categoryName) => `Esto se aplicará a todos los gastos categorizados como <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Requerir asistentes',
                 descriptionHint: 'Sugerencia de descripción',
                 descriptionHintDescription: (categoryName) =>
                     `Recuerda a los empleados que deben proporcionar información adicional para los gastos de “${categoryName}”. Esta sugerencia aparece en el campo de descripción en los gastos.`,
@@ -6086,10 +6122,17 @@ ${amount} para ${merchant} - ${date}`,
         deleteReportField: (fieldType, fieldName) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}) => `cambió el monto máximo de gasto requerido sin recibo a ${newValue} (previamente ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}) => `cambió el monto máximo de gasto para violaciones a ${newValue} (previamente ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}) =>
-            `actualizó "Antigüedad máxima de gastos (días)" a "${newValue}" (previamente "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
+        setReceiptRequiredAmount: ({newValue}) => `estableció el importe requerido del recibo en "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}) => `cambió el importe requerido del recibo a "${newValue}" (antes "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}) => `eliminó el importe requerido del recibo (antes "${oldValue}")`,
+
+        setMaxExpenseAmount: ({newValue}) => `estableció el importe máximo del gasto en "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}) => `cambió el importe máximo del gasto a "${newValue}" (antes "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}) => `eliminó el importe máximo del gasto (antes "${oldValue}")`,
+
+        setMaxExpenseAge: ({newValue}) => `estableció la antigüedad máxima del gasto en "${newValue}" días`,
+        changedMaxExpenseAge: ({oldValue, newValue}) => `cambió la antigüedad máxima del gasto a "${newValue}" días (antes "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}) => `eliminó la antigüedad máxima del gasto (anteriormente "${oldValue}" días)`,
         updateDefaultBillable: ({oldValue, newValue}) => `actualizó "Volver a facturar gastos a clientes" a "${newValue}" (previamente "${oldValue}")`,
         updateDefaultReimbursable: ({oldValue, newValue}) => `actualizó "Valor predeterminado para gastos en efectivo" a "${newValue}" (previamente "${oldValue}")`,
         updateMonthlyOffset: ({oldValue, newValue}) => {
@@ -6128,6 +6171,8 @@ ${amount} para ${merchant} - ${date}`,
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
         updatedAuditRate: ({oldAuditRate, newAuditRate}) =>
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
+        changedReimburser: ({newReimburser, previousReimburser}) =>
+            previousReimburser ? `cambió el pagador autorizado a "${newReimburser}" (previamente "${previousReimburser}")` : `cambió el pagador autorizado a "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}) => {
@@ -7296,6 +7341,7 @@ ${amount} para ${merchant} - ${date}`,
         maxAge: ({maxAge}) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
+        missingAttendees: 'Se requieren múltiples asistentes para esta categoría',
         missingTag: ({tagName} = {}) => `Falta ${tagName ?? 'etiqueta'}`,
         modifiedAmount: ({type, displayPercentVariance}) => {
             switch (type) {
@@ -8030,7 +8076,15 @@ ${amount} para ${merchant} - ${date}`,
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
             revokeAdminAccess: 'Revocar acceso de administrador',
             cantRevokeAdminAccess: 'No se puede revocar el acceso de administrador del contacto técnico',
-            error: {removeAdmin: 'No se pudo eliminar a este usuario como administrador. Por favor, inténtalo de nuevo.'},
+            error: {
+                removeAdmin: 'No se pudo eliminar a este usuario como administrador. Por favor, inténtalo de nuevo.',
+                removeDomain: 'No se pudo eliminar este dominio. Inténtalo de nuevo.',
+                removeDomainNameInvalid: 'Introduce el nombre de tu dominio para restablecerlo.',
+            },
+            resetDomain: 'Restablecer dominio',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Escribe <strong>${domainName}</strong> para confirmar el restablecimiento del dominio.`,
+            enterDomainName: 'Introduce aquí tu nombre de dominio',
+            resetDomainInfo: `Esta acción es <strong>permanente</strong> y se eliminarán los siguientes datos: <br/> <ul><li>Conexiones de tarjeta corporativa y cualquier gasto no reportado de esas tarjetas</li> <li>Configuración de SAML y grupos</li> </ul> Todas las cuentas, espacios de trabajo, informes, gastos y otros datos se conservarán. <br/><br/>Nota: Puedes eliminar este dominio de tu lista de dominios eliminando el correo electrónico asociado de tus <a href="#">métodos de contacto</a>.`,
         },
         members: {
             title: 'Miembros',

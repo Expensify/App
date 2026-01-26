@@ -1,10 +1,12 @@
 import {getReportPolicyID} from '@selectors/Report';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useContext, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,12 +30,18 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {removeTransaction} = useSearchContext();
     const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false, selector: getReportPolicyID});
     const policy = usePolicy(reportPolicyID);
+    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy);
         removeTransaction(transactionID);
-        Navigation.dismissModal();
-        if (urlToNavigateBack) {
+        // If the super wide rhp is not opened, dismiss the entire modal.
+        if (superWideRHPRouteKeys.length > 0) {
+            Navigation.dismissToSuperWideRHP();
+        } else {
+            Navigation.dismissModal();
+        }
+        if (urlToNavigateBack && getIsSmallScreenWidth()) {
             Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack));
         }
     };

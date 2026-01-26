@@ -115,6 +115,10 @@ function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
     return parsedPhoneNumber.number?.e164;
 }
 
+function sanitizePhoneOrEmail(phoneOrEmail: string) {
+    return phoneOrEmail.replaceAll(CONST.REGEX.WHITESPACE, '').toLowerCase();
+}
+
 export {
     getPhoneNumberWithoutSpecialChars,
     appendCountryCode,
@@ -127,4 +131,5 @@ export {
     formatE164PhoneNumber,
     getEmailDomain,
     isDomainPublic,
+    sanitizePhoneOrEmail,
 };

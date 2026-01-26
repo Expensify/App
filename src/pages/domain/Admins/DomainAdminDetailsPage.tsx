@@ -15,6 +15,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import {revokeDomainAdminAccess} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
@@ -72,6 +73,14 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             domainAccountID={domainAccountID}
             accountID={accountID}
         >
+            {domainHasOnlyOneAdmin && (
+                <MenuItem
+                    style={styles.mb5}
+                    title={translate('domain.admins.resetDomain')}
+                    icon={icons.ClosedSign}
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
+                />
+            )}
             {!domainHasOnlyOneAdmin && (
                 <MenuItem
                     disabled={isCurrentUserPrimaryContact}

@@ -54,6 +54,7 @@ function IOURequestStepDistanceRate({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
@@ -123,6 +124,7 @@ function IOURequestStepDistanceRate({
                     transactionID: transaction.transactionID,
                     transactionThreadReport: report,
                     parentReport,
+                    parentReportNextStep,
                     rateID: customUnitRateID,
                     policy,
                     policyTagList: policyTags,

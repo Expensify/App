@@ -41,7 +41,9 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
     const isLastUsedPaymentMethodVBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodVBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<
+        typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

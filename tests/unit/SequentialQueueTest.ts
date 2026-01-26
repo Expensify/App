@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxSetInput, OnyxUpdate} from 'react-native-onyx';
 import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
 import {getAll, getLength, getOngoingRequest} from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,7 +9,7 @@ import type {ConflictActionData} from '../../src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const request: Request = {
+const request: Request<'userMetadata'> = {
     command: 'ReconnectApp',
     successData: [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}],
     failureData: [{key: 'userMetadata', onyxMethod: 'set', value: {}}],
@@ -231,7 +231,7 @@ describe('SequentialQueue', () => {
         const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
         SequentialQueue.push(persistedRequest);
 
-        const connectionId = Onyx.connect({
+        const connectionId = Onyx.connect<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>({
             key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
             callback: (ongoingRequest) => {
                 if (!ongoingRequest) {
@@ -248,7 +248,7 @@ describe('SequentialQueue', () => {
 
     it('should get the ongoing request from onyx and start processing it', async () => {
         const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, persistedRequest);
+        Onyx.set<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, persistedRequest as OnyxSetInput<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>);
         SequentialQueue.push({command: 'OpenReport'});
 
         await Promise.resolve();

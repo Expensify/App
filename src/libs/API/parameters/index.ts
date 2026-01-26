@@ -347,6 +347,7 @@ export type {default as AddDelegateParams} from './AddDelegateParams';
 export type {default as UpdateDelegateRoleParams} from './UpdateDelegateRoleParams';
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
+export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
@@ -458,3 +459,5 @@ export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPo
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
 export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
+export type {default as DeleteDomainParams} from './DeleteDomainParams';
+export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';

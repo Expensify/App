@@ -185,6 +185,7 @@ import type {
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -751,6 +752,35 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Test biometryczny',
+            authenticationSuccessful: 'Autentykacja zakończona sukcesem',
+            successfullyAuthenticatedUsing: ({authType}) => `Pomyślnie uwierzytelniono za pomocą ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometria (${registered ? 'Zarejestrowana' : 'Nie zarejestrowana'})`,
+            yourAttemptWasUnsuccessful: 'Twoja próba autentykacji była nieudana.',
+            youCouldNotBeAuthenticated: 'Nie udało się uwierzytelnić',
+            areYouSureToReject: 'Czy jesteś pewien? Próba autentykacji zostanie odrzucona, jeśli zamkniesz ten ekran.',
+            rejectAuthentication: 'Odrzuć autentykację',
+            test: 'Test',
+            biometricsAuthentication: 'Autentykacja biometryczna',
+        },
+        pleaseEnableInSystemSettings: {
+            start: 'Włącz weryfikację twarzy/odcisku palca lub ustaw kod dostępu do urządzenia w ',
+            link: 'ustawieniach systemowych',
+            end: '.',
+        },
+        oops: 'Ups, coś poszło nie tak',
+        looksLikeYouRanOutOfTime: 'Wygląda na to, że zabrakło ci czasu! Spróbuj ponownie u sprzedawcy.',
+        youRanOutOfTime: 'Czas minął',
+        letsVerifyItsYou: 'Sprawdźmy, czy to ty',
+        verifyYourself: {
+            biometrics: 'Zweryfikuj się za pomocą twarzy lub odcisku palca',
+        },
+        enableQuickVerification: {
+            biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł ani kodów.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abrakadabra,
@@ -872,6 +902,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Czy na pewno chcesz usunąć ten element typu ${type}?`;
         },
         onlyVisible: 'Widoczne tylko dla',
+        explain: 'Wyjaśnij',
+        explainMessage: 'Proszę, wyjaśnij mi to.',
         replyInThread: 'Odpowiedz w wątku',
         joinThread: 'Dołącz do wątku',
         leaveThread: 'Opuść wątek',
@@ -1459,6 +1491,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitByDate: 'Podziel według daty',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `raport przekazany do ${to} z powodu niestandardowego procesu zatwierdzania`,
         timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'godzina' : 'godziny'} @ ${rate} / godzinę`, hrs: 'godz.'},
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Wyjaśnij</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
@@ -6191,6 +6224,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Zasady kategorii',
                 approver: 'Akceptujący',
                 requireDescription: 'Wymagaj opisu',
+                requireFields: 'Wymagaj pól',
+                requiredFieldsTitle: 'Wymagane pola',
+                requiredFieldsDescription: (categoryName: string) => `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Wymagaj uczestników',
                 descriptionHint: 'Podpowiedź opisu',
                 descriptionHintDescription: (categoryName: string) =>
                     `Przypominaj pracownikom o podaniu dodatkowych informacji dotyczących wydatków w kategorii „${categoryName}”. Ta podpowiedź pojawia się w polu opisu przy wydatkach.`,
@@ -6422,12 +6459,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         deleteReportField: (fieldType: string, fieldName?: string) => `usunięto pole raportu ${fieldType} „${fieldName}”`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `zaktualizowano „Uniemożliwiaj samodzielne zatwierdzanie” na „${newValue === 'true' ? 'Włączone' : 'Wyłączone'}” (wcześniej „${oldValue === 'true' ? 'Włączone' : 'Wyłączone'}”)`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `zmienił maksymalną kwotę wydatku wymagającą paragonu na ${newValue} (wcześniej ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `zmieniono maksymalną kwotę wydatku dla naruszeń na ${newValue} (wcześniej ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `zaktualizowano „Maksymalny wiek wydatku (dni)” na „${newValue}” (poprzednio „${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}”)`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `ustaw comiesięczną datę przesyłania raportu na „${newValue}”`;
@@ -6581,6 +6612,19 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             previousForwardsTo
                 ? `zmieniono proces zatwierdzania dla ${approver}, aby przestać przekazywać zatwierdzone raporty (wcześniej przekazywane do ${previousForwardsTo})`
                 : `zmieniono przepływ zatwierdzania dla ${approver}, aby nie przekazywać dalej zatwierdzonych raportów`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
+        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+            previousReimburser
+                ? `zmieniono upoważnionego płatnika na „${newReimburser}” (wcześniej „${previousReimburser}”)`
+                : `zmienił(a) upoważnioną osobę dokonującą płatności na „${newReimburser}”`,
     },
     roomMembersPage: {
         memberNotFound: 'Użytkownik nie został znaleziony.',
@@ -7176,6 +7220,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data starsza niż ${maxAge} dni`,
         missingCategory: 'Brak kategorii',
         missingComment: 'Opis jest wymagany dla wybranej kategorii',
+        missingAttendees: 'Wymaganych jest wielu uczestników dla tej kategorii',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Brakujące ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7901,7 +7946,15 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
             revokeAdminAccess: 'Cofnij uprawnienia administratora',
             cantRevokeAdminAccess: 'Nie można odebrać uprawnień administratora kontaktowi technicznemu',
-            error: {removeAdmin: 'Nie można usunąć tego użytkownika jako administratora. Spróbuj ponownie.'},
+            error: {
+                removeAdmin: 'Nie można usunąć tego użytkownika jako administratora. Spróbuj ponownie.',
+                removeDomain: 'Nie można usunąć tej domeny. Spróbuj ponownie.',
+                removeDomainNameInvalid: 'Wprowadź swoją nazwę domeny, aby ją zresetować.',
+            },
+            resetDomain: 'Resetuj domenę',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Wpisz proszę <strong>${domainName}</strong>, aby potwierdzić reset domeny.`,
+            enterDomainName: 'Wpisz tutaj swoją nazwę domeny',
+            resetDomainInfo: `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
         members: {title: 'Członkowie', findMember: 'Znajdź członka'},
     },

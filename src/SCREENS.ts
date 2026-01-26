@@ -255,8 +255,6 @@ const SCREENS = {
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SEARCH_REPORT_ACTIONS: 'SearchReportActions',
-        // These two routes will be added in a separate PR adding Super Wide RHP routes
-        EXPENSE_REPORT: 'ExpenseReport',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
 
         SEARCH_COLUMNS: 'SearchColumns',
@@ -277,6 +275,7 @@ const SCREENS = {
         MERGE_TRANSACTION: 'MergeTransaction',
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
+        EXPENSE_REPORT: 'ExpenseReport',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -690,6 +689,7 @@ const SCREENS = {
         CATEGORY_DESCRIPTION_HINT: 'Category_Description_Hint',
         CATEGORY_APPROVER: 'Category_Approver',
         CATEGORY_REQUIRE_RECEIPTS_OVER: 'Category_Require_Receipts_Over',
+        CATEGORY_REQUIRED_FIELDS: 'Category_Required_Fields',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         CATEGORIES_IMPORT: 'Categories_Import',
         CATEGORIES_IMPORTED: 'Categories_Imported',
@@ -826,6 +826,7 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
     REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
+    EXPENSE_REPORT_VERIFY_ACCOUNT: 'Expense_Report_Verify_Account',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {
         ROOT: 'Share_Root',
@@ -878,6 +879,7 @@ const SCREENS = {
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
+        RESET_DOMAIN: 'Domain_Reset',
     },
 } as const;
 
