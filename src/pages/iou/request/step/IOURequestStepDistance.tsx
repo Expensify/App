@@ -144,7 +144,6 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const iouRequestType = getRequestType(transaction);
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -310,7 +309,6 @@ function IOURequestStepDistance({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
-            allBetas,
         });
     }, [
         transaction,
@@ -334,14 +332,12 @@ function IOURequestStepDistance({
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
-        allBetas,
         policyRecentlyUsedCurrencies,
         customUnitRateID,
         introSelected,
         activePolicyID,
         personalPolicy?.autoReporting,
         reportID,
-        allBetas,
     ]);
 
     const getError = () => {
