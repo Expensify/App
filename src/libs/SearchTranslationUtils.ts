@@ -115,8 +115,8 @@ function getAllTranslatedStatusValues(translate: LocalizedTranslate): Set<string
     const internalValues = Object.values(CONST.SEARCH.STATUS)
         .map((statusGroup) => Object.values(statusGroup))
         .flat()
-        .filter((value): value is string => !!value)
-        .map((value) => value.toLowerCase());
+        .filter((value) => !!value)
+        .map((value) => String(value).toLowerCase());
 
     return new Set([...translatedValues, ...internalValues]);
 }

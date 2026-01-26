@@ -17,6 +17,7 @@ import type {
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
+    SingularSearchStatus,
     SearchWithdrawalType,
     UserFriendlyKey,
     UserFriendlyValue,
@@ -423,18 +424,18 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     return undefined;
 }
 
-function normalizeStatusValue(value: string, translate: LocaleContextProps['translate'], type: SearchDataTypes): string {
+function normalizeStatusValue(value: string, translate: LocaleContextProps['translate'], type: SearchDataTypes): SingularSearchStatus {
     const statusOptions = getStatusOptions(translate, type);
     const statusMap = new Map(statusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
     const allStatusOptions = getAllStatusOptions(translate);
     const allStatusMap = new Map(allStatusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
     const normalizedValue = formatTranslatedValue(value.replaceAll('\u2009', ' '));
-    return statusMap.get(normalizedValue) ?? allStatusMap.get(normalizedValue) ?? value;
+    return (statusMap.get(normalizedValue) ?? allStatusMap.get(normalizedValue) ?? value) as SingularSearchStatus;
 }
 
 function normalizeStatusValues(status: SearchStatus, translate: LocaleContextProps['translate'], type: SearchDataTypes): SearchStatus {
     if (Array.isArray(status)) {
-        return status.map((value) => normalizeStatusValue(value, translate, type));
+        return status.map((value) => normalizeStatusValue(value, translate, type)) as SingularSearchStatus[];
     }
 
     return normalizeStatusValue(status, translate, type);
