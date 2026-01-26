@@ -198,6 +198,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     countryCode,
                     loginList,
+                    policyCollection: allPolicies,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, {
@@ -297,6 +298,7 @@ function useSearchSelectorBase({
         includeUserToInvite,
         countryCode,
         loginList,
+        allPolicies,
         excludeLogins,
         includeRecentReports,
         maxRecentReportsToShow,

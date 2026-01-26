@@ -51,6 +51,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
@@ -74,8 +75,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, isUsedInChatFinder: false, countryCode, loginList});
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList]);
+        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: [], isUsedInChatFinder: false, countryCode, loginList, policyCollection: allPolicies});
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, allPolicies]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, {
