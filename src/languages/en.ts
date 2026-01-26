@@ -4973,8 +4973,8 @@ const translations = {
                 },
                 settings: {
                     autoAddTripName: {
-                        title: 'Add trip details to expenses',
-                        subtitle: 'Automatically apply trip names to expenses during travel booked with Expensify.',
+                        title: 'Add trip names to expenses',
+                        subtitle: 'Automatically add trip names to expense descriptions for travel booked in Expensify.',
                     },
                 },
                 travelInvoicing: {
