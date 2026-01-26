@@ -429,7 +429,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
-                            accessibilityLabel={emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`}
+                            accessibilityLabel={
+                                emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`
+                            }
                             accessibilityRole="button"
                             accessible
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
