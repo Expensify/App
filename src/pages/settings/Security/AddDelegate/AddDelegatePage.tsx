@@ -108,6 +108,8 @@ function AddDelegatePage() {
                         }}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
+                        disableMaintainingScrollPosition
+                        shouldShowTextInput
                     />
                 </View>
             </DelegateNoAccessWrapper>
