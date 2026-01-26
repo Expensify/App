@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import type {ComponentType} from 'react';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
+import {InteractionManager} from 'react-native';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
 import type {SubPageProps, UseSubPageProps} from './types';
@@ -20,18 +21,17 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
     const isEditing = params?.action === 'edit';
 
     const startPageName = pages.at(startFrom)?.pageName;
-    const hasInitialized = useRef(false);
+    const isRedirecting = !urlPageName && !!startPageName;
 
     useEffect(() => {
-        if (hasInitialized.current) {
+        if (!isRedirecting) {
             return;
         }
-        hasInitialized.current = true;
 
-        if (!urlPageName && startPageName) {
+        InteractionManager.runAfterInteractions(() => {
             Navigation.navigate(buildRoute(startPageName), {forceReplace: true});
-        }
-    }, [urlPageName, startPageName, buildRoute]);
+        });
+    }, [isRedirecting, startPageName, buildRoute]);
 
     const currentPageName = urlPageName ?? startPageName ?? pages.at(0)?.pageName;
     const pageIndex = findPageIndex(pages, currentPageName);
@@ -114,5 +114,6 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         lastPageIndex,
         moveTo,
         resetToPage,
+        isRedirecting,
     };
 }
