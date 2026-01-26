@@ -147,6 +147,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
     shouldSkipContentHeaderHeightOffset,
+    tempPropShouldStopScrollAndJump,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -154,6 +155,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const hasKeyBeenPressed = useRef(false);
+    const shouldPreventScroll = useRef(false);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
@@ -411,8 +413,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const targetItem = flattenedSections.allOptions.at(indexToScroll);
 
         if (targetItem && indexToScroll < CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
-            pendingScrollIndexRef.current = null;
-            scrollToIndex(indexToScroll, true);
+            if (tempPropShouldStopScrollAndJump) {
+                pendingScrollIndexRef.current = null;
+            }
+            scrollToIndex(indexToScroll, false);
         }
     }, [currentPage, scrollToIndex, flattenedSections.allOptions]);
 
@@ -442,6 +446,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
                 onArrowFocus(focusedItem);
+            }
+            if (tempPropShouldStopScrollAndJump && shouldPreventScroll.current) {
+                shouldPreventScroll.current = false;
+                return;
             }
             if (shouldScrollToFocusedIndex) {
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
@@ -486,7 +494,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (sections.length > 1 && !isItemSelected(item)) {
+                if (!tempPropShouldStopScrollAndJump && sections.length > 1 && !isItemSelected(item)) {
                     // If we're selecting an item, scroll to its position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
@@ -502,6 +510,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
 
             if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+                if (tempPropShouldStopScrollAndJump) {
+                    shouldPreventScroll.current = true;
+                }
                 setFocusedIndex(indexToFocus);
             }
 
@@ -526,6 +537,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             clearInputAfterSelect,
             onCheckboxPress,
             setFocusedIndex,
+            shouldPreventScroll,
+            tempPropShouldStopScrollAndJump,
         ],
     );
 
@@ -553,7 +566,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         if (!focusedOption) {
             return;
         }
-
+        if (tempPropShouldStopScrollAndJump) {
+            selectRow(focusedOption, focusedIndex);
+            return;
+        }
         selectRow(focusedOption);
     };
 
@@ -875,6 +891,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 updateAndScrollToFocusedIndex(foundSelectedItemIndex);
                 return;
             }
+        }
+
+        // Scroll to top when text input changes
+        if (prevTextInputValue !== textInputValue) {
+            updateAndScrollToFocusedIndex(0);
+        }
+
+        // Avoid clearing focus on initial render
+        if (isInitialSectionListRender) {
+            return;
         }
 
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)

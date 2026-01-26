@@ -1064,6 +1064,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** When true, skips the contentHeaderHeight from the viewOffset calculation during scroll-to-index. Only needed on native platforms for split expense tabs (Amount/Percentage/Date) scroll correction. Web should always pass false. */
     shouldSkipContentHeaderHeightOffset?: boolean;
+
+    /** Temporary prop to roll out new scroll behavior when selecting items */
+    tempPropShouldStopScrollAndJump?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

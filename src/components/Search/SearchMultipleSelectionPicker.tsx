@@ -5,8 +5,10 @@ import MultiSelectListItem from '@components/SelectionListWithSections/MultiSele
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFirstSelectedItemKey} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
@@ -33,45 +35,30 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         setSelectedItems(initiallySelectedItems ?? []);
     }, [initiallySelectedItems]);
 
-    const {sections, noResultsFound} = useMemo(() => {
-        const selectedItemsSection = selectedItems
+    const {sections, noResultsFound, initiallyFocusedOptionKey} = useMemo(() => {
+        const itemsList = items
+            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
-                isSelected: true,
+                isSelected: selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()),
                 value: item.value,
             }));
-        const remainingItemsSection = items
-            .filter(
-                (item) =>
-                    !selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
-            )
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.name,
-                isSelected: false,
-                value: item.value,
-            }));
-        const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
+
+        const isEmpty = !itemsList.length;
         return {
             sections: isEmpty
                 ? []
                 : [
                       {
-                          title: undefined,
-                          data: selectedItemsSection,
-                          shouldShow: selectedItemsSection.length > 0,
-                      },
-                      {
                           title: pickerTitle,
-                          data: remainingItemsSection,
-                          shouldShow: remainingItemsSection.length > 0,
+                          data: itemsList,
+                          shouldShow: !isEmpty,
                       },
                   ],
             noResultsFound: isEmpty,
+            initiallyFocusedOptionKey: getFirstSelectedItemKey(itemsList),
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
 
@@ -112,15 +99,20 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             sections={sections}
             textInputValue={searchTerm}
             onChangeText={setSearchTerm}
+            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+            getItemHeight={() => variables.optionRowHeightCompact}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onSelectRow={onSelectItem}
             headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
             footerContent={footerContent}
             shouldStopPropagation
+            shouldUpdateFocusedIndex
+            shouldClearInputOnSelect={false}
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             canSelectMultiple
             ListItem={MultiSelectListItem}
+            tempPropShouldStopScrollAndJump
         />
     );
 }
