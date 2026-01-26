@@ -1,13 +1,15 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -54,6 +56,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const policy = usePolicy(policyID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const codingRules = policy?.rules?.codingRules;
     const hasRules = !isEmptyObject(codingRules);
@@ -113,6 +116,15 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                     })}
                 </View>
             )}
+            <MenuItem
+                title={translate('workspace.rules.merchantRules.addRule')}
+                titleStyle={styles.textStrong}
+                icon={expensifyIcons.Plus}
+                iconHeight={20}
+                iconWidth={20}
+                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                onPress={() => {}}
+            />
         </Section>
     );
 }
