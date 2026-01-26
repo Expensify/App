@@ -279,6 +279,7 @@ function SubmitDetailsPage({
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
                         isManualDistanceRequest={false}
+                        isGPSDistanceRequest={false}
                         onPDFLoadError={() => {
                             if (errorTitle) {
                                 return;

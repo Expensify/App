@@ -2565,25 +2565,6 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
     );
 }
 
-/**
- * Returns the corresponding translation key for expense type
- */
-function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (expenseType) {
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            return 'common.distance';
-        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return 'common.card';
-        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
-            return 'iou.cash';
-        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
-            return 'common.perDiem';
-        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
-            return 'iou.time';
-    }
-}
-
 function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -2767,6 +2748,12 @@ function getOverflowMenu(
  */
 function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
+}
+
+function isTodoSearch(hash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
+    const TODO_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
+    const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.hash === hash)?.key;
+    return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
 }
 
 // eslint-disable-next-line @typescript-eslint/max-params
@@ -2984,8 +2971,8 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
 /**
  * Whether to show the empty state or not
  */
-function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
-    return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes | undefined) {
+    return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
@@ -3552,7 +3539,6 @@ export {
     isTransactionListItemType,
     isReportActionListItemType,
     shouldShowYear,
-    getExpenseTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
     isReportActionEntry,
@@ -3584,5 +3570,6 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    isTodoSearch,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
