@@ -237,7 +237,6 @@ const translations: TranslationDeepObject<typeof en> = {
         searchWithThreeDots: '検索...',
         next: '次へ',
         previous: '前へ',
-        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: '戻る',
         create: '作成',
         add: '追加',
@@ -255,6 +254,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'パスワード',
         magicCode: 'マジックコード',
+        digits: '桁',
         twoFactorCode: '2要素コード',
         workspaces: 'ワークスペース',
         inbox: '受信トレイ',
@@ -605,7 +605,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています…',
         domains: 'ドメイン',
-        viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '重複',
@@ -614,6 +613,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
         insights: 'インサイト',
+        duplicateExpense: '重複した経費',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -948,7 +948,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '何かを検索…',
         buttonMySettings: 'マイ設定',
         fabNewChat: 'チャットを開始',
-        fabNewChatExplained: 'チャットを開始 (フローティングアクション)',
+        fabNewChatExplained: 'アクションメニューを開く',
         fabScanReceiptExplained: '領収書をスキャン',
         chatPinned: 'ピン留めされたチャット',
         draftedMessage: '下書きメッセージ',
@@ -1425,9 +1425,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: '日当経費は他のワークスペースのレポートに移動できません。ワークスペース間で日当レートが異なる可能性があるためです。',
         changeApprover: {
             title: '承認者を変更',
-            subtitle: 'このレポートの承認者を変更する方法を選択してください。',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `すべてのレポートの承認者を恒久的に変更するには、<a href="${workflowSettingLink}">ワークフロー設定</a>から行うこともできます。`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `このレポートの承認者を変更するには、オプションを選択してください。（すべてのレポートに対して恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
@@ -1445,7 +1444,14 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
-        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`, hrs: '時間'},
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours}  ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`,
+            hrs: '時間',
+            hours: '時間',
+            ratePreview: (rate: string) => `${rate} / 時間`,
+            amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
+        },
+        correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {
@@ -1923,13 +1929,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'セキュリティ上の懸念を解決し、アカウントのロックを解除するためにConciergeとチャットしましょう。',
         chatWithConcierge: 'Conciergeとチャット',
     },
-    passwordPage: {
-        changePassword: 'パスワードを変更',
-        changingYourPasswordPrompt: 'パスワードを変更すると、Expensify.com アカウントと New Expensify アカウントの両方のパスワードが更新されます。',
-        currentPassword: '現在のパスワード',
-        newPassword: '新しいパスワード',
-        newPasswordPrompt: '新しいパスワードは、以前のパスワードと異なるものであり、8文字以上で、少なくとも1つの大文字、1つの小文字、1つの数字を含める必要があります。',
-    },
     twoFactorAuth: {
         headerTitle: '二要素認証',
         twoFactorAuthEnabled: '2 要素認証が有効になりました',
@@ -2356,9 +2355,30 @@ ${merchant} への ${amount}（${date}）`,
             comment: (value: string) => `説明を「${value}」に変更`,
             merchant: (value: string) => `支払先を「${value}」に更新`,
             reimbursable: (value: boolean) => `経費 ${value ? '精算対象' : '非精算'} を更新`,
-            report: (value: string) => `レポート名を「${value}」として追加`,
+            report: (value: string) => `"${value}" という名前のレポートに追加`,
             tag: (value: string) => `タグを「${value}」に更新`,
             tax: (value: string) => `税率を${value}に更新`,
+        },
+        newRule: '新しいルール',
+        addRule: {
+            title: 'ルールを追加',
+            expenseContains: '経費に以下が含まれる場合:',
+            applyUpdates: '次に、これらの更新を適用します。',
+            merchantHint: 'すべての加盟店に適用されるルールを作成するには * を入力してください',
+            addToReport: '「…という名前のレポートに追加」',
+            createReport: '必要に応じてレポートを作成',
+            applyToExistingExpenses: '既存の一致する経費に適用',
+            confirmError: '店舗名を入力し、少なくとも 1 つの更新を適用してください',
+            confirmErrorMerchant: '支払先を入力してください',
+            confirmErrorUpdate: '少なくとも 1 件の更新を適用してください',
+            saveRule: 'ルールを保存',
+        },
+        editRule: {title: 'ルールを編集'},
+        deleteRule: {
+            deleteSingle: 'ルールを削除',
+            deleteMultiple: 'ルールを削除',
+            deleteSinglePrompt: 'このルールを削除してもよろしいですか？',
+            deleteMultiplePrompt: 'これらのルールを本当に削除しますか？',
         },
     },
     preferencesPage: {
@@ -2958,15 +2978,6 @@ ${
         subtitle: 'リクエストを完了できませんでした。時間をおいて、もう一度お試しください。',
         wrongTypeSubtitle: 'その検索条件は無効です。検索条件を調整してやり直してください。',
     },
-    setPasswordPage: {
-        enterPassword: 'パスワードを入力してください',
-        setPassword: 'パスワードを設定',
-        newPasswordPrompt: 'パスワードは8文字以上で、大文字1文字、小文字1文字、数字1文字を含める必要があります。',
-        passwordFormTitle: '新しい Expensify へお帰りなさい！パスワードを設定してください。',
-        passwordNotSet: '新しいパスワードを設定できませんでした。再試行用の新しいパスワードリンクを送信しました。',
-        setPasswordLinkInvalid: 'このパスワード設定リンクは無効か、有効期限が切れています。新しいリンクをメール受信箱にお送りしました。',
-        validateAccount: 'アカウントを確認',
-    },
     statusPage: {
         status: 'ステータス',
         statusExplanation: '絵文字を追加して、同僚や友だちが状況をひと目で分かるようにしましょう。必要に応じてメッセージを追加することもできます。',
@@ -3107,10 +3118,13 @@ ${
         errorMessageInvalidPhone: `かっこやハイフンを使わずに有効な電話番号を入力してください。米国外にいる場合は、国コードを含めて入力してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）。`,
         errorMessageInvalidEmail: '無効なメールアドレス',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} のメンバーです`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} の管理者です`,
     },
     onfidoStep: {
         acceptTerms: 'Expensifyウォレットの有効化リクエストを続行することにより、あなたは次の内容を読み、理解し、承諾したことを確認します',
         facialScan: 'Onfido 顔認証ポリシーおよび同意書',
+        onfidoLinks: (onfidoTitle: string) =>
+            `<muted-text-micro>${onfidoTitle} <a href='${CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}'>Onfido 顔認証ポリシーおよび同意書</a>、<a href='${CONST.ONFIDO_PRIVACY_POLICY_URL}'>プライバシー</a> と <a href='${CONST.ONFIDO_TERMS_OF_SERVICE_URL}'>利用規約</a>。</muted-text-micro>`,
         tryAgain: '再試行',
         verifyIdentity: '本人確認',
         letsVerifyIdentity: '本人確認を行いましょう',
@@ -4983,6 +4997,25 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
                     ctaText: '予約または管理',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: '出張予約',
+                        subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。',
+                        manageTravelLabel: '出張を管理',
+                    },
+                    centralInvoicingSection: {
+                        title: '中央請求書管理',
+                        subtitle: 'すべての出張費を購入時に都度支払うのではなく、月次請求書にまとめて管理しましょう。',
+                        learnHow: '詳しく見る。',
+                        subsections: {
+                            currentTravelSpendLabel: '現在の出張費用',
+                            currentTravelSpendCta: '残高を支払う',
+                            currentTravelLimitLabel: '現在の出張上限',
+                            settlementAccountLabel: '決済口座',
+                            settlementFrequencyLabel: '清算頻度',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Expensify Card',
@@ -5436,7 +5469,8 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 giveItNameInstruction: '他のカードと見分けがつくように、十分ユニークな名前にしてください。具体的な使用例が入っていると、なお良いです！',
                 cardName: 'カード名',
                 letsDoubleCheck: 'すべてが正しく見えるか、もう一度確認しましょう。',
-                willBeReady: 'このカードはすぐに利用できるようになります。',
+                willBeReadyToUse: 'このカードはすぐに利用できるようになります。',
+                willBeReadyToShip: 'このカードはすぐに発送できる状態になります。',
                 cardholder: 'カード保有者',
                 cardType: 'カードの種類',
                 limit: '制限',
@@ -6536,19 +6570,39 @@ ${reportName}
                 }
             }
         },
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set receipt required amount to "${newValue}"`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed receipt required amount (previously "${oldValue}")`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense amount to "${newValue}"`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense amount (previously "${oldValue}")`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `set max expense age to "${newValue}" days`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removed max expense age (previously "${oldValue}" days)`,
+        setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `デフォルトのビジネス銀行口座を「${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}」に設定`,
+        removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
+            `デフォルトのビジネス銀行口座「${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}」を削除しました`,
+        changedDefaultBankAccount: ({
+            bankAccountName,
+            maskedBankAccountNumber,
+            oldBankAccountName,
+            oldMaskedBankAccountNumber,
+        }: {
+            bankAccountName: string;
+            maskedBankAccountNumber: string;
+            oldBankAccountName: string;
+            oldMaskedBankAccountNumber: string;
+        }) =>
+            `デフォルトのビジネス銀行口座を「${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber}」（以前は「${oldBankAccountName ? `${oldBankAccountName}: ` : ''}${oldMaskedBankAccountNumber}」）に変更しました`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `請求書の会社名を「${newValue}」（以前は「${oldValue}」）に変更しました` : `請求書の会社名を「${newValue}」に設定する`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `請求書会社のウェブサイトを「${newValue}」（以前は「${oldValue}」）に変更しました` : `請求書の会社ウェブサイトを「${newValue}」に設定`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `カスタムレポート名の数式を「${newValue}」（以前は「${oldValue}」）に変更しました`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `認可された支払者を「${newReimburser}」（以前は「${previousReimburser}」）に変更しました` : `承認済み支払者を「${newReimburser}」に変更しました`,
+        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `領収書が必要な金額を「${newValue}」に設定`,
+        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `領収書の必須金額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `必須領収書金額を削除しました（以前の値：「${oldValue}」）`,
+        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費金額を「${newValue}」に設定`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費額を削除しました（以前の値：「${oldValue}」）`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を「${newValue}」日に設定`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を削除（以前は「${oldValue}」日）`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -7250,6 +7304,7 @@ ${reportName}
         hold: 'この経費は保留になっています',
         resolvedDuplicates: '重複を解決しました',
         companyCardRequired: '法人カードでの購入が必須',
+        noRoute: '有効な住所を選択してください',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} は必須です`,
@@ -7878,6 +7933,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             resetDomainInfo: `この操作は<strong>永久的</strong>であり、次のデータが削除されます：<br/> <ul><li>会社カードの接続およびそれらのカードからの未報告の経費</li> <li>SAML とグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：関連付けられているメールアドレスを<a href="#">連絡先方法</a>から削除することで、このドメインをドメイン一覧から消去できます。`,
         },
         members: {title: 'メンバー', findMember: 'メンバーを検索'},
+        domainAdmins: 'ドメイン管理者',
     },
     gps: {
         tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
@@ -7898,6 +7954,14 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
+        signOutWarningTripInProgress: {title: 'GPS追跡を実行中', prompt: 'この出張を破棄してサインアウトしてもよろしいですか？', confirm: '破棄してサインアウト'},
+        notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        locationServicesRequiredModal: {
+            title: '位置情報へのアクセスが必要です',
+            confirm: '設定を開く',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
+        },
+        fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
