@@ -45,6 +45,7 @@ function getReportFieldOptionsSection({
         reportFieldOptionsSections.push({
             // "Search" section
             title: '',
+            sectionIndex: 0,
             data: getReportFieldOptions(searchOptions),
         });
 
@@ -58,6 +59,7 @@ function getReportFieldOptionsSection({
         reportFieldOptionsSections.push({
             // "Selected" section
             title: '',
+            sectionIndex: 1,
             data: getReportFieldOptions(selectedOptionKeys),
         });
     }
@@ -66,6 +68,7 @@ function getReportFieldOptionsSection({
         reportFieldOptionsSections.push({
             // "Recent" section
             title: translate('common.recent'),
+            sectionIndex: 2,
             data: getReportFieldOptions(filteredRecentlyUsedOptions),
         });
     }
@@ -73,6 +76,7 @@ function getReportFieldOptionsSection({
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
+        sectionIndex: 3,
         data: getReportFieldOptions(filteredOptions),
     });
 
