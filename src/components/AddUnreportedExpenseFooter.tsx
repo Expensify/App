@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-import {useSession} from './OnyxListItemProvider';
+import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
 type AddUnreportedExpenseFooterProps = {
     /** Selected transaction IDs */
@@ -41,6 +41,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
+    const personalDetails = usePersonalDetails();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
@@ -64,6 +65,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     transactionViolations,
                     policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    personalDetails,
                 );
             } else {
                 changeTransactionsReport({
