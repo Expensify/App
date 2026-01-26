@@ -355,6 +355,7 @@ const SCREENS = {
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
         STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
         STEP_HOURS: 'Money_Request_Step_Hours',
+        STEP_HOURS_EDIT: 'Money_Request_Step_Hours_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -860,7 +861,7 @@ const SCREENS = {
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
-    MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
     MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'MissingPersonalDetails_ConfirmMagicCode',
     ADD_UNREPORTED_EXPENSES_ROOT: 'AddUnreportedExpenses_Root',
     DEBUG: {

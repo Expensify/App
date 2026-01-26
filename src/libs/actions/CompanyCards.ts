@@ -338,6 +338,7 @@ function assignWorkspaceCompanyCard(
     };
 
     const parameters: AssignCompanyCardParams = {
+        domainAccountID: domainOrWorkspaceAccountID,
         policyID: policy.id,
         bankName,
         encryptedCardNumber,

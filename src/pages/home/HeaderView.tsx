@@ -130,6 +130,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
@@ -237,7 +238,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar =
         introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) && !isInSidePanel;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !isInSidePanel;

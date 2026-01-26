@@ -6,6 +6,7 @@ import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -68,6 +69,7 @@ function useOptions() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const allPersonalDetails = usePersonalDetails();
 
     const {
         options: listOptions,
@@ -104,6 +106,7 @@ function useOptions() {
             betas: betas ?? [],
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
+            personalDetails: allPersonalDetails,
         },
         countryCode,
     );
@@ -232,6 +235,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
+    const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
 
     useImperativeHandle(ref, () => ({
@@ -261,7 +265,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
-        undefined,
+        allPersonalDetails,
         undefined,
         undefined,
         allReports,

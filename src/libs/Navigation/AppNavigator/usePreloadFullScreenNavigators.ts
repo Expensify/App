@@ -24,8 +24,8 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 // This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
 const TIMING_TO_CALL_PRELOAD = 1000;
 
-// Currently, only the Workspaces, Account tabs are preloaded. The remaining tabs will be supported soon.
-const TABS_TO_PRELOAD = [NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
+// Currently the Inbox, Workspaces and Account tabs are preloaded, while Search is not preloaded due to its potential complexity.
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.HOME, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();

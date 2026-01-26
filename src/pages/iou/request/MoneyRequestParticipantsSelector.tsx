@@ -340,7 +340,12 @@ function MoneyRequestParticipantsSelector({
                 title: undefined,
                 data: [availableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reports, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    if (isPolicyExpenseChat) {
+                        const expenseReport = participant?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] : undefined;
+                        const chatReport = expenseReport?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`] : undefined;
+                        return getPolicyExpenseReportOption(participant, expenseReport, chatReport, reportAttributesDerived);
+                    }
+                    return getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });

@@ -171,14 +171,10 @@ import {
     getChatListItemReportName,
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
-    getDowngradeWorkspaceMessage,
-    getForcedCorporateUpgradeMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
-    getRejectedReportMessage,
     getUnreportedTransactionMessage,
-    getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
     isArchivedNonExpenseReport,
@@ -1359,17 +1355,17 @@ function PureReportActionItem({
                 children = <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
             }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
-            children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
-            children = <ReportActionItemBasicMessage message={getUpgradeWorkspaceMessage()} />;
+            children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
             children = (
                 <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<muted-text>${getForcedCorporateUpgradeMessage()}</muted-text>`} />
+                    <RenderHTML html={`<muted-text>${translate('workspaceActions.forcedCorporateUpgrade')}</muted-text>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
-            children = <ReportActionItemBasicMessage message={getDowngradeWorkspaceMessage()} />;
+            children = <ReportActionItemBasicMessage message={translate('workspaceActions.downgradedWorkspace')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -1385,9 +1381,9 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
             children = <ReportActionItemBasicMessage message={translate('iou.reopened')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
-            children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
-            children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             const movedTransactionOriginalMessage = getOriginalMessage(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
             const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
@@ -1397,8 +1393,8 @@ function PureReportActionItem({
             // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
             const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
             const htmlContent = isPendingDelete
-                ? `<del><comment><muted-text>${Parser.htmlToText(getMovedTransactionMessage(action))}</muted-text></comment></del>`
-                : `<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`;
+                ? `<del><comment><muted-text>${Parser.htmlToText(getMovedTransactionMessage(translate, action))}</muted-text></comment></del>`
+                : `<comment><muted-text>${getMovedTransactionMessage(translate, action)}</muted-text></comment>`;
             // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
             // making it impossible to retrieve the report name for display
             // Ref: https://github.com/Expensify/App/issues/70338
@@ -1414,7 +1410,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getMovedActionMessage(action, report)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getMovedActionMessage(translate, action, report)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
@@ -1428,7 +1424,7 @@ function PureReportActionItem({
             const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
             const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
             const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const unreportedTransactionMessage = getUnreportedTransactionMessage(action);
+            const unreportedTransactionMessage = getUnreportedTransactionMessage(translate, action);
             const htmlContent = isPendingDelete
                 ? `<del><comment><muted-text>${Parser.htmlToText(unreportedTransactionMessage)}</muted-text></comment></del>`
                 : `<comment><muted-text>${unreportedTransactionMessage}</muted-text></comment>`;
@@ -1445,7 +1441,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
             children = <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCurrencyUpdateMessage(translate, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
@@ -1992,7 +1988,7 @@ function PureReportActionItem({
                                                         &nbsp;
                                                     </Text>
                                                     <DisplayNames
-                                                        fullTitle={getWhisperDisplayNames(formatPhoneNumber, whisperedTo) ?? ''}
+                                                        fullTitle={getWhisperDisplayNames(translate, formatPhoneNumber, whisperedTo) ?? ''}
                                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                                         tooltipEnabled
                                                         numberOfLines={1}

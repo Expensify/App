@@ -859,7 +859,7 @@ function createOption(
     accountIDs: number[],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     report: OnyxInputOrEntry<Report>,
-    chatReport: OnyxEntry<Report>,
+    allReports: OnyxCollection<Report>,
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     privateIsArchived?: string,
@@ -867,6 +867,7 @@ function createOption(
     translate?: LocalizedTranslate,
 ): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
+    const chatReport = report?.chatReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
 
     // Initialize only the properties that are actually used in SearchOption context
     const result: SearchOptionData = {
@@ -958,7 +959,7 @@ function createOption(
         const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
         const computedReportName = computeReportName(
             report,
-            undefined,
+            allReports,
             allPolicies,
             undefined,
             undefined,
@@ -1784,7 +1785,7 @@ function getUserToInviteOption({
         [optimisticAccountID],
         personalDetailsExtended,
         null,
-        undefined,
+        {},
         {
             showChatPreviewLine,
         },
@@ -2701,12 +2702,9 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          if (isReportPolicyExpenseChat) {
-                              const expenseReport = participant.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] : undefined;
-                              const chatReport = expenseReport?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`] : undefined;
-                              return getPolicyExpenseReportOption(participant, expenseReport, chatReport, reportAttributesDerived);
-                          }
-                          return getParticipantsOption(participant, personalDetails);
+                          return isReportPolicyExpenseChat
+                              ? getPolicyExpenseReportOption(participant, reports, reportAttributesDerived)
+                              : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2732,12 +2730,7 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      if (isReportPolicyExpenseChat) {
-                          const expenseReport = participant.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] : undefined;
-                          const chatReport = expenseReport?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`] : undefined;
-                          return getPolicyExpenseReportOption(participant, expenseReport, chatReport, reportAttributesDerived);
-                      }
-                      return getParticipantsOption(participant, personalDetails);
+                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reports, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,

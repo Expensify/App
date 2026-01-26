@@ -422,7 +422,11 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
             value: {
-                [contactMethod]: null,
+                [contactMethod]: {
+                    errorFields: {
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
+                    },
+                },
             },
         },
     ];

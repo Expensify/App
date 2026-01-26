@@ -46,6 +46,7 @@ function OptionRowLHN({
     optionItem,
     viewMode = 'default',
     onboardingPurpose,
+    onboarding,
     isFullscreenVisible,
     isReportsSplitNavigatorLast,
     style,
@@ -64,7 +65,7 @@ function OptionRowLHN({
 
     const session = useSession();
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurpose);
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, onboardingPurpose);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
 
     const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
