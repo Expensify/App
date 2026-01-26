@@ -6829,6 +6829,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             status: 'Status',
             keyword: 'Słowo kluczowe',
             keywords: 'Słowa kluczowe',
+            limit: 'Limit',
             currency: 'Waluta',
             completed: 'Zakończone',
             amount: {

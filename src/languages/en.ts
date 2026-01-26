@@ -6754,6 +6754,7 @@ const translations = {
             status: 'Status',
             keyword: 'Keyword',
             keywords: 'Keywords',
+            limit: 'Limit',
             currency: 'Currency',
             completed: 'Completed',
             amount: {

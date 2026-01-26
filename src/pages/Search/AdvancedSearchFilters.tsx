@@ -191,6 +191,11 @@ const baseFilterConfig = {
         description: 'search.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
     },
+    limit: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.limit' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT),
+    },
     is: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.is' as const,

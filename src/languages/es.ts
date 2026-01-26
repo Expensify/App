@@ -6504,6 +6504,7 @@ ${amount} para ${merchant} - ${date}`,
             status: 'Estado',
             keyword: 'Palabra clave',
             keywords: 'Palabras clave',
+            limit: 'Límite',
             currency: 'Divisa',
             completed: 'Completadas',
             card: {

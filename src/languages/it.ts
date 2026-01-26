@@ -6858,6 +6858,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             status: 'Stato',
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
+            limit: 'Limite',
             currency: 'Valuta',
             completed: 'Completato',
             amount: {

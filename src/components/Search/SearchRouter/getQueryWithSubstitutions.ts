@@ -1,10 +1,10 @@
-import type {SearchAutocompleteQueryRange, SearchAutocompleteRangeKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
 
 type SubstitutionMap = Record<string, string>;
 
-const getSubstitutionMapKey = (filterKey: SearchAutocompleteRangeKey, value: string) => `${filterKey}:${value}`;
+const getSubstitutionMapKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
 /**
  * Given a plaintext query and a SubstitutionMap object, this function will return a transformed query where:

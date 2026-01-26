@@ -193,6 +193,7 @@ type SearchTextFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
     | ReportFieldTextKey;
 
 type SearchDateFilterKeys =
@@ -217,10 +218,8 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS;
-
-// Extended type for autocomplete ranges - includes root keys that need highlighting but aren't form fields
-type SearchAutocompleteRangeKey = SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -270,7 +269,7 @@ type SearchAutocompleteResult = {
 };
 
 type SearchAutocompleteQueryRange = {
-    key: SearchAutocompleteRangeKey;
+    key: SearchFilterKey;
     length: number;
     start: number;
     value: string;
@@ -316,7 +315,6 @@ export type {
     RawFilterKey,
     RawQueryFilter,
     SearchFilterKey,
-    SearchAutocompleteRangeKey,
     UserFriendlyKey,
     ExpenseSearchStatus,
     InvoiceSearchStatus,

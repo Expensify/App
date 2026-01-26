@@ -584,7 +584,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, columns, ...otherFilters} = supportedFilterValues;
+    const {type, status, groupBy, columns, limit, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -736,8 +736,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(amountFilter);
     }
 
-    if (options?.limit !== undefined) {
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${options.limit}`);
+    const limitValue = limit ?? options?.limit;
+    if (limitValue !== undefined) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${limitValue}`);
     }
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -1001,6 +1002,10 @@ function buildFilterFormValuesFromQuery(
     if (queryJSON.columns) {
         const columns = [queryJSON.columns].flat();
         filtersForm[FILTER_KEYS.COLUMNS] = columns;
+    }
+
+    if (queryJSON.limit !== undefined) {
+        filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
     }
 
     return filtersForm;
