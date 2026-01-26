@@ -5067,6 +5067,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredOverlay: {
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5373,6 +5377,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         translucentNavigationBarBG: {
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
+        },
+
+        todoBadge: {
+            width: variables.w36,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: 0,
+            paddingRight: 0,
         },
 
         stickToBottom: {

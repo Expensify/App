@@ -24,6 +24,7 @@ const EMPTY_OBJECT = Object.freeze({});
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
 
 const DEFAULT_NUMBER_ID = 0;
+const DEFAULT_MISSING_ID = -1;
 const DEFAULT_COUNTRY_CODE = 1;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -225,6 +226,7 @@ const CONST = {
         OUT: 'out',
     },
     ELEMENT_NAME: {
+        DIV: 'DIV',
         INPUT: 'INPUT',
         TEXTAREA: 'TEXTAREA',
     },
@@ -468,8 +470,6 @@ const CONST = {
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
-        MONTH_DAY_WEEKDAY_ABBR_FORMAT: 'EEEE, MMM d',
-        MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT: 'EEEE, MMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -976,6 +976,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
     FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
@@ -2686,6 +2687,16 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    MISSING_PERSONAL_DETAILS: {
+        STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+            CONFIRM: 'confirm',
+        },
+    },
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -3161,6 +3172,7 @@ const CONST = {
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
             IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
+            IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3352,6 +3364,7 @@ const CONST = {
         DISABLED_MAX_EXPENSE_AGE: 10000000000,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
+        DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',
@@ -3705,6 +3718,24 @@ const CONST = {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
             INVOICING: 'invoicing2018',
+        },
+    },
+    EXPENSE_RULES: {
+        FIELDS: {
+            BILLABLE: 'billable',
+            CATEGORY: 'category',
+            DESCRIPTION: 'comment',
+            CREATE_REPORT: 'createReport',
+            MERCHANT: 'merchantToMatch',
+            RENAME_MERCHANT: 'merchant',
+            REIMBURSABLE: 'reimbursable',
+            REPORT: 'report',
+            TAG: 'tag',
+            TAX: 'tax',
+        },
+        BULK_ACTION_TYPES: {
+            EDIT: 'edit',
+            DELETE: 'delete',
         },
     },
 
@@ -5802,6 +5833,7 @@ const CONST = {
         PER_DAY_LIMIT: 'perDayLimit',
         RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
         RECEIPT_REQUIRED: 'receiptRequired',
+        ITEMIZED_RECEIPT_REQUIRED: 'itemizedReceiptRequired',
         CUSTOM_RULES: 'customRules',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
@@ -6682,6 +6714,8 @@ const CONST = {
 
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
 
+    FLIGHT_SEAT_TEST_ID: 'FlightSeat',
+
     CANCELLATION_POLICY: {
         UNKNOWN: 'UNKNOWN',
         NON_REFUNDABLE: 'NON_REFUNDABLE',
@@ -7239,6 +7273,7 @@ const CONST = {
         ANIMATION: {
             FADE_DURATION: 200,
         },
+        TODO_BADGE_MAX_COUNT: 50,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -7585,10 +7620,11 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
-        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
+        HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
+        HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
     },
 
     DEBUG: {
@@ -7708,6 +7744,7 @@ const CONST = {
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
+        GPS_TOOLTIP: 'gpsTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -7760,6 +7797,11 @@ const CONST = {
             REFUND: 'REFUND',
             EXCHANGE: 'EXCHANGE',
         },
+        /**
+         * The Travel Invoicing feed type constant.
+         * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
+         */
+        PROGRAM_TRAVEL_US: 'TRAVEL_US',
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -8031,6 +8073,11 @@ const CONST = {
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
     },
+
+    SECTION_LIST_ITEM_TYPE: {
+        HEADER: 'header',
+        ROW: 'row',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
@@ -8070,20 +8117,6 @@ const FRAUD_PROTECTION_EVENT = {
     NEW_EMAILS_INVITED: 'NewEmailsInvited',
 };
 
-const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
-    [CONST.DATE.FNS_FORMAT_STRING]: {year: 'numeric', month: '2-digit', day: '2-digit'},
-    [CONST.DATE.LOCAL_TIME_FORMAT]: {timeStyle: 'short'},
-    [CONST.DATE.MONTH_FORMAT]: {month: 'long'},
-    [CONST.DATE.WEEKDAY_TIME_FORMAT]: {weekday: 'long'},
-    [CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric'},
-    [CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'},
-    [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {dateStyle: 'long'},
-    [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {month: 'short', day: 'numeric', year: 'numeric'},
-    [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {dateStyle: 'full'},
-    FNS_DATE_WITH_LOCAL_TIME_FORMAT: {year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
-    SHORT_DATE_WITH_LOCAL_TIME_FORMAT: {month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
-};
-
 const COUNTRIES_US_BANK_FLOW: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI];
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -8099,6 +8132,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, DATE_TIME_FORMAT_OPTIONS};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
 
 export default CONST;
