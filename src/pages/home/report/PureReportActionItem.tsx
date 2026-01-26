@@ -1278,7 +1278,7 @@ function PureReportActionItem({
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;

@@ -111,56 +111,10 @@ import type {
     SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
-    SplitAmountParams,
-    SplitDateRangeParams,
-    SplitExpenseEditTitleParams,
-    SplitExpenseSubtitleParams,
-    StatementTitleParams,
     StepCounterParams,
-    StripePaidParams,
-    SubmitsToParams,
-    SubmittedToVacationDelegateParams,
-    SubmittedWithMemoParams,
-    SubscriptionCommitmentParams,
-    SubscriptionSettingsLearnMoreParams,
-    SubscriptionSettingsRenewsOnParams,
-    SubscriptionSettingsSaveUpToParams,
-    SubscriptionSettingsSummaryParams,
-    SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TaskCreatedActionParams,
-    TaxAmountParams,
-    TermsParams,
-    ThreadRequestReportNameParams,
-    ThreadSentMoneyReportNameParams,
-    ToggleImportTitleParams,
-    TotalAmountGreaterOrLessThanOriginalParams,
-    ToValidateLoginParams,
-    TransferParams,
-    TravelTypeParams,
-    TrialStartedTitleParams,
-    UnapproveWithIntegrationWarningParams,
     UnshareParams,
-    UntilTimeParams,
-    UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyAuditRateParams,
-    UpdatedPolicyCategoryDescriptionHintTypeParams,
-    UpdatedPolicyCategoryExpenseLimitTypeParams,
-    UpdatedPolicyCategoryGLCodeParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCategoryMaxExpenseAmountParams,
-    UpdatedPolicyCategoryNameParams,
-    UpdatedPolicyCategoryParams,
-    UpdatedPolicyCurrencyParams,
-    UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateParams,
-    UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
-    UpdatedPolicyCustomUnitTaxRateExternalIDParams,
-    UpdatedPolicyDescriptionParams,
-    UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
-    UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
@@ -1100,16 +1054,16 @@ const translations: TranslationDeepObject<typeof en> = {
         original: '元の',
         split: '分割',
         splitExpense: '経費を分割',
-        splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${merchant} からの ${amount}`,
+        splitExpenseSubtitle: (amount: string, merchant: string) => `${merchant} からの ${amount}`,
         splitByPercentage: '割合で分割',
         addSplit: '分割を追加',
         makeSplitsEven: '分割を均等にする',
         editSplits: '分割を編集',
-        totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費より${amount}多くなっています。`,
-        totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}少なくなっています。`,
+        totalAmountGreaterThanOriginal: (amount: string) => `合計金額は元の経費より${amount}多くなっています。`,
+        totalAmountLessThanOriginal: (amount: string) => `合計金額は元の経費よりも${amount}少なくなっています。`,
         splitExpenseZeroAmount: '続行する前に有効な金額を入力してください。',
         splitExpenseOneMoreSplit: '分割が追加されていません。保存するには少なくとも 1 件追加してください。',
-        splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `${merchant} の ${amount} を編集`,
+        splitExpenseEditTitle: (amount: string, merchant: string) => `${merchant} の ${amount} を編集`,
         removeSplit: '分割を削除',
         splitExpenseCannotBeEditedModalTitle: 'この経費は編集できません',
         splitExpenseCannotBeEditedModalDescription: '承認済みまたは支払済みの経費は編集できません',
@@ -1238,11 +1192,11 @@ const translations: TranslationDeepObject<typeof en> = {
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} の請求書を送信`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment} 用` : ''}`,
-        submitted: ({memo}: SubmittedWithMemoParams) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
+        submitted: (memo?: string) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を通じて送信されました`,
         queuedToSubmitViaDEW: 'カスタム承認ワークフローを介して送信待ちキューに入れられました',
         trackedAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment} 用` : ''} を追跡中`,
-        splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
+        splitAmount: (amount: string) => `${amount} を分割`,
         didSplitAmount: (formattedAmount: string, comment: string) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `あなたの分担額 ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} の未払い金額は ${amount}${comment ? `${comment} 用` : ''}`,
@@ -1284,9 +1238,9 @@ const translations: TranslationDeepObject<typeof en> = {
             `${translatedChangedField} を ${newMerchant}（以前は ${oldMerchant}）に変更し、それにより金額が ${newAmountToDisplay}（以前は ${oldAmountToDisplay}）に更新されました`,
         basedOnAI: '過去のアクティビティに基づく',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `<a href="${rulesLink}">ワークスペースのルール</a>に基づく` : 'ワークスペースルールに基づく'),
-        threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `${comment} 用` : '経費'}`,
+        threadExpenseReportName: (formattedAmount: string, comment: string) => `${formattedAmount} ${comment ? `${comment} 用` : '経費'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
-        threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} を送信済み${comment ? `${comment} 用` : ''}`,
+        threadPaySomeoneReportName: (formattedAmount: string, comment: string) => `${formattedAmount} を送信済み${comment ? `${comment} 用` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `経費を個人スペースから${workspaceName ?? `${reportName} とチャット`}に移動しました`,
         movedToPersonalSpace: '経費を個人スペースに移動しました',
         error: {
@@ -1400,7 +1354,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapprove: '承認を取り消す',
         unapproveReport: 'レポートの承認を取り消す',
         headsUp: 'ご注意ください！',
-        unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `このレポートはすでに${accountingIntegration}へエクスポートされています。変更するとデータの不整合が生じる可能性があります。このレポートの承認を取り消してもよろしいですか？`,
         reimbursable: '精算対象',
         nonReimbursable: '個人立替精算対象外',
@@ -1435,7 +1389,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         dates: '日付',
         rates: 'レート',
-        submitsTo: ({name}: SubmitsToParams) => `${name} に提出`,
+        submitsTo: (name: string) => `${name} に提出`,
         reject: {
             educationalTitle: 'ホールドしますか、それとも却下しますか？',
             educationalText: '経費を承認または支払う準備がまだできていない場合は、保留するか却下できます。',
@@ -1473,7 +1427,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'ワークスペースを選択',
         date: '日付',
         splitDates: '日付を分割',
-        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
+        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
         timeTracking: {
@@ -2349,7 +2303,7 @@ ${merchant} への ${amount}（${date}）`,
         shipCard: 'カードを発送',
     },
     transferAmountPage: {
-        transfer: ({amount}: TransferParams) => `振替${amount ? ` ${amount}` : ''}`,
+        transfer: (amount: string) => `振替${amount ? ` ${amount}` : ''}`,
         instant: '即時（デビットカード）',
         instantSummary: (rate: string, minAmount: string) => `${rate}% の手数料（最低 ${minAmount}）`,
         ach: '1～3 営業日（銀行口座）',
@@ -2918,8 +2872,7 @@ ${
         resendLink: 'リンクを再送',
     },
     unlinkLoginForm: {
-        toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) =>
-            `${secondaryLogin} を承認するには、${primaryLogin} のアカウント設定からマジックコードを再送信してください。`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `${secondaryLogin} を承認するには、${primaryLogin} のアカウント設定からマジックコードを再送信してください。`,
         noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `${primaryLogin} にアクセスできなくなった場合は、アカウントのリンクを解除してください。`,
         unlink: 'リンク解除',
         linkSent: 'リンクを送信しました！',
@@ -3026,7 +2979,7 @@ ${
             custom: 'カスタム',
         },
         untilTomorrow: '明日まで',
-        untilTime: ({time}: UntilTimeParams) => `${time} まで`,
+        untilTime: (time: string) => `${time} まで`,
         date: '日付',
         time: '時間',
         clearAfter: '経過後にクリア',
@@ -3035,7 +2988,7 @@ ${
         setVacationDelegate: `休暇中に代理承認者を設定して、不在の間にあなたの代わりにレポートを承認してもらいましょう。`,
         vacationDelegateError: '休暇代理人の更新中にエラーが発生しました。',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `${nameOrEmail} の休暇代理として`,
-        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,
+        toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,
         vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
             `${nameOrEmail} を休暇代理人として割り当てようとしています。このユーザーは、まだすべてのワークスペースに参加していません。続行する場合は、すべてのワークスペース管理者に、このユーザーを追加するようメールが送信されます。`,
     },
@@ -3222,7 +3175,7 @@ ${
             generalInfo: `プリペイド口座に関する一般的な情報については、<a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>をご覧ください。`,
             conditionsDetails: `すべての手数料およびサービスの詳細と条件については、<a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> をご覧いただくか、+1 833-400-0904 までお電話ください。`,
             electronicFundsWithdrawalInstant: '電子資金引き出し（即時）',
-            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(最小 ${amount})`,
+            electronicFundsInstantFeeMin: (amount: string) => `(最小 ${amount})`,
         },
         longTermsForm: {
             listOfAllFees: 'Expensify ウォレット手数料の一覧',
@@ -3241,7 +3194,7 @@ ${
             electronicFundsInstantDetails: (percentage: string, amount: string) =>
                 '即時振込オプションを使用して、Expensifyウォレットからリンク済みデビットカードへ資金を振り替える場合、手数料が発生します。通常、この振込は数分以内に完了します。' +
                 `手数料は送金額の${percentage}%（最低手数料${amount}）です。`,
-            fdicInsuranceBancorp: ({amount}: TermsParams) =>
+            fdicInsuranceBancorp: (amount: string) =>
                 `お客様の資金はFDIC保険の対象です。お客様の資金はFDIC保険対象機関である${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}に預けられるか、または同機関へ送金されます。` +
                 `そこに預けられた資金は、特定の預金保険要件が満たされ、かつカードが登録されている場合に限り、${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} が破綻した際、FDIC により ${amount} まで保護されます。詳細は ${CONST.TERMS.FDIC_PREPAID} を参照してください。`,
             contactExpensifyPayments: `${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} には、+1 833-400-0904 へ電話するか、${CONST.EMAIL.CONCIERGE} にメールを送信するか、${CONST.NEW_EXPENSIFY_URL} にサインインしてお問い合わせください。`,
@@ -3250,7 +3203,7 @@ ${
             automated: '自動',
             liveAgent: 'ライブエージェント',
             instant: '即時',
-            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `最小 ${amount}`,
+            electronicFundsInstantFeeMin: (amount: string) => `最小 ${amount}`,
         },
     },
     activateStep: {
@@ -3759,15 +3712,15 @@ ${
             flightSeatChanged: (airlineCode: string) => `ご搭乗便 ${airlineCode} の座席指定が変更されました。`,
             flightSeatCancelled: (airlineCode: string) => `フライト ${airlineCode} の座席指定が解除されました。`,
             paymentDeclined: '航空券の支払いに失敗しました。もう一度お試しください。',
-            bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `${type} の予約 ${id} をキャンセルしました。`,
-            bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `ベンダーがあなたの${type}予約 ${id}をキャンセルしました。`,
-            bookingRebooked: ({type, id = ''}: TravelTypeParams) => `あなたの${type}予約は再予約されました。新しい確認番号：${id}。`,
-            bookingUpdated: ({type}: TravelTypeParams) => `${type}の予約が更新されました。旅程で新しい詳細を確認してください。`,
+            bookingCancelledByTraveler: (type: string, id = '') => `${type} の予約 ${id} をキャンセルしました。`,
+            bookingCancelledByVendor: (type: string, id = '') => `ベンダーがあなたの${type}予約 ${id}をキャンセルしました。`,
+            bookingRebooked: (type: string, id = '') => `あなたの${type}予約は再予約されました。新しい確認番号：${id}。`,
+            bookingUpdated: (type: string) => `${type}の予約が更新されました。旅程で新しい詳細を確認してください。`,
             railTicketRefund: ({origin, destination, startDate}: RailTicketParams) =>
                 `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが払い戻しされました。クレジットが処理されます。`,
             railTicketExchange: ({origin, destination, startDate}: RailTicketParams) => `${startDate} の ${origin} → ${destination} 行きの乗車券は、変更されました。`,
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが更新されました。`,
-            defaultUpdate: ({type}: TravelTypeParams) => `あなたの${type}予約が更新されました。`,
+            defaultUpdate: (type: string) => `あなたの${type}予約が更新されました。`,
         },
         flightTo: 'フライト先',
         trainTo: '〜行きの列車',
@@ -4697,7 +4650,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             employeeDefaultDescription: '従業員にデフォルトの部門が存在する場合、その部門が Sage Intacct 内の経費に適用されます。',
             displayedAsTagDescription: '従業員のレポート内の各経費ごとに、部門を選択できるようになります。',
             displayedAsReportFieldDescription: '部門の選択は、従業員のレポート内のすべての経費に適用されます。',
-            toggleImportTitle: ({mappingTitle}: ToggleImportTitleParams) => `Expensify で Sage Intacct の <strong>${mappingTitle}</strong> をどのように処理するかを選択してください。`,
+            toggleImportTitle: (mappingTitle: string) => `Expensify で Sage Intacct の <strong>${mappingTitle}</strong> をどのように処理するかを選択してください。`,
             expenseTypes: '経費タイプ',
             expenseTypesDescription: 'お使いの Sage Intacct の経費タイプは、Expensify ではカテゴリーとしてインポートされます。',
             accountTypesDescription: 'Sage Intacct の勘定科目表は、Expensify ではカテゴリとしてインポートされます。',
@@ -5374,7 +5327,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 updateTaxClaimableFailureMessage: '返還可能な金額は、距離レート額より小さくなければなりません',
             },
             deleteTaxConfirmation: 'この税金を削除してもよろしいですか？',
-            deleteMultipleTaxConfirmation: ({taxAmount}: TaxAmountParams) => `${taxAmount} 件の税金を削除してもよろしいですか？`,
+            deleteMultipleTaxConfirmation: (taxAmount: number) => `${taxAmount} 件の税金を削除してもよろしいですか？`,
             actions: {
                 delete: 'レートを削除',
                 deleteMultiple: 'レートを削除',
@@ -6354,10 +6307,10 @@ ${reportName}
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `${field}「${name}」の承認者を${formatApprover(newApproverName, newApproverEmail)}（以前は${formatApprover(oldApproverName, oldApproverEmail)}）に変更しました`;
         },
-        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `カテゴリ「${categoryName}」を追加しました`,
-        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `カテゴリ「${categoryName}」を削除しました`,
-        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? '無効' : '有効'} カテゴリ「${categoryName}」`,
-        updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+        addCategory: (categoryName: string) => `カテゴリ「${categoryName}」を追加しました`,
+        deleteCategory: (categoryName: string) => `カテゴリ「${categoryName}」を削除しました`,
+        updateCategory: (categoryName: string, oldValue: boolean) => `${oldValue ? '無効' : '有効'} カテゴリ「${categoryName}」`,
+        updateCategoryPayrollCode: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!oldValue) {
                 return `カテゴリ「${categoryName}」に給与コード「${newValue}」を追加しました`;
             }
@@ -6366,7 +6319,7 @@ ${reportName}
             }
             return `「${categoryName}」カテゴリの給与コードを「${newValue}」（以前は「${oldValue}」）に変更しました`;
         },
-        updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+        updateCategoryGLCode: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!oldValue) {
                 return `カテゴリ「${categoryName}」にGLコード「${newValue}」を追加しました`;
             }
@@ -6375,10 +6328,10 @@ ${reportName}
             }
             return `「${categoryName}」カテゴリーのGLコードを「${newValue}」に変更しました（以前は「${oldValue}」）`;
         },
-        updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
+        updateAreCommentsRequired: (categoryName: string, oldValue: boolean) => {
             return `「${categoryName}」カテゴリの説明を${!oldValue ? '必須' : '必須ではありません'}（以前は${!oldValue ? '必須ではありません' : '必須'}）に変更しました`;
         },
-        updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
+        updateCategoryMaxExpenseAmount: (categoryName: string, newAmount?: string, oldAmount?: string) => {
             if (newAmount && !oldAmount) {
                 return `カテゴリ「${categoryName}」に最大金額 ${newAmount} を追加しました`;
             }
@@ -6387,20 +6340,20 @@ ${reportName}
             }
             return `「${categoryName}」カテゴリの上限金額を${newAmount}に変更しました（以前は${oldAmount}）`;
         },
-        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+        updateCategoryExpenseLimitType: (categoryName: string, newValue: string, oldValue?: string) => {
             if (!oldValue) {
                 return `カテゴリ「${categoryName}」に上限タイプ ${newValue} を追加しました`;
             }
             return `「${categoryName}」カテゴリの上限タイプを${newValue}に変更しました（以前は${oldValue}）。`;
         },
-        updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoReceipt: (categoryName: string, newValue: string, oldValue?: string) => {
             if (!oldValue) {
                 return `レシートを${newValue}に変更して、カテゴリ「${categoryName}」を更新しました`;
             }
             return `「${categoryName}」カテゴリを${newValue}に変更しました（以前は${oldValue}）。`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `カテゴリ名を「${oldName}」から「${newName}」に変更しました`,
-        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
+        setCategoryName: (oldName: string, newName: string) => `カテゴリ名を「${oldName}」から「${newName}」に変更しました`,
+        updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `カテゴリ「${categoryName}」から説明ヒント「${oldValue}」を削除しました`;
             }
@@ -6408,7 +6361,7 @@ ${reportName}
                 ? `カテゴリ「${categoryName}」に説明ヒント「${newValue}」を追加しました`
                 : `「${categoryName}」カテゴリの説明ヒントを「${newValue}」（以前は「${oldValue}」）に変更しました`;
         },
-        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `タグリスト名を「${newName}」（以前は「${oldName}」）に変更しました`,
+        updateTagListName: (oldName: string, newName: string) => `タグリスト名を「${newName}」（以前は「${oldName}」）に変更しました`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `タグ「${tagName}」をリスト「${tagListName}」に追加しました`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `タグリスト「${tagListName}」で、タグ「${oldName}」を「${newName}」に変更して更新しました`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? '有効' : '無効'} リスト「${tagListName}」のタグ「${tagName}」`,
@@ -6424,21 +6377,21 @@ ${reportName}
             `${customUnitName} の${updatedField}を「${newValue}」（以前は「${oldValue}」）に変更しました`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? '有効' : '無効'} 距離レートでの税金追跡`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `新しい「${customUnitName}」レート「${rateName}」を追加しました`,
-        updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
+        updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `${customUnitName}の${updatedField}「${customUnitRateName}」のレートを「${oldValue}」から「${newValue}」に変更しました`,
-        updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
             if (oldTaxPercentage && oldValue) {
                 return `距離レート「${customUnitRateName}」の税率を「${oldValue} (${oldTaxPercentage})」から「${newValue} (${newTaxPercentage})」に変更しました`;
             }
             return `税率「${newValue} (${newTaxPercentage})」を距離レート「${customUnitRateName}」に追加しました`;
         },
-        updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
+        updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue) {
                 return `距離単価「${customUnitRateName}」の税還付対象部分を「${oldValue}」から「${newValue}」に変更しました`;
             }
             return `距離レート「${customUnitRateName}」に税還付可能分「${newValue}」を追加しました`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+        updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? '有効' : '無効'} ${customUnitName}レート「${customUnitRateName}」`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `「${customUnitName}」のレート「${rateName}」を削除しました`,
@@ -6458,17 +6411,17 @@ ${reportName}
         deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType} レポートフィールド「${fieldName}」を削除しました`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `「自分自身での承認を防ぐ」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
-        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
+        updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
                 return `月次レポートの提出日を「${newValue}」に設定してください`;
             }
             return `月次レポートの提出日を「${newValue}」（以前は「${oldValue}」）に更新しました`;
         },
-        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `「クライアントへ経費を再請求」を「${newValue}」（以前は「${oldValue}」）に更新しました`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `「現金経費のデフォルト」を「${newValue}」（以前は「${oldValue}」）に更新しました`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `「Enforce default report titles」を有効にしました ${value ? 'オン' : 'オフ'}`,
+        updateDefaultBillable: (oldValue: string, newValue: string) => `「クライアントへ経費を再請求」を「${newValue}」（以前は「${oldValue}」）に更新しました`,
+        updateDefaultReimbursable: (oldValue: string, newValue: string) => `「現金経費のデフォルト」を「${newValue}」（以前は「${oldValue}」）に更新しました`,
+        updateDefaultTitleEnforced: (value: boolean) => `「Enforce default report titles」を有効にしました ${value ? 'オン' : 'オフ'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `このワークスペース名を「${newName}」（以前は「${oldName}」）に更新しました`,
-        updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
+        updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription ? `このワークスペースの説明を「${newDescription}」に設定する` : `このワークスペースの説明を「${newDescription}」（以前は「${oldDescription}」）に更新しました`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
@@ -6486,13 +6439,13 @@ ${reportName}
         },
         demotedFromWorkspace: (policyName: string, oldRole: string) =>
             `${policyName} 内でのあなたのロールが、${oldRole} からユーザーに更新されました。あなた自身のものを除き、すべての精算者の経費チャットから削除されています。`,
-        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
-        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
+        updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
+        updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `承認モードを「${newValue}」（以前は「${oldValue}」）に更新しました`,
         upgradedWorkspace: 'このワークスペースを Control プランにアップグレードしました',
         forcedCorporateUpgrade: `このワークスペースは Control プランにアップグレードされました。詳しくは<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">こちら</a>をクリックしてください。`,
         downgradedWorkspace: 'このワークスペースを Collect プランにダウングレードしました',
-        updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
+        updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `手動承認にランダムに回されるレポートの割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `すべての経費の手動承認限度額を${newLimit}（以前は${oldLimit}）に変更しました`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
@@ -6625,19 +6578,18 @@ ${reportName}
             oldValue ? `請求書の会社名を「${newValue}」（以前は「${oldValue}」）に変更しました` : `請求書の会社名を「${newValue}」に設定する`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `請求書会社のウェブサイトを「${newValue}」（以前は「${oldValue}」）に変更しました` : `請求書の会社ウェブサイトを「${newValue}」に設定`,
-        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `カスタムレポート名の数式を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        changedCustomReportNameFormula: (oldValue: string, newValue: string) => `カスタムレポート名の数式を「${newValue}」（以前は「${oldValue}」）に変更しました`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `認可された支払者を「${newReimburser}」（以前は「${previousReimburser}」）に変更しました` : `承認済み支払者を「${newReimburser}」に変更しました`,
-        setReceiptRequiredAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `領収書が必要な金額を「${newValue}」に設定`,
-        changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `領収書の必須金額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
-        removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `必須領収書金額を削除しました（以前の値：「${oldValue}」）`,
-        setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費金額を「${newValue}」に設定`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費額を削除しました（以前の値：「${oldValue}」）`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を「${newValue}」日に設定`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を削除（以前は「${oldValue}」日）`,
+        setReceiptRequiredAmount: (newValue: string) => `領収書が必要な金額を「${newValue}」に設定`,
+        changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `領収書の必須金額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        removedReceiptRequiredAmount: (oldValue: string) => `必須領収書金額を削除しました（以前の値：「${oldValue}」）`,
+        setMaxExpenseAmount: (newValue: string) => `最大経費金額を「${newValue}」に設定`,
+        changedMaxExpenseAmount: (oldValue: string, newValue: string) => `最大経費額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        removedMaxExpenseAmount: (oldValue: string) => `最大経費額を削除しました（以前の値：「${oldValue}」）`,
+        setMaxExpenseAge: (newValue: string) => `最大経費日数を「${newValue}」日に設定`,
+        changedMaxExpenseAge: (oldValue: string, newValue: string) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
+        removedMaxExpenseAge: (oldValue: string) => `最大経費日数を削除（以前は「${oldValue}」日）`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -6669,7 +6621,7 @@ ${reportName}
         completed: '完了',
         action: '完了',
         messages: {
-            created: ({title}: TaskCreatedActionParams) => `${title} のタスク`,
+            created: (title: string) => `${title} のタスク`,
             completed: '完了としてマーク済み',
             canceled: '削除されたタスク',
             reopened: '未完了としてマーク済み',
@@ -6683,7 +6635,7 @@ ${reportName}
         deleteConfirmation: 'このタスクを削除してもよろしいですか？',
     },
     statementPage: {
-        title: ({year, monthName}: StatementTitleParams) => `${monthName} ${year} の明細`,
+        title: (year: number | string, monthName: string) => `${monthName} ${year} の明細`,
     },
     keyboardShortcutsPage: {
         title: 'キーボードショートカット',
@@ -6978,13 +6930,13 @@ ${reportName}
                 selectedForRandomAuditMarkdown: `レビューのために[ランダムに選択](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule)されました`,
                 share: ({to}: ShareParams) => `招待されたメンバー ${to}`,
                 unshare: ({to}: UnshareParams) => `削除されたメンバー ${to}`,
-                stripePaid: ({amount, currency}: StripePaidParams) => `支払い済み ${currency}${amount}`,
+                stripePaid: (amount: string, currency: string) => `支払い済み ${currency}${amount}`,
                 takeControl: `制御を取得しました`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `${label}${errorMessage ? ` ("${errorMessage}")` : ''} との同期中に問題が発生しました。<a href="${workspaceAccountingLink}">ワークスペース設定</a>で問題を解決してください。`,
                 addEmployee: (email: string, role: string) => `${email} を ${role === 'member' ? 'a' : '1つの'} ${role} として追加しました`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} のロールを ${currentRole} から ${newRole} に更新しました`,
-                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `${email} のカスタムフィールド1（以前の値："${previousValue}"）を削除しました`;
                     }
@@ -6992,7 +6944,7 @@ ${reportName}
                         ? `${email} のカスタムフィールド1に「${newValue}」を追加しました`
                         : `${email} のカスタムフィールド1を「${newValue}」（以前は「${previousValue}」）に変更しました`;
                 },
-                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                updatedCustomField2: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `${email} さんのカスタムフィールド 2 を削除しました（以前の値：「${previousValue}」）`;
                     }
@@ -7470,7 +7422,7 @@ ${reportName}
                 subtitle: '次のステップとして、<a href="#">セットアップチェックリストを完了</a>し、チームが経費精算を開始できるようにしましょう。',
             },
             trialStarted: {
-                title: ({numOfDays}: TrialStartedTitleParams) => `トライアル: 残り ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日！`,
+                title: (numOfDays: number) => `トライアル: 残り ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日！`,
                 subtitle: 'すべてのお気に入りの機能を引き続き利用するには、支払いカードを追加してください。',
             },
             trialEnded: {
@@ -7575,10 +7527,10 @@ ${reportName}
             note: '注: アクティブメンバーとは、あなたの会社ワークスペースに紐づく経費データを作成、編集、提出、承認、精算、またはエクスポートしたことのあるユーザーを指します。',
             confirmDetails: '新しい年額サブスクリプションの詳細を確認してください:',
             subscriptionSize: 'サブスクリプションのサイズ',
-            activeMembers: ({size}: SubscriptionSizeParams) => `${size} 名のアクティブメンバー／月`,
+            activeMembers: (size: number) => `${size} 名のアクティブメンバー／月`,
             subscriptionRenews: 'サブスクリプションの更新',
             youCantDowngrade: '年間サブスクリプション期間中はダウングレードできません。',
-            youAlreadyCommitted: ({size, date}: SubscriptionCommitmentParams) =>
+            youAlreadyCommitted: (size: number, date: string) =>
                 `すでに、${date} まで毎月 ${size} 名のアクティブメンバー分の年間サブスクリプションにコミットしています。自動更新を無効にすると、${date} から従量課金制サブスクリプションに切り替えることができます。`,
             error: {
                 size: '有効なサブスクリプションサイズを入力してください',
@@ -7593,7 +7545,7 @@ ${reportName}
         },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+            summary: (subscriptionType: string, subscriptionSize: string, autoRenew: string, autoIncrease: string) =>
                 `サブスクリプションの種類: ${subscriptionType}、サブスクリプションの規模: ${subscriptionSize}、自動更新: ${autoRenew}、年間シート数の自動増加: ${autoIncrease}`,
             none: 'なし',
             on: 'オン',
@@ -7601,15 +7553,15 @@ ${reportName}
             annual: '年額',
             autoRenew: '自動更新',
             autoIncrease: '年間シート数を自動増加',
-            saveUpTo: ({amountWithCurrency}: SubscriptionSettingsSaveUpToParams) => `アクティブメンバー1人あたり月額最大${amountWithCurrency}を節約`,
+            saveUpTo: (amountWithCurrency: string) => `アクティブメンバー1人あたり月額最大${amountWithCurrency}を節約`,
             automaticallyIncrease:
                 'アクティブメンバー数が現在の契約数を超えた場合に対応できるよう、年間シート数を自動的に増やします。  \n注: これにより、年間サブスクリプションの終了日が延長されます。',
             disableAutoRenew: '自動更新を無効にする',
             helpUsImprove: 'Expensify をより良くするためにご協力ください',
             whatsMainReason: '自動更新を無効にする主な理由は何ですか？',
-            renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `更新日：${date}`,
+            renewsOn: (date: string) => `更新日：${date}`,
             pricingConfiguration: '料金は構成によって異なります。最もお得にご利用いただくには、年額サブスクリプションを選択し、Expensify Card をご利用ください。',
-            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+            learnMore: (hasAdminsRoom: boolean) =>
                 `<muted-text>詳しくは<a href="${CONST.PRICING}">料金ページ</a>をご覧いただくか、${hasAdminsRoom ? `<a href="adminsRoom">#admins ルーム。</a>` : '#admins ルーム'}で当社チームにチャットでお問い合わせください</muted-text>`,
             estimatedPrice: '見積価格',
             changesBasedOn: 'これは、Expensify Card の利用状況と、以下のサブスクリプションオプションによって変わります。',

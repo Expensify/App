@@ -445,9 +445,7 @@ function WorkspaceTaxesPage({
                     onConfirm={deleteTaxes}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={
-                        selectedTaxesIDs.length > 1
-                            ? translate('workspace.taxes.deleteMultipleTaxConfirmation', {taxAmount: selectedTaxesIDs.length})
-                            : translate('workspace.taxes.deleteTaxConfirmation')
+                        selectedTaxesIDs.length > 1 ? translate('workspace.taxes.deleteMultipleTaxConfirmation', selectedTaxesIDs.length) : translate('workspace.taxes.deleteTaxConfirmation')
                     }
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}

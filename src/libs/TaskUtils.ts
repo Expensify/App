@@ -56,7 +56,7 @@ function getTaskTitle(taskReport?: OnyxEntry<Report>, fallbackTitle = '', should
 
 function getTaskCreatedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, taskReport?: OnyxEntry<Report>, shouldReturnMarkdown = false) {
     const taskTitle = getTaskTitle(taskReport, reportAction?.childReportName, shouldReturnMarkdown);
-    return taskTitle ? translate('task.messages.created', {title: taskTitle}) : '';
+    return taskTitle ? translate('task.messages.created', taskTitle) : '';
 }
 
 export {isActiveTaskEditRoute, getTaskReportActionMessage, getTaskTitle, getTaskCreatedMessage};

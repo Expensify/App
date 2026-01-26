@@ -1142,8 +1142,7 @@ function MoneyReportHeader({
     const unapproveWarningText = useMemo(
         () => (
             <Text>
-                <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
-                <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
+                <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('iou.unapproveWithIntegrationWarning', connectedIntegrationName)}</Text>
             </Text>
         ),
         [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],

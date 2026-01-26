@@ -184,12 +184,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         if (sumOfSplitExpenses > transactionDetailsAmount) {
             const difference = sumOfSplitExpenses - transactionDetailsAmount;
-            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(difference, transactionDetails?.currency)));
             return;
         }
         if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
             const difference = transactionDetailsAmount - sumOfSplitExpenses;
-            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            setErrorMessage(translate('iou.totalAmountLessThanOriginal', convertToDisplayString(difference, transactionDetails?.currency)));
             return;
         }
 
@@ -317,7 +317,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
     const warningMessage = shouldShowWarningMessage
-        ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
+        ? translate('iou.totalAmountLessThanOriginal', convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency))
         : '';
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
@@ -408,10 +408,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
-                        subtitle={translate('iou.splitExpenseSubtitle', {
-                            amount: convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency),
-                            merchant: draftTransaction?.merchant ?? '',
-                        })}
+                        subtitle={translate('iou.splitExpenseSubtitle', convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency), draftTransaction?.merchant ?? '')}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
 

@@ -197,7 +197,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
 
         it('SUBMITTED action with memo', async () => {
@@ -207,7 +207,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', memo))).toBeOnTheScreen();
         });
 
         it('SUBMITTED_AND_CLOSED action', async () => {
@@ -216,7 +216,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
     });
 
@@ -352,7 +352,7 @@ describe('PureReportActionItem', () => {
 
             // Then it should display the standard submitted message and not the DEW queued message
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
         });
     });

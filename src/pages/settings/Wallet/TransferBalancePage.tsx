@@ -211,9 +211,7 @@ function TransferBalancePage() {
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
-                        buttonText={translate('transferAmountPage.transfer', {
-                            amount: isTransferable ? convertToDisplayString(transferAmount) : '',
-                        })}
+                        buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount) : '')}
                         isLoading={walletTransfer?.loading}
                         onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}
                         isDisabled={isButtonDisabled || isOffline}

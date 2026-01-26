@@ -310,7 +310,7 @@ describe('ReportNameUtils', () => {
                 },
             };
 
-            const expected = translate(CONST.LOCALES.EN, 'iou.submitted', {memo: 'via workflow'});
+            const expected = translate(CONST.LOCALES.EN, 'iou.submitted', 'via workflow');
             const name = computeReportName(
                 thread,
                 emptyCollections.reports,

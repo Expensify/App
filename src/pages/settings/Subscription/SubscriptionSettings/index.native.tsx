@@ -99,7 +99,7 @@ function SubscriptionSettings() {
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <View style={[styles.renderHTML, styles.mb5]}>
                     <RenderHTML
-                        html={translate('subscription.subscriptionSettings.learnMore', {hasAdminsRoom: !!adminsChatReportID})}
+                        html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
                         onLinkPress={(_evt, href) => handleLinkPress(href)}
                     />
                 </View>

@@ -436,7 +436,7 @@ function getFreeTrialText(
         return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-        return translate('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
+        return translate('subscription.billingBanner.trialStarted.title', calculateRemainingFreeTrialDays(lastDayFreeTrial));
     }
 
     return undefined;

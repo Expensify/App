@@ -127,10 +127,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
-                        title={translate('iou.splitExpenseEditTitle', {
-                            amount: convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
-                            merchant: splitExpenseDraftTransaction?.merchant ?? '',
-                        })}
+                        title={translate(
+                            'iou.splitExpenseEditTitle',
+                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
+                            splitExpenseDraftTransaction?.merchant ?? '',
+                        )}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>
