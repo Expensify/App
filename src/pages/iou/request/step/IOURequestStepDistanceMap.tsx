@@ -25,6 +25,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaypointItems from '@hooks/useWaypointItems';
 import {getIOURequestPolicyID, setMoneyRequestAmount, setSplitShares, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -361,29 +362,11 @@ function IOURequestStepDistanceMap({
         data: string[];
     };
 
-    const {allItems, waypointByKeyForList} = useMemo(() => {
-        const length = Object.keys(waypoints).length;
-        const items: string[] = [];
-        const waypointsByKey: Record<string, {key: string; waypoint: Waypoint}> = {};
-
-        for (let i = 0; i < length; i++) {
-            const key = `waypoint${i}`;
-            const waypoint = waypoints[key];
-
-            const keyForList = waypoint?.keyForList ?? Math.random().toString(36).substring(2, 8);
-            items.push(keyForList);
-            waypointsByKey[keyForList] = {key, waypoint};
-        }
-
-        return {allItems: items, waypointByKeyForList: waypointsByKey};
-    }, [waypoints]);
-
-    const getWaypointKey = useCallback((keyForList: string) => waypointByKeyForList[keyForList]?.key, [waypointByKeyForList]);
-    const getWaypoint = useCallback((keyForList: string) => waypointByKeyForList[keyForList]?.waypoint, [waypointByKeyForList]);
+    const {waypointItems, getWaypoint, getWaypointKey, extractKey} = useWaypointItems(waypoints);
 
     const updateWaypoints = useCallback(
         ({data}: DataParams) => {
-            if (deepEqual(allItems, data)) {
+            if (deepEqual(waypointItems, data)) {
                 return;
             }
 
@@ -405,7 +388,7 @@ function IOURequestStepDistanceMap({
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, transaction, waypoints, allItems, action, getWaypoint],
+        [transactionID, transaction, waypoints, waypointItems, action, getWaypoint],
     );
 
     const submitWaypoints = useCallback(() => {
@@ -490,8 +473,6 @@ function IOURequestStepDistanceMap({
         [isLoadingRoute, navigateToWaypointEditPage, waypoints, getWaypointKey],
     );
 
-    const extractKey = useCallback((item: string) => (item ?? getWaypoint(item)?.address ?? '') + getWaypointKey(item), [getWaypoint, getWaypointKey]);
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -503,7 +484,7 @@ function IOURequestStepDistanceMap({
             <>
                 <View style={styles.flex1}>
                     <DraggableList
-                        data={allItems}
+                        data={waypointItems}
                         keyExtractor={extractKey}
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}
