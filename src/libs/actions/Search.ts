@@ -6,7 +6,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
@@ -46,15 +46,28 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    ExportTemplate,
+    LastPaymentMethod,
+    LastPaymentMethodType,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import type {RejectMoneyRequestData} from './IOU';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
-import {setOptimisticTransactionThread} from './Report';
+import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -240,13 +253,7 @@ function getPayActionCallback(
     goToItem();
 }
 
-function getOnyxLoadingData(
-    hash: number,
-    queryJSON?: SearchQueryJSON,
-    offset?: number,
-    isOffline?: boolean,
-    isSearchAPI = false,
-): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
+function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON, offset?: number, isOffline?: boolean, isSearchAPI = false): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -454,7 +461,14 @@ function search({
 }
 
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+
+    const onyxLoadingData = getOnyxLoadingData(hash);
+
+    optimisticData.push(...(onyxLoadingData.optimisticData ?? []));
+    finallyData.push(...(onyxLoadingData.finallyData ?? []));
+
     for (const transactionID of transactionIDList) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
@@ -723,17 +737,48 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
+function bulkDeleteReports(
+    hash: number,
+    selectedTransactions: Record<string, SelectedTransactionInfo>,
+    currentUserEmailParam: string,
+    reportTransactions: Record<string, Transaction>,
+    transactionsViolations: Record<string, TransactionViolations>,
+    bankAccountList: OnyxEntry<BankAccountList>,
+) {
+    const transactionIDList: string[] = [];
+    const reportIDList: string[] = [];
+
+    for (const key of Object.keys(selectedTransactions)) {
+        const selectedItem = selectedTransactions[key];
+        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+            reportIDList.push(selectedItem.reportID);
+        } else {
+            transactionIDList.push(key);
+        }
+    }
+
+    if (transactionIDList.length > 0) {
+        deleteMoneyRequestOnSearch(hash, transactionIDList);
+    }
+
+    if (reportIDList.length > 0) {
+        for (const reportID of reportIDList) {
+            deleteAppReport(reportID, currentUserEmailParam, reportTransactions, transactionsViolations, bankAccountList);
+        }
+    }
+}
+
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
 
     for (const transactionID of transactionIDList) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const optimisticData: OnyxUpdate[] = [
-            ...loadingOptimisticData,
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            ...(loadingOptimisticData ?? []),
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: {
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
@@ -761,10 +806,15 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 }
 
 function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[], hash?: number) {
-    const loadingData = hash !== undefined ? getOnyxLoadingData(hash) : {optimisticData: [] as OnyxUpdate[], finallyData: [] as OnyxUpdate[]};
-    const {optimisticData, finallyData} = loadingData;
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+    const successData: RejectMoneyRequestData['successData'] = [];
+    const failureData: RejectMoneyRequestData['failureData'] = [];
+
+    const loadingData = hash !== undefined ? getOnyxLoadingData(hash) : {optimisticData: undefined, finallyData: undefined};
+    optimisticData.push(...(loadingData.optimisticData ?? []));
+    finallyData.push(...(loadingData.finallyData ?? []));
+
     const transactionIDToRejectReportAction: Record<
         string,
         {
@@ -1288,6 +1338,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 export {
     saveSearch,
     search,
+    bulkDeleteReports,
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,

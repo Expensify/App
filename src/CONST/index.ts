@@ -24,6 +24,7 @@ const EMPTY_OBJECT = Object.freeze({});
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
 
 const DEFAULT_NUMBER_ID = 0;
+const DEFAULT_MISSING_ID = -1;
 const DEFAULT_COUNTRY_CODE = 1;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -738,6 +739,7 @@ const CONST = {
         ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
+        NEW_DOT_HOME: 'newDotHome',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -974,6 +976,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
     FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
@@ -1366,6 +1369,8 @@ const CONST = {
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
+                    UPDATE_INVOICE_COMPANY_NAME: 'POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_NAME',
+                    UPDATE_INVOICE_COMPANY_WEBSITE: 'POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_WEBSITE',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
@@ -2682,6 +2687,16 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    MISSING_PERSONAL_DETAILS: {
+        STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+            CONFIRM: 'confirm',
+        },
+    },
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -3157,6 +3172,7 @@ const CONST = {
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
             IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
+            IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3348,6 +3364,7 @@ const CONST = {
         DISABLED_MAX_EXPENSE_AGE: 10000000000,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
+        DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',
@@ -3505,8 +3522,8 @@ const CONST = {
             FIXED: 'fixed',
         },
         LIMIT_VALUE: 21474836,
-        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
-        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4', '5'],
+        STEP_NAMES: ['1', '2', '3', '4', '5'],
+        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
@@ -3701,6 +3718,24 @@ const CONST = {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
             INVOICING: 'invoicing2018',
+        },
+    },
+    EXPENSE_RULES: {
+        FIELDS: {
+            BILLABLE: 'billable',
+            CATEGORY: 'category',
+            DESCRIPTION: 'comment',
+            CREATE_REPORT: 'createReport',
+            MERCHANT: 'merchantToMatch',
+            RENAME_MERCHANT: 'merchant',
+            REIMBURSABLE: 'reimbursable',
+            REPORT: 'report',
+            TAG: 'tag',
+            TAX: 'tax',
+        },
+        BULK_ACTION_TYPES: {
+            EDIT: 'edit',
+            DELETE: 'delete',
         },
     },
 
@@ -5467,6 +5502,10 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
+    MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE: {
+        SUCCESS: 'success',
+        FAILURE: 'failure',
+    },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
         ERR_2FA: 'err_2fa',
@@ -5794,6 +5833,7 @@ const CONST = {
         PER_DAY_LIMIT: 'perDayLimit',
         RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
         RECEIPT_REQUIRED: 'receiptRequired',
+        ITEMIZED_RECEIPT_REQUIRED: 'itemizedReceiptRequired',
         CUSTOM_RULES: 'customRules',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
@@ -5807,6 +5847,7 @@ const CONST = {
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
+        NO_ROUTE: 'noRoute',
         MISSING_ATTENDEES: 'missingAttendees',
     },
     RTER_VIOLATION_TYPES: {
@@ -6673,6 +6714,8 @@ const CONST = {
 
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
 
+    FLIGHT_SEAT_TEST_ID: 'FlightSeat',
+
     CANCELLATION_POLICY: {
         UNKNOWN: 'UNKNOWN',
         NON_REFUNDABLE: 'NON_REFUNDABLE',
@@ -7230,6 +7273,7 @@ const CONST = {
         ANIMATION: {
             FADE_DURATION: 200,
         },
+        TODO_BADGE_MAX_COUNT: 50,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -7576,10 +7620,11 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
-        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
+        HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
+        HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
     },
 
     DEBUG: {
@@ -7699,6 +7744,7 @@ const CONST = {
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
+        GPS_TOOLTIP: 'gpsTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -7751,6 +7797,11 @@ const CONST = {
             REFUND: 'REFUND',
             EXCHANGE: 'EXCHANGE',
         },
+        /**
+         * The Travel Invoicing feed type constant.
+         * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
+         */
+        PROGRAM_TRAVEL_US: 'TRAVEL_US',
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -7815,6 +7866,15 @@ const CONST = {
     LIST_BEHAVIOR: {
         REGULAR: 'regular',
         INVERTED: 'inverted',
+    },
+
+    VIOLATION_DISMISSAL: {
+        rter: {
+            manual: 'marked this receipt as cash',
+        },
+        duplicatedTransaction: {
+            manual: 'resolved the duplicate',
+        },
     },
 
     SENTRY_LABEL: {
@@ -7937,7 +7997,6 @@ const CONST = {
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
-            EXPLAIN: 'ContextMenu-Explain',
         },
         MORE_MENU: {
             MORE_BUTTON: 'MoreMenu-MoreButton',
@@ -8013,6 +8072,11 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+    },
+
+    SECTION_LIST_ITEM_TYPE: {
+        HEADER: 'header',
+        ROW: 'row',
     },
 } as const;
 

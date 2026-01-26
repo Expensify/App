@@ -51,6 +51,7 @@ function IOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
 
@@ -154,18 +155,19 @@ function IOURequestStepDescription({
         setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            updateMoneyRequestDescription(
-                transaction?.transactionID,
-                report,
+            updateMoneyRequestDescription({
+                transactionID: transaction?.transactionID,
+                transactionThreadReport: report,
                 parentReport,
-                newComment,
+                comment: newComment,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyCategories,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-            );
+                parentReportNextStep,
+            });
         }
 
         setIsSaved(true);

@@ -48,6 +48,8 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
+    getReportStatusColorStyle,
+    getReportStatusTranslation,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,
@@ -59,6 +61,7 @@ import {
     isDeprecatedGroupDM,
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
+    isInvoiceReport,
     isInvoiceRoom,
     isOneTransactionThread,
     isOpenTaskReport,
@@ -127,6 +130,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
@@ -139,7 +143,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isChatRoom = isChatRoomReportUtils(report);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
-    const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
+    // This is used to check if the report is a chat thread and has a parent invoice report.
+    const isParentInvoiceAndIsChatThread = isChatThread && !!parentReport && isInvoiceReport(parentReport);
+    const reportHeaderData = (!isTaskReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsChatThread ? parentReport : report;
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportActions?.[`${parentReport?.parentReportActionID}`]);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
@@ -148,6 +154,11 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
+    // This is used to get the status badge for invoice report subtitle.
+    const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread
+        ? getReportStatusTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
+        : undefined;
+    const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, isParentReportHeaderDataArchived);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
@@ -227,7 +238,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar =
         introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) && !isInSidePanel;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !isInSidePanel;
@@ -320,6 +331,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         </CaretWrapper>
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
+                                                statusText={statusTextForInvoiceReport}
+                                                statusTextColor={statusColorForInvoiceReport?.textColor}
+                                                statusTextBackgroundColor={statusColorForInvoiceReport?.backgroundColor}
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
                                                 reportID={parentNavigationReport?.reportID}
                                                 parentReportID={parentNavigationReport?.parentReportID}
