@@ -141,7 +141,8 @@ function createPolicyTag(
     setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
     policyHasCustomCategories?: boolean,
 ) {
-     const {policyID, policy, tags: policyTags} = policyData;
+    const {policy, tags: policyTags} = policyData;
+    const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
     const tagListsOptimisticData = {

@@ -8,9 +8,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePolicyData from '@hooks/usePolicyData';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -75,7 +75,6 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },
         [policyID, policyData, isQuickSettingsFlow, backTo, setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories],
-
     );
 
     return (
