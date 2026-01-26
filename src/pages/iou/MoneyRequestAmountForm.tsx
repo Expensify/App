@@ -108,8 +108,6 @@ function MoneyRequestAmountForm({
 
     const [isNegative, setIsNegative] = useState(false);
 
-    const {isBetaEnabled} = usePermissions();
-
     const [formError, setFormError] = useState<string>('');
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
@@ -179,7 +177,7 @@ function MoneyRequestAmountForm({
 
             onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, isBetaEnabled],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P],
     );
 
     const buttonText: string = useMemo(() => {
