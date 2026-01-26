@@ -44,7 +44,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
@@ -308,11 +308,18 @@ function SearchFiltersBar({
             }
 
             // Preserve the current sortBy, sortOrder, and limit from queryJSON when updating filters
-            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
+            let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
                 sortBy: queryJSON.sortBy,
                 sortOrder: queryJSON.sortOrder,
                 limit: queryJSON.limit,
             });
+
+            if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
+                queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
+            }
+            if (!queryString) {
+                return;
+            }
 
             close(() => {
                 // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
