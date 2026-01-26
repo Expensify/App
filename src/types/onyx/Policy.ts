@@ -189,6 +189,9 @@ type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Whether receipt partners are enabled */
         enabled?: boolean;
+
+        /** Whether the receipt partners page is loading */
+        isLoading?: boolean;
     } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
 >;
 
