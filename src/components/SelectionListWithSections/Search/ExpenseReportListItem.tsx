@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
@@ -67,6 +68,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
 
+    const isReportPendingDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleOnButtonPress = useCallback(() => {
@@ -112,8 +115,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
+            isReportPendingDelete && styles.cursorDisabled,
         ],
-        [styles, item.isSelected],
+        [styles, item.isSelected, isReportPendingDelete],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -180,9 +184,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isReportPendingDelete && styles.cursorDisabled]}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
+            isDisabled={isReportPendingDelete}
+            shouldDisableHoverStyle={isReportPendingDelete}
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
