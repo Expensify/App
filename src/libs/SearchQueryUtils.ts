@@ -589,9 +589,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${options?.sortOrder ?? CONST.SEARCH.SORT_ORDER.DESC}`);
-    if (options?.limit !== undefined) {
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${options.limit}`);
-    }
 
     if (type) {
         const sanitizedType = sanitizeSearchValue(type);
@@ -737,6 +734,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     for (const filterKey of AMOUNT_FILTER_KEYS) {
         const amountFilter = buildAmountFilterQuery(filterKey, supportedFilterValues);
         filtersString.push(amountFilter);
+    }
+
+    if (options?.limit !== undefined) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${options.limit}`);
     }
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -1293,10 +1294,6 @@ function buildUserReadableQueryString(
         title += ` columns:${columnValue}`;
     }
 
-    if (limit !== undefined) {
-        title += ` limit:${limit}`;
-    }
-
     for (const filterObject of filters) {
         const key = filterObject.key;
         const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
@@ -1306,6 +1303,10 @@ function buildUserReadableQueryString(
         }
 
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
+    }
+
+    if (limit !== undefined) {
+        title += ` limit:${limit}`;
     }
 
     if (autoCompleteWithSpace && !title.endsWith(' ')) {

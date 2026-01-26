@@ -277,7 +277,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
 
-                expect(result).toEqual('sortBy:date sortOrder:desc limit:10 type:expense');
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense limit:10');
             });
 
             test('combines limit with sort options', () => {
@@ -288,7 +288,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc', limit: 25});
 
-                expect(result).toEqual('sortBy:amount sortOrder:asc limit:25 type:expense merchant:Amazon');
+                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant:Amazon limit:25');
             });
 
             test('omits limit when not provided', () => {
