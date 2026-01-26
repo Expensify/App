@@ -110,6 +110,7 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
+    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
@@ -282,10 +283,6 @@ export default {
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
 
-    desktopAppRetiredIllustrationW: 264,
-    desktopAppRetiredIllustrationH: 230,
-    desktopAppRetiredViewContainerWidth: 310,
-
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
@@ -400,4 +397,12 @@ export default {
     splitExpenseAmountMobileWidth: 82,
     splitExpensePercentageWidth: 42,
     splitExpensePercentageMobileWidth: 62,
+
+    // Multifactor Authentication illustrations size
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
 } as const;

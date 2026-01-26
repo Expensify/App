@@ -237,7 +237,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         });
 
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [personalDetails]);
 
     const initializeOptions = useCallback(() => {
@@ -258,7 +258,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, []);
 
     return (
-        <OptionsListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
+        <OptionsListContext.Provider
             value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
         >
             {children}

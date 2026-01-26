@@ -54,7 +54,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         signInWithShortLivedAuthToken(shortLivedAuthToken);
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL]);
 
     useEffect(() => {
@@ -74,7 +74,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 }
             });
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
     return <FullScreenLoadingIndicator />;
