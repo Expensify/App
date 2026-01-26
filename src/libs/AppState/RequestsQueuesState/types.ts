@@ -1,4 +1,4 @@
-import type {Request} from '@src/types/onyx';
+import type {GenericRequest} from '@src/types/onyx';
 
 /**
  * Main queue state
@@ -11,7 +11,7 @@ type MainQueueInfo = {
     queuedCommands?: string[];
 };
 
-type OngoingRequestInfo = Pick<Request<any>, 'command' | 'persistWhenOngoing' | 'isRollback'>;
+type OngoingRequestInfo = Pick<GenericRequest, 'command' | 'persistWhenOngoing' | 'isRollback'>;
 
 /**
  * Persisted requests state

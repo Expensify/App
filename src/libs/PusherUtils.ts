@@ -1,4 +1,4 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
@@ -11,6 +11,7 @@ import type {PingPongEvent} from './Pusher/types';
 type Callback<TKey extends OnyxKey> = (data: Array<OnyxServerUpdate<TKey>>) => Promise<void>;
 
 // Keeps track of all the callbacks that need triggered for each event type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const multiEventCallbackMapping: Record<string, Callback<any>> = {};
 
 function getUserChannelName(accountID: string) {

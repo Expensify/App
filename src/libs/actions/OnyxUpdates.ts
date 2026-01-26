@@ -193,7 +193,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
+function saveUpdateInformation<TKey extends OnyxKey = OnyxKey>(updateParams: OnyxUpdatesFromServer<TKey>) {
     let modifiedUpdateParams = updateParams;
     // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
     // and it causes serialization issues when storing in Onyx
@@ -201,7 +201,7 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
         modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams);
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as OnyxUpdatesFromServer);
 }
 
 type DoesClientNeedToBeUpdatedParams = {
