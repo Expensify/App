@@ -13,7 +13,7 @@ type DerivedSourceValues<Deps extends readonly OnyxKey[]> = Partial<{
     [K in Deps[number]]: OnyxCollectionSourceValue<K>;
 }>;
 
-type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
+type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<OnyxKey>> = {
     currentValue?: OnyxValue<Key>;
     sourceValues?: DerivedSourceValues<Deps>;
     areAllConnectionsSet: boolean;
@@ -26,7 +26,7 @@ type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<Exclude
  *    The compute function receives a single argument that's a tuple of the onyx values for the declared dependencies.
  *    For example, if your dependencies are `['report_', 'account'], then compute will receive a [OnyxCollection<Report>, OnyxEntry<Account>]
  */
-type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
+type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<OnyxKey>> = {
     key: Key;
     dependencies: Deps;
     compute: (

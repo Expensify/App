@@ -404,8 +404,8 @@ describe('Sidebar', () => {
                         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four owes $100.00');
+                        expect(displayNames.at(0)).toHaveTextContent('Email Four owes $100.00');
+                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
                         expect(displayNames.at(3)).toHaveTextContent('Email Two');
                     })
@@ -484,8 +484,8 @@ describe('Sidebar', () => {
                         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent(`Email One's expenses`);
-                        expect(displayNames.at(1)).toHaveTextContent('Report Name');
+                        expect(displayNames.at(0)).toHaveTextContent('Report Name');
+                        expect(displayNames.at(1)).toHaveTextContent(`Email One's expenses`);
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
                         expect(displayNames.at(3)).toHaveTextContent('Email Two');
                     })
