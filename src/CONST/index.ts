@@ -4073,6 +4073,7 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
         REPORT: 'report',
     },
     FOOTER: {
