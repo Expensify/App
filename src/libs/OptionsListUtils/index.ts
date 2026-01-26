@@ -2532,7 +2532,7 @@ function getMemberInviteOptions(
 ): Options {
     return getValidOptions(
         {personalDetails, reports: []},
-        allPolicies,
+        undefined,
         undefined,
         nvpDismissedProductTraining,
         loginList,
