@@ -6910,6 +6910,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                MONTH: {
+                    MONTH: this.TABLE_COLUMNS.GROUP_MONTH,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -6951,6 +6956,7 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_EXPENSES,
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
+                MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {

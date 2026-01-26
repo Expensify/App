@@ -2675,6 +2675,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM);
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID);
+        case CONST.SEARCH.GROUP_BY.MONTH:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
         default:
             return [];
     }
@@ -2700,6 +2702,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM;
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID;
+        case CONST.SEARCH.GROUP_BY.MONTH:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH;
         default:
             return [];
     }
@@ -2778,6 +2782,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
+            return 'common.month';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -3252,12 +3258,14 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.CARD]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD,
             [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM,
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID,
+            [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH,
         }[groupBy];
 
         const defaultCustomColumns = {
             [CONST.SEARCH.GROUP_BY.CARD]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CARD,
             [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM,
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID,
+            [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH,
         }[groupBy];
 
         const filteredVisibleColumns = visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>));
@@ -3297,8 +3305,8 @@ function getColumnsToShow(
             return result;
         }
 
-        if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
-            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]);
+        if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]);
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
