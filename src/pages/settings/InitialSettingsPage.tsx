@@ -1,7 +1,7 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
