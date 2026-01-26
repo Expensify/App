@@ -465,8 +465,8 @@ function getAlternateText(
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const formattedLastMessageText =
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, currentUserAccountID});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
