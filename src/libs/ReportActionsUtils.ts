@@ -65,6 +65,10 @@ type MemberChangeMessageRoomReferenceElement = {
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
+type Followup = {
+    text: string;
+};
+
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -1722,6 +1726,48 @@ function getMemberChangeMessageElements(
     ];
 }
 
+const followUpListRegex = /<followup-list(\s[^>]*)?>[\s\S]*?<\/followup-list>/i;
+const followUpSelectedListRegex = /<followup-list[^>]*\sselected[\s>]/i;
+const followUpTextRegex = /<followup><followup-text>([^<]*)<\/followup-text><\/followup>/gi;
+/**
+ * Parses followup data from a <followup-list> HTML element.
+ * @param html - The HTML string to parse for <followup-list> elements
+ * @returns null if no <followup-list> exists, empty array [] if the followup-list has the 'selected' attribute (resolved state), or an array of followup objects if unresolved
+ */
+function parseFollowupsFromHtml(html: string): Followup[] | null {
+    const followupListMatch = html.match(followUpListRegex);
+    if (!followupListMatch) {
+        return null;
+    }
+
+    // There is only one follow up list
+    const followupListHtml = followupListMatch[0];
+    const hasSelectedAttribute = followUpSelectedListRegex.test(followupListHtml);
+    if (hasSelectedAttribute) {
+        return [];
+    }
+
+    const followups: Followup[] = [];
+    let match = followUpTextRegex.exec(followupListHtml);
+    while (match !== null) {
+        followups.push({text: match[1]});
+        match = followUpTextRegex.exec(followupListHtml);
+    }
+    return followups;
+}
+
+/**
+ * Used for generating preview text in LHN and other places where followups should not be displayed.
+ * @param html message.html from the report COMMENT actions
+ * @returns html with the <followup-list> element and its contents stripped out or undefined if html is undefined
+ */
+function stripFollowupListFromHtml(html?: string): string | undefined {
+    if (!html) {
+        return;
+    }
+    return html.replace(followUpListRegex, '').trim();
+}
+
 function getReportActionHtml(reportAction: PartialReportAction): string {
     return getReportActionMessage(reportAction)?.html ?? '';
 }
@@ -1730,7 +1776,7 @@ function getReportActionText(reportAction: PartialReportAction): string {
     const message = getReportActionMessage(reportAction);
     // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const text = (message?.html || message?.text) ?? '';
+    const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
     return text ? Parser.htmlToText(text) : '';
 }
 
@@ -3908,6 +3954,8 @@ export {
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
     getReportActionActorAccountID,
+    parseFollowupsFromHtml,
+    stripFollowupListFromHtml,
 };
 
-export type {LastVisibleMessage};
+export type {LastVisibleMessage, Followup};

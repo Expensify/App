@@ -26,6 +26,7 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -3404,6 +3405,99 @@ describe('actions/Report', () => {
 
             // Should use the provided ID, not the Onyx ID
             expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.stringContaining(providedConciergeReportID), undefined);
+        });
+    });
+
+    describe('buildOptimisticResolvedFollowups', () => {
+        it('should return null when reportAction is undefined', () => {
+            const result = Report.buildOptimisticResolvedFollowups(undefined);
+            expect(result).toBeNull();
+        });
+
+        it('should return null when reportAction has no followup-list', () => {
+            const reportAction = {
+                reportActionID: '123',
+                message: [{html: '<p>Hello world</p>', text: 'Hello world', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+            } as OnyxTypes.ReportAction;
+
+            const result = Report.buildOptimisticResolvedFollowups(reportAction);
+            expect(result).toBeNull();
+        });
+
+        it('should return null when followup-list is already resolved (has selected attribute)', () => {
+            const reportAction = {
+                reportActionID: '123',
+                message: [
+                    {
+                        html: '<p>Message</p><followup-list selected><followup><followup-text>Question?</followup-text></followup></followup-list>',
+                        text: 'Message',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as OnyxTypes.ReportAction;
+
+            const result = Report.buildOptimisticResolvedFollowups(reportAction);
+            expect(result).toBeNull();
+        });
+
+        it('should return updated action with resolved followup-list when unresolved followups exist', () => {
+            const reportAction = {
+                reportActionID: '123',
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                message: [
+                    {
+                        html: '<p>Here is some help</p><followup-list><followup><followup-text>How do I set up QuickBooks?</followup-text></followup></followup-list>',
+                        text: 'Here is some help',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as OnyxTypes.ReportAction;
+
+            const result = Report.buildOptimisticResolvedFollowups(reportAction);
+
+            expect(result).not.toBeNull();
+
+            expect(result?.reportActionID).toBe('123');
+            expect((result?.message as Array<Message>).at(0)?.html).toContain('<followup-list selected>');
+            expect((result?.message as Array<Message>).at(0)?.html).not.toMatch(/<followup-list>/);
+        });
+
+        it('should handle followup-list with attributes before adding selected', () => {
+            const reportAction = {
+                reportActionID: '456',
+                message: [
+                    {
+                        html: '<p>Help</p><followup-list class="test"><followup><followup-text>Question 1</followup-text></followup><followup><followup-text>Question 2</followup-text></followup></followup-list>',
+                        text: 'Help',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as OnyxTypes.ReportAction;
+
+            const result = Report.buildOptimisticResolvedFollowups(reportAction);
+
+            expect(result).not.toBeNull();
+            expect((result?.message as Message[]).at(0)?.html).toContain('<followup-list selected>');
+        });
+
+        it('should preserve other message properties when resolving followups', () => {
+            const reportAction = {
+                reportActionID: '789',
+                message: [
+                    {
+                        html: '<p>Help</p><followup-list><followup><followup-text>Question</followup-text></followup></followup-list>',
+                        text: 'Help',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        isEdited: true,
+                    },
+                ],
+            } as OnyxTypes.ReportAction;
+
+            const result = Report.buildOptimisticResolvedFollowups(reportAction);
+
+            expect(result).not.toBeNull();
+            expect((result?.message as Array<Message>).at(0)?.text).toBe('Help');
+            expect((result?.message as Array<Message>).at(0)?.type).toBe(CONST.REPORT.MESSAGE.TYPE.COMMENT);
         });
     });
 });

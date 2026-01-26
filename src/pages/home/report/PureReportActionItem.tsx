@@ -161,6 +161,7 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
+    parseFollowupsFromHtml,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -200,6 +201,7 @@ import {
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
+    resolveSuggestedFollowup,
 } from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -871,6 +873,20 @@ function PureReportActionItem({
                     resolveConciergeDescriptionOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
+        }
+        const messageHtml = getReportActionMessage(action)?.html;
+        if (messageHtml && reportActionReport) {
+            const followups = parseFollowupsFromHtml(messageHtml);
+            if (followups && followups.length > 0) {
+                return followups.map((followup) => ({
+                    text: followup.text,
+                    shouldUseLocalization: false,
+                    key: `${action.reportActionID}-followup-${followup.text}`,
+                    onPress: () => {
+                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup.text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    },
+                }));
+            }
         }
 
         if (!isActionableWhisper && !isActionableCardFraudAlert(action) && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
@@ -1553,7 +1569,6 @@ function PureReportActionItem({
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons
                             items={actionableItemButtons}
-                            shouldUseLocalization
                             layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
                         />
                     )}
@@ -1618,7 +1633,6 @@ function PureReportActionItem({
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons
                             items={actionableItemButtons}
-                            shouldUseLocalization
                             layout="vertical"
                         />
                     )}
@@ -1678,7 +1692,6 @@ function PureReportActionItem({
                                                     ? 'vertical'
                                                     : 'horizontal'
                                             }
-                                            shouldUseLocalization={!isConciergeOptions}
                                             primaryTextNumberOfLines={isConciergeOptions ? 2 : 1}
                                             textStyles={isConciergeOptions ? styles.textAlignLeft : undefined}
                                         />

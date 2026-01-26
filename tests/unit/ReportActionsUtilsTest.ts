@@ -25,6 +25,8 @@ import {
     getSendMoneyFlowAction,
     getUpdateACHAccountMessage,
     isIOUActionMatchingTransactionList,
+    parseFollowupsFromHtml,
+    stripFollowupListFromHtml,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -3009,6 +3011,117 @@ describe('ReportActionsUtils', () => {
 
             const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
             expect(result).toBe('set the invoice company website to "https://newwebsite.com"');
+        });
+    });
+
+    describe('parseFollowupsFromHtml', () => {
+        it('should return null when no followup-list exists', () => {
+            const html = '<p>Hello world</p>';
+            expect(parseFollowupsFromHtml(html)).toBeNull();
+        });
+
+        it('should return null for empty string', () => {
+            expect(parseFollowupsFromHtml('')).toBeNull();
+        });
+
+        it('should return empty array when followup-list has selected attribute', () => {
+            const html = `<p>Some message</p>
+<followup-list selected>
+  <followup><followup-text>How do I set up QuickBooks?</followup-text></followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([]);
+        });
+
+        it('should return empty array when followup-list has selected attribute with other attributes', () => {
+            const html = `<followup-list class="test" selected data-id="123">
+  <followup><followup-text>Question 1</followup-text></followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([]);
+        });
+
+        it('should parse single followup from unresolved list', () => {
+            const html = `<p>Hello</p>
+<followup-list>
+  <followup><followup-text>How do I set up QuickBooks?</followup-text></followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?'}]);
+        });
+
+        it('should parse multiple followups from unresolved list', () => {
+            const html = `<followup-list>
+  <followup><followup-text>How do I set up QuickBooks?</followup-text></followup>
+  <followup><followup-text>What is the Expensify Card cashback?</followup-text></followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?'}, {text: 'What is the Expensify Card cashback?'}]);
+        });
+
+        it('should handle followup-list with whitespace attributes', () => {
+            const html = `<followup-list >
+  <followup><followup-text>Question</followup-text></followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'Question'}]);
+        });
+
+        it('should return empty array for followup-list with selected but no followups', () => {
+            const html = '<followup-list selected></followup-list>';
+            expect(parseFollowupsFromHtml(html)).toEqual([]);
+        });
+
+        it('should return empty array for unresolved followup-list with no followups', () => {
+            const html = '<followup-list></followup-list>';
+            expect(parseFollowupsFromHtml(html)).toEqual([]);
+        });
+    });
+
+    describe('stripFollowupListFromHtml', () => {
+        it('should return original string when no followup-list exists', () => {
+            const html = '<p>Hello world</p>';
+            expect(stripFollowupListFromHtml(html)).toBe('<p>Hello world</p>');
+        });
+
+        it('should return empty string for empty input', () => {
+            expect(stripFollowupListFromHtml('')).toBe('');
+        });
+
+        it('should strip followup-list and trim result', () => {
+            const html = `<p>Some message</p>
+<followup-list>
+  <followup><followup-text>How do I set up QuickBooks?</followup-text></followup>
+</followup-list>`;
+            expect(stripFollowupListFromHtml(html)).toBe('<p>Some message</p>');
+        });
+
+        it('should strip resolved followup-list with selected attribute', () => {
+            const html = `<p>Answer to your question</p>
+<followup-list selected>
+  <followup><followup-text>Old question</followup-text></followup>
+</followup-list>`;
+            expect(stripFollowupListFromHtml(html)).toBe('<p>Answer to your question</p>');
+        });
+
+        it('should strip followup-list with multiple followups', () => {
+            const html = `<p>Hello</p>
+<followup-list>
+  <followup><followup-text>Question 1</followup-text></followup>
+  <followup><followup-text>Question 2</followup-text></followup>
+</followup-list>`;
+            expect(stripFollowupListFromHtml(html)).toBe('<p>Hello</p>');
+        });
+
+        it('should handle content before and after followup-list', () => {
+            const html = `<p>Before</p>
+<followup-list>
+  <followup><followup-text>Question</followup-text></followup>
+</followup-list>
+<p>After</p>`;
+            expect(stripFollowupListFromHtml(html)).toBe(`<p>Before</p>
+
+<p>After</p>`);
+        });
+
+        it('should strip empty followup-list', () => {
+            const html = '<p>Message</p><followup-list></followup-list>';
+            expect(stripFollowupListFromHtml(html)).toBe('<p>Message</p>');
         });
     });
 });
