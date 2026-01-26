@@ -119,6 +119,22 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 expect(canEditReportField).toBe(true);
             });
+
+            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditBillable = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.BILLABLE);
+                expect(canEditBillable).toBe(false);
+            });
+
+            it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
+                const canEditBillable = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.BILLABLE);
+                expect(canEditBillable).toBe(true);
+            });
         });
 
         describe('type is expense', () => {
@@ -296,5 +312,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
         });
+
     });
 });
