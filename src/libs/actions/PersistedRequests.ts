@@ -59,7 +59,7 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
-        ongoingRequest = val ?? null;
+        ongoingRequest = val?.at(0) ?? null;
     },
 });
 
@@ -145,14 +145,14 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
 
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
-    ongoingRequest = newRequest as GenericRequest;
+    ongoingRequest = newRequest;
 
     if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, [newRequest]);
     }
 }
 
-function processNextRequest(): Request<any> | null {
+function processNextRequest(): GenericRequest | null {
     if (ongoingRequest) {
         Log.info(`Ongoing Request already set returning same one ${ongoingRequest.commandName}`);
         return ongoingRequest;
@@ -163,14 +163,14 @@ function processNextRequest(): Request<any> | null {
         throw new Error('No requests to process');
     }
 
-    ongoingRequest = persistedRequests.length > 0 ? (persistedRequests.at(0) ?? null) : null;
+    ongoingRequest = persistedRequests?.at(0) ?? null;
 
     // Create a new array without the first element
     const newPersistedRequests = persistedRequests.slice(1);
     persistedRequests = newPersistedRequests;
 
     if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, [ongoingRequest]);
     }
 
     return ongoingRequest;

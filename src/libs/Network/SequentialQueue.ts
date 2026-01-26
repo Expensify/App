@@ -341,11 +341,9 @@ function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictDat
 }
 
 function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
-    const {checkAndFixConflictingRequest} = newRequest;
-
-    if (checkAndFixConflictingRequest) {
+    if (newRequest.checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
-        const {conflictAction} = checkAndFixConflictingRequest(requests);
+        const {conflictAction} = newRequest.checkAndFixConflictingRequest(requests as Array<OnyxRequest<TKey>>);
         Log.info(`[SequentialQueue] Conflict action for command ${newRequest.command} - ${conflictAction.type}:`);
 
         // don't try to serialize a function.

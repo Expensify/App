@@ -247,7 +247,7 @@ describe('SequentialQueue', () => {
     });
 
     it('should get the ongoing request from onyx and start processing it', async () => {
-        const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false} as Request<'userMetadata'>;
+        const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
         Onyx.set<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, [persistedRequest]);
         SequentialQueue.push({command: 'OpenReport'});
 

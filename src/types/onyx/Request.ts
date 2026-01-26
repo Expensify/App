@@ -283,7 +283,7 @@ type GenericRequestConflictResolver = {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?: (persistedRequest: GenericRequest[]) => ConflictActionData;
+    checkAndFixConflictingRequest?(persistedRequest: GenericRequest[]): ConflictActionData;
 
     /**
      * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
@@ -305,7 +305,7 @@ type RequestConflictResolver<TKey extends OnyxKey> = {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?: (persistedRequest: Array<Request<TKey>>) => ConflictActionData;
+    checkAndFixConflictingRequest?(persistedRequest: Array<Request<TKey>>): ConflictActionData;
 
     /**
      * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
@@ -323,7 +323,7 @@ type RequestConflictResolver<TKey extends OnyxKey> = {
 type GenericRequest = GenericRequestData & GenericOnyxData & GenericRequestConflictResolver;
 
 /** Model of requests sent to the API */
-type Request<TKey extends OnyxKey> = RequestData<TKey> & OnyxData<TKey> & GenericRequestConflictResolver;
+type Request<TKey extends OnyxKey> = RequestData<TKey> & OnyxData<TKey> & RequestConflictResolver<TKey>;
 
 /**
  * An object used to describe how a request can be paginated.
@@ -352,4 +352,4 @@ type PaginatedRequest<TKey extends OnyxKey> = Request<TKey> &
     };
 
 export default Request;
-export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData, ConflictData, GenericRequest};
+export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, GenericRequestConflictResolver, ConflictActionData, ConflictData, GenericRequest};

@@ -13,7 +13,7 @@ import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
+import type {GenericRequestConflictResolver, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 import {READ_COMMANDS} from './types';
@@ -59,7 +59,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     type: ApiRequestType,
     params: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
-    conflictResolver: RequestConflictResolver<TKey> = {},
+    conflictResolver: GenericRequestConflictResolver = {},
 ): OnyxRequest<TKey> {
     Log.info('[API] Preparing request', false, {command, type});
 
