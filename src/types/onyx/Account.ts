@@ -234,6 +234,13 @@ type Account = {
 
     /** Epoch timestamp (in milliseconds) until which extended access is valid without requiring validateCode */
     validateCodeExtendedAccessExpires?: number;
+
+    /** Whether the user has passkeys or biometrics registered
+     * 1 - devices currently registered
+     * 0 - devices previously registered
+     * -1 - no device ever registered
+     */
+    isRegisteredForMultifactorAuthentication?: number;
 };
 
 export default Account;

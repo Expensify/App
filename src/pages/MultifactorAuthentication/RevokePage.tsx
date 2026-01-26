@@ -9,13 +9,24 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type { Account } from '@src/types/onyx';
+import type { OnyxEntry } from 'react-native-onyx';
 
-const hasDevices = true;
-
+function getHasDevices(data: OnyxEntry<Account>) {
+    // note that 0 is a valid value for this key, but false is the correct return when it is zero
+    if (!data?.isRegisteredForMultifactorAuthentication) {
+        return false;
+    }
+    return data?.isRegisteredForMultifactorAuthentication > 0
+}
 function MultifactorAuthenticationRevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+
+    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, { selector: getHasDevices })
 
     const onGoBackPress = () => {
         Navigation.dismissModal();

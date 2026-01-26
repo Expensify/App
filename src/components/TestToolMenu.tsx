@@ -23,7 +23,7 @@ import TestToolRow from './TestToolRow';
 import Text from './Text';
 
 // Temporary hardcoded value until MultifactorAuthenticationContext is implemented
-const TEMP_BIOMETRICS_REGISTERED_STATUS = false;
+const TEMP_BIOMETRICS_REGISTERED_STATUS = true;
 
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -44,6 +44,13 @@ function TestToolMenu() {
     const navigateToBiometricsTestPage = singleExecution(
         waitForNavigate(() => {
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
+        }),
+    );
+
+    // TODO I think this should actually just clear the onyx key
+    const navigateToBiometricsRevokePage = singleExecution(
+        waitForNavigate(() => {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
         }),
     );
 
@@ -116,6 +123,13 @@ function TestToolMenu() {
                                 text={translate('multifactorAuthentication.biometricsTest.test')}
                                 onPress={() => navigateToBiometricsTestPage()}
                             />
+                            {TEMP_BIOMETRICS_REGISTERED_STATUS && (
+                                <Button
+                                    small
+                                    text={translate('multifactorAuthentication.revoke.revoke')}
+                                    onPress={navigateToBiometricsRevokePage}
+                                />
+                            )}
                         </View>
                     </TestToolRow>
                 </>

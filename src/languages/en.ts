@@ -751,6 +751,7 @@ const translations = {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
         },
         revoke: {
+            revoke: 'Revoke',
             title: 'Face/fingerprint & passkeys',
             explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device',
             confirmationPrompt: 'Are you sure? You\'ll need a magic code for the next verification on any device',
