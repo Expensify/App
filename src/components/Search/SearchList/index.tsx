@@ -152,7 +152,8 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
         return !!transaction.transactionID;
-    }if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
         return true;
     }
     return false;

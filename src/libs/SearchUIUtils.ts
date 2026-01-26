@@ -234,7 +234,7 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
 };
 
 const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSorting = {
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'formattedMonth' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'sortKey' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
@@ -2129,6 +2129,7 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
                 transactionsQueryJSON,
                 ...monthGroup,
                 formattedMonth,
+                sortKey: monthGroup.year * 100 + monthGroup.month,
             };
         }
     }
@@ -2614,7 +2615,7 @@ function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemTyp
  * Sorts month sections based on a specified column and sort order.
  */
 function getSortedMonthData(data: TransactionMonthGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    return getSortedData(data, localeCompare, transactionMonthGroupColumnNamesToSortingProperty, (a, b) => localeCompare(a.formattedMonth ?? '', b.formattedMonth ?? ''), sortBy, sortOrder);
+    return getSortedData(data, localeCompare, transactionMonthGroupColumnNamesToSortingProperty, (a, b) => a.sortKey - b.sortKey, sortBy, sortOrder);
 }
 
 /**

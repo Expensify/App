@@ -57,9 +57,7 @@ function MonthListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    // formattedCategory is pre-decoded in SearchUIUtils, just translate empty values
-    const rawMonth = monthItem.formattedMonth ?? `${monthItem.year}_${monthItem.month}`;
-    const monthName = 'January 2026';
+    const monthName = monthItem.formattedMonth;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: (

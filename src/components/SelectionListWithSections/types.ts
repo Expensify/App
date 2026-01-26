@@ -476,8 +476,11 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
     };
 
 type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
-        /** Final and formatted "month" value used for displaying and sorting */
-        formattedMonth?: string;
+        /** Final and formatted "month" value used for displaying */
+        formattedMonth: string;
+        
+        /** Key used for sorting */
+        sortKey: number;
     };
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
