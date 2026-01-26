@@ -54,7 +54,6 @@ function ShareTab({ref}: ShareTabProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
     }));
@@ -82,23 +81,10 @@ function ShareTab({ref}: ShareTabProps) {
             includeUserToInvite: true,
             countryCode,
             loginList,
-            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
         });
-    }, [
-        areOptionsInitialized,
-        options,
-        draftComments,
-        nvpDismissedProductTraining,
-        betas,
-        textInputValue,
-        countryCode,
-        loginList,
-        visibleReportActionsData,
-        currentUserAccountID,
-        currentUserEmail,
-    ]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

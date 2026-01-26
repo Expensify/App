@@ -52,6 +52,7 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -116,6 +117,7 @@ type TransactionParams = {
     distance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    gpsCoordinates?: string;
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
     count?: number;
     rate?: number;
@@ -149,8 +151,9 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
         return (
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
         );
     }
 
@@ -168,6 +171,25 @@ function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
+/**
+ * todo: Currently there is no way to tell server map transaction object from
+ * server GPS transaction object, this will be discussed and updated later.
+ * To fix this temporarily we set keyForList of GPS waypoints to 'gps_start' and 'gps_end'
+ * and use that to determine if it's a GPS or Map transaction. This should be changed before
+ * the first GPS release.
+ */
+function hasGPSWaypoints(transaction: OnyxEntry<Transaction>) {
+    const waypoints = transaction?.comment?.waypoints;
+
+    if (!waypoints) {
+        return false;
+    }
+
+    const waypoint = Object.values(waypoints).at(0);
+
+    return !!waypoint?.keyForList?.startsWith('gps');
+}
+
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -175,7 +197,17 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
+    return hasDistanceCustomUnit(transaction) && !hasGPSWaypoints(transaction);
+}
+
+function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasGPSWaypoints(transaction);
 }
 
 function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
@@ -271,6 +303,9 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     if (isTimeRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.TIME;
     }
+    if (isGPSDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
+    }
 
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
@@ -296,27 +331,30 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
 }
 
 /**
- * Determines the transaction type based on custom unit name or card name.
+ * Determines the transaction type based on custom unit name, comment type or card name.
  * Returns 'distance' for Distance transactions, 'perDiem' for Per Diem International transactions,
+ * 'time' for time transactions,
  * 'cash' for cash transactions, or 'card' for card transactions.
  *
  * @param transaction - The transaction to check
  * @param cardList - Optional card list to check for cash transactions
- * @returns The transaction type: 'distance', 'perDiem', 'cash', or 'card'
+ * @returns The transaction type: 'distance', 'perDiem', 'time', 'cash', or 'card'
  */
 function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
-    const customUnitName = transaction?.comment?.customUnit?.name;
-
-    if (customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE) {
+    if (isDistanceRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.DISTANCE;
     }
 
-    if (customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL) {
+    if (isPerDiemRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM;
     }
 
     if (isTimeRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.TIME;
+    }
+
+    if (isManagedCardTransaction(transaction)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CARD;
     }
 
     const cardID = transaction?.cardID;
@@ -329,6 +367,25 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
     }
 
     return CONST.SEARCH.TRANSACTION_TYPE.CARD;
+}
+
+/**
+ * Returns the corresponding translation key for expense type
+ */
+function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (expenseType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            return 'common.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+            return 'iou.cash';
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            return 'common.perDiem';
+        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
+            return 'iou.time';
+    }
 }
 
 function isManualRequest(transaction: Transaction): boolean {
@@ -1474,6 +1531,13 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
             transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION &&
             transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
     );
+}
+
+/**
+ * Check if there is a custom unit out of policy violation in transactionViolations.
+ */
+function hasCustomUnitOutOfPolicyViolation(transactionViolations?: TransactionViolations | null): boolean {
+    return !!transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 }
 
 /**
@@ -2686,6 +2750,7 @@ export {
     getValidDuplicateTransactionIDs,
     isDistanceRequest,
     isMapDistanceRequest,
+    isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -2716,6 +2781,7 @@ export {
     hasDuplicateTransactions,
     hasBrokenConnectionViolation,
     hasSmartScanFailedOrNoRouteViolation,
+    hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
@@ -2768,6 +2834,7 @@ export {
     getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,
+    getExpenseTypeTranslationKey,
 };
 
 export type {TransactionChanges};

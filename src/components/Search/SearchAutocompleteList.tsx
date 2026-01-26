@@ -199,7 +199,6 @@ function SearchAutocompleteList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -223,23 +222,10 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
-            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
         });
-    }, [
-        areOptionsInitialized,
-        options,
-        draftComments,
-        nvpDismissedProductTraining,
-        betas,
-        autocompleteQueryValue,
-        countryCode,
-        loginList,
-        visibleReportActionsData,
-        currentUserAccountID,
-        currentUserEmail,
-    ]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -446,7 +432,6 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
@@ -480,7 +465,6 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).recentReports.filter((chat) => {
@@ -662,7 +646,6 @@ function SearchAutocompleteList({
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
-        visibleReportActionsData,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

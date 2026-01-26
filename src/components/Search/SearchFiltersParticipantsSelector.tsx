@@ -80,6 +80,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                personalDetails,
             },
             countryCode,
         );
@@ -92,6 +93,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         nvpDismissedProductTraining,
         loginList,
         countryCode,
+        personalDetails,
         currentUserAccountID,
         currentUserEmail,
     ]);

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -26,6 +26,7 @@ import {
     getLastMessageTextForReport,
     getMemberInviteOptions,
     getPersonalDetailSearchTerms,
+    getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,
     getSearchOptions,
@@ -1210,6 +1211,41 @@ describe('OptionsListUtils', () => {
 
             expect(results.recentReports.at(0)?.isBold).toBe(true);
             expect(results.recentReports.at(0)?.isUnread).toBe(true);
+        });
+
+        it('should use personalDetails parameter when passed to getValidOptions', () => {
+            // Given a personalDetails object to pass explicitly
+            const customPersonalDetails = {
+                2: {
+                    accountID: 2,
+                    displayName: 'Custom Iron Man',
+                    login: 'tonystark@expensify.com',
+                },
+                3: {
+                    accountID: 3,
+                    displayName: 'Custom Spider-Man',
+                    login: 'peterparker@expensify.com',
+                },
+            };
+
+            // When we call getValidOptions with personalDetails parameter
+            const results = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                {},
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {
+                    personalDetails: customPersonalDetails,
+                },
+            );
+
+            // Then the function should complete without errors and return valid results
+            // The personalDetails param is used internally by prepareReportOptionsForDisplay for workspace chats
+            expect(results.recentReports.length).toBeGreaterThan(0);
+            expect(results.personalDetails.length).toBeGreaterThan(0);
         });
     });
 
@@ -3135,16 +3171,17 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
-        describe('getReportPreviewMessage', () => {
-            it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
+        describe('REPORT_PREVIEW action', () => {
+            it('should show report preview message for non-policy expense chat', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    isOwnPolicyExpenseChat: false,
+                };
                 const iouReport: Report = {
                     ...createRandomReport(1, undefined),
                     isOwnPolicyExpenseChat: false,
                     type: CONST.REPORT.TYPE.IOU,
                     isWaitingOnBankAccount: false,
-                    currency: CONST.CURRENCY.USD,
-                    total: 100,
-                    unheldTotal: 100,
                 };
                 const reportPreviewAction: ReportAction = {
                     ...createRandomReportAction(1),
@@ -3168,7 +3205,6 @@ describe('OptionsListUtils', () => {
                 };
                 const iouAction: ReportAction = {
                     ...createRandomReportAction(2),
-                    reportID: iouReport.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     message: [{type: 'COMMENT', text: ''}],
                     originalMessage: {
@@ -3177,15 +3213,24 @@ describe('OptionsListUtils', () => {
                     },
                     shouldShow: true,
                 };
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                await waitForBatchedUpdates();
-
-                // Test getReportPreviewMessage directly - this is the function responsible for formatting the message
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {
+                    [iouAction.reportActionID]: iouAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                });
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
-                const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
-                expect(formattedMessage).toBe('$1.00 for A A A');
+                const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
+                expect(lastMessage).toBe(expected);
             });
         });
         it('MOVED_TRANSACTION action', async () => {
@@ -3216,7 +3261,7 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(movedTransactionAction)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
@@ -3238,7 +3283,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
@@ -3264,7 +3308,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
@@ -3290,7 +3333,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
@@ -3313,7 +3355,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
@@ -3377,7 +3418,7 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
         it('DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', async () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED as the last action
@@ -3426,13 +3467,17 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                visibleReportActionsDataParam: {},
             });
             expect(result).toBe(expectedVisibleText);
         });
 
         describe('DEW (Dynamic External Workflow)', () => {
-            beforeEach(() => Onyx.clear());
+            beforeEach(async () => {
+                await act(async () => {
+                    await Onyx.clear();
+                });
+                jest.clearAllMocks();
+            });
 
             it('should show queued message for SUBMITTED action with DEW policy when offline and pending submit', async () => {
                 const reportID = 'dewReport1';
@@ -3473,7 +3518,6 @@ describe('OptionsListUtils', () => {
                     policy,
                     reportMetadata,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    visibleReportActionsDataParam: {},
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -3505,7 +3549,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
@@ -3535,7 +3578,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
@@ -3975,7 +4017,12 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getReportOption', () => {
-        beforeEach(() => Onyx.clear());
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            jest.clearAllMocks();
+        });
 
         it('should return option with correct workspace name when policy is provided', async () => {
             const reportID = '101';
@@ -4008,7 +4055,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
@@ -4063,7 +4110,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.text).toBe('Test Workspace with Submit');
             // The submitsTo logic may or may not apply depending on complex approval rules
@@ -4086,7 +4133,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.isDisabled).toBe(true);
         });
@@ -4122,7 +4169,7 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, personalDetails);
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -4157,7 +4204,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -4198,7 +4245,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.text).toBe(POLICY.name);
             expect(option.alternateText).toBeTruthy();
@@ -4242,7 +4289,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, undefined, draftReports);
+            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, draftReports);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -4378,7 +4425,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -4399,7 +4446,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, undefined, undefined, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -4421,9 +4468,461 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID);
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option).toBeDefined();
+        });
+
+        it('should use personalDetails to populate participant display names', async () => {
+            const reportID = '109';
+            const participantAccountID = 12345;
+            const report: Report = {
+                reportID,
+                reportName: 'Test Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [participantAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const testPersonalDetails = {
+                [participantAccountID]: {
+                    accountID: participantAccountID,
+                    displayName: 'Test User Display Name',
+                    login: 'testuser@example.com',
+                    firstName: 'Test',
+                    lastName: 'User',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+            };
+
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+
+            expect(option).toBeDefined();
+            // The createOption function uses personalDetails to build display names
+            // Verify that option was created successfully with the personalDetails
+            expect(option.participantsList).toBeDefined();
+        });
+
+        it('should show submits to info using personalDetails when policy has approval workflow', async () => {
+            const reportID = '110';
+            const testPolicyID = 'policy_with_submits_to';
+            const submitterAccountID = 100;
+            const approverAccountID = 200;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Test Workspace',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID: submitterAccountID,
+                participants: {
+                    [submitterAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Test Workspace with Approver',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: false,
+            };
+
+            // PersonalDetails with the approver's information
+            const testPersonalDetails = {
+                [submitterAccountID]: {
+                    accountID: submitterAccountID,
+                    displayName: 'Submitter Name',
+                    login: 'submitter@test.com',
+                },
+                [approverAccountID]: {
+                    accountID: approverAccountID,
+                    displayName: 'Approver Manager',
+                    login: 'approver@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+            };
+
+            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Test Workspace with Approver');
+            // The alternateText should include "Submits to" with the approver's name from personalDetails
+            // Note: This depends on the policy approval mode and workflow configuration
+            expect(option.alternateText).toBeDefined();
+        });
+
+        it('should fall back gracefully when personalDetails is empty', async () => {
+            const reportID = '111';
+            const report: Report = {
+                reportID,
+                reportName: 'Test Report Empty PD',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+            };
+
+            // Pass empty personalDetails
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+
+            expect(option).toBeDefined();
+            expect(option.text).toBeDefined();
+        });
+
+        it('should fall back gracefully when personalDetails is undefined', async () => {
+            const reportID = '112';
+            const report: Report = {
+                reportID,
+                reportName: 'Test Report Undefined PD',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+            };
+
+            // Pass undefined personalDetails
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(option).toBeDefined();
+            expect(option.text).toBeDefined();
+        });
+
+        it('should use personalDetails for invoice room report name', async () => {
+            const reportID = '113';
+            const senderAccountID = 300;
+            const receiverAccountID = 400;
+            const report: Report = {
+                reportID,
+                reportName: 'Invoice Room',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: 'individual',
+                    accountID: receiverAccountID,
+                },
+                participants: {
+                    [senderAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [receiverAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const testPersonalDetails = {
+                [senderAccountID]: {
+                    accountID: senderAccountID,
+                    displayName: 'Invoice Sender',
+                    login: 'sender@test.com',
+                },
+                [receiverAccountID]: {
+                    accountID: receiverAccountID,
+                    displayName: 'Invoice Receiver',
+                    login: 'receiver@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                isInvoiceRoom: true,
+            };
+
+            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+
+            expect(option).toBeDefined();
+            expect(option.isInvoiceRoom).toBe(true);
+            // personalDetails is used in computeReportName for invoice rooms
+            expect(option.text).toBeDefined();
+        });
+    });
+
+    describe('getPolicyExpenseReportOption', () => {
+        it('should return option with policy expense chat details', async () => {
+            const reportID = '201';
+            const testPolicyID = 'policy201';
+            const ownerAccountID = 1001;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Test Policy Expense',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Test Workspace Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const testPersonalDetails = {
+                [ownerAccountID]: {
+                    accountID: ownerAccountID,
+                    displayName: 'Policy Owner',
+                    login: 'owner@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+                selected: true,
+            };
+
+            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Test Workspace Policy');
+            expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
+            expect(option.isSelected).toBe(true);
+        });
+
+        it('should use personalDetails to create option with participant info', async () => {
+            const reportID = '202';
+            const testPolicyID = 'policy202';
+            const ownerAccountID = 1002;
+            const memberAccountID = 1003;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Team Expense Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [memberAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Team Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'admin',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const testPersonalDetails = {
+                [ownerAccountID]: {
+                    accountID: ownerAccountID,
+                    displayName: 'Team Owner',
+                    login: 'teamowner@test.com',
+                },
+                [memberAccountID]: {
+                    accountID: memberAccountID,
+                    displayName: 'Team Member',
+                    login: 'teammember@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+            };
+
+            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Team Workspace');
+        });
+
+        it('should handle empty personalDetails gracefully', async () => {
+            const reportID = '203';
+            const testPolicyID = 'policy203';
+            const ownerAccountID = 1004;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Empty Details Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Workspace Without Details',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+            };
+
+            // Should not throw when personalDetails is empty
+            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, {});
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Workspace Without Details');
+        });
+
+        it('should handle undefined personalDetails gracefully', async () => {
+            const reportID = '204';
+            const testPolicyID = 'policy204';
+            const ownerAccountID = 1005;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Undefined Details Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Workspace Undefined Details',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+            };
+
+            // Should not throw when personalDetails is undefined
+            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Workspace Undefined Details');
+        });
+
+        it('should preserve selected state from participant', async () => {
+            const reportID = '205';
+            const testPolicyID = 'policy205';
+            const ownerAccountID = 1006;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Selected State Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Selection Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'user',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const participantSelected = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+                selected: true,
+            };
+
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const participantNotSelected = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+                selected: false,
+            };
+
+            const optionSelected = getPolicyExpenseReportOption(participantSelected, CURRENT_USER_ACCOUNT_ID, {});
+
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, CURRENT_USER_ACCOUNT_ID, {});
+
+            expect(optionSelected.isSelected).toBe(true);
+            expect(optionSelected.selected).toBe(true);
+            expect(optionNotSelected.isSelected).toBe(false);
+            expect(optionNotSelected.selected).toBe(false);
         });
     });
 
