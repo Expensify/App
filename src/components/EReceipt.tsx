@@ -120,6 +120,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={receiptMCCSize}
                                                 width={receiptMCCSize}
                                                 fill={primaryColor}
+                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                                                cachePolicy="none"
                                             />
                                         ) : null}
                                         {!MCCIcon && tripIcon ? (
@@ -128,6 +130,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={receiptMCCSize}
                                                 width={receiptMCCSize}
                                                 fill={primaryColor}
+                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                                                cachePolicy="none"
                                             />
                                         ) : null}
                                     </View>
@@ -168,6 +172,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={variables.eReceiptWordmarkHeight}
                                                 fill={secondaryColor}
                                                 src={icons.ExpensifyWordmark}
+                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                                                cachePolicy="none"
                                             />
                                         </View>
                                     </View>

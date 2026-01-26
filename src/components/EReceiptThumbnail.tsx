@@ -101,6 +101,8 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                         width={receiptIconWidth}
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
+                        // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                        cachePolicy="none"
                     />
                     {isReceiptThumbnail && !!fileExtension && (
                         <Text
@@ -121,6 +123,8 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
                     ) : null}
                     {!isPerDiemRequest && MCCIcon && !isReceiptThumbnail ? (
@@ -129,6 +133,8 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
                     ) : null}
                     {!isPerDiemRequest && !MCCIcon && tripIcon ? (
@@ -137,6 +143,8 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
                     ) : null}
                 </View>

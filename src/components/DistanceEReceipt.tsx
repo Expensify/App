@@ -105,6 +105,8 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                             width={86}
                             height={19.25}
                             src={icons.ExpensifyWordmark}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
 
                         <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
