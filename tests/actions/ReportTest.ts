@@ -86,6 +86,28 @@ jest.mock('@libs/Sound', () => ({
     SOUNDS: {DONE: 'DONE'},
 }));
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModalWithReport: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isActiveRoute: jest.fn(() => false),
+    getTopmostReportId: jest.fn(() => undefined),
+    goBack: jest.fn(),
+    navigationRef: {
+        getRootState: jest.fn(() => ({routes: []})),
+        isReady: jest.fn(() => true),
+        current: {
+            getRootState: jest.fn(() => ({routes: []})),
+        },
+    },
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('@libs/actions/Welcome', () => ({
+    ...jest.requireActual('@libs/actions/Welcome'),
+    onServerDataReady: jest.fn(() => Promise.resolve()),
+}));
+
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
 describe('actions/Report', () => {
@@ -2865,7 +2887,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, (phone: string) => phone);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -2932,7 +2954,7 @@ describe('actions/Report', () => {
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
             const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, formatPhoneNumber);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -3238,6 +3260,150 @@ describe('actions/Report', () => {
             const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
 
             expect(reportsCollectionAfter).toBeUndefined();
+        });
+    });
+
+    describe('navigateToConciergeChat', () => {
+        const CONCIERGE_REPORT_ID = '123456';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const mockNavigation: {navigate: jest.Mock; dismissModalWithReport: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            mockNavigation.navigate.mockClear();
+            mockNavigation.dismissModalWithReport.mockClear();
+            await Onyx.clear();
+            return waitForBatchedUpdates();
+        });
+
+        it('should navigate to concierge chat with provided conciergeReportID', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, false);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should navigate with shouldDismissModal=true when provided', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalled();
+        });
+
+        it('should handle undefined conciergeReportID gracefully', async () => {
+            // Don't set CONCIERGE_REPORT_ID to simulate undefined state
+            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await waitForBatchedUpdates();
+
+            // When conciergeReportID is undefined, the function uses onServerDataReady()
+            // which is async. We're testing that it doesn't throw and handles the case properly.
+            expect(() => {
+                Report.navigateToConciergeChat(undefined, false);
+            }).not.toThrow();
+        });
+
+        it('should navigate with reportActionID when provided', async () => {
+            const reportActionID = 'action789';
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true, undefined, undefined, reportActionID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalledWith({
+                reportID: CONCIERGE_REPORT_ID,
+                reportActionID,
+            });
+        });
+
+        it('should navigate with linkToOptions when provided', async () => {
+            const linkToOptions = {forceReplace: true};
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, false, undefined, linkToOptions);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.any(String), linkToOptions);
+        });
+
+        it('should respect checkIfCurrentPageActive callback when creating new concierge chat', async () => {
+            const checkIfCurrentPageActive = jest.fn(() => false);
+            const navigateToAndOpenReportSpy = jest.spyOn(Report, 'navigateToAndOpenReport');
+
+            // Don't set CONCIERGE_REPORT_ID to simulate undefined state
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(undefined, false, checkIfCurrentPageActive);
+
+            await waitForBatchedUpdates();
+
+            // Should not navigate if checkIfCurrentPageActive returns false
+            expect(navigateToAndOpenReportSpy).not.toHaveBeenCalled();
+        });
+
+        it('should handle null conciergeReportID gracefully', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            // When conciergeReportID is undefined (or null passed as undefined),
+            // it should handle it gracefully
+            expect(() => {
+                Report.navigateToConciergeChat(undefined, false);
+            }).not.toThrow();
+        });
+
+        it('should handle empty string conciergeReportID gracefully', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '');
+            await waitForBatchedUpdates();
+
+            // Empty string is falsy in JavaScript, so it should trigger the undefined path
+            expect(() => {
+                Report.navigateToConciergeChat('', false);
+            }).not.toThrow();
+        });
+
+        it('should work with all optional parameters provided', async () => {
+            const reportActionID = 'action123';
+            const linkToOptions = {forceReplace: true};
+            const checkIfCurrentPageActive = jest.fn(() => true);
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true, checkIfCurrentPageActive, linkToOptions, reportActionID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalledWith({
+                reportID: CONCIERGE_REPORT_ID,
+                reportActionID,
+            });
+        });
+
+        it('should prioritize provided conciergeReportID over Onyx value', async () => {
+            const onyxConciergeReportID = 'onyx-report-id';
+            const providedConciergeReportID = 'provided-report-id';
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, onyxConciergeReportID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(providedConciergeReportID, false);
+
+            await waitForBatchedUpdates();
+
+            // Should use the provided ID, not the Onyx ID
+            expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.stringContaining(providedConciergeReportID), undefined);
         });
     });
 });

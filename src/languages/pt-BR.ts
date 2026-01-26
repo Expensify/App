@@ -533,6 +533,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valor',
         downloadFailedTitle: 'Falha no download',
         downloadFailedDescription: 'Seu download não pôde ser concluído. Tente novamente mais tarde.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Você não pode exportar um relatório vazio.',
+            other: () => 'Você não pode exportar relatórios vazios.',
+        }),
         filterLogs: 'Filtrar Logs',
         network: 'Rede',
         reportID: 'ID do Relatório',
@@ -1196,8 +1200,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Você tem certeza de que deseja excluir esta despesa?',
             other: 'Tem certeza de que deseja excluir estas despesas?',
         }),
-        deleteReport: 'Excluir relatório',
-        deleteReportConfirmation: 'Tem certeza de que deseja excluir este relatório?',
+        deleteReport: () => ({
+            one: 'Excluir relatório',
+            other: 'Excluir relatórios',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Tem certeza de que deseja excluir este relatório?',
+            other: 'Tem certeza de que deseja excluir estes relatórios?',
+        }),
         settledExpensify: 'Pago',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
@@ -5202,6 +5212,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 title: 'Regras',
                 subtitle: 'Exigir recibos, sinalizar gastos elevados e muito mais.',
             },
+            timeTracking: {title: 'Hora', subtitle: 'Defina uma taxa horária faturável para que os funcionários sejam pagos pelo tempo trabalhado.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',

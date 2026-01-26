@@ -140,7 +140,7 @@ function KYCWall({
                 if (iouReport && isIOUReport(iouReport)) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`];
                     if (adminPolicy) {
-                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport?.reportID, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
+                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
                         if (inviteResult?.policyExpenseChatReportID) {
                             setNavigationActionToMicrotaskQueue(() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));

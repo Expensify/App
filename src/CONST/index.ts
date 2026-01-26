@@ -3169,6 +3169,7 @@ const CONST = {
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
             IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
+            IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -7265,6 +7266,7 @@ const CONST = {
         ANIMATION: {
             FADE_DURATION: 200,
         },
+        TODO_BADGE_MAX_COUNT: 50,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
