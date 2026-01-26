@@ -1987,6 +1987,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Max amount for an expense with no receipt violation */
         maxExpenseAmountNoReceipt?: number;
 
+        /** Max amount for an expense with no itemized receipt violation */
+        maxExpenseAmountNoItemizedReceipt?: number;
+
         /** Whether GL codes are enabled */
         glCodes?: boolean;
 
@@ -2020,7 +2023,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled'
 >;
 
 /** Stages of policy connection sync */

@@ -2,8 +2,6 @@ import {useContext, useRef} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
-    checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
     getCompanyCardFeed,
     getCompanyFeeds,
     getDefaultCardName,
@@ -20,11 +18,12 @@ import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsP
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
+import useCurrencyList from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -42,7 +41,6 @@ type UseAssignCardProps = {
 };
 
 function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
@@ -60,11 +58,10 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
-    const cardList = allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feedName}`];
+    const {cardFeedErrors} = useCardFeedErrors();
+    const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
+    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
 
-    const filteredFeedCards = filterInactiveCards(cardList);
-    const hasFeedError = feedName ? !!cardFeeds?.[feedName]?.errors : false;
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -143,9 +140,9 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {isOffline} = useNetwork();
 
     const policy = usePolicy(policyID);
+    const {currencyList} = useCurrencyList();
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);

@@ -24,6 +24,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -43,7 +44,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
@@ -53,7 +54,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {CurrencyList, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
@@ -94,7 +95,7 @@ function SearchFiltersBar({
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, localeCompare, preferredLocale} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();
@@ -102,13 +103,13 @@ function SearchFiltersBar({
     const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading, currentSearchResults} = useSearchContext();
+    const {currencyList, getCurrencySymbol} = useCurrencyList();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -191,10 +192,10 @@ function SearchFiltersBar({
     }, [translate, unsafeGroupBy]);
 
     const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
-        const options = getGroupCurrencyOptions(currencyList);
+        const options = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
         const value = options.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
         return [options, value];
-    }, [searchAdvancedFiltersForm.groupCurrency, currencyList]);
+    }, [searchAdvancedFiltersForm.groupCurrency, currencyList, getCurrencySymbol]);
 
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
@@ -236,21 +237,19 @@ function SearchFiltersBar({
             const displayText: string[] = [];
             if (value.On) {
                 displayText.push(
-                    isSearchDatePreset(value.On)
-                        ? translate(`search.filters.date.presets.${value.On}`)
-                        : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On, preferredLocale)}`,
+                    isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
                 );
             }
             if (value.After) {
-                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After, preferredLocale)}`);
+                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
             }
             if (value.Before) {
-                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before, preferredLocale)}`);
+                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
             }
 
             return [value, displayText];
         },
-        [translate, preferredLocale],
+        [translate],
     );
 
     const [date, displayDate] = useMemo(
@@ -309,10 +308,17 @@ function SearchFiltersBar({
             }
 
             // Preserve the current sortBy and sortOrder from queryJSON when updating filters
-            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
+            let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
                 sortBy: queryJSON.sortBy,
                 sortOrder: queryJSON.sortOrder,
             });
+
+            if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
+                queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
+            }
+            if (!queryString) {
+                return;
+            }
 
             close(() => {
                 // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.

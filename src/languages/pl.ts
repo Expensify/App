@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Hasło',
         magicCode: 'Kod magiczny',
+        digits: 'cyfr',
         twoFactorCode: 'Kod dwuskładnikowy',
         workspaces: 'Przestrzenie robocze',
         inbox: 'Skrzynka odbiorcza',
@@ -500,7 +501,7 @@ const translations: TranslationDeepObject<typeof en> = {
         role: 'Rola',
         currency: 'Waluta',
         groupCurrency: 'Waluta grupy',
-        rate: 'Oceń',
+        rate: 'Stawka',
         emptyLHN: {
             title: 'Juhu! Wszystko nadrobione.',
             subtitleText1: 'Znajdź czat za pomocą',
@@ -532,6 +533,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Nie możesz eksportować pustego raportu.',
+            other: () => 'Nie możesz eksportować pustych raportów.',
+        }),
         filterLogs: 'Filtruj logi',
         network: 'Sieć',
         reportID: 'ID raportu',
@@ -635,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
         originalAmount: 'Kwota pierwotna',
         insights: 'Analizy',
+        duplicateExpense: 'Zduplikowany wydatek',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -969,7 +975,7 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Znajdź coś...',
         buttonMySettings: 'Moje ustawienia',
         fabNewChat: 'Rozpocznij czat',
-        fabNewChatExplained: 'Rozpocznij czat (Akcja pływająca)',
+        fabNewChatExplained: 'Otwórz menu akcji',
         fabScanReceiptExplained: 'Zeskanuj paragon (Akcja pływająca)',
         chatPinned: 'Czat przypięty',
         draftedMessage: 'Wiadomość robocza',
@@ -1195,8 +1201,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Czy na pewno chcesz usunąć ten wydatek?',
             other: 'Czy na pewno chcesz usunąć te wydatki?',
         }),
-        deleteReport: 'Usuń raport',
-        deleteReportConfirmation: 'Czy na pewno chcesz usunąć ten raport?',
+        deleteReport: () => ({
+            one: 'Usuń raport',
+            other: 'Usuń raporty',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Czy na pewno chcesz usunąć ten raport?',
+            other: 'Czy na pewno chcesz usunąć te raporty?',
+        }),
         settledExpensify: 'Opłacone',
         done: 'Gotowe',
         settledElsewhere: 'Opłacone gdzie indziej',
@@ -1445,9 +1457,8 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Nie możesz przenosić wydatków do raportów w innych obszarach roboczych, ponieważ stawki diety mogą się różnić między obszarami roboczymi.',
         changeApprover: {
             title: 'Zmień akceptującego',
-            subtitle: 'Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport.',
-            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
-                `Możesz także na stałe zmienić osobę zatwierdzającą dla wszystkich raportów w swoich <a href="${workflowSettingLink}">ustawieniach przepływu pracy</a>.`,
+            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport. (Zaktualizuj swoje <a href="${workflowSettingLink}">ustawienia przestrzeni roboczej</a>, aby na stałe zmienić osobę zatwierdzającą dla wszystkich raportów.)`,
             changedApproverMessage: (managerID: number) => `zmieniono zatwierdzającego na <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Dodaj osobę zatwierdzającą',
@@ -1472,6 +1483,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / godzina`,
             amountTooLargeError: 'Całkowita kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
+        correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
     },
     transactionMerge: {
         listPage: {
@@ -2377,9 +2389,30 @@ ${amount} dla ${merchant} - ${date}`,
             comment: (value: string) => `Zmień opis na „${value}”`,
             merchant: (value: string) => `Zaktualizuj sprzedawcę na „${value}”`,
             reimbursable: (value: boolean) => `Zaktualizuj wydatek ${value ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`,
-            report: (value: string) => `Dodaj raport o nazwie „${value}”`,
+            report: (value: string) => `Dodaj do raportu o nazwie „${value}”`,
             tag: (value: string) => `Zaktualizuj znacznik na „${value}”`,
             tax: (value: string) => `Zaktualizuj stawkę podatku na ${value}`,
+        },
+        newRule: 'Nowa zasada',
+        addRule: {
+            title: 'Dodaj regułę',
+            expenseContains: 'Jeśli wydatek zawiera:',
+            applyUpdates: 'Następnie zastosuj te aktualizacje:',
+            merchantHint: 'Wpisz * , aby utworzyć regułę, która ma zastosowanie do wszystkich sprzedawców',
+            addToReport: 'Dodaj do raportu o nazwie',
+            createReport: 'Utwórz raport, jeśli to konieczne',
+            applyToExistingExpenses: 'Zastosuj do istniejących pasujących wydatków',
+            confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną zmianę',
+            confirmErrorMerchant: 'Wprowadź sprzedawcę',
+            confirmErrorUpdate: 'Proszę wprowadzić co najmniej jedną zmianę',
+            saveRule: 'Zapisz regułę',
+        },
+        editRule: {title: 'Edytuj regułę'},
+        deleteRule: {
+            deleteSingle: 'Usuń regułę',
+            deleteMultiple: 'Usuń reguły',
+            deleteSinglePrompt: 'Czy na pewno chcesz usunąć tę regułę?',
+            deleteMultiplePrompt: 'Czy na pewno chcesz usunąć te reguły?',
         },
     },
     preferencesPage: {
@@ -3119,6 +3152,7 @@ ${
         errorMessageInvalidPhone: `Wprowadź prawidłowy numer telefonu bez nawiasów i myślników. Jeśli jesteś poza USA, dołącz kod kraju (np. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Nieprawidłowy adres e-mail',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} jest już członkiem ${name}`,
+        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} jest już administratorem ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Kontynuując żądanie aktywacji portfela Expensify, potwierdzasz, że przeczytałeś, rozumiesz i akceptujesz',
@@ -4837,6 +4871,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             assign: 'Przypisz',
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Nie udało się odłączyć karty.',
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
@@ -5009,6 +5044,25 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
                     ctaText: 'Rezerwuj lub zarządzaj',
                 },
+                travelInvoicing: {
+                    travelBookingSection: {
+                        title: 'Rezerwacja podróży',
+                        subtitle: 'Gratulacje! Wszystko gotowe, aby rezerwować i zarządzać podróżami w tym obszarze roboczym.',
+                        manageTravelLabel: 'Zarządzaj podróżami',
+                    },
+                    centralInvoicingSection: {
+                        title: 'Centralne fakturowanie',
+                        subtitle: 'Scentralizuj wszystkie wydatki na podróże w miesięcznej fakturze zamiast płacić w momencie zakupu.',
+                        learnHow: 'Dowiedz się jak.',
+                        subsections: {
+                            currentTravelSpendLabel: 'Aktualne wydatki na podróże',
+                            currentTravelSpendCta: 'Zapłać saldo',
+                            currentTravelLimitLabel: 'Obecny limit podróży',
+                            settlementAccountLabel: 'Konto rozliczeniowe',
+                            settlementFrequencyLabel: 'Częstotliwość rozliczeń',
+                        },
+                    },
+                },
             },
             expensifyCard: {
                 title: 'Karta Expensify',
@@ -5059,8 +5113,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     `Wybierz konto ${integration}, do którego mają być eksportowane transakcje. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data początkowa transakcji',
-                changeTransactionStartDateWarning:
-                    'Zmiana daty rozpoczęcia spowoduje usunięcie wszystkich nieraportowanych lub transakcji w wersji roboczej i ponowne zaimportowanie wszystkich transakcji od nowej daty rozpoczęcia. Może to spowodować duplikaty transakcji.',
                 updateCard: 'Zaktualizuj kartę',
                 unassignCard: 'Cofnij przypisanie karty',
                 unassign: 'Cofnij przypisanie',
@@ -5161,6 +5213,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i nie tylko.',
             },
+            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -5468,7 +5521,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 giveItNameInstruction: 'Uczyń go na tyle unikalnym, aby dało się go odróżnić od innych kart. Jeszcze lepiej, jeśli opisujesz konkretne przypadki użycia!',
                 cardName: 'Nazwa karty',
                 letsDoubleCheck: 'Sprawdźmy jeszcze raz, czy wszystko wygląda poprawnie.',
-                willBeReady: 'Ta karta będzie gotowa do użycia od razu.',
+                willBeReadyToUse: 'Ta karta będzie gotowa do użycia od razu.',
+                willBeReadyToShip: 'Ta karta będzie gotowa do natychmiastowej wysyłki.',
                 cardholder: 'Posiadacz karty',
                 cardType: 'Typ karty',
                 limit: 'Limit',
@@ -6126,6 +6180,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     `<muted-text>Ustaw limity wydatków i domyślne ustawienia dla poszczególnych wydatków. Możesz też utworzyć reguły dla <a href="${categoriesPageLink}">kategorii</a> i <a href="${tagsPageLink}">tagów</a>.</muted-text>`,
                 receiptRequiredAmount: 'Wymagana kwota paragonu',
                 receiptRequiredAmountDescription: 'Wymagaj paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to nadpisane przez regułę kategorii.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być wyższa niż kwota wymagana dla szczegółowych paragonów (${amount})`,
+                itemizedReceiptRequiredAmount: 'Wymagana kwota szczegółowego paragonu',
+                itemizedReceiptRequiredAmountDescription: 'Wymagaj szczegółowych paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to zmienione przez regułę kategorii.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być niższa niż kwota wymagana dla zwykłych paragonów (${amount})`,
                 maxExpenseAmount: 'Maksymalna kwota wydatku',
                 maxExpenseAmountDescription: 'Oznacz wydatki przekraczające tę kwotę, chyba że zostanie to nadpisane przez regułę kategorii.',
                 maxAge: 'Maksymalny wiek',
@@ -6217,6 +6275,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślne`,
                     never: 'Nigdy nie wymagaj paragonów',
                     always: 'Zawsze wymagaj rachunków',
+                },
+                requireItemizedReceiptsOver: 'Wymagaj szczegółowych paragonów powyżej',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślny`,
+                    never: 'Nigdy nie wymagaj szczegółowych paragonów',
+                    always: 'Zawsze wymagaj szczegółowych paragonów',
                 },
                 defaultTaxRate: 'Domyślna stawka podatku',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6370,7 +6434,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return `zmienił kategorię „${categoryName}” na ${newValue} (wcześniej ${oldValue})`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `zmienił(a) nazwę kategorii z „${oldName}” na „${newName}”`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `zaktualizowano kategorię "${categoryName}", zmieniając Szczegółowe paragony na ${newValue}`;
+            }
+            return `zmieniono Szczegółowe paragony kategorii "${categoryName}" na ${newValue} (wcześniej ${oldValue})`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `zmienił(a) nazwę kategorii z „${oldName}" na „${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `usunął podpowiedź opisu „${oldValue}” z kategorii „${categoryName}”`;
@@ -7245,6 +7315,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return 'Wymagany paragon';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Wymagany szczegółowy paragon${formattedLimit ? ` powyżej ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7776,6 +7847,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>ukończyć jazdę próbną!</strong></tooltip>',
+        gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
@@ -7947,9 +8019,9 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             resetDomainInfo: `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
         members: {title: 'Członkowie', findMember: 'Znajdź członka'},
+        domainAdmins: 'Administratorzy domeny',
     },
     gps: {
-        tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',
         disclaimer: 'Użyj GPS, aby utworzyć wydatek z Twojej podróży. Stuknij „Start” poniżej, aby rozpocząć śledzenie.',
         error: {failedToStart: 'Nie udało się uruchomić śledzenia lokalizacji.', failedToGetPermissions: 'Nie udało się uzyskać wymaganych uprawnień do lokalizacji.'},
         trackingDistance: 'Śledzenie dystansu…',
@@ -7983,6 +8055,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             button: 'Pobierz aplikację',
         },
         notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby dokończyć'},
+        signOutWarningTripInProgress: {title: 'Śledzenie GPS w toku', prompt: 'Czy na pewno chcesz porzucić podróż i się wylogować?', confirm: 'Odrzuć i wyloguj się'},
         locationServicesRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             confirm: 'Otwórz ustawienia',
