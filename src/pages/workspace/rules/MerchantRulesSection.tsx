@@ -1,10 +1,13 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTheme from '@hooks/useTheme';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -49,12 +52,12 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
 function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const policy = usePolicy(policyID);
 
     const codingRules = policy?.rules?.codingRules;
     const hasRules = !isEmptyObject(codingRules);
 
-    // Sort rules by creation date (newest first) and convert to array for rendering
     const sortedRules = useMemo(() => {
         if (!codingRules) {
             return [];
@@ -63,7 +66,6 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
         return Object.entries(codingRules)
             .map(([ruleID, rule]) => ({ruleID, ...rule}))
             .sort((a, b) => {
-                // Sort by created date, newest first
                 if (a.created && b.created) {
                     return new Date(b.created).getTime() - new Date(a.created).getTime();
                 }
@@ -71,12 +73,24 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
+    const renderTitle = () => (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}>
+                {translate('workspace.rules.merchantRules.title')}
+            </Text>
+            <Badge
+                text={translate('common.newFeature')}
+                badgeStyles={[styles.badgeBordered, {borderColor: theme.success}]}
+                textStyles={{color: theme.success}}
+            />
+        </View>
+    );
+
     return (
         <Section
             isCentralPane
-            title={translate('workspace.rules.merchantRules.title')}
+            renderTitle={renderTitle}
             subtitle={translate('workspace.rules.merchantRules.subtitle')}
-            titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
         >
             {hasRules && (

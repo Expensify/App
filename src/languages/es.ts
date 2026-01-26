@@ -28,6 +28,7 @@ const translations: TranslationDeepObject<typeof en> = {
         in: 'En',
         optional: 'Opcional',
         new: 'Nuevo',
+        newFeature: 'Nueva función',
         center: 'Centrar',
         search: 'Buscar',
         reports: 'Informes',
