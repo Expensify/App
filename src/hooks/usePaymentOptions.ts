@@ -40,7 +40,10 @@ type UsePaymentOptionsProps = Pick<
     | 'shouldShowApproveButton'
     | 'shouldDisableApproveButton'
     | 'onlyShowPayElsewhere'
->;
+> & {
+    /** Whether this is a selected transaction action (bulk action from selection mode) */
+    isSelectedTransactionAction?: boolean;
+};
 
 /**
  * Configures and returns payment options based on the context of the IOU report and user settings.
@@ -58,6 +61,7 @@ function usePaymentOptions({
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
+    isSelectedTransactionAction,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash']);
     const styles = useThemeStyles();
@@ -174,6 +178,7 @@ function usePaymentOptions({
                             payAsBusiness,
                             methodID: formattedPaymentMethod.methodID,
                             paymentMethod: formattedPaymentMethod.accountType,
+                            isSelectedTransactionAction,
                         }),
                     iconStyles: formattedPaymentMethod?.iconStyles,
                     iconHeight: formattedPaymentMethod?.iconSize,
@@ -201,7 +206,7 @@ function usePaymentOptions({
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
                             icon: icons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                            onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}),
+                            onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, isSelectedTransactionAction}),
                         },
                         ...(isCurrencySupported ? [addBankAccountItem] : []),
                     ],
@@ -220,7 +225,7 @@ function usePaymentOptions({
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: true}),
+                        onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: true, isSelectedTransactionAction}),
                     },
                 ],
             });
@@ -254,6 +259,7 @@ function usePaymentOptions({
         onPress,
         onlyShowPayElsewhere,
         icons,
+        isSelectedTransactionAction,
     ]);
 
     return paymentButtonOptions;

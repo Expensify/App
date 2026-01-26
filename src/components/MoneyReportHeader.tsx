@@ -834,6 +834,22 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
+    // Payment options for selection mode - these include isSelectedTransactionAction flag
+    // so that bulk payments from the selection dropdown properly clear selected transactions
+    const selectionModePaymentOptions = usePaymentOptions({
+        currency: moneyRequestReport?.currency,
+        iouReport: moneyRequestReport,
+        chatReportID: chatReport?.reportID,
+        formattedAmount: totalAmount,
+        policyID: moneyRequestReport?.policyID,
+        onPress: confirmPayment,
+        shouldHidePaymentOptions: !shouldShowPayButton,
+        shouldShowApproveButton,
+        shouldDisableApproveButton,
+        onlyShowPayElsewhere,
+        isSelectedTransactionAction: true,
+    });
+
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
         [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
@@ -1542,8 +1558,17 @@ function MoneyReportHeader({
             .filter((actionType) => {
                 return actionType === primaryAction || secondaryActions.includes(actionType);
             })
-            .map((actionType) => secondaryActionsImplementation[actionType]);
-    }, [primaryAction, secondaryActions, secondaryActionsImplementation]);
+            .map((actionType) => {
+                // For PAY action, use selectionModePaymentOptions which includes isSelectedTransactionAction flag
+                if (actionType === CONST.REPORT.SECONDARY_ACTIONS.PAY) {
+                    return {
+                        ...secondaryActionsImplementation[actionType],
+                        subMenuItems: Object.values(selectionModePaymentOptions),
+                    };
+                }
+                return secondaryActionsImplementation[actionType];
+            });
+    }, [primaryAction, secondaryActions, secondaryActionsImplementation, selectionModePaymentOptions]);
 
     const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
