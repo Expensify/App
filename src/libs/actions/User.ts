@@ -48,7 +48,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm} from '@src/types/form';
+import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -1682,6 +1682,14 @@ function clearDraftRule() {
     Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, null);
 }
 
+function updateDraftMerchantRule(ruleData: Partial<MerchantRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, ruleData);
+}
+
+function clearDraftMerchantRule() {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, null);
+}
+
 export {
     closeAccount,
     setServerErrorsOnForm,
@@ -1728,4 +1736,6 @@ export {
     setDraftRule,
     updateDraftRule,
     clearDraftRule,
+    updateDraftMerchantRule,
+    clearDraftMerchantRule,
 };
