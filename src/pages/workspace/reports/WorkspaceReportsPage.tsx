@@ -150,7 +150,12 @@ function WorkspaceReportFieldsPage({
 
     const renderReportTitle = () => (
         <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]} accessibilityRole="header">{translate('workspace.common.reportTitle')}</Text>
+            <Text
+                style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                accessibilityRole="header"
+            >
+                {translate('workspace.common.reportTitle')}
+            </Text>
         </OfflineWithFeedback>
     );
 

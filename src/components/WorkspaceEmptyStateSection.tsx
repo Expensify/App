@@ -50,7 +50,12 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
 
             <View style={[styles.w100, styles.pt5]}>
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mh1, styles.flexShrink1]}>
-                    <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]} accessibilityRole="header">{title}</Text>
+                    <Text
+                        style={[styles.textHeadline, styles.emptyCardSectionTitle]}
+                        accessibilityRole="header"
+                    >
+                        {title}
+                    </Text>
                 </View>
 
                 {(!!subtitle || !!subtitleComponent) && (

@@ -120,7 +120,12 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                                 />
                             </View>
                         </View>
-                        <Text style={[styles.headerText, styles.mv2, styles.textHeadlineH2]} accessibilityRole="header">{title}</Text>
+                        <Text
+                            style={[styles.headerText, styles.mv2, styles.textHeadlineH2]}
+                            accessibilityRole="header"
+                        >
+                            {title}
+                        </Text>
                         <Text style={styles.labelStrong}>{subtitle}</Text>
                         <Text style={[styles.textLabelSupporting, styles.textSmall]}>{note}</Text>
                         <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mt3, styles.mb1]}>{description}</Text>

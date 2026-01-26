@@ -561,7 +561,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <Section
                     containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent, styles.noBorderRadius]}
                     childrenStyles={[styles.flexRow, styles.flexWrap, styles.columnGap3]}
-                    renderTitle={() => <Text style={styles.mutedNormalTextLabel} accessibilityRole="header">{translate(section.titleTranslationKey)}</Text>}
+                    renderTitle={() => (
+                        <Text
+                            style={styles.mutedNormalTextLabel}
+                            accessibilityRole="header"
+                        >
+                            {translate(section.titleTranslationKey)}
+                        </Text>
+                    )}
                     subtitleMuted
                 >
                     {section.items.map(renderItem)}

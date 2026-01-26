@@ -359,7 +359,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={[styles.textHeadlineH1, styles.mb5]} accessibilityRole="header">{translate('onboarding.interestedFeatures.title')}</Text>
+                <Text
+                    style={[styles.textHeadlineH1, styles.mb5]}
+                    accessibilityRole="header"
+                >
+                    {translate('onboarding.interestedFeatures.title')}
+                </Text>
             </View>
 
             <ScrollView

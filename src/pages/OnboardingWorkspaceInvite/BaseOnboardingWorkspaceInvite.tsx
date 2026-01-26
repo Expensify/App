@@ -207,7 +207,12 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                <Text style={styles.textHeadlineH1} accessibilityRole="header">{translate('onboarding.inviteMembers.title')}</Text>
+                <Text
+                    style={styles.textHeadlineH1}
+                    accessibilityRole="header"
+                >
+                    {translate('onboarding.inviteMembers.title')}
+                </Text>
             </View>
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.inviteMembers.subtitle')}</Text>
