@@ -19,7 +19,7 @@ import {
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
-    completeSplitBill,
+    convertBulkTrackedExpensesToIOU,
     createDistanceRequest,
     deleteMoneyRequest,
     evenlyDistributeSplitExpenseAmounts,
@@ -38,8 +38,6 @@ import {
     setDraftSplitTransaction,
     setMoneyRequestCategory,
     shouldOptimisticallyUpdateSearch,
-    splitBill,
-    startSplitBill,
     submitPerDiemExpense,
     submitReport,
     trackExpense,
@@ -48,10 +46,10 @@ import {
     updateMoneyRequestCategory,
     updateMoneyRequestTag,
     updateSplitExpenseAmountField,
-    updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {getSendInvoiceInformation} from '@libs/actions/IOU/SendInvoice';
+import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
@@ -1131,6 +1129,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
             return waitForBatchedUpdates()
@@ -1386,6 +1385,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: 123,
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
+                        isSelfTourViewed: false,
                         quickAction: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -1614,6 +1614,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             policyRecentlyUsedCurrencies: [],
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -1778,6 +1779,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
             return (
@@ -2287,6 +2289,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
@@ -2314,9 +2317,40 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
+        });
+
+        it('should pass isSelfTourViewed true to the request when user has viewed the tour', () => {
+            const {iouReport} = requestMoney({
+                report: {reportID: ''},
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 1000,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'Test Merchant',
+                    comment: 'Test comment',
+                },
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: true,
+                quickAction: undefined,
+            });
+            // Verify that the iouReport is created successfully when isSelfTourViewed is true
+            expect(iouReport).toBeDefined();
+            expect(iouReport?.reportID).toBeDefined();
         });
 
         it('increase the nonReimbursableTotal only when the expense is not reimbursable', async () => {
@@ -2357,6 +2391,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 currentUserEmailParam: 'existing@example.com',
                 quickAction: undefined,
             });
@@ -2397,6 +2432,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
 
@@ -2462,6 +2498,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
             waitForBatchedUpdates();
@@ -2499,6 +2536,8 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2520,6 +2559,8 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -2543,6 +2584,8 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
@@ -2563,6 +2606,8 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
                 policyRecentlyUsedCurrencies: [],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
@@ -3620,6 +3665,157 @@ describe('actions/IOU', () => {
             // Then the description should be the same since it was not changed
             expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
         });
+
+        it('should calculate proportional convertedAmount for split transactions with foreign currency', async () => {
+            jest.setTimeout(10 * 1000);
+
+            // Given: An expense report with AED currency and a USD transaction with convertedAmount
+            const originalAmount = -1000;
+            const originalConvertedAmount = -3673;
+            const reportID = rand64();
+            const originalTransactionID = rand64();
+
+            const expenseReport: Report = {
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: 'AED',
+                ownerAccountID: RORY_ACCOUNT_ID,
+                total: originalAmount,
+            };
+
+            const originalTransaction = {
+                transactionID: originalTransactionID,
+                amount: originalAmount,
+                modifiedAmount: '', // Empty string - the edge case that was causing the bug
+                currency: 'USD',
+                modifiedCurrency: '',
+                convertedAmount: originalConvertedAmount,
+                created: DateUtils.getDBTime(),
+                merchant: 'Test Merchant',
+                reportID,
+                comment: {},
+            } as unknown as Transaction;
+
+            const transactionThread: Report = {
+                reportID: rand64(),
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: reportID,
+                parentReportActionID: rand64(),
+            };
+
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: Math.abs(originalAmount),
+                    currency: 'USD',
+                    comment: '',
+                    participants: [],
+                    transactionID: originalTransactionID,
+                    iouReportID: reportID,
+                }),
+                childReportID: transactionThread.reportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [iouAction.reportActionID]: iouAction,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+
+            const splitExpenses: SplitExpense[] = [
+                {
+                    transactionID: rand64(),
+                    amount: -500,
+                    created: DateUtils.getDBTime(),
+                    merchant: 'Test Merchant',
+                },
+                {
+                    transactionID: rand64(),
+                    amount: -500,
+                    created: DateUtils.getDBTime(),
+                    merchant: 'Test Merchant',
+                },
+            ];
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allTransactions = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReports = value;
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allReportNameValuePairs = value;
+                },
+            });
+
+            // When splitting the expense
+            updateSplitTransactionsFromSplitExpensesFlow({
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                allReportNameValuePairsList: allReportNameValuePairs,
+                transactionData: {
+                    reportID,
+                    originalTransactionID,
+                    splitExpenses,
+                    splitExpensesTotal: -1000,
+                },
+                searchContext: {
+                    currentSearchHash: -1,
+                },
+                policyCategories: undefined,
+                policy: undefined,
+                policyRecentlyUsedCategories: [],
+                iouReport: expenseReport,
+                firstIOU: iouAction,
+                isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                iouReportNextStep: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then each split transaction should have proportional convertedAmount
+            // Formula: Math.round((originalConvertedAmount * splitAmount) / originalAmount)
+            const expectedProportionalConvertedAmount = -1836;
+
+            const splitTransactions = await new Promise<Transaction[]>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const splits = Object.values(transactions ?? {}).filter(
+                            (t) => t?.transactionID !== originalTransactionID && t?.comment?.originalTransactionID === originalTransactionID,
+                        );
+                        resolve(splits as Transaction[]);
+                    },
+                });
+            });
+
+            expect(splitTransactions.length).toBe(2);
+
+            for (const splitTransaction of splitTransactions) {
+                expect(splitTransaction.convertedAmount).toBe(expectedProportionalConvertedAmount);
+            }
+        });
     });
 
     describe('startSplitBill', () => {
@@ -4042,6 +4238,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
             return waitForBatchedUpdates()
@@ -4289,6 +4486,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -4431,6 +4629,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -4748,6 +4947,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -4855,6 +5055,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
             await waitForBatchedUpdates();
@@ -5101,6 +5302,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
 
@@ -5311,6 +5513,7 @@ describe('actions/IOU', () => {
                     currency: CONST.CURRENCY.USD,
                     taxAmount: 0,
                     taxCode: '',
+                    taxValue: '',
                     policy: {
                         id: '123',
                         role: CONST.POLICY.ROLE.USER,
@@ -5678,6 +5881,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    isSelfTourViewed: false,
                     quickAction: undefined,
                 });
             }
@@ -5752,6 +5956,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
             await waitForBatchedUpdates();
@@ -6157,6 +6362,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -6284,6 +6490,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: initialCurrencies,
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -6354,6 +6561,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -6454,7 +6662,7 @@ describe('actions/IOU', () => {
                         if (chatReport) {
                             reportToArchive.push(chatReport);
                         }
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+
                         deleteWorkspace({
                             policyID: policy.id,
                             personalPolicyID: undefined,
@@ -6550,6 +6758,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -6719,6 +6928,7 @@ describe('actions/IOU', () => {
                             currentUserEmailParam: RORY_EMAIL,
                             transactionViolations: {},
                             policyRecentlyUsedCurrencies: [],
+                            isSelfTourViewed: false,
                             quickAction: undefined,
                         });
                     }
@@ -7364,6 +7574,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 quickAction: undefined,
             });
 
@@ -7967,6 +8178,7 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
                 taxCode: '',
+                taxValue: '',
                 policy: {
                     id: '123',
                     role: CONST.POLICY.ROLE.USER,
@@ -8036,6 +8248,7 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
                 taxCode: '',
+                taxValue: '',
                 policy: {
                     id: '123',
                     role: CONST.POLICY.ROLE.USER,
@@ -8134,6 +8347,7 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 taxAmount: 0,
                 taxCode: '',
+                taxValue: '',
                 policy,
                 policyTagList: {},
                 policyCategories: {},
@@ -8212,6 +8426,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    isSelfTourViewed: false,
                     quickAction: undefined,
                 });
             }
@@ -8307,6 +8522,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    isSelfTourViewed: false,
                     quickAction: undefined,
                 });
             }
@@ -9217,6 +9433,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    isSelfTourViewed: false,
                     quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
@@ -9375,6 +9592,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    isSelfTourViewed: false,
                     quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
@@ -9538,6 +9756,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    isSelfTourViewed: false,
                     quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
@@ -9711,6 +9930,7 @@ describe('actions/IOU', () => {
                     currentUserEmailParam: RORY_EMAIL,
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
+                    isSelfTourViewed: false,
                     quickAction: undefined,
                 });
                 await waitForBatchedUpdates();
@@ -11714,6 +11934,236 @@ describe('actions/IOU', () => {
 
             expect(result.size).toBe(1);
             expect(result.get('mainReport')).toBe(12000); // 10000 - (-2000) = 12000
+        });
+    });
+
+    describe('convertBulkTrackedExpensesToIOU', () => {
+        it('should accept personalDetails as a required parameter', async () => {
+            const currentUserAccountID = 1;
+            const currentUserEmail = 'user@test.com';
+            const payerAccountID = 2;
+            const payerEmail = 'payer@test.com';
+            const selfDMReportID = 'selfDM123';
+            const targetReportID = 'iouReport456';
+            const chatReportID = 'chatReport789';
+            const transactionID = 'transaction001';
+
+            // Setup personal details
+            const testPersonalDetails: PersonalDetailsList = {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    displayName: 'Current User',
+                    login: currentUserEmail,
+                },
+                [payerAccountID]: {
+                    accountID: payerAccountID,
+                    displayName: 'Payer User',
+                    login: payerEmail,
+                },
+            };
+
+            // Setup self DM report
+            const selfDMReport: Report = {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ownerAccountID: currentUserAccountID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // Setup IOU report (target)
+            const iouReport: Report = {
+                reportID: targetReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: payerAccountID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [payerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // Setup chat report
+            const chatReport: Report = {
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                iouReportID: targetReportID,
+                ownerAccountID: currentUserAccountID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [payerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // Setup transaction
+            const transaction: Transaction = {
+                transactionID,
+                reportID: selfDMReportID,
+                amount: 1000,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                created: DateUtils.getDBTime(),
+                comment: {comment: 'Test expense'},
+            };
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, selfDMReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            // Call should not throw when personalDetails is provided
+            expect(() => {
+                convertBulkTrackedExpensesToIOU(
+                    [transactionID],
+                    targetReportID,
+                    false, // isASAPSubmitBetaEnabled
+                    currentUserAccountID,
+                    currentUserEmail,
+                    {}, // transactionViolations
+                    [], // policyRecentlyUsedCurrencies
+                    undefined, // quickAction
+                    testPersonalDetails,
+                );
+            }).not.toThrow();
+        });
+
+        it('should use personalDetails to look up payer email', async () => {
+            const currentUserAccountID = 10;
+            const currentUserEmail = 'current@test.com';
+            const payerAccountID = 20;
+            const payerEmail = 'payer@test.com';
+            const targetReportID = 'iouReport200';
+            const chatReportID = 'chatReport200';
+
+            // Personal details with payer information
+            const testPersonalDetails: PersonalDetailsList = {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    displayName: 'Current User',
+                    login: currentUserEmail,
+                },
+                [payerAccountID]: {
+                    accountID: payerAccountID,
+                    displayName: 'Payer From PersonalDetails',
+                    login: payerEmail,
+                },
+            };
+
+            // Setup IOU report
+            const iouReport: Report = {
+                reportID: targetReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: payerAccountID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [payerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // Setup chat report
+            const chatReport: Report = {
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                iouReportID: targetReportID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [payerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await waitForBatchedUpdates();
+
+            // The function should be able to look up payer email from personalDetails
+            // Even if no transactions are provided, it should not throw
+            expect(() => {
+                convertBulkTrackedExpensesToIOU(
+                    [], // empty transaction IDs
+                    targetReportID,
+                    false,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    {},
+                    [],
+                    undefined,
+                    testPersonalDetails,
+                );
+            }).not.toThrow();
+        });
+
+        it('should handle empty personalDetails gracefully', async () => {
+            const currentUserAccountID = 30;
+            const currentUserEmail = 'user30@test.com';
+            const targetReportID = 'iouReport300';
+            const chatReportID = 'chatReport300';
+
+            // Setup minimal IOU report
+            const iouReport: Report = {
+                reportID: targetReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID,
+            };
+
+            const chatReport: Report = {
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await waitForBatchedUpdates();
+
+            // Should not throw even with empty personalDetails
+            expect(() => {
+                convertBulkTrackedExpensesToIOU(
+                    [],
+                    targetReportID,
+                    false,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    {},
+                    [],
+                    undefined,
+                    {}, // empty personalDetails
+                );
+            }).not.toThrow();
+        });
+
+        it('should handle undefined personalDetails gracefully', async () => {
+            const currentUserAccountID = 40;
+            const currentUserEmail = 'user40@test.com';
+            const targetReportID = 'iouReport400';
+            const chatReportID = 'chatReport400';
+
+            // Setup minimal IOU report
+            const iouReport: Report = {
+                reportID: targetReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID,
+            };
+
+            const chatReport: Report = {
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await waitForBatchedUpdates();
+
+            // Should not throw even with undefined personalDetails
+            expect(() => {
+                convertBulkTrackedExpensesToIOU([], targetReportID, false, currentUserAccountID, currentUserEmail, {}, [], undefined, undefined);
+            }).not.toThrow();
         });
     });
 });
