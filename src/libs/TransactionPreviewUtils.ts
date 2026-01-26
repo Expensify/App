@@ -1,11 +1,10 @@
 import truncate from 'lodash/truncate';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCurrentUserAccountID} from './actions/Report';
 import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -27,13 +26,14 @@ import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getAmount,
+    getExpenseTypeTranslationKey,
     getFormattedCreated,
+    getTransactionType,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
-    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -41,7 +41,6 @@ import {
     isMerchantMissing,
     isOnHold,
     isPending,
-    isPerDiemRequest,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
@@ -214,9 +213,8 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
-    const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isTransactionScanning = isScanning(transaction);
-    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -258,12 +256,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
-        const amountMissing = isAmountMissing(transaction);
-        if (amountMissing && merchantMissing) {
-            RBRMessage = {translationPath: 'violations.reviewRequired'};
-        } else if (amountMissing) {
-            RBRMessage = {translationPath: 'iou.missingAmount'};
-        } else if (merchantMissing) {
+        if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -282,16 +275,12 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
+    let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
     if (isDistanceRequest(transaction)) {
-        previewHeaderText = [{translationPath: 'common.distance'}];
-
         if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
             RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
         }
-    } else if (isPerDiemRequest(transaction)) {
-        previewHeaderText = [{translationPath: 'common.perDiem'}];
     } else if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
@@ -367,7 +356,7 @@ function createTransactionPreviewConditionals({
     currentUserAccountID,
     reportActions,
 }: {
-    iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
     action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
@@ -393,7 +382,7 @@ function createTransactionPreviewConditionals({
     const policy = getPolicy(iouReport?.policyID);
     const hasViolationsOfTypeNotice =
         hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
-    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
 
@@ -426,7 +415,7 @@ function createTransactionPreviewConditionals({
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = areThereDuplicates;
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [];
-    const shouldShowSplitShare = isBillSplit && !!requestAmount && requestAmount > 0 && participantAccountIDs.includes(getCurrentUserAccountID());
+    const shouldShowSplitShare = isBillSplit && !!requestAmount && requestAmount > 0 && participantAccountIDs.includes(currentUserAccountID);
     /*
  Show the merchant for IOUs and expenses only if:
  - the merchant is not empty, is custom, or is not related to scanning smartscan;

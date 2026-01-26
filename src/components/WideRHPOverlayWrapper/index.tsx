@@ -1,5 +1,5 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useContext} from 'react';
 import {
     animatedReceiptPaneRHPWidth,
     modalStackOverlaySuperWideRHPPositionLeft,
@@ -7,12 +7,10 @@ import {
     secondOverlayRHPOnSuperWideRHPProgress,
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayWideRHPProgress,
-    thirdOverlayProgress,
     WideRHPContext,
 } from '@components/WideRHPContextProvider';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
-import {navigationRef} from '@libs/Navigation/Navigation';
-import NAVIGATORS from '@src/NAVIGATORS';
 
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
@@ -70,26 +68,6 @@ function SecondaryOverlay() {
     return null;
 }
 
-function TertiaryOverlay() {
-    const {shouldRenderTertiaryOverlay, wideRHPRouteKeys} = useContext(WideRHPContext);
-    const route = useRoute();
-
-    const isWide = route?.key && wideRHPRouteKeys.includes(route.key);
-
-    // This overlay is used to cover the space under the narrower RHP screen when more than one RHP width is displayed on the screen
-    // There is a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP.
-    if (isWide && shouldRenderTertiaryOverlay) {
-        return (
-            <Overlay
-                progress={thirdOverlayProgress}
-                positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
-            />
-        );
-    }
-
-    return null;
-}
-
 type WideRHPOverlayWrapperProps = {
     children: React.ReactNode;
     shouldWrap?: boolean;
@@ -97,30 +75,11 @@ type WideRHPOverlayWrapperProps = {
 
 // This overlay is used to cover the space under the narrower RHP screen when more than one RHP width is displayed on the screen.
 export default function WideRHPOverlayWrapper({children, shouldWrap = true}: WideRHPOverlayWrapperProps) {
-    const {syncRHPKeys} = useContext(WideRHPContext);
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const shouldUseOverlayWrapper = !isSmallScreenWidth && shouldWrap;
 
-    // This hook handles the case when a wider RHP is displayed above a narrower one.
-    // In this situation, we need to synchronize the keys, as superWideRHPKeys and wideRHPKeys store the keys of the screens that are visible.
-    useFocusEffect(
-        useCallback(
-            () => () => {
-                if (!shouldWrap) {
-                    return;
-                }
-
-                // Synchronization after RHP unmount is handled in RightModalNavigator.tsx.
-                const isRHPOpened = navigationRef?.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                if (!isRHPOpened) {
-                    return;
-                }
-
-                syncRHPKeys();
-            },
-            [shouldWrap, syncRHPKeys],
-        ),
-    );
-
-    if (!shouldWrap) {
+    if (!shouldUseOverlayWrapper) {
         return children;
     }
 
@@ -128,7 +87,6 @@ export default function WideRHPOverlayWrapper({children, shouldWrap = true}: Wid
         <>
             {children}
             <SecondaryOverlay />
-            <TertiaryOverlay />
         </>
     );
 }

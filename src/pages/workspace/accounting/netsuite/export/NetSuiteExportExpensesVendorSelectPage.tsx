@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -72,7 +72,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteExportExpensesVendorSelectPage"
-            sections={netsuiteVendorOptions.length ? [{data: netsuiteVendorOptions}] : []}
+            data={netsuiteVendorOptions}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}

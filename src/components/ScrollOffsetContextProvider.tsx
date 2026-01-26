@@ -100,14 +100,16 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
         (state) => {
-            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
-            const existingScreenKeys = new Set(sidebarRoutes.map(getKey));
+            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name) || route.name === SCREENS.WORKSPACES_LIST);
+            const workspaceListRoutes = state.routes.filter((route) => route.name === SCREENS.WORKSPACES_LIST);
+            const existingScreenKeys = new Set([...sidebarRoutes, ...workspaceListRoutes].map(getKey));
 
             const focusedRoute = findFocusedRoute(state);
             const routeName = focusedRoute?.name;
 
             const isSearchScreen = routeName === SCREENS.SEARCH.ROOT;
-            const isSearchMoneyRequestReport = routeName === SCREENS.SEARCH.MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+            const isSearchMoneyRequestReport =
+                routeName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
             const scrollOffsetKeys = Object.keys(scrollOffsetsRef.current);
 

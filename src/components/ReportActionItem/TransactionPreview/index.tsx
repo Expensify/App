@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {getOriginalTransactionWithSplitInfo, isManagedCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -41,7 +41,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
         iouReportID,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
-        shouldHighlight,
         reportPreviewAction,
         contextAction,
     } = props;
@@ -94,11 +93,9 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     // See description of `transactionRawAmount` prop for more context
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
+    const transactionRawAmount = (Number(transaction?.modifiedAmount) || transaction?.amount) ?? 0;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
-    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    const showCashOrCardTranslation = isTransactionMadeWithCard ? 'iou.card' : 'iou.cash';
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
 
     if (onPreviewPressed) {
@@ -109,7 +106,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={showContextMenu}
                 shouldUseHapticsOnLongPress
-                accessibilityLabel={isBillSplit ? translate('iou.split') : translate(showCashOrCardTranslation)}
+                accessibilityLabel={isBillSplit ? translate('iou.split') : translate(getExpenseTypeTranslationKey(getTransactionType(transaction)))}
                 accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
                 sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.CARD}
             >
@@ -131,7 +128,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     walletTermsErrors={walletTerms?.errors}
                     routeName={route.name}
                     isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
-                    shouldHighlight={shouldHighlight}
                 />
             </PressableWithoutFeedback>
         );
@@ -156,7 +152,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
             reportPreviewAction={reportPreviewAction}
-            shouldHighlight={shouldHighlight}
             isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
         />
     );

@@ -30,6 +30,9 @@ import {
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBrokenMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getDismissedViolationMessageText,
@@ -38,8 +41,11 @@ import {
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
+    getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -49,9 +55,11 @@ import {
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getReimburserUpdateMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportAction,
@@ -60,6 +68,7 @@ import {
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -116,8 +125,6 @@ import {
     changeMoneyRequestHoldStatus,
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
-    getDowngradeWorkspaceMessage,
-    getForcedCorporateUpgradeMessage,
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
@@ -125,11 +132,10 @@ import {
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getRejectedReportMessage,
     getReportName as getReportNameDeprecated,
+    getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
-    getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
     shouldDisableThread,
@@ -208,6 +214,7 @@ type ContextMenuActionPayload = {
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
     reportID: string | undefined;
+    currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
     draftMessage: string;
     selection: string;
@@ -234,6 +241,8 @@ type ContextMenuActionPayload = {
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
+    isDelegateAccessRestricted?: boolean;
+    showDelegateNoAccessModal?: () => void;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -294,7 +303,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
-        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
+        renderContent: (closePopover, {reportID, reportAction, currentUserAccountID, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback?: () => void) => {
@@ -309,7 +318,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             };
 
             const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => {
-                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone);
+                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID);
                 closeContextMenu();
                 setIsEmojiPickerActive?.(false);
             };
@@ -379,8 +388,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return (type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isDynamicWorkflowRoutedAction) || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat);
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
-            markCommentAsUnread(reportID, reportAction);
+        onPress: (closePopover, {reportAction, reportID, currentUserAccountID}) => {
+            markCommentAsUnread(reportID, reportAction, currentUserAccountID);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -454,7 +463,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canUnholdRequest;
         },
-        onPress: (closePopover, {moneyRequestAction}) => {
+        onPress: (closePopover, {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal}) => {
+            if (isDelegateAccessRestricted) {
+                hideContextMenu(false, showDelegateNoAccessModal);
+                return;
+            }
+
             if (closePopover) {
                 hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction));
                 return;
@@ -477,7 +491,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canHoldRequest;
         },
-        onPress: (closePopover, {moneyRequestAction}) => {
+        onPress: (closePopover, {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal}) => {
+            if (isDelegateAccessRestricted) {
+                hideContextMenu(false, showDelegateNoAccessModal);
+                return;
+            }
+
             if (closePopover) {
                 hideContextMenu(false, () => changeMoneyRequestHoldStatus(moneyRequestAction));
                 return;
@@ -514,19 +533,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
+        onPress: (closePopover, {reportAction, reportID, currentUserAccountID}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
@@ -554,19 +573,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
+        onPress: (closePopover, {reportAction, reportID, currentUserAccountID}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
@@ -632,7 +651,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 transaction,
                 selection,
                 report,
-                reportID,
                 card,
                 originalReport,
                 isHarvestReport,
@@ -659,7 +677,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReportPreviewMessage(iouReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
-                    const {text, html} = getTaskReportActionMessage(reportAction);
+                    const {text, html} = getTaskReportActionMessage(translate, reportAction);
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
@@ -673,25 +691,24 @@ const ContextMenuActions: ContextMenuAction[] = [
                     });
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
-                    const {expenseReportID} = getOriginalMessage(reportAction) ?? {};
-                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(reportAction, expenseReportID);
+                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(reportAction, transaction, report);
+                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, transaction, report);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
                         setClipboardMessage(displayMessage);
                     }
                 } else if (isCreatedTaskReportAction(reportAction)) {
-                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, childReport, true);
+                    const taskPreviewMessage = getTaskCreatedMessage(translate, reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportNameDeprecated).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
-                    Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(reportAction)));
+                    Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION) {
                     Clipboard.setString(getWorkspaceDescriptionUpdatedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
@@ -741,12 +758,24 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getSubmitsToUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
                     Clipboard.setString(getForwardsToUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
+                    Clipboard.setString(getInvoiceCompanyNameUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
+                    Clipboard.setString(getInvoiceCompanyWebsiteUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER) {
+                    Clipboard.setString(getReimburserUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
                     Clipboard.setString(getWorkspaceReimbursementUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
+                    Clipboard.setString(getUpdateACHAccountMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
+                    Clipboard.setString(getCompanyAddressUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
                     Clipboard.setString(getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
                     Clipboard.setString(getPolicyChangeLogMaxExpenseAmountMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE) {
+                    Clipboard.setString(getPolicyChangeLogMaxExpenseAgeMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
                     Clipboard.setString(getPolicyChangeLogDefaultBillableMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE) {
@@ -756,12 +785,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-                    setClipboardMessage(getUnreportedTransactionMessage(reportAction));
+                    setClipboardMessage(getUnreportedTransactionMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-                    Clipboard.setString(translate('iou.paidElsewhere'));
+                    Clipboard.setString(getMarkedReimbursedMessage(reportAction));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(
-                        getReimbursementQueuedActionMessage({reportAction, formatPhoneNumber: formatPhoneNumberPhoneUtils, reportOrID: reportID, shouldUseShortDisplayName: false}),
+                        getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report, shouldUseShortDisplayName: false}),
                     );
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction);
@@ -798,17 +827,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                         Clipboard.setString(translate('iou.forwarded'));
                     }
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
-                    const displayMessage = getRejectedReportMessage();
-                    Clipboard.setString(displayMessage);
+                    Clipboard.setString(translate('iou.rejectedThisReport'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
-                    const displayMessage = getUpgradeWorkspaceMessage();
+                    const displayMessage = translate('workspaceActions.upgradedWorkspace');
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-                    const displayMessage = Parser.htmlToText(getForcedCorporateUpgradeMessage());
+                    const displayMessage = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
-                    const displayMessage = getDowngradeWorkspaceMessage();
-                    Clipboard.setString(displayMessage);
+                    Clipboard.setString(translate('workspaceActions.downgradedWorkspace'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(translate('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
@@ -840,11 +867,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
-                    setClipboardMessage(getDeletedTransactionMessage(reportAction));
+                    setClipboardMessage(getDeletedTransactionMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
                     setClipboardMessage(translate('iou.reopened'));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     setClipboardMessage(getIntegrationSyncFailedMessage(translate, reportAction, report?.policyID, isTryNewDotNVPDismissed));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+                    setClipboardMessage(getCompanyCardConnectionBrokenMessage(translate, reportAction));
                 } else if (isCardIssuedAction(reportAction)) {
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card, translate}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
@@ -866,13 +895,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-                    setClipboardMessage(getMovedTransactionMessage(reportAction));
+                    setClipboardMessage(getMovedTransactionMessage(translate, reportAction));
                 } else if (isMovedAction(reportAction)) {
-                    setClipboardMessage(getMovedActionMessage(reportAction, originalReport));
+                    setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
                     setClipboardMessage(getActionableCardFraudAlertMessage(translate, reportAction, getLocalDateFromDatetime));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
-                    const displayMessage = getPolicyChangeMessage(reportAction);
+                    const displayMessage = getPolicyChangeMessage(translate, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(translate, reportAction);
@@ -882,6 +911,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestReport) {
                     const harvestReportName = getReportName(harvestReport);
                     const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
+                    setClipboardMessage(displayMessage);
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
+                    const {originalID} = getOriginalMessage(reportAction) ?? {};
+                    const reportName = getReportName(getReportOrDraftReport(originalID));
+                    const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate);
                     setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
@@ -1067,8 +1101,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
+            const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));

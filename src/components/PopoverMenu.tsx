@@ -7,6 +7,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, Vie
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -287,6 +288,7 @@ function BasePopoverMenu({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -294,7 +296,7 @@ function BasePopoverMenu({
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const platform = getPlatform();
-    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const isWeb = platform === CONST.PLATFORM.WEB;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
@@ -344,6 +346,7 @@ function BasePopoverMenu({
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
         const hasBackButtonText = !!previouslySelectedItem?.backButtonText;
+        const backButtonTitle = hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text;
 
         return (
             <MenuItem
@@ -352,7 +355,8 @@ function BasePopoverMenu({
                 iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
                 additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
-                title={hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text}
+                title={backButtonTitle}
+                accessibilityLabel={`${translate('common.goBack')}, ${backButtonTitle}`}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
                 shouldShowBasicTitle={hasBackButtonText}
                 shouldCheckActionAllowedOnPress={false}
@@ -399,6 +403,7 @@ function BasePopoverMenu({
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     icon={icon}
+                    role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
                     hasSubMenuItems={!!subMenuItems?.length}
@@ -438,9 +443,9 @@ function BasePopoverMenu({
         [shouldUseScrollView],
     );
 
-    // On web and desktop, pressing the space bar after interacting with the parent view
+    // On web, pressing the space bar after interacting with the parent view
     // can cause the parent view to scroll when the space bar is pressed.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWebOrDesktop && isVisible, shouldPreventDefault: false});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
 
     const handleModalHide = () => {
         onModalHide?.();
@@ -486,7 +491,7 @@ function BasePopoverMenu({
             setFocusedIndex(getSelectedItemIndex(menuItems));
         }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
     const menuContainerStyle = useMemo(() => {
@@ -571,7 +576,7 @@ function BasePopoverMenu({
             >
                 <View
                     onLayout={onLayout}
-                    style={[restMenuContainerStyle, restContainerStyles, isWebOrDesktop ? styles.flex1 : styles.flexGrow1]}
+                    style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
                 >
                     {renderWithConditionalWrapper(
                         shouldUseScrollView,

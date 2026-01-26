@@ -53,7 +53,7 @@ export default function (pageTitle: TranslationPaths) {
                 }
 
                 getReportPrivateNote(report?.reportID);
-                // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
+                // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
             }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
             const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished;

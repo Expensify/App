@@ -25,6 +25,7 @@ afterEach(() => {
 
 describe('useSearchHighlightAndScroll', () => {
     const baseProps: UseSearchHighlightAndScroll = {
+        shouldUseLiveData: false,
         searchResults: {
             data: {
                 personalDetailsList: {},
