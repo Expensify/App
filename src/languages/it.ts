@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Importo originale',
         insights: 'Analisi',
         duplicateExpense: 'Spesa duplicata',
+        newFeature: 'Nuova funzionalità',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6299,6 +6300,16 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             customRules: {
                 title: 'Policy di spesa',
                 cardSubtitle: 'Qui è dove si trova la policy di spesa del tuo team, così tutti sono allineati su cosa è coperto.',
+            },
+            merchantRules: {
+                title: 'Esercente',
+                subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
+                addRule: 'Aggiungi regola esercente',
+                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Contrassegna come "${billable ? 'fatturabile' : 'non fatturabile'}"`,
             },
         },
         planTypePage: {

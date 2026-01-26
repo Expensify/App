@@ -640,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: '元の金額',
         insights: 'インサイト',
         duplicateExpense: '重複した経費',
+        newFeature: '新機能',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6256,6 +6257,16 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここにはチームの経費ポリシーが保存されています。これにより、何が対象になるかについて全員が同じ認識を持てます。',
+            },
+            merchantRules: {
+                title: '加盟店',
+                subtitle: '取引先ルールを設定して、経費が正しくコード化された状態で届くようにし、後処理を最小限に抑えましょう。',
+                addRule: '店舗ルールを追加',
+                ruleSummaryTitle: (merchantName: string) => `もし取引先に「${merchantName}」が含まれている場合`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `支払先名を「${merchantName}」に変更`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} を「${fieldValue}」に更新`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `「${reimbursable ? '払い戻し対象' : '精算対象外'}」としてマーク`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `「${billable ? '請求可能' : '請求対象外'}」としてマーク`,
             },
         },
         planTypePage: {

@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Montant d’origine',
         insights: 'Analyses',
         duplicateExpense: 'Note de frais en double',
+        newFeature: 'Nouvelle fonctionnalité',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -6326,6 +6327,16 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             customRules: {
                 title: 'Politique de dépenses',
                 cardSubtitle: 'Voici l’endroit où se trouve la politique de dépenses de votre équipe, afin que tout le monde soit sur la même longueur d’onde concernant ce qui est couvert.',
+            },
+            merchantRules: {
+                title: 'Commerçant',
+                subtitle: 'Définissez les règles de marchand afin que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
+                addRule: 'Ajouter une règle de commerçant',
+                ruleSummaryTitle: (merchantName: string) => `Si le commerçant contient « ${merchantName} »`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Renommer le marchand en « ${merchantName} »`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} sur « ${fieldValue} »`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme « ${reimbursable ? 'remboursable' : 'non remboursable'} »`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Marquer comme « ${billable ? 'facturable' : 'non facturable'} »`,
             },
         },
         planTypePage: {

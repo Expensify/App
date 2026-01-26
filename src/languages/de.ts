@@ -640,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Ursprünglicher Betrag',
         insights: 'Einblicke',
         duplicateExpense: 'Doppelte Ausgabe',
+        newFeature: 'Neue Funktion',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -6315,6 +6316,16 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             customRules: {
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier befindet sich die Spesenrichtlinie eures Teams, damit alle genau wissen, was abgedeckt ist.',
+            },
+            merchantRules: {
+                title: 'Händler',
+                subtitle: 'Legen Sie Händlerregeln fest, damit Ausgaben korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
+                addRule: 'Händlerregel hinzufügen',
+                ruleSummaryTitle: (merchantName: string) => `Wenn Händler „${merchantName}“ enthält`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Händler in „${merchantName}“ umbenennen`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Als „${billable ? 'Abrechenbar' : 'nicht abrechenbar'}“ markieren`,
             },
         },
         planTypePage: {

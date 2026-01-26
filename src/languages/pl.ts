@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Kwota pierwotna',
         insights: 'Analizy',
         duplicateExpense: 'Zduplikowany wydatek',
+        newFeature: 'Nowa funkcja',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -6279,6 +6280,16 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             customRules: {
                 title: 'Polityka wydatków',
                 cardSubtitle: 'Tutaj znajduje się polityka wydatków Twojego zespołu, aby wszyscy mieli jasność, co jest objęte.',
+            },
+            merchantRules: {
+                title: 'Sprzedawca',
+                subtitle: 'Skonfiguruj reguły dla sprzedawców, aby wydatki trafiały z poprawnym kodowaniem i wymagały mniej poprawek.',
+                addRule: 'Dodaj regułę sprzedawcy',
+                ruleSummaryTitle: (merchantName: string) => `Jeśli sprzedawca zawiera „${merchantName}”`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Zmień sprzedawcę na „${merchantName}”`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Zaktualizuj ${fieldName} na „${fieldValue}”`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako "${reimbursable ? 'kwalifikujący się do zwrotu kosztów' : 'niepodlegający zwrotowi'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Oznacz jako „${billable ? 'fakturowalne' : 'poza fakturą'}”`,
             },
         },
         planTypePage: {
