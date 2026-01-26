@@ -5412,18 +5412,17 @@ function moveIOUReportToPolicy(
  * Moves an IOU report to a policy by converting it to an expense report and invites the submitter
  */
 function moveIOUReportToPolicyAndInviteSubmitter(
-    reportID: string,
+    iouReport: OnyxEntry<Report>,
     policy: Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportTransactions: Transaction[] = [],
     isCustomReportNamesBetaEnabled?: boolean,
 ): {policyExpenseChatReportID?: string} | undefined {
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
     if (!policy || !iouReport) {
         return;
     }
 
+    const reportID = iouReport.reportID;
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const submitterAccountID = iouReport.ownerAccountID;
     const submitterEmail = PersonalDetailsUtils.getLoginByAccountID(submitterAccountID ?? CONST.DEFAULT_NUMBER_ID);
