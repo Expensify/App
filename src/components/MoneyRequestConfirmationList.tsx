@@ -310,7 +310,12 @@ function MoneyRequestConfirmationList({
     );
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
+    let policy;
+    if (isTrackExpense) {
+        policy = isPolicyExpenseChat ? policyForMovingExpenses : undefined;
+    } else {
+        policy = policyReal ?? policyDraft;
+    }
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
