@@ -126,6 +126,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             </Text>
             <Badge
                 text={translate('common.newFeature')}
+                badgeStyles={styles.badgeNewFeature}
                 success
             />
         </View>
@@ -151,8 +152,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                     description={matchDescription}
                                     title={ruleDescription}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    descriptionTextStyle={[styles.textStrong, {color: theme.text}]}
-                                    titleStyle={[styles.textMicroSupporting]}
+                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor]}
+                                    titleStyle={[styles.textLabelSupporting]}
                                     shouldShowRightIcon
                                 />
                             </View>
