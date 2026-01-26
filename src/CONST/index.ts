@@ -225,6 +225,7 @@ const CONST = {
         OUT: 'out',
     },
     ELEMENT_NAME: {
+        DIV: 'DIV',
         INPUT: 'INPUT',
         TEXTAREA: 'TEXTAREA',
     },
