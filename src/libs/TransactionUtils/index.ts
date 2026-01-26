@@ -48,7 +48,6 @@ import {
     isThread,
 } from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
-import {getPolicyTags} from '@userActions/IOU/index';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -59,6 +58,7 @@ import type {
     OnyxInputOrEntry,
     Policy,
     PolicyCategories,
+    PolicyTagLists,
     RecentWaypoint,
     Report,
     ReviewDuplicates,
@@ -138,13 +138,25 @@ Onyx.connectWithoutView({
     callback: (value) => (allBetas = value),
 });
 
+let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+        allPolicyTags = value;
+    },
+});
+
 /**
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
  * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72719)
  * All usages of this function should be replaced with useOnyx hook in React components.
  */
 function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
