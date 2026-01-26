@@ -906,6 +906,7 @@ const SCREENS = {
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
         RESET_DOMAIN: 'Domain_Reset',
+        ADD_MEMBER: 'Domain_Add_Member',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

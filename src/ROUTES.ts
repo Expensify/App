@@ -3724,6 +3724,10 @@ const ROUTES = {
         route: 'domain/:domainAccountID/admins/:accountID/reset-domain',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}/reset-domain` as const,
     },
+    DOMAIN_ADD_MEMBER: {
+        route: 'domain/:domainAccountID/members/invite',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/invite` as const,
+    },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
