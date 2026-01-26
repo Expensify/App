@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,13 +9,11 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCleanedTagName} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,15 +25,12 @@ type AddMerchantRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 type SectionType = {
     titleTranslationKey: 'workspace.rules.merchantRules.expensesWith' | 'workspace.rules.merchantRules.applyUpdates';
-    items: Array<
-        | {
-              descriptionTranslationKey: 'common.merchant' | 'common.category' | 'common.tag' | 'common.tax' | 'common.description' | 'common.reimbursable' | 'common.billable';
-              required?: boolean;
-              title?: string;
-              onPress: () => void;
-          }
-        | undefined
-    >;
+    items: Array<{
+        descriptionTranslationKey: 'common.merchant' | 'common.category' | 'common.tag' | 'common.tax' | 'common.description' | 'common.reimbursable' | 'common.billable';
+        required?: boolean;
+        title?: string;
+        onPress: () => void;
+    }>;
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
@@ -58,34 +53,11 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '-1';
-    const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
-    const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
 
     useEffect(() => () => clearDraftMerchantRule(), []);
-
-    const hasPolicyCategories = useMemo(() => {
-        return Object.values(policy?.categories ?? {}).length > 0;
-    }, [policy?.categories]);
-
-    const hasPolicyTags = useMemo(() => {
-        const tagLists = policy?.tagList ?? {};
-        return Object.values(tagLists).some((tagList) => Object.keys(tagList?.tags ?? {}).length > 0);
-    }, [policy?.tagList]);
-
-    const hasTaxRates = useMemo(() => {
-        return Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
-    }, [policy?.taxRates?.taxes]);
-
-    const selectedTaxRate = useMemo(() => {
-        if (!form?.tax || !policy?.taxRates?.taxes) {
-            return undefined;
-        }
-        const taxRate = policy.taxRates.taxes[form.tax];
-        return taxRate ? {name: taxRate.name, value: taxRate.value} : undefined;
-    }, [form?.tax, policy?.taxRates?.taxes]);
 
     const errorMessage = getErrorMessage(translate, form);
 
@@ -97,8 +69,6 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
         if (!form) {
             return;
         }
-
-        setIsSaving(true);
 
         // TODO: Call SetPolicyMerchantRule API when available
         // For now, just navigate back
@@ -125,27 +95,21 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                     title: form?.merchant,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID)),
                 },
-                hasPolicyCategories
-                    ? {
-                          descriptionTranslationKey: 'common.category',
-                          title: form?.category,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID)),
-                      }
-                    : undefined,
-                hasPolicyTags
-                    ? {
-                          descriptionTranslationKey: 'common.tag',
-                          title: form?.tag ? getCleanedTagName(form.tag) : undefined,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID)),
-                      }
-                    : undefined,
-                hasTaxRates
-                    ? {
-                          descriptionTranslationKey: 'common.tax',
-                          title: selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID)),
-                      }
-                    : undefined,
+                {
+                    descriptionTranslationKey: 'common.category',
+                    title: form?.category,
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID)),
+                },
+                {
+                    descriptionTranslationKey: 'common.tag',
+                    title: form?.tag,
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID)),
+                },
+                {
+                    descriptionTranslationKey: 'common.tax',
+                    title: form?.tax,
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID)),
+                },
                 {
                     descriptionTranslationKey: 'common.description',
                     title: form?.comment,
@@ -184,23 +148,18 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                             <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>
                                 {translate(section.titleTranslationKey)}
                             </Text>
-                            {section.items.map((item) => {
-                                if (!item) {
-                                    return null;
-                                }
-                                return (
-                                    <MenuItemWithTopDescription
-                                        key={item.descriptionTranslationKey}
-                                        description={translate(item.descriptionTranslationKey)}
-                                        errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                                        onPress={item.onPress}
-                                        rightLabel={item.required ? translate('common.required') : undefined}
-                                        shouldShowRightIcon
-                                        title={item.title}
-                                        titleStyle={styles.flex1}
-                                    />
-                                );
-                            })}
+                            {section.items.map((item) => (
+                                <MenuItemWithTopDescription
+                                    key={item.descriptionTranslationKey}
+                                    description={translate(item.descriptionTranslationKey)}
+                                    errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                                    onPress={item.onPress}
+                                    rightLabel={item.required ? translate('common.required') : undefined}
+                                    shouldShowRightIcon
+                                    title={item.title}
+                                    titleStyle={styles.flex1}
+                                />
+                            ))}
                         </View>
                     ))}
                 </ScrollView>
