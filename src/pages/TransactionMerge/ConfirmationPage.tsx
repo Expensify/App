@@ -23,7 +23,6 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {findSelfDMReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,6 +59,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`, {canBeMissing: true});
+    const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`, {
+        canBeMissing: true,
+    });
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -68,7 +70,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
-        const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? findSelfDMReportID() : mergeTransaction.reportID;
+        const reportID = mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
         mergeTransactionRequest({
@@ -78,6 +80,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             sourceTransaction,
             targetTransactionThreadReport,
             targetTransactionThreadParentReport,
+            targetTransactionThreadParentReportNextStep,
             allTransactionViolations,
             policy,
             policyTags,
@@ -104,7 +107,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
             }
         } else {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
         }
     };
 

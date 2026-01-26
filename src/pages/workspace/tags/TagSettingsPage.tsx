@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -48,23 +48,18 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
-    const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
+    const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan'] as const);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
-    const approverText = useMemo(() => {
-        const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
-        const approver = getPersonalDetailByEmail(tagApprover);
-        return approver?.displayName ?? tagApprover;
-    }, [route.params?.tagName, policy]);
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
-    const currentPolicyTag = useMemo(() => {
-        if (hasDependentTags) {
-            return Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter);
-        }
-        return policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
-    }, [policyTag, tagName, parentTagsFilter, hasDependentTags]);
+    const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
+    const approver = getPersonalDetailByEmail(tagApprover);
+    const approverText = approver?.displayName ?? tagApprover;
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
+    const currentPolicyTag = hasDependentTags
+        ? Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter)
+        : (policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName));
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledTag(policyTag, [currentPolicyTag]);
 

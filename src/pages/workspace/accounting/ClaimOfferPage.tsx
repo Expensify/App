@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -8,18 +8,22 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
@@ -47,6 +51,22 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const {startIntegrationFlow} = useAccountingContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle'] as const);
     const integrations = policy?.receiptPartners;
+    const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
+
+    const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
+    const accountingIntegrations = Object.values(connectionNames);
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+
+    const isConnectedToIntegration = useMemo(() => {
+        if (integration === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+            return connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
+        }
+        if (integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER) {
+            return isUberConnected;
+        }
+        return false;
+    }, [connectedIntegration, integration, isUberConnected]);
 
     const integrationConfig: Record<IntegrationType, IntegrationConfig> = {
         xero: {
@@ -73,6 +93,13 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             },
         },
     };
+
+    useEffect(() => {
+        if (!isConnectedToIntegration) {
+            return;
+        }
+        Navigation.dismissModal();
+    }, [isConnectedToIntegration]);
 
     const config = integrationConfig[integration as IntegrationType];
 
@@ -112,10 +139,9 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={config.featureName}
-            shouldBeBlocked={false}
+            shouldBeBlocked={!config}
         >
             <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={ClaimOfferPage.displayName}

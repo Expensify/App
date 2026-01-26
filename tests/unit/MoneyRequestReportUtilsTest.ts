@@ -149,13 +149,23 @@ describe('MoneyRequestReportUtils', () => {
             expect(isBillableEnabledOnPolicy(undefined)).toBe(false);
         });
 
-        test('returns true when defaultBillable is not disabled', () => {
-            const policy = {disabledFields: {defaultBillable: false}} as unknown as Policy;
+        test('returns true when policy is paid group and defaultBillable is enabled', () => {
+            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: false}} as unknown as Policy;
             expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
-        test('returns false when defaultBillable is disabled', () => {
-            const policy = {disabledFields: {defaultBillable: true}} as unknown as Policy;
+        test('returns true when policy is paid group and defaultBillable is missing', () => {
+            const policy = {type: CONST.POLICY.TYPE.CORPORATE, disabledFields: {}} as unknown as Policy;
+            expect(isBillableEnabledOnPolicy(policy)).toBe(true);
+        });
+
+        test('returns false when policy is paid group and defaultBillable is disabled', () => {
+            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: true}} as unknown as Policy;
+            expect(isBillableEnabledOnPolicy(policy)).toBe(false);
+        });
+
+        test('returns false when policy is non-paid group', () => {
+            const policy = {type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}} as unknown as Policy;
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
     });

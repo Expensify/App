@@ -9,7 +9,7 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 // eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
+import {Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
@@ -400,6 +400,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
+            let roleBadgeText = '';
+            if (policy?.owner === details.login) {
+                roleBadgeText = translate('common.owner');
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN) {
+                roleBadgeText = translate('common.admin');
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
+                roleBadgeText = translate('common.auditor');
+            }
+            const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
+            const memberEmail = formatPhoneNumber(details?.login ?? '');
+            const accessibilityLabel = [memberName, memberEmail, roleBadgeText].filter(Boolean).join(', ');
+
             result.push({
                 keyForList: details.login ?? '',
                 accountID,
@@ -410,8 +422,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details?.login ?? ''),
+                text: memberName,
+                alternateText: memberEmail,
+                accessibilityLabel,
                 rightElement: isControlPolicyWithWideLayout ? (
                     <>
                         <View style={[styles.flex1, styles.pr3]}>
@@ -435,6 +448,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                 role={policyEmployee.role}
                                 owner={policy?.owner}
                                 login={details.login}
+                                badgeStyles={[styles.alignSelfEnd]}
                             />
                         </View>
                     </>
@@ -447,7 +461,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 ),
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: details.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -473,12 +487,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.flex1,
         styles.pr3,
         styles.alignSelfStart,
+        styles.alignSelfEnd,
         isControlPolicyWithWideLayout,
         StyleUtils,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
         policyOwner,
         currentUserLogin,
+        icons.FallbackAvatar,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
