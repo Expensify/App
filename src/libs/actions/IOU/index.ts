@@ -942,12 +942,6 @@ Onyx.connect({
     callback: (val) => (recentWaypoints = val ?? []),
 });
 
-let firstCreatedGpsExpenseDateNewDot: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT,
-    callback: (val) => (firstCreatedGpsExpenseDateNewDot = val),
-});
-
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
     return allPersonalDetails;
 }
@@ -6359,7 +6353,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (shouldHandleNavigation) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+        InteractionManager.runAfterInteractions(() => {
+            removeDraftTransactions();
+        });
         if (!requestMoneyInformation.isRetry) {
             dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
         }
@@ -6669,6 +6665,15 @@ function trackExpense(params: CreateTrackExpenseParams) {
         });
     }
 
+    if (isGPSDistanceRequest) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        onyxData?.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.GPS_DRAFT_DETAILS,
+            value: null,
+        });
+    }
+
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? undefined : customUnitRateID;
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
@@ -6824,9 +6829,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     if (shouldHandleNavigation) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            removeDraftTransactions();
-        });
+        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
 
         if (!params.isRetry) {
             dismissModalAndOpenReportInInboxTab(activeReportID);
@@ -7606,9 +7609,11 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
         onyxData = moneyRequestOnyxData;
 
+        const isGPSDistanceRequest = transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
+
         if (
             transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
+            isGPSDistanceRequest ||
             isManualDistanceRequest ||
             transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
         ) {
@@ -7617,6 +7622,15 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
                 value: transaction.iouRequestType,
+            });
+        }
+
+        if (isGPSDistanceRequest) {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            onyxData?.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.GPS_DRAFT_DETAILS,
+                value: null,
             });
         }
 
@@ -7663,9 +7677,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    });
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
