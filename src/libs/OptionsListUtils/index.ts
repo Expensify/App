@@ -476,6 +476,7 @@ function getAlternateText(
     const formattedLastMessageText =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, reportAttributesDerived});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -2268,25 +2269,35 @@ function getValidOptions(
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = prepareReportOptionsForDisplay(recentReportOptions, policiesCollection, {
-            ...getValidReportsConfig,
-            selectedOptions,
-            shouldBoldTitleByDefault,
-            shouldSeparateSelfDMChat,
-            shouldSeparateWorkspaceChat,
-            shouldShowGBR,
-            personalDetails,
-        }, reportAttributesDerived);
+        recentReportOptions = prepareReportOptionsForDisplay(
+            recentReportOptions,
+            policiesCollection,
+            {
+                ...getValidReportsConfig,
+                selectedOptions,
+                shouldBoldTitleByDefault,
+                shouldSeparateSelfDMChat,
+                shouldSeparateWorkspaceChat,
+                shouldShowGBR,
+                personalDetails,
+            },
+            reportAttributesDerived,
+        );
 
-        workspaceChats = prepareReportOptionsForDisplay(workspaceChats, policiesCollection, {
-            ...getValidReportsConfig,
-            selectedOptions,
-            shouldBoldTitleByDefault,
-            shouldSeparateSelfDMChat,
-            shouldSeparateWorkspaceChat,
-            shouldShowGBR,
-            personalDetails,
-        }, reportAttributesDerived);
+        workspaceChats = prepareReportOptionsForDisplay(
+            workspaceChats,
+            policiesCollection,
+            {
+                ...getValidReportsConfig,
+                selectedOptions,
+                shouldBoldTitleByDefault,
+                shouldSeparateSelfDMChat,
+                shouldSeparateWorkspaceChat,
+                shouldShowGBR,
+                personalDetails,
+            },
+            reportAttributesDerived,
+        );
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
