@@ -185,7 +185,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -248,7 +248,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -307,7 +307,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 3,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -359,7 +359,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -407,7 +407,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 3,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,

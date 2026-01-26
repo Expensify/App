@@ -2413,7 +2413,7 @@ type TravelNavigatorParamList = {
 };
 
 type ReportsSplitNavigatorParamList = {
-    [SCREENS.HOME]: undefined;
+    [SCREENS.INBOX]: undefined;
     [SCREENS.REPORT]: {
         reportID: string;
         reportActionID?: string;
@@ -2812,7 +2812,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [SCREENS.CONCIERGE]: undefined;
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
-        [SCREENS.NEW_DOT_HOME]: undefined;
+        [SCREENS.HOME]: undefined;
         [SCREENS.WORKSPACES_LIST]: {
             // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
             backTo?: Routes;
@@ -3022,7 +3022,7 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST | typeof SCREENS.NEW_DOT_HOME;
+type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST | typeof SCREENS.HOME;
 
 // There are three screens/navigators which can be displayed when the Workspaces tab is selected
 type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;

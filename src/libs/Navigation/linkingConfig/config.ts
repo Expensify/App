@@ -20,7 +20,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
         [SCREENS.TRACK_EXPENSE]: ROUTES.TRACK_EXPENSE,
         [SCREENS.SUBMIT_EXPENSE]: ROUTES.SUBMIT_EXPENSE,
-        [SCREENS.NEW_DOT_HOME]: ROUTES.NEW_DOT_HOME,
+        [SCREENS.HOME]: ROUTES.HOME,
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
         [SCREENS.REPORT_ADD_ATTACHMENT]: ROUTES.REPORT_ADD_ATTACHMENT.route,
@@ -1963,8 +1963,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
             path: ROUTES.ROOT,
             screens: {
-                [SCREENS.HOME]: {
-                    path: ROUTES.HOME,
+                [SCREENS.INBOX]: {
+                    path: ROUTES.INBOX,
                     exact: true,
                 },
                 [SCREENS.REPORT]: {

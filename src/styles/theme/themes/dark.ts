@@ -112,7 +112,7 @@ const darkTheme = {
     // The route urls from ROUTES.ts are only used for deep linking and configuring URLs on web.
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
-        [SCREENS.HOME]: {
+        [SCREENS.INBOX]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },

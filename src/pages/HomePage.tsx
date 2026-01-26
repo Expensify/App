@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {accountIDSelector} from '@src/selectors/Session';
 
-function NewDotHomePage() {
+function HomePage() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
@@ -73,13 +73,13 @@ function NewDotHomePage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID="NewDotHomePage"
+            testID="HomePage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 shouldUseNarrowLayout && (
                     <NavigationTabBar
-                        selectedTab={NAVIGATION_TABS.NEW_DOT_HOME}
-                        shouldShowFloatingCameraButton
+                        selectedTab={NAVIGATION_TABS.HOME}
+                        shouldShowFloatingButtons
                     />
                 )
             }
@@ -112,4 +112,4 @@ function NewDotHomePage() {
     );
 }
 
-export default NewDotHomePage;
+export default HomePage;
