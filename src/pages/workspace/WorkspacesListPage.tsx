@@ -65,7 +65,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -424,7 +424,14 @@ function WorkspacesListPage() {
                             return;
                         }
 
-                        if (shouldBlockWorkspaceDeletionForInvoicifyUser(privateSubscription?.type, policies, item?.policyID, currentUserPersonalDetails?.accountID)) {
+                        if (
+                            shouldBlockWorkspaceDeletionForInvoicifyUser(
+                                isSubscriptionTypeOfInvoicing(privateSubscription?.type),
+                                policies,
+                                item?.policyID,
+                                currentUserPersonalDetails?.accountID,
+                            )
+                        ) {
                             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
                             return;
                         }

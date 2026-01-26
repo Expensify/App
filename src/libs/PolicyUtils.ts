@@ -5,10 +5,8 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
-import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
@@ -43,7 +41,6 @@ import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {isSubscriptionTypeOfInvoicing} from './SubscriptionUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -1593,19 +1590,19 @@ function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentP
  *
  * The filtering is done lazily to avoid unnecessary work for non-Invoicify users.
  *
- * @param privateSubscriptionType - Current private subscription type of the user
+ * @param isSubscriptionTypeOfInvoicing - Whether the user is on an Invoicify subscription
  * @param ownerPolicies - Owner policies as an Onyx collection or a normalized array
  * @param currentPolicyID - Policy ID of the workspace being evaluated
  * @param accountID - Account ID used to resolve owned paid policies when needed
  *
  */
 function shouldBlockWorkspaceDeletionForInvoicifyUser(
-    privateSubscriptionType: SubscriptionType | undefined,
+    isSubscriptionTypeOfInvoicing: boolean,
     ownerPolicies: OnyxCollection<Policy> | Policy[] | undefined,
     currentPolicyID: string | undefined,
     accountID?: number,
 ) {
-    if (!isSubscriptionTypeOfInvoicing(privateSubscriptionType) || !currentPolicyID) {
+    if (!isSubscriptionTypeOfInvoicing || !currentPolicyID) {
         return false;
     }
     const normalizedOwnerPolicies: Policy[] = (() => {
