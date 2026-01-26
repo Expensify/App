@@ -12,16 +12,18 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
-import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import TextInput from './components/TextInput';
+import useSearchFocusSync from './hooks/useSearchFocusSync';
+import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
 import ListItemRenderer from './ListItem/ListItemRenderer';
 import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
 
@@ -57,7 +59,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listFooterContent,
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
-    selectedItems = CONST.EMPTY_ARRAY as unknown as string[],
+    selectedItems = getEmptyArray<string>(),
     style,
     isSelected,
     isDisabled = false,
@@ -190,7 +192,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
             (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index);
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        setHasKeyBeenPressed,
         isFocused,
         onArrowUpDownCallback,
     });
@@ -446,66 +448,25 @@ function BaseSelectionList<TItem extends ListItem>({
         [data.length, scrollToIndex, setFocusedIndex],
     );
 
-    const selectedItemIndex = useMemo(() => (initiallyFocusedItemKey ? data.findIndex(isItemSelected) : -1), [data, initiallyFocusedItemKey, isItemSelected]);
-
-    useEffect(() => {
-        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputOptions?.value) {
-            return;
-        }
-        setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedItemIndex]);
-
-    const prevSearchValue = usePrevious(textInputOptions?.value);
-    const prevSelectedOptionsLength = usePrevious(dataDetails.selectedOptions.length);
-    const prevAllOptionsLength = usePrevious(data.length);
-
-    useEffect(() => {
-        const currentSearchValue = textInputOptions?.value;
-        const searchChanged = prevSearchValue !== currentSearchValue;
-        const selectedOptionsChanged = dataDetails.selectedOptions.length !== prevSelectedOptionsLength;
-        const selectionChangedByClicking = !searchChanged && selectedOptionsChanged && shouldUpdateFocusedIndex;
-        // Do not change focus if:
-        // 1. Input value is the same or
-        // 2. Data length is 0 or
-        // 3. Selection changed via user interaction (not filtering), so focus is handled externally
-        if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || selectionChangedByClicking) {
-            return;
-        }
-
-        const hasSearchBeenCleared = prevSearchValue && !currentSearchValue;
-        if (hasSearchBeenCleared) {
-            const foundSelectedItemIndex = data.findIndex(isItemSelected);
-
-            if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
-                scrollToIndex(foundSelectedItemIndex);
-                setFocusedIndex(foundSelectedItemIndex);
-                return;
-            }
-        }
-
-        // Remove focus (set focused index to -1) if:
-        // 1. If the search is idle or
-        // 2. If the user is just toggling options without changing the list content
-        // Otherwise (e.g. when filtering/typing), focus on the first item (0)
-        const isSearchIdle = !prevSearchValue && !currentSearchValue;
-        const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevAllOptionsLength === data.length) ? -1 : 0;
-
-        scrollToIndex(newSelectedIndex);
-        setFocusedIndex(newSelectedIndex);
-    }, [
-        canSelectMultiple,
+    useSelectedItemFocusSync({
         data,
-        dataDetails.selectedOptions.length,
+        initiallyFocusedItemKey,
         isItemSelected,
-        prevAllOptionsLength,
-        prevSelectedOptionsLength,
-        prevSearchValue,
+        focusedIndex,
+        searchValue: textInputOptions?.value,
+        setFocusedIndex,
+    });
+
+    useSearchFocusSync({
+        searchValue: textInputOptions?.value,
+        data,
+        selectedOptionsCount: dataDetails.selectedOptions.length,
+        isItemSelected,
+        canSelectMultiple,
+        shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
-        shouldUpdateFocusedIndex,
-        textInputOptions?.value,
-    ]);
+    });
 
     useEffect(() => {
         if (!itemFocusTimeoutRef.current) {
