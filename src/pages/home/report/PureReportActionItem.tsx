@@ -522,7 +522,7 @@ function PureReportActionItem({
     reportMetadata,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -1902,6 +1902,12 @@ function PureReportActionItem({
         );
     };
 
+    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
+    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
+    const plainMessage = getReportActionText(action);
+    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
+
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -1922,7 +1928,7 @@ function PureReportActionItem({
                 onSecondaryInteraction={showPopover}
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
-                accessibilityLabel={translate('accessibilityHints.chatMessage')}
+                accessibilityLabel={accessibilityLabel}
                 accessible
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
