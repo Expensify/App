@@ -383,6 +383,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         taxValue: mergeTransaction.taxValue,
         taxAmount: mergeTransaction.taxAmount,
         taxCode: mergeTransaction.taxCode,
+        taxName: mergeTransaction.taxName,
     };
 }
 
