@@ -107,7 +107,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
         canBeMissing: false,
     });
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowSplit', 'ArrowCollapse', 'CheckmarkCircle', 'Trashcan', 'CreditCardHourglass', 'ReceiptScan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowSplit', 'ArrowCollapse', 'CheckmarkCircle', 'Trashcan', 'CreditCardHourglass', 'ReceiptScan', 'ReceiptMultiple'] as const);
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
             isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID
@@ -427,7 +427,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
             text: isDuplicateActive ? translate('common.duplicate') : translate('common.duplicated'),
-            icon: isDuplicateActive ? Expensicons.ReceiptMultiple : icons.CheckmarkCircle,
+            icon: isDuplicateActive ? icons.ReceiptMultiple : icons.CheckmarkCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {

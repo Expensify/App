@@ -93,6 +93,10 @@ async function main() {
         '**/*.config.js',
         '**/*.config.mjs',
         '**/eslint.config.mjs', // ESLint config itself might reference these for the rule
+        // Non-React utility files that use FallbackAvatar as a synchronous default - hooks cannot be used here
+        '**/src/libs/ReportUtils.ts',
+        '**/src/libs/actions/Task.ts',
+        '**/src/libs/OptionsListUtils/index.ts',
     ];
 
     // Find all TypeScript files in src directory
