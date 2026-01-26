@@ -78,7 +78,6 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
-    // Only show in development environment
     if (!isDevelopment) {
         return null;
     }
