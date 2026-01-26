@@ -1201,7 +1201,7 @@ function MoneyRequestConfirmationListFooter({
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View
                     onLayout={handleReceiptLayout}
-                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight ? {flexShrink: 1} : undefined, styles.overflowHidden]}
+                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight ? {flexShrink: 1} : undefined, styles.overflowHidden, shouldRestrictHeight ? styles.pt10 : undefined]}
                 >
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
