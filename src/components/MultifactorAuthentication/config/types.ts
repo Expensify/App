@@ -14,7 +14,7 @@ import type {
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import type {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
+import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
 
 /**
  * Configuration for cancel confirmation modal in multifactor authentication.
@@ -186,7 +186,7 @@ type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unkn
 /**
  * Default UI configuration shared across scenarios.
  */
-type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig, 'nativePromptTitle' | 'MODALS' | 'OUTCOMES'>;
+type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'nativePromptTitle' | 'MODALS' | 'OUTCOMES'>;
 
 /**
  * Record mapping all scenarios to their configurations.
@@ -219,6 +219,8 @@ type MultifactorAuthenticationScenarioResponseWithSuccess = {
     httpCode: number | undefined;
     successful: boolean;
 };
+
+type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
 
 /**
  * Parameters required for biometrics registration scenario.
@@ -261,6 +263,7 @@ export type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationOutcomeOptions,
     MultifactorAuthenticationScenarioParams,
+    MultifactorAuthenticationPromptType,
     MultifactorAuthenticationOutcomeType,
     AllMultifactorAuthenticationOutcomeType,
     MultifactorAuthenticationScenarioConfig,

@@ -6,6 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,7 +24,6 @@ import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type FormError = {
@@ -45,6 +45,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
+    const {trigger, update} = useMultifactorAuthenticationContext();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -147,12 +148,13 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear errors before submit
         setFormError({});
 
-        // Temporary navigation, expected behavior: trigger submit from the MultifactorAuthenticationContext
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS));
+        // Call the submit callback (from context)
+        update({validateCode: Number(inputCode)});
     };
 
     const onGoBackPress = () => {
-        // Temporary navigation, expected behavior: trigger onBack from the MultifactorAuthenticationContext
+        // TODO: We probably do not need to trigger anything as the RHP is closed
+        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
         // Close the RHP instead of returning to the invisible biometrics test screen
         Navigation.dismissModal();
     };

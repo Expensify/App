@@ -1,16 +1,43 @@
+import type {ValueOf} from 'type-fest';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {MultifactorAuthenticationFactor, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
+import Navigation from '@navigation/Navigation';
 import {requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
-import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationOutcomeSuffixes, MultifactorAuthenticationScenario} from './config/types';
-import type {AuthTypeName, BiometricsStatus, NoScenarioForStatusReason, OutcomePaths} from './types';
+import ROUTES, {MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
+import type {
+    AllMultifactorAuthenticationOutcomeType,
+    MultifactorAuthenticationOutcomeSuffixes,
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioParams,
+} from './config/types';
+import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType, NoScenarioForStatusReason, OutcomePaths} from './types';
 
 /** Default failed step state with unsuccessful result and fulfilled request. */
 const failedStep = {
     wasRecentStepSuccessful: false,
     isRequestFulfilled: true,
     requiredFactorForNextStep: undefined,
+};
+
+const EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> = {
+    value: {},
+    outcomePaths: {
+        successOutcome: 'biometrics-test-success',
+        failureOutcome: 'biometrics-test-failure',
+    },
+    scenario: undefined,
+    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ACTION_MADE_YET,
+    headerTitle: 'Biometrics authentication',
+    title: 'You couldn’t be authenticated',
+    description: 'Your authentication attempt was unsuccessful.',
+    step: {
+        ...failedStep,
+    },
 };
 
 /**
@@ -174,6 +201,61 @@ function createRefreshStatusStatus(setupStatus: BiometricsStatus, overwriteStatu
 const getAuthTypeName = <T>({type}: MultifactorAuthenticationPartialStatus<T>): AuthTypeName | undefined =>
     Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === type)?.NAME;
 
+const additionalParametersToExclude = ['chainedWithAuthorization', 'chainedPrivateKeyStatus'] as const;
+
+/**
+ * Extracts additional scenario parameters by removing factor-related and special parameters.
+ * Used to isolate custom parameters passed to a scenario from authentication factors.
+ * @param params - The scenario parameters including factors and additional custom parameters.
+ * @returns Object containing only the additional custom parameters for the scenario.
+ */
+const extractAdditionalParameters = <T extends MultifactorAuthenticationScenario>(
+    params: MultifactorAuthenticationScenarioParams<T> & Record<string, unknown>,
+): MultifactorAuthenticationScenarioAdditionalParams<T> => {
+    const factorParams = Object.values(CONST.MULTIFACTOR_AUTHENTICATION.FACTORS_REQUIREMENTS).map(({parameter}) => parameter);
+    const newParams = {...params};
+    for (const param of factorParams) {
+        if (param in newParams) {
+            delete newParams[param];
+        }
+    }
+    for (const additionalParameter of additionalParametersToExclude) {
+        if (additionalParameter in newParams) {
+            delete newParams[additionalParameter];
+        }
+    }
+    return newParams;
+};
+
+/**
+ * Determines if a biometric authentication method is allowed for a given authentication type.
+ * @param allowedAuthenticationMethods - The list of authentication types configuration to check.
+ * @returns True if biometrics authentication is allowed, false otherwise.
+ */
+const shouldAllowBiometrics = (allowedAuthenticationMethods: Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>) =>
+    allowedAuthenticationMethods.includes(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS);
+
+/**
+ * Creates a status indicating that biometric authentication is not allowed.
+ * Extracts additional scenario parameters for later use.
+ * @param params - Scenario parameters to extract custom payload from.
+ * @returns Partial status with biometrics not allowed reason and extracted payload.
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+const createBiometricsNotAllowedStatus = <T extends MultifactorAuthenticationScenario>(
+    params: MultifactorAuthenticationScenarioParams<T> & Record<string, unknown>,
+): MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus> => {
+    return {
+        step: {
+            ...failedStep,
+        },
+        value: {
+            payload: extractAdditionalParameters<T>(params),
+        },
+        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BIOMETRICS_NOT_ALLOWED,
+    };
+};
+
 /**
  * Creates an empty/initial authentication status object with provided UI text and default values.
  * Used as the initial state for multifactor authentication flows.
@@ -200,6 +282,19 @@ const createEmptyStatus = <T>(initialValue: T, {headerTitle, title, description}
 });
 
 /**
+ * Checks if a given route is a protected multifactor authentication route.
+ * @param route - The route path to check.
+ * @returns True if the route is protected, false otherwise.
+ */
+const isProtectedRoute = (route: string) => Object.values(MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES).some((protectedRoute) => route.startsWith(`/${protectedRoute}`));
+
+/**
+ * Determines if the currently active route is a protected multifactor authentication route.
+ * @returns True if currently on a protected route, false otherwise.
+ */
+const isOnProtectedRoute = () => isProtectedRoute(Navigation.getActiveRouteWithoutParams());
+
+/**
  * Constructs an outcome type string from scenario prefix and outcome suffix.
  * Combines the lowercase scenario name with the kebab-cased suffix (e.g., 'biometrics-test-success').
  * @param scenarioPrefix - The lowercase scenario name or undefined to use default 'biometrics-test'.
@@ -211,6 +306,111 @@ const getOutcomePath = <T extends MultifactorAuthenticationScenario>(
     suffix: MultifactorAuthenticationOutcomeSuffixes<T>,
 ): AllMultifactorAuthenticationOutcomeType => {
     return `${scenarioPrefix ?? 'biometrics-test'}-${suffix}` as AllMultifactorAuthenticationOutcomeType;
+};
+
+/**
+ * Converts an outcome path to a navigation route.
+ * Returns an outcome route if a path exists, otherwise returns the not found route.
+ * @param path - The outcome path (e.g., 'biometrics-test-success').
+ * @returns The navigation route for the outcome or not found page.
+ */
+const getOutcomeRoute = (path: AllMultifactorAuthenticationOutcomeType | undefined): Route => {
+    if (!path) {
+        return ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND;
+    }
+    return ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(path);
+};
+
+/**
+ * Creates a cancel status based on the current authentication scenario type.
+ * Delegates to either authorization or setup cancel depending on the type.
+ * @param type - The current multifactor authentication scenario type.
+ * @param wasRecentStepSuccessful - Whether the recent step was successful before cancellation.
+ * @param nativeBiometricsCancel - Cancel function for native biometrics authorization.
+ * @param setupCancel - Cancel function for biometric setup.
+ * @returns The appropriate cancel status for the scenario type.
+ */
+const getCancelStatus = (
+    type: MultifactorAuthenticationScenarioStatus['type'],
+    wasRecentStepSuccessful: boolean | undefined,
+    nativeBiometricsCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<boolean>,
+    setupCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<BiometricsStatus>,
+): MultifactorAuthenticationStatus<boolean | BiometricsStatus> => {
+    if (type === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION) {
+        return nativeBiometricsCancel(wasRecentStepSuccessful);
+    }
+    return setupCancel(wasRecentStepSuccessful);
+};
+
+/**
+ * Converts any authentication result into a standardized status object.
+ * Overload signatures for type-safe full and partial status handling.
+ */
+function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
+    status: MultifactorAuthenticationStatus<unknown>,
+    scenario: T | undefined,
+    type: MultifactorAuthenticationStatusKeyType,
+    params: MultifactorAuthenticationScenarioParams<T> | false,
+): MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>;
+function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
+    status: MultifactorAuthenticationPartialStatus<unknown>,
+    scenario: T | undefined,
+    type: MultifactorAuthenticationStatusKeyType,
+    params: MultifactorAuthenticationScenarioParams<T> | false,
+): MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus>;
+/**
+ * Converts any authentication result status into a standardized scenario status.
+ * Extracts scenario parameters and attaches them as payload to the new status.
+ * @param status - The source status (can be full or partial).
+ * @param scenario - The authentication scenario (optional).
+ * @param type - The scenario type (authorization, authentication, etc.).
+ * @param params - Scenario parameters to extract into payload, or false if none.
+ * @returns The converted status with scenario-specific value structure.
+ */
+function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
+    status: MultifactorAuthenticationStatus<unknown> | MultifactorAuthenticationPartialStatus<unknown>,
+    scenario: T | undefined,
+    type: MultifactorAuthenticationStatusKeyType,
+    params: MultifactorAuthenticationScenarioParams<T> | false,
+): MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus> | MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> {
+    return {
+        ...status,
+        value: {
+            payload: params ? extractAdditionalParameters<T>(params) : undefined,
+            type,
+        },
+    };
+}
+
+/**
+ * Retrieves the cancel confirmation modal configuration for a given scenario.
+ * Falls back to default UI configuration if scenario-specific config doesn't exist.
+ * @param scenario - The authentication scenario (optional).
+ * @returns The modal configuration for cancel confirmation.
+ */
+const getMultifactorCancelConfirmModalConfig = (scenario?: MultifactorAuthenticationScenario) => {
+    return (scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : MULTIFACTOR_AUTHENTICATION_DEFAULT_UI).MODALS.cancelConfirmation;
+};
+
+/**
+ * Creates a status indicating a bad request error occurred.
+ * Used when required parameters are missing or invalid.
+ * @param currentStatus - The current authentication status to update.
+ * @returns Updated status with bad request reason and failed step.
+ */
+const badRequestStatus = (
+    currentStatus: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>,
+): MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> => {
+    return {
+        ...currentStatus,
+        value: {
+            ...currentStatus.value,
+        },
+        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
+        step: {
+            ...failedStep,
+        },
+    };
 };
 
 /**
@@ -271,4 +471,29 @@ const Status = {
     createEmptyStatus,
 } as const;
 
-export {getAuthTypeName, doesDeviceSupportBiometrics, isBiometryConfigured, isValidScenario, shouldClearScenario, getOutcomePaths, createAuthorizeErrorStatus, resetKeys, Status};
+const ContextStatus = {
+    createBiometricsNotAllowedStatus,
+    badRequestStatus,
+} as const;
+
+export {
+    getAuthTypeName,
+    doesDeviceSupportBiometrics,
+    isBiometryConfigured,
+    isValidScenario,
+    shouldClearScenario,
+    getOutcomePaths,
+    createAuthorizeErrorStatus,
+    shouldAllowBiometrics,
+    convertResultIntoMultifactorAuthenticationStatus,
+    getOutcomeRoute,
+    getOutcomePath,
+    resetKeys,
+    isOnProtectedRoute,
+    getMultifactorCancelConfirmModalConfig,
+    isProtectedRoute,
+    getCancelStatus,
+    EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
+    ContextStatus,
+    Status,
+};

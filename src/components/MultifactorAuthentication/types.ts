@@ -4,13 +4,21 @@
 import type {ValueOf} from 'type-fest';
 import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {
+    AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationStep,
+    MultifactorAuthenticationTrigger,
+    MultifactorAuthenticationTriggerArgument,
     MultifactorKeyStoreOptions,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
-import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from './config/types';
+import type {
+    AllMultifactorAuthenticationOutcomeType,
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioParams,
+} from './config/types';
 
 type MultifactorAuthorization<T extends MultifactorAuthenticationScenario> = (
     scenario: T,
@@ -58,6 +66,38 @@ type UseBiometricsSetup = MultifactorAuthenticationStep &
         refresh: () => Promise<MultifactorAuthenticationStatus<BiometricsStatus>>;
     };
 
+type TriggerWithArgument = keyof MultifactorAuthenticationTriggerArgument;
+type MultifactorTriggerArgument<T extends MultifactorAuthenticationTrigger> = T extends TriggerWithArgument ? MultifactorAuthenticationTriggerArgument[T] : void;
+
+type UseMultifactorAuthentication = {
+    info: MultifactorAuthenticationInfo &
+        MultifactorAuthenticationStatusMessage & {
+            success: undefined | boolean;
+            headerTitle: string;
+            scenario: MultifactorAuthenticationScenario | undefined;
+        };
+    proceed: <T extends MultifactorAuthenticationScenario>(
+        scenario: T,
+        params?: MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>,
+    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+    update: (
+        params: Partial<AllMultifactorAuthenticationFactors> & {
+            softPromptDecision?: boolean;
+        },
+    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+    trigger: <T extends MultifactorAuthenticationTrigger>(
+        triggerType: T,
+        argument?: MultifactorTriggerArgument<T>,
+    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+};
+
+type MultifactorAuthenticationScenarioStatus = {
+    payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>;
+    type?: MultifactorAuthenticationStatusKeyType;
+};
+
+type MultifactorAuthenticationStatusKeyType = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE>;
+
 /**
  * Authentication type name derived from secure store values.
  */
@@ -80,12 +120,17 @@ type OutcomePaths = {
 
 export type {
     SetMultifactorAuthenticationStatus,
+    MultifactorAuthenticationStatusKeyType,
     AuthTypeName,
     UseMultifactorAuthenticationStatus,
     UseBiometricsSetup,
     Register,
     MultifactorAuthorization,
+    UseMultifactorAuthentication,
+    MultifactorAuthenticationScenarioStatus,
+    MultifactorAuthenticationStatusMessage,
     BiometricsStatus,
     OutcomePaths,
+    MultifactorTriggerArgument,
     NoScenarioForStatusReason,
 };

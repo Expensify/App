@@ -51,9 +51,12 @@ const REASON = {
         SIGNATURE_INVALID: 'Signature is invalid',
         SIGNATURE_MISSING: 'Signature is missing',
         NO_ACTION_MADE_YET: 'No action has been made yet',
+        BIOMETRICS_NOT_ALLOWED: 'The biometrics actions are not allowed for this scenario',
         FACTORS_ERROR: 'Authentication factors error',
         FACTORS_VERIFIED: 'Authentication factors verified',
         VALIDATE_CODE_MISSING: 'Validate code is missing',
+        NO_ELIGIBLE_METHODS: 'No eligible methods available',
+        BAD_REQUEST: 'Bad request',
     },
     KEYSTORE: {
         KEY_PAIR_GENERATED: 'Key pair generated successfully',
@@ -193,6 +196,16 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     KEY_ALIASES: {
         PUBLIC_KEY: '3DS_SCA_KEY_PUBLIC',
         PRIVATE_KEY: '3DS_SCA_KEY_PRIVATE',
+    },
+    SCENARIO_TYPE: {
+        NONE: 'None',
+        AUTHORIZATION: 'Authorization',
+        AUTHENTICATION: 'Authentication',
+    },
+    TRIGGER: {
+        CANCEL: 'CANCEL',
+        FULFILL: 'FULFILL',
+        FAILURE: 'FAILURE',
     },
     EXPO_ERRORS,
     NO_SCENARIO_FOR_STATUS_REASON: {

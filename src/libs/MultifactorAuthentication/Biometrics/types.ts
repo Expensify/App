@@ -2,7 +2,7 @@
  * Type definitions for multifactor authentication biometrics operations.
  */
 import type {EmptyObject, Simplify, ValueOf} from 'type-fest';
-import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
+import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import type {OutcomePaths} from '@components/MultifactorAuthentication/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
@@ -16,13 +16,6 @@ type BasicMultifactorAuthenticationRequirementTypes = {
     [VALUES.FACTORS.VALIDATE_CODE]: number;
 };
 
-/**
- * Represents the reason for a multifactor authentication response from the backend.
- */
-type MultifactorAuthenticationReason = ValueOf<{
-    [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
-}>;
-
 type MultifactorAuthenticationMethodCode = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
 
 /**
@@ -33,6 +26,20 @@ type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep exte
           step: MultifactorAuthenticationStep;
       }
     : EmptyObject;
+
+type MultifactorAuthenticationTrigger = ValueOf<typeof VALUES.TRIGGER>;
+
+type MultifactorAuthenticationTriggerArgument = {
+    [VALUES.TRIGGER.FAILURE]: AllMultifactorAuthenticationOutcomeType | MultifactorAuthenticationScenario;
+    [VALUES.TRIGGER.FULFILL]: AllMultifactorAuthenticationOutcomeType | MultifactorAuthenticationScenario;
+};
+
+/**
+ * Represents the reason for a multifactor authentication response from the backend.
+ */
+type MultifactorAuthenticationReason = ValueOf<{
+    [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
+}>;
 
 /**
  * Represents a partial status result of multifactor authentication operations.
@@ -169,10 +176,12 @@ export type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationPartialStatus,
+    MultifactorAuthenticationTrigger,
+    MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationActionParams,
+    MultifactorAuthenticationTriggerArgument,
     MultifactorKeyStoreOptions,
     MultifactorAuthenticationReason,
-    MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationMethodCode,
     ResponseDetails,
     ChallengeType,
