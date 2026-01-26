@@ -543,6 +543,9 @@ function MoneyReportHeader({
                     paymentMethod,
                     activePolicy,
                 });
+                if (isSelectedTransactionAction) {
+                    clearSelectedTransactions(true);
+                }
             } else {
                 if (!isSelectedTransactionAction) {
                     startAnimation();
@@ -558,10 +561,9 @@ function MoneyReportHeader({
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
-            }
-
-            if (isSelectedTransactionAction) {
-                clearSelectedTransactions(true);
+                if (isSelectedTransactionAction) {
+                    clearSelectedTransactions(true);
+                }
             }
         },
         [
