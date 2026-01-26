@@ -239,10 +239,6 @@ function MoneyReportHeader({
         'Info',
         'Export',
         'Document',
-        'XeroExport',
-        'QBOExport',
-        'NetSuiteExport',
-        'SageIntacctExport',
         'XeroSquare',
         'QBOSquare',
         'NetSuiteSquare',
@@ -918,7 +914,19 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, expensifyIcons]);
+    }, [
+        translate,
+        expensifyIcons,
+        connectedIntegrationFallback,
+        styles.integrationIcon,
+        moneyRequestReport,
+        isOffline,
+        transactionIDs,
+        connectedIntegration,
+        isExported,
+        exportTemplates,
+        beginExportWithTemplate,
+    ]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
