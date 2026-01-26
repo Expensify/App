@@ -2603,19 +2603,19 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'Uitgaven goedkeuringen toevoegen',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Uitgavegoedkeuringen toevoegen* om de uitgaven van je team te beoordelen en onder controle te houden.
+                        *Voeg uitgavenfiattering toe* om de uitgaven van je team te beoordelen en onder controle te houden.
 
-                        Dit doe je zo:
+                        Zo doe je dat:
 
                         1. Ga naar *Workspaces*.
                         2. Selecteer je workspace.
-                        3. Klik op *More features*.
+                        3. Klik op *Meer functies*.
                         4. Schakel *Workflows* in.
                         5. Ga naar *Workflows* in de workspace-editor.
-                        6. Schakel *Add approvals* in.
-                        7. Jij wordt ingesteld als de goedkeurder van uitgaven. Je kunt dit wijzigen naar elke beheerder zodra je je team hebt uitgenodigd.
+                        6. Schakel *Fiatteringen* in.
+                        7. Jij wordt ingesteld als de fiatteur voor uitgaven. Je kunt dit wijzigen naar elke beheerder zodra je je team uitnodigt.
 
-                        [Breng me naar more features](${workspaceMoreFeaturesLink}).`),
+                        [Breng me naar Meer functies](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Maak](${workspaceConfirmationLink}) een workspace`,

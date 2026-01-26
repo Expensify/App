@@ -2619,15 +2619,15 @@ ${amount} pour ${merchant} - ${date}`,
 
                         Voici comment faire :
 
-                        1. Allez dans *Espaces de travail*.
+                        1. Accédez à *Workspaces*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *Plus de fonctionnalités*.
+                        3. Cliquez sur *More features*.
                         4. Activez *Workflows*.
-                        5. Accédez à *Workflows* dans l’éditeur de l’espace de travail.
-                        6. Activez *Ajouter des validations*.
+                        5. Allez à *Workflows* dans l’éditeur d’espace de travail.
+                        6. Activez *Approvals*.
                         7. Vous serez défini comme valideur des dépenses. Vous pourrez changer cela pour n’importe quel administrateur une fois que vous aurez invité votre équipe.
 
-                        [Accéder aux fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).`),
+                        [Faites-moi découvrir plus de fonctionnalités](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créer](${workspaceConfirmationLink}) un espace de travail`,
