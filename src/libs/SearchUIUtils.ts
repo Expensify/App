@@ -2566,25 +2566,6 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
     );
 }
 
-/**
- * Returns the corresponding translation key for expense type
- */
-function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (expenseType) {
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            return 'common.distance';
-        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return 'common.card';
-        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
-            return 'iou.cash';
-        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
-            return 'common.perDiem';
-        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
-            return 'iou.time';
-    }
-}
-
 function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -3524,7 +3505,6 @@ export {
     isTransactionListItemType,
     isReportActionListItemType,
     shouldShowYear,
-    getExpenseTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
     isReportActionEntry,

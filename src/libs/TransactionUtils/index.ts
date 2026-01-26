@@ -52,6 +52,7 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -330,27 +331,30 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
 }
 
 /**
- * Determines the transaction type based on custom unit name or card name.
+ * Determines the transaction type based on custom unit name, comment type or card name.
  * Returns 'distance' for Distance transactions, 'perDiem' for Per Diem International transactions,
+ * 'time' for time transactions,
  * 'cash' for cash transactions, or 'card' for card transactions.
  *
  * @param transaction - The transaction to check
  * @param cardList - Optional card list to check for cash transactions
- * @returns The transaction type: 'distance', 'perDiem', 'cash', or 'card'
+ * @returns The transaction type: 'distance', 'perDiem', 'time', 'cash', or 'card'
  */
 function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
-    const customUnitName = transaction?.comment?.customUnit?.name;
-
-    if (customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE) {
+    if (isDistanceRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.DISTANCE;
     }
 
-    if (customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL) {
+    if (isPerDiemRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM;
     }
 
     if (isTimeRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.TIME;
+    }
+
+    if (isManagedCardTransaction(transaction)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CARD;
     }
 
     const cardID = transaction?.cardID;
@@ -363,6 +367,25 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
     }
 
     return CONST.SEARCH.TRANSACTION_TYPE.CARD;
+}
+
+/**
+ * Returns the corresponding translation key for expense type
+ */
+function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (expenseType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            return 'common.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+            return 'iou.cash';
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            return 'common.perDiem';
+        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
+            return 'iou.time';
+    }
 }
 
 function isManualRequest(transaction: Transaction): boolean {
@@ -2810,6 +2833,7 @@ export {
     getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,
+    getExpenseTypeTranslationKey,
 };
 
 export type {TransactionChanges};
