@@ -1195,6 +1195,7 @@ function isReportActionVisibleAsLastAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
+    reportID?: string,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1204,13 +1205,13 @@ function isReportActionVisibleAsLastAction(
         return false;
     }
 
-    const reportID = reportAction.reportID;
-    if (!reportID) {
+    const actionReportID = reportAction.reportID ?? reportID;
+    if (!actionReportID) {
         return false;
     }
 
     return (
-        isReportActionVisible(reportAction, reportID, canUserPerformWriteAction, visibleReportActions) &&
+        isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActions) &&
         (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
         !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction) && !isPendingHide(reportAction))
     );
@@ -1257,14 +1258,10 @@ function getLastVisibleAction(
     } else {
         reportActions = Object.values(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
-    const reportActionsWithReportID = reportActions.map((action) => {
-        if (action && !action.reportID && reportID) {
-            return {...action, reportID};
-        }
-        return action;
-    });
-    const visibleReportActions = reportActionsWithReportID.filter((action): action is ReportAction =>
-        isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData),
+    // Pass reportID as fallback for actions that don't have it set (e.g., optimistic actions)
+    // This is cleaner than mutating the actions array
+    const visibleReportActions = reportActions.filter((action): action is ReportAction =>
+        isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID),
     );
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
@@ -1720,7 +1717,9 @@ function doesReportHaveVisibleActions(
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): boolean {
     const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge, true));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) =>
+        isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID),
+    );
 
     // Exclude the task system message and the created message
     const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter((action) => !isTaskAction(action) && !isCreatedAction(action));
