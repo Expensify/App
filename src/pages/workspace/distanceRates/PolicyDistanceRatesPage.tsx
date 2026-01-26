@@ -219,36 +219,40 @@ function PolicyDistanceRatesPage({
 
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
-            Object.values(customUnitRates).map((value) => ({
-                rate: value.rate,
-                value: value.customUnitRateID,
-                text: value.name,
-                alternateText: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
+            Object.values(customUnitRates).map((value) => {
+                const alternateText = `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
                     `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
-                )}`,
-                keyForList: value.customUnitRateID,
-                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction:
-                    value.pendingAction ??
-                    value.pendingFields?.rate ??
-                    value.pendingFields?.enabled ??
-                    value.pendingFields?.currency ??
-                    value.pendingFields?.taxRateExternalID ??
-                    value.pendingFields?.taxClaimablePercentage ??
-                    value.pendingFields?.name ??
-                    customUnit?.pendingFields?.attributes ??
-                    (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
-                errors: value.errors ?? undefined,
-                rightElement: (
-                    <Switch
-                        isOn={!!value?.enabled}
-                        accessibilityLabel={translate('workspace.distanceRates.trackTax')}
-                        onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
-                        showLockIcon={!canDisableOrDeleteRate(value.customUnitRateID)}
-                        disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                    />
-                ),
-            })),
+                )}`;
+
+                return {
+                    rate: value.rate,
+                    value: value.customUnitRateID,
+                    text: value.name,
+                    alternateText,
+                    keyForList: value.customUnitRateID,
+                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction:
+                        value.pendingAction ??
+                        value.pendingFields?.rate ??
+                        value.pendingFields?.enabled ??
+                        value.pendingFields?.currency ??
+                        value.pendingFields?.taxRateExternalID ??
+                        value.pendingFields?.taxClaimablePercentage ??
+                        value.pendingFields?.name ??
+                        customUnit?.pendingFields?.attributes ??
+                        (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
+                    errors: value.errors ?? undefined,
+                    rightElement: (
+                        <Switch
+                            isOn={!!value?.enabled}
+                            accessibilityLabel={`${value.name}, ${alternateText}`}
+                            onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
+                            showLockIcon={!canDisableOrDeleteRate(value.customUnitRateID)}
+                            disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        />
+                    ),
+                };
+            }),
         [canDisableOrDeleteRate, customUnitRates, translate, customUnit?.attributes?.unit, customUnit?.pendingFields?.attributes, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
