@@ -2299,12 +2299,11 @@ ${merchant} への ${amount}（${date}）`,
             shareTitle: '銀行口座へのアクセスを共有しますか？',
             shareDescription: ({admin}: {admin: string}) => `${admin}を支払人にするには、銀行口座へのアクセスを${admin}と共有する必要があります。`,
             validationTitle: '銀行口座の検証待ち',
-            validationDescription: ({admin, validationLink}: {admin: string; validationLink: string}) =>
-                `<a href="${validationLink}">この銀行口座を検証</a>する必要があります。検証が完了すると、銀行口座へのアクセス権を${admin}と共有して、支払人にすることができます。`,
+            validationDescription: ({admin}: {admin: string}) =>
+                `<a href="#">この銀行口座を検証</a>する必要があります。検証が完了すると、銀行口座へのアクセス権を${admin}と共有して、支払人にすることができます。`,
             errorTitle: '支払人を変更できません',
-            errorDescription: ({admin}: {admin: string}) => `${admin}はこの銀行口座へのアクセス権がないため、支払人にすることはできません。`,
-            errorDescriptionLink: ({owner}: {owner: string}) => `${owner}とチャットする`,
-            errorDescriptionLastPart: ` 銀行口座を共有する必要がある場合。`,
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} はこの銀行口座へのアクセス権がないため、支払人に指定できません。銀行口座を共有する必要がある場合は、<a href="#">${owner} とチャットしてください。</a>`,
         },
     },
     reportFraudPage: {

@@ -2016,12 +2016,11 @@ ${amount} para ${merchant} - ${date}`,
             shareTitle: '¿Compartir acceso a la cuenta bancaria?',
             shareDescription: ({admin}: {admin: string}) => `Necesitarás compartir el acceso a la cuenta bancaria con ${admin} para que sea el pagador.`,
             validationTitle: 'Cuenta bancaria en espera de validación',
-            validationDescription: ({admin, validationLink}: {admin: string; validationLink: string}) =>
-                `Necesitas <a href="${validationLink}">validar esta cuenta bancaria</a>. Una vez hecho esto, puedes compartir el acceso a la cuenta bancaria con ${admin} para que sea el pagador.`,
+            validationDescription: ({admin}: {admin: string}) =>
+                `Necesitas <a href="#">validar esta cuenta bancaria</a>. Una vez hecho esto, puedes compartir el acceso a la cuenta bancaria con ${admin} para que sea el pagador.`,
             errorTitle: 'No se puede cambiar el pagador',
-            errorDescription: ({admin}: {admin: string}) => `${admin} no tiene acceso a esta cuenta bancaria, por lo que no puedes convertirlo en el pagador.`,
-            errorDescriptionLink: ({owner}: {owner: string}) => `Chatear con ${owner}`,
-            errorDescriptionLastPart: `si se debe compartir la cuenta bancaria.`,
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} no tiene acceso a esta cuenta bancaria, por lo que no puede asignarle el pago. <a href="#">Chatea con ${owner}</a> si la cuenta bancaria debe compartirse.`,
         },
     },
     reportFraudPage: {

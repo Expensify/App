@@ -2308,12 +2308,11 @@ ${amount} voor ${merchant} - ${date}`,
             shareTitle: 'Bankrekeningtoegang delen?',
             shareDescription: ({admin}: {admin: string}) => `U moet bankrekeningtoegang delen met ${admin} om hem/haar de betaler te maken.`,
             validationTitle: 'Bankrekening wacht op validatie',
-            validationDescription: ({admin, validationLink}: {admin: string; validationLink: string}) =>
-                `U moet deze bankrekening valideren. Zodra dat is gedaan, kunt u de toegang tot de bankrekening delen met ${admin} om hem/haar de betaler te maken.`,
+            validationDescription: ({admin}: {admin: string}) =>
+                `U moet deze bankrekening <a href="#">valideren</a>. Zodra dat is gedaan, kunt u de toegang tot de bankrekening delen met ${admin} om hem/haar de betaler te maken.`,
             errorTitle: 'Betaler kan niet worden gewijzigd',
-            errorDescription: ({admin}: {admin: string}) => `${admin} heeft geen toegang tot deze bankrekening, dus u kunt hem/haar niet de betaler maken.`,
-            errorDescriptionLink: ({owner}: {owner: string}) => `Chat met ${owner}`,
-            errorDescriptionLastPart: `als de bankrekening moet worden gedeeld.`,
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} heeft geen toegang tot deze bankrekening, dus je kunt hem/haar niet als betaler instellen. <a href="#">Chat met ${owner}</a> als de bankrekening gedeeld moet worden.`,
         },
     },
     reportFraudPage: {

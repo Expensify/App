@@ -14,16 +14,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, Section} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -37,6 +33,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {clearShareBankAccountErrors, getBankAccountFromID, shareBankAccount} from '@userActions/BankAccounts';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,14 +56,14 @@ type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
 function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
-    const {environmentURL} = useEnvironment();
     const policyName = policy?.name ?? '';
+    const policyID = policy?.id;
     const bankAccountID = policy?.achAccount?.bankAccountID;
     const bankAccountInfo = getBankAccountFromID(bankAccountID);
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [searchTerm, setSearchTerm] = useState('');
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
     const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser);
@@ -197,7 +194,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             onButtonPress();
             return;
         }
-        if (isBankAccountPartiallySetup(bankAccountInfo?.accountData?.state)) {
+        if (bankAccountInfo?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
             setShowValidationModal(true);
             return;
         }
@@ -317,9 +314,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML
+                            onLinkPress={() => navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
-                                validationLink: `${environmentURL}/${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy?.id, '', ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID))}`,
                             })}
                         />
                     </View>
@@ -335,27 +332,21 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 }}
                 success
                 prompt={
-                    <Text style={[styles.renderHTML, styles.flexRow]}>
-                        <Text>
-                            {translate('workflowsPayerPage.shareBankAccount.errorDescription', {
-                                admin: selectedPayerDetails?.displayName ?? '',
-                            })}
-                        </Text>
-                        <TextLink
-                            onPress={() => {
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            onLinkPress={() => {
                                 if (!currentUserPersonalDetails?.accountID || !policy?.ownerAccountID) {
                                     return;
                                 }
                                 setShowErrorModal(false);
                                 navigateToAndOpenReportWithAccountIDs([currentUserPersonalDetails.accountID], policy.ownerAccountID);
                             }}
-                        >
-                            {translate('workflowsPayerPage.shareBankAccount.errorDescriptionLink', {
+                            html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
+                                admin: selectedPayerDetails?.displayName ?? '',
                                 owner: ownerDetails?.displayName ?? '',
                             })}
-                        </TextLink>
-                        <Text>{translate('workflowsPayerPage.shareBankAccount.errorDescriptionLastPart')}</Text>
-                    </Text>
+                        />
+                    </View>
                 }
                 shouldShowCancelButton={false}
                 confirmText={translate('common.buttonConfirm')}

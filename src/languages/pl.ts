@@ -2302,12 +2302,11 @@ ${amount} dla ${merchant} - ${date}`,
             shareTitle: 'Udostępnić dostęp do konta bankowego?',
             shareDescription: ({admin}: {admin: string}) => `Musisz udostępnić dostęp do konta bankowego użytkownikowi ${admin}, aby uczynić go płatnikiem.`,
             validationTitle: 'Konto bankowe oczekuje na walidację',
-            validationDescription: ({admin, validationLink}: {admin: string; validationLink: string}) =>
-                `Musisz <a href="${validationLink}">zweryfikować to konto bankowe</a>. Po wykonaniu tej czynności możesz udostępnić dostęp do konta bankowego użytkownikowi ${admin}, aby uczynić go płatnikiem.`,
+            validationDescription: ({admin}: {admin: string}) =>
+                `Musisz <a href="#">zweryfikować to konto bankowe</a>. Po wykonaniu tej czynności możesz udostępnić dostęp do konta bankowego użytkownikowi ${admin}, aby uczynić go płatnikiem.`,
             errorTitle: 'Nie można zmienić płatnika',
-            errorDescription: ({admin}: {admin: string}) => `${admin} nie ma dostępu do tego konta bankowego, więc nie możesz uczynić go płatnikiem. `,
-            errorDescriptionLink: ({owner}: {owner: string}) => `Porozmawiaj z ${owner}`,
-            errorDescriptionLastPart: `czy konto bankowe powinno być współdzielone.`,
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} nie ma dostępu do tego konta bankowego, więc nie możesz uczynić go płatnikiem. <a href="#">Porozmawiaj z ${owner}em/właścicielem, jeśli konto bankowe powinno być współdzielone.`,
         },
     },
     reportFraudPage: {

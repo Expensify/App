@@ -22,7 +22,7 @@ function WorkspaceWorkflowsPayerSuccessPage({policyID, selectedPayer}: Workspace
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope']);
 
     useEffect(() => {
         if (!policyID) {

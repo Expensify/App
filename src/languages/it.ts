@@ -2309,12 +2309,11 @@ ${amount} per ${merchant} - ${date}`,
             shareTitle: "Condividere l'accesso al conto bancario?",
             shareDescription: ({admin}: {admin: string}) => `Dovrai condividere l'accesso al conto bancario con ${admin} per renderlo il pagatore.`,
             validationTitle: 'Conto bancario in attesa di convalida',
-            validationDescription: ({admin, validationLink}: {admin: string; validationLink: string}) =>
-                `Devi <a href="${validationLink}">convalidare questo conto bancario</a>. Una volta fatto, puoi condividere l'accesso al conto bancario con ${admin} per renderlo il pagatore.`,
+            validationDescription: ({admin}: {admin: string}) =>
+                `Devi <a href="#">convalidare questo conto bancario</a>. Una volta fatto, puoi condividere l'accesso al conto bancario con ${admin} per renderlo il pagatore.`,
             errorTitle: 'Impossibile cambiare il pagatore',
-            errorDescription: ({admin}: {admin: string}) => `${admin} non ha accesso a questo conto bancario, quindi non puoi renderlo il pagatore.`,
-            errorDescriptionLink: ({owner}: {owner: string}) => `Chatta con ${owner}`,
-            errorDescriptionLastPart: ` se il conto bancario deve essere condiviso.`,
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} non ha accesso a questo conto bancario, quindi non puoi impostarlo come pagatore. <a href="#">Chatta con ${owner}</a> se il conto bancario deve essere condiviso.`,
         },
     },
     reportFraudPage: {
