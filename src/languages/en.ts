@@ -1463,6 +1463,11 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctDistanceRateError: 'Fix the distance rate error and try again.',
+        markedAsReimbursable: 'marked the expense as "reimbursable"',
+        markedAsNonReimbursable: 'marked the expense as "non-reimbursable"',
+        markedAsBillable: 'marked the expense as "billable"',
+        markedAsNonBillable: 'marked the expense as "non-billable"',
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? 'set the' : ''} ${key} to "${value}"`,
     },
     transactionMerge: {
         listPage: {

@@ -206,25 +206,22 @@ function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, poli
     const modificationCount = Object.keys(policyRulesModifiedFields).length;
     const fragments = [];
 
-    for (const [key, value] of Object.entries(policyRulesModifiedFields)) {
+    for (const [key, value] of Object.entries(policyRulesModifiedFields) as [keyof PolicyRulesModifiedFields, string | boolean][]) {
         const isFirst = index === 0;
         const isLast = index === modificationCount - 1;
 
         let message = '';
 
-        if ((key === 'reimbursable' || key === 'billable') && value) {
-            message += `marked the expense as "${key}"`;
-        } else if ((key === 'reimbursable' || key === 'billable') && !value) {
-            message += `marked the expense as "non-${key}"`;
-        } else if (isFirst) {
-            message += `set the ${key} to "${value}"`;
+        if (key === 'reimbursable') {
+            message += value ? translate('iou.markedAsReimbursable') : translate('iou.markedAsNonReimbursable');
+        } else if (key === 'billable') {
+            message += value ? translate('iou.markedAsBillable') : translate('iou.markedAsNonBillable');
         } else {
-            message += `${key} to "${value}"`;
+            message += translate('iou.updatedFieldTo', {key: translate(`common.${key}`), value, first: isFirst});
         }
 
         const shouldAddAnd = isLast && !isFirst;
-        fragments.push(shouldAddAnd ? `and ${message}` : message);
-
+        fragments.push(shouldAddAnd ? `${translate('common.and')} ${message}` : message);
         index++;
     }
 
