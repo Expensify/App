@@ -4933,8 +4933,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     subtitle: '我们正在审查您启用 Expensify Travel 的请求。别担心，准备就绪时我们会通知您。',
                     ctaText: '请求已发送',
                 },
-                bookOrManageYourTrip: {title: '差旅预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', ctaText: '管理差旅'},
-                settings: {autoAddTripName: {title: '将行程详情添加到报销中', subtitle: '在通过 Expensify 预订的行程中，自动将行程名称应用到相关报销中。'}},
+                bookOrManageYourTrip: {title: '差旅预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', ctaText: '管理出行'},
+                settings: {autoAddTripName: {title: '将行程名称添加到报销中', subtitle: '为在 Expensify 中预订的差旅自动将行程名称添加到报销备注中。'}},
                 travelInvoicing: {
                     travelBookingSection: {title: '旅行预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', manageTravelLabel: '管理差旅'},
                     centralInvoicingSection: {

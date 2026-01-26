@@ -5035,8 +5035,8 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 },
                 settings: {
                     autoAddTripName: {
-                        title: 'Adicionar detalhes da viagem às despesas',
-                        subtitle: 'Aplicar automaticamente nomes de viagem às despesas durante viagens reservadas com a Expensify.',
+                        title: 'Adicionar nomes de viagens às despesas',
+                        subtitle: 'Adicione automaticamente nomes de viagens às descrições de despesas para viagens reservadas no Expensify.',
                     },
                 },
                 travelInvoicing: {

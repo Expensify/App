@@ -5058,11 +5058,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     subtitle: 'Wir prüfen derzeit Ihre Anfrage zur Aktivierung von Expensify Travel. Keine Sorge, wir lassen Sie wissen, wenn es bereit ist.',
                     ctaText: 'Anfrage gesendet',
                 },
-                bookOrManageYourTrip: {title: 'Reisebuchung', subtitle: 'Glückwunsch! Du kannst in diesem Workspace jetzt Reisen buchen und verwalten.', ctaText: 'Reisen verwalten'},
+                bookOrManageYourTrip: {
+                    title: 'Reisebuchung',
+                    subtitle: 'Glückwunsch! Du bist jetzt bereit, in diesem Workspace Reisen zu buchen und zu verwalten.',
+                    ctaText: 'Reisen verwalten',
+                },
                 settings: {
                     autoAddTripName: {
-                        title: 'Reisedetails zu Ausgaben hinzufügen',
-                        subtitle: 'Reisenamen automatisch auf Ausgaben anwenden, die während über Expensify gebuchter Reisen anfallen.',
+                        title: 'Reisenamen zu Ausgaben hinzufügen',
+                        subtitle: 'Reisenamen automatisch zu Ausgabenbeschreibungen hinzufügen für Reisen, die in Expensify gebucht wurden.',
                     },
                 },
                 travelInvoicing: {

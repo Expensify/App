@@ -5034,10 +5034,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     ctaText: 'Zarządzaj podróżami',
                 },
                 settings: {
-                    autoAddTripName: {
-                        title: 'Dodaj szczegóły podróży do wydatków',
-                        subtitle: 'Automatycznie stosuj nazwy podróży do wydatków podczas podróży zarezerwowanych za pomocą Expensify.',
-                    },
+                    autoAddTripName: {title: 'Dodaj nazwy podróży do wydatków', subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków dla podróży zarezerwowanych w Expensify.'},
                 },
                 travelInvoicing: {
                     travelBookingSection: {
