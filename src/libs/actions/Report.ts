@@ -4602,11 +4602,12 @@ function clearNewRoomFormError() {
 }
 
 function resolveActionableMentionWhisper(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     isReportArchived: boolean | undefined,
 ) {
+    const reportID = report?.reportID;
     if (!reportAction || !reportID) {
         return;
     }
@@ -4629,13 +4630,12 @@ function resolveActionableMentionWhisper(
         },
     };
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, isReportArchived, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
-        lastMessageText: report?.lastMessageText,
-        lastVisibleActionCreated: report?.lastVisibleActionCreated,
-        lastActorAccountID: report?.lastActorAccountID,
+        lastMessageText: report.lastMessageText,
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
+        lastActorAccountID: report.lastActorAccountID,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
@@ -4687,20 +4687,21 @@ function resolveActionableMentionWhisper(
 }
 
 function resolveActionableMentionConfirmWhisper(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     isReportArchived: boolean,
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution, isReportArchived);
+    resolveActionableMentionWhisper(report, reportAction, resolution, isReportArchived);
 }
 
 function resolveActionableReportMentionWhisper(
-    reportId: string | undefined,
+    report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
     isReportArchived: boolean | undefined,
 ) {
+    const reportId = report?.reportID;
     if (!reportAction || !reportId) {
         return;
     }
@@ -4713,13 +4714,12 @@ function resolveActionableReportMentionWhisper(
         },
     };
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
     const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, isReportArchived, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
-        lastMessageText: report?.lastMessageText,
-        lastVisibleActionCreated: report?.lastVisibleActionCreated,
-        lastActorAccountID: report?.lastActorAccountID,
+        lastMessageText: report.lastMessageText,
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
+        lastActorAccountID: report.lastActorAccountID,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
