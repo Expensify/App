@@ -1,5 +1,6 @@
 import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
@@ -168,6 +169,7 @@ function useSearchSelectorBase({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const {translate} = useLocalize();
+    const personalDetails = usePersonalDetails();
 
     const onListEndReached = useDebounce(
         useCallback(() => {
@@ -179,7 +181,6 @@ function useSearchSelectorBase({
     const computedSearchTerm = useMemo(() => {
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
-    const trimmedSearchInput = debouncedSearchTerm.trim();
 
     const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -213,19 +214,19 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
-                    searchInputValue: trimmedSearchInput,
                     includeUserToInvite,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
-                    searchInputValue: trimmedSearchInput,
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     excludeLogins,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
                 return getValidOptions(
@@ -246,9 +247,9 @@ function useSearchSelectorBase({
                         includeThreads: true,
                         includeReadOnly: false,
                         searchString: computedSearchTerm,
-                        searchInputValue: trimmedSearchInput,
                         maxElements: maxResults,
                         includeUserToInvite,
+                        personalDetails,
                     },
                     countryCode,
                 );
@@ -267,9 +268,9 @@ function useSearchSelectorBase({
                     includeOwnedWorkspaceChats: true,
                     includeSelfDM: true,
                     searchString: computedSearchTerm,
-                    searchInputValue: trimmedSearchInput,
                     maxElements: maxResults,
                     includeUserToInvite,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
@@ -283,10 +284,10 @@ function useSearchSelectorBase({
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
-                    searchInputValue: trimmedSearchInput,
                     includeUserToInvite,
                     includeCurrentUser,
                     shouldAcceptName: true,
+                    personalDetails,
                 });
             default:
                 return getEmptyOptions();
@@ -312,7 +313,7 @@ function useSearchSelectorBase({
         getValidOptionsConfig,
         selectedOptions,
         includeCurrentUser,
-        trimmedSearchInput,
+        personalDetails,
     ]);
 
     const isOptionSelected = useMemo(() => {

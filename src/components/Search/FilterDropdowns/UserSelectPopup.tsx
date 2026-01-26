@@ -108,10 +108,11 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                personalDetails,
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, countryCode]);
+    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, personalDetails, countryCode]);
 
     const filteredOptions = useMemo(() => {
         return filterAndOrderOptions(optionsList, cleanSearchTerm, translate, countryCode, loginList, {

@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
 import {createTransaction, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,6 +29,12 @@ jest.mock('@libs/actions/IOU', () => {
         startSplitBill: jest.fn(),
         createDistanceRequest: jest.fn(),
         resetSplitShares: jest.fn(),
+    };
+});
+
+jest.mock('@libs/actions/IOU/Split', () => {
+    return {
+        startSplitBill: jest.fn(),
     };
 });
 
@@ -81,7 +88,6 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
-            allBetas: [CONST.BETAS.ALL],
         };
 
         afterEach(() => {
@@ -286,7 +292,6 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
             policyTags: {},
-            allBetas: [CONST.BETAS.ALL],
         };
 
         beforeEach(async () => {
@@ -363,7 +368,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(IOU.startSplitBill).toHaveBeenCalledWith({
+            expect(startSplitBill).toHaveBeenCalledWith({
                 participants: [
                     expect.objectContaining({
                         accountID: 0,
@@ -517,7 +522,6 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 shouldHandleNavigation: true,
-                allBetas: baseParams.allBetas,
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
@@ -712,7 +716,6 @@ describe('MoneyRequest', () => {
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
             policyTags: {},
-            allBetas: [CONST.BETAS.ALL],
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -811,7 +814,6 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
-                allBetas: baseParams.allBetas,
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -873,7 +875,6 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
-                allBetas: baseParams.allBetas,
             });
         });
 
@@ -911,7 +912,6 @@ describe('MoneyRequest', () => {
                     transactionViolations: baseParams.transactionViolations,
                     quickAction: baseParams.quickAction,
                     policyRecentlyUsedCurrencies: [],
-                    allBetas: baseParams.allBetas,
                 }),
             );
         });

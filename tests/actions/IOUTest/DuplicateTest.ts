@@ -22,7 +22,7 @@ import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import {createRandomReport} from '../../utils/collections/reports';
-import createRandomTransaction from '../../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -701,10 +701,10 @@ describe('actions/Duplicate', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                customUnitPolicyID: '',
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
-                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -757,10 +757,10 @@ describe('actions/Duplicate', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                customUnitPolicyID: '',
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
-                allBetas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -783,6 +783,62 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
             expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
+        });
+
+        it('should create a duplicate distance expense with all fields duplicated', async () => {
+            const randomDistanceTransaction = createRandomDistanceRequestTransaction(1, true);
+
+            const DISTANCE_MI = 11.23;
+
+            const mockDistanceTransaction = {
+                ...randomDistanceTransaction,
+                amount: randomDistanceTransaction.amount * -1,
+                comment: {
+                    ...randomDistanceTransaction.comment,
+                    customUnit: {
+                        ...randomDistanceTransaction.comment?.customUnit,
+                        quantity: DISTANCE_MI,
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            if (!duplicatedTransaction) {
+                return;
+            }
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(mockDistanceTransaction.transactionID);
+            expect(duplicatedTransaction?.comment?.customUnit?.name).toEqual(CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            expect(duplicatedTransaction?.comment?.customUnit?.distanceUnit).toEqual(mockDistanceTransaction.comment?.customUnit?.distanceUnit);
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toEqual(DISTANCE_MI);
         });
     });
 

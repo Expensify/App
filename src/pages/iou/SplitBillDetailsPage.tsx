@@ -14,7 +14,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU';
+import {setDraftSplitTransaction} from '@libs/actions/IOU';
+import {completeSplitBill} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,7 +25,15 @@ import Parser from '@libs/Parser';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
+import {
+    areRequiredFieldsEmpty,
+    hasReceipt,
+    isDistanceRequest as isDistanceRequestUtil,
+    isGPSDistanceRequest as isGPSDistanceRequestUtil,
+    isManualDistanceRequest as isManualDistanceRequestUtil,
+    isMapDistanceRequest as isMapDistanceRequestUtil,
+    isScanning,
+} from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
@@ -41,7 +50,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
 
     const reportID = report?.reportID;
@@ -64,7 +72,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, policyTags, translate, reportAttributesDerived),
+            getPolicyExpenseReportOption({...report, selected: true, reportID}, policyTags, translate, personalDetails, reportAttributesDerived),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
@@ -78,7 +86,8 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const isEditingSplitBill =
         session?.accountID === actorAccountID && (areRequiredFieldsEmpty(transaction, transactionReport) || (transaction?.amount === 0 && !hasReceipt(transaction))) && !isDistanceRequest;
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
-    const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
+    const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+    const isMapDistanceRequest = isMapDistanceRequestUtil(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -103,10 +112,9 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
-            allBetas,
             session?.email,
         );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, allBetas]);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">
@@ -152,6 +160,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 receiptFilename={transaction?.receipt?.filename}
                                 isDistanceRequest={isDistanceRequest}
                                 isManualDistanceRequest={isManualDistanceRequest}
+                                isGPSDistanceRequest={isGPSDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}
                                 hasSmartScanFailed={hasSmartScanFailed}
                                 reportID={reportID}
