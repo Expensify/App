@@ -6,6 +6,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import Icon from '@components/Icon';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -19,11 +20,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
-import {setMoneyRequestOdometerImage} from '@userActions/IOU';
-import CONST from '@src/CONST';
 import variables from '@styles/variables';
+import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
+import CONST from '@src/CONST';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
@@ -45,6 +46,7 @@ function IOURequestStepOdometerImage({
     const title = readingType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
     const message = readingType === 'start' ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
     const icon = readingType === 'start' ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
+    const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
     const navigateBack = useCallback(() => {
         Navigation.goBack();
@@ -89,8 +91,9 @@ function IOURequestStepOdometerImage({
                 additionalStyles={[styles.mb5]}
             />
             <Text style={[styles.textFileUpload, styles.mb2]}>{translate('receipt.upload')}</Text>
-            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lineHeightLarge]}>{message}</Text>
-
+            <View style={styles.renderHTML}>
+                <RenderHTML html={messageHTML} />
+            </View>
             <AttachmentPicker>
                 {({openPicker}) => (
                     <Button
@@ -111,7 +114,9 @@ function IOURequestStepOdometerImage({
 
     const mobileUploadView = () => (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <Text style={[styles.textFileUpload, styles.mb2]}>{message}</Text>
+            <View style={styles.renderHTML}>
+                <RenderHTML html={messageHTML} />
+            </View>
             <AttachmentPicker>
                 {({openPicker}) => (
                     <Button

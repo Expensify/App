@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -50,6 +49,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -76,7 +76,6 @@ function IOURequestStepDistanceOdometer({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
-    const isFocused = useIsFocused();
 
     const startReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const endReadingInputRef = useRef<BaseTextInputRef | null>(null);
@@ -91,14 +90,12 @@ function IOURequestStepDistanceOdometer({
     const initialStartReadingRef = useRef<string>('');
     const initialEndReadingRef = useRef<string>('');
     const hasInitializedRefs = useRef(false);
-    // Track previous transaction values to detect when transaction is cleared (e.g., tab switch)
-    const prevTransactionStartRef = useRef<number | null | undefined>(undefined);
-    const prevTransactionEndRef = useRef<number | null | undefined>(undefined);
     // Track local state via refs to avoid including them in useEffect dependencies
     const startReadingRef = useRef<string>('');
     const endReadingRef = useRef<string>('');
     const initialStartImageRef = useRef<File | string | undefined>(undefined);
     const initialEndImageRef = useRef<File | string | undefined>(undefined);
+    const prevSelectedTabRef = useRef<string | undefined>(undefined);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const isArchived = isArchivedReport(reportNameValuePairs);
@@ -118,6 +115,8 @@ function IOURequestStepDistanceOdometer({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
+    const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -144,36 +143,14 @@ function IOURequestStepDistanceOdometer({
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
 
-    // Reset component state when transaction has no odometer data (happens when switching tabs)
-    // In Phase 1, we don't persist data from transaction since users can't save and exit
+    // Reset component state when switching away from the odometer tab
     useEffect(() => {
-        if (!isFocused) {
+        if (isLoadingSelectedTab) {
             return;
         }
 
-        const currentStart = transaction?.comment?.odometerStart;
-        const currentEnd = transaction?.comment?.odometerEnd;
-
-        // Check if transaction was cleared (had values before, now null/undefined)
-        // This happens when switching tabs, not during normal typing
-        const wasCleared =
-            (prevTransactionStartRef.current !== null && prevTransactionStartRef.current !== undefined && (currentStart === null || currentStart === undefined)) ||
-            (prevTransactionEndRef.current !== null && prevTransactionEndRef.current !== undefined && (currentEnd === null || currentEnd === undefined));
-
-        const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
-
-        // Reset if transaction was cleared (had values before, now null)
-        // This happens when switching tabs - transaction data is cleared but local state persists
-        // Also reset if transaction is empty (component remounted after tab switch)
-        // Don't reset in edit mode as we want to preserve user's changes
-        const shouldReset =
-            hasInitializedRefs.current &&
-            !isEditing &&
-            !isEditingConfirmation &&
-            !hasTransactionData &&
-            (wasCleared || (prevTransactionStartRef.current === undefined && prevTransactionEndRef.current === undefined));
-
-        if (shouldReset) {
+        const prevSelectedTab = prevSelectedTabRef.current;
+        if (prevSelectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER && selectedTab !== CONST.TAB_REQUEST.DISTANCE_ODOMETER) {
             setStartReading('');
             setEndReading('');
             startReadingRef.current = '';
@@ -187,10 +164,8 @@ function IOURequestStepDistanceOdometer({
             setInputKey((prev) => prev + 1);
         }
 
-        // Update refs to track previous values
-        prevTransactionStartRef.current = currentStart;
-        prevTransactionEndRef.current = currentEnd;
-    }, [isFocused, isEditing, isEditingConfirmation, transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
+        prevSelectedTabRef.current = selectedTab;
+    }, [selectedTab, isLoadingSelectedTab]);
 
     // Initialize initial values refs on mount for DiscardChangesConfirmation
     // These should never be updated after mount - they represent the "baseline" state
@@ -697,7 +672,8 @@ function IOURequestStepDistanceOdometer({
                 isEnabled={shouldEnableDiscardConfirmation}
                 getHasUnsavedChanges={() => {
                     const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-                    return hasReadingChanges;
+                    const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+                    return hasReadingChanges || hasImageChanges;
                 }}
             />
         </StepScreenWrapper>

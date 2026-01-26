@@ -160,10 +160,10 @@ import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.sv
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
+import OdometerEnd from '@assets/images/odometer-end.svg';
+import OdometerStart from '@assets/images/odometer-start.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
-import OdometerStart from '@assets/images/odometer-start.svg';
-import OdometerEnd from '@assets/images/odometer-end.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Pencil from '@assets/images/pencil.svg';
