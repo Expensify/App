@@ -1,11 +1,11 @@
+import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {NonPersonalAndWorkspaceCardListDerivedValue, Policy, Session} from '@src/types/onyx';
+import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
@@ -39,13 +39,6 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
-
-const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
-    const cards = getCardFeedsForDisplay({}, allCards);
-    return Object.values(cards)?.at(0);
-};
-
-export {defaultExpensifyCardSelector};
 
 /**
  * Get a list of all search groupings, along with their search items. Also returns the

@@ -163,17 +163,6 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
     return feedCards;
 }
 
-function filterCardsHiddenFromSearch(cardList: CardList | undefined) {
-    const filteredCardList: CardList = {};
-    for (const card of Object.values(cardList ?? {})) {
-        if (!isCard(card) || isCardHiddenFromSearch(card)) {
-            continue;
-        }
-        filteredCardList[card.cardID] = card;
-    }
-    return filteredCardList;
-}
-
 /**
  * @returns string with a year in YY or YYYY format
  */
@@ -838,13 +827,6 @@ function isPersonalCard(card?: Card) {
     return !!card?.fundID && card.fundID !== '0';
 }
 
-/**
- * Filter out personal (including cash) cards from the card list.
- */
-function filterPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
-}
-
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -948,13 +930,11 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
-    filterPersonalCards,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
-    filterCardsHiddenFromSearch,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};
