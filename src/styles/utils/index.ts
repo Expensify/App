@@ -1986,6 +1986,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         imageRight?: number;
         imageBottom?: number;
     }) => {
+        'worklet';
+
         const {
             cropX = 0,
             cropY = 0,
