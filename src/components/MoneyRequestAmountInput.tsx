@@ -1,4 +1,5 @@
 import type {ForwardedRef} from 'react';
+import {Platform} from 'react-native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -258,7 +259,7 @@ function MoneyRequestAmountInput({
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}
-            accessibilityLabel={`${translate('iou.amount')} (${currency})`}
+            accessibilityLabel={Platform.OS === 'web' ? `${translate('iou.amount')} (${currency})` : undefined}
         />
     );
 }
