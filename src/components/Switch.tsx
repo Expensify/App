@@ -68,7 +68,6 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         return accessibilityLabel;
     }, [accessibilityLabel, disabled, showLockIcon]);
 
-
     return (
         <PressableWithFeedback
             disabled={!disabledAction && disabled}

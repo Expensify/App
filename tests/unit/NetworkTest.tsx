@@ -504,11 +504,11 @@ describe('NetworkTests', () => {
         expect(screen.getByAccessibilityHint('Simulate poor internet connection')).toBeChecked();
 
         // And the setShouldForceOffline and setShouldFailAllRequests should not be called as the Force offline and Simulate failing network requests toggles are disabled
-        fireEvent.press(screen.getByAccessibilityHint('Force offline'));
+        fireEvent.press(screen.getByAccessibilityHint('Force offline, Locked'));
         await waitForBatchedUpdatesWithAct();
         expect(setShouldForceOfflineSpy).not.toHaveBeenCalled();
 
-        fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests'));
+        fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests, Locked'));
         await waitForBatchedUpdatesWithAct();
         expect(setShouldFailAllRequestsSpy).not.toHaveBeenCalled();
     });
