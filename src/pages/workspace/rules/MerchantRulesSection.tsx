@@ -58,50 +58,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    // TODO: Remove mock data before merging
-    const mockCodingRules = {
-        '123456789': {
-            filters: {
-                left: 'merchant',
-                operator: 'contains',
-                right: 'Starbucks',
-            },
-            category: 'Meals & Entertainment',
-            tag: 'Client Meeting',
-            reimbursable: true,
-            created: '2026-01-20 10:00:00',
-        },
-        '987654321': {
-            filters: {
-                left: 'merchant',
-                operator: 'eq',
-                right: 'Uber',
-            },
-            category: 'Transportation',
-            merchant: 'Uber Technologies',
-            billable: false,
-            created: '2026-01-15 14:30:00',
-        },
-        '456789123': {
-            filters: {
-                left: 'merchant',
-                operator: 'contains',
-                right: 'Amazon',
-            },
-            category: 'Office Supplies',
-            comment: 'Office purchase - requires manager approval',
-            tax: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                field_id_TAX: {
-                    externalID: 'tax_1',
-                    value: '8.5%',
-                },
-            },
-            created: '2026-01-10 09:15:00',
-        },
-    };
-
-    const codingRules = mockCodingRules; // policy?.rules?.codingRules;
+    const codingRules = policy?.rules?.codingRules;
     const hasRules = !isEmptyObject(codingRules);
 
     const sortedRules = useMemo(() => {
