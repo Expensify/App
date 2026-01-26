@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Codice magico',
+        digits: 'cifre',
         twoFactorCode: 'Codice di verifica in due passaggi',
         workspaces: 'Workspace',
         inbox: 'Posta in arrivo',
@@ -639,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Totale non rimborsabile',
         originalAmount: 'Importo originale',
         insights: 'Analisi',
+        duplicateExpense: 'Spesa duplicata',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1483,6 +1485,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / ora`,
             amountTooLargeError: 'L’importo totale è troppo elevato. Riduci le ore o diminuisci la tariffa.',
         },
+        correctDistanceRateError: "Correggi l'errore nella tariffa della distanza e riprova.",
     },
     transactionMerge: {
         listPage: {
@@ -5227,6 +5230,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
+            timeTracking: {title: 'Ora', subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -5534,7 +5538,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 giveItNameInstruction: 'Rendila abbastanza unica da poterla distinguere dalle altre carte. Casi d’uso specifici sono ancora meglio!',
                 cardName: 'Nome carta',
                 letsDoubleCheck: 'Controlliamo ancora una volta che tutto sia corretto.',
-                willBeReady: "Questa carta sarà subito pronta all'uso.",
+                willBeReadyToUse: "Questa carta sarà subito pronta all'uso.",
+                willBeReadyToShip: 'Questa carta sarà pronta per la spedizione immediata.',
                 cardholder: 'Titolare della carta',
                 cardType: 'Tipo di carta',
                 limit: 'Limite',
@@ -8071,6 +8076,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             button: 'Scarica l’app',
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
+        signOutWarningTripInProgress: {title: 'Tracciamento GPS in corso', prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?', confirm: 'Annulla e disconnettiti'},
         locationServicesRequiredModal: {
             title: 'È necessario l’accesso alla posizione',
             confirm: 'Apri impostazioni',

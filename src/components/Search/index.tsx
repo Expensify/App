@@ -115,6 +115,7 @@ function mapTransactionItemToSelectedEntry(
     return [
         item.keyForList,
         {
+            transaction: item,
             isSelected: true,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
@@ -136,7 +137,7 @@ function mapTransactionItemToSelectedEntry(
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
             reportID: item.reportID,
-            policyID: item.report?.policyID,
+            policyID: item.policyID,
             amount: allowNegativeAmount ? amount : Math.abs(amount),
             groupAmount: item.groupAmount,
             currency: item.currency,
@@ -248,6 +249,7 @@ function Search({
         selectAllMatchingItems,
         shouldResetSearchQuery,
         setShouldResetSearchQuery,
+        shouldUseLiveData,
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
@@ -278,9 +280,8 @@ function Search({
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
-
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
-
+    const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
@@ -368,15 +369,18 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        shouldUseLiveData,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
+    // For to-do searches, we never show loading state since the data is always available locally from Onyx
     const shouldShowLoadingState =
+        !shouldUseLiveData &&
         !isOffline &&
         (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || (hasErrors && !searchRequestResponseStatusCode));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
@@ -569,6 +573,7 @@ function Search({
                     const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
                     newTransactionList[transactionItem.transactionID] = {
+                        transaction: transactionItem,
                         action: transactionItem.action,
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
@@ -623,6 +628,7 @@ function Search({
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
                 newTransactionList[transactionItem.transactionID] = {
+                    transaction: transactionItem,
                     action: transactionItem.action,
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
@@ -940,8 +946,8 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchResults?.search?.type, validGroupBy);
-    }, [accountID, searchResults?.data, searchResults?.search?.type, visibleColumns, validGroupBy]);
+        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy);
+    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -1148,7 +1154,7 @@ function Search({
     }
 
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type)) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>

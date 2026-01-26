@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'パスワード',
         magicCode: 'マジックコード',
+        digits: '桁',
         twoFactorCode: '2要素コード',
         workspaces: 'ワークスペース',
         inbox: '受信トレイ',
@@ -638,6 +639,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
         insights: 'インサイト',
+        duplicateExpense: '重複した経費',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1481,6 +1483,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / 時間`,
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
+        correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {
@@ -5193,6 +5196,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 title: 'ルール',
                 subtitle: 'レシートの必須化や高額支出のフラグ付けなどを設定できます。',
             },
+            timeTracking: {title: '時間', subtitle: '従業員が作業時間に対して支払いを受けられるよう、時間単位の請求レートを設定します。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -5500,7 +5504,8 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 giveItNameInstruction: '他のカードと見分けがつくように、十分ユニークな名前にしてください。具体的な使用例が入っていると、なお良いです！',
                 cardName: 'カード名',
                 letsDoubleCheck: 'すべてが正しく見えるか、もう一度確認しましょう。',
-                willBeReady: 'このカードはすぐに利用できるようになります。',
+                willBeReadyToUse: 'このカードはすぐに利用できるようになります。',
+                willBeReadyToShip: 'このカードはすぐに発送できる状態になります。',
                 cardholder: 'カード保有者',
                 cardType: 'カードの種類',
                 limit: '制限',
@@ -7984,6 +7989,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
+        signOutWarningTripInProgress: {title: 'GPS追跡を実行中', prompt: 'この出張を破棄してサインアウトしてもよろしいですか？', confirm: '破棄してサインアウト'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
