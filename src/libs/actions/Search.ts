@@ -410,13 +410,15 @@ function search({
     }
 
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true);
-    const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
         searchKey,
         offset,
         filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
+        // Backend expects 'maximumResults' instead of 'limit'
+        ...(limit !== undefined && {maximumResults: limit}),
     };
     const jsonQuery = JSON.stringify(query);
     saveLastSearchParams({
