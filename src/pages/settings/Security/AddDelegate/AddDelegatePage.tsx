@@ -50,19 +50,23 @@ function AddDelegatePage() {
         debouncedSearchTerm,
         countryCode,
     );
-    const sectionsList: Array<{title?: string; data: typeof availableOptions.recentReports}> = [
+    const sectionsList = [
         {
             title: translate('common.recents'),
+            sectionIndex: 0,
             data: availableOptions.recentReports,
         },
         {
             title: translate('common.contacts'),
+            sectionIndex: 1,
             data: availableOptions.personalDetails,
         },
     ];
 
     if (availableOptions.userToInvite) {
         sectionsList.push({
+            sectionIndex: 2,
+            title: '',
             data: [availableOptions.userToInvite],
         });
     }
