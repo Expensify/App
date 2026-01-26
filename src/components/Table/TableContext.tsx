@@ -41,6 +41,15 @@ type TableContextValue<T, ColumnKey extends string = string, FilterKey extends s
 
     /** Methods exposed by the Table component for programmatic control. */
     tableMethods: TableMethods<ColumnKey, FilterKey>;
+
+    /** Whether any filters differ from their default values. */
+    hasActiveFilters: boolean;
+
+    /** Whether search string is not empty. */
+    hasSearchString: boolean;
+
+    /** Whether the table has an empty result caused by search or filters. */
+    isEmptyResult: boolean;
 };
 
 const defaultTableContextValue: TableContextValue<unknown, string> = {
@@ -57,6 +66,9 @@ const defaultTableContextValue: TableContextValue<unknown, string> = {
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,
     listProps: {} as SharedListProps<unknown>,
+    hasActiveFilters: false,
+    hasSearchString: false,
+    isEmptyResult: false,
 };
 
 const TableContext = createContext(defaultTableContextValue);

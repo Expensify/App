@@ -9,6 +9,7 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
+import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
@@ -98,6 +99,9 @@ jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
 
+// Jest has no access to the native secure store module, so we mock it with the web implementation.
+jest.mock('@src/libs/MultifactorAuthentication/Biometrics/SecureStore', () => MockedSecureStore);
+
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
@@ -185,7 +189,9 @@ jest.mock('../src/hooks/useLazyAsset.ts', () => ({
                 };
             }
             return mockIllustrations;
-        }, [names]),
+
+            // Use a value-based dependency to avoid returning a new object caused by reference changes on names
+        }, [names.join(',')]),
     ),
     useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) =>
         mockUseMemo(() => {
@@ -200,7 +206,9 @@ jest.mock('../src/hooks/useLazyAsset.ts', () => ({
                 };
             }
             return mockIcons;
-        }, [names]),
+
+            // Use a value-based dependency to avoid returning a new object caused by reference changes on names
+        }, [names.join(',')]),
     ),
     default: jest.fn((importFn) =>
         mockUseMemo(() => {
