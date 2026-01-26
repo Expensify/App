@@ -23,7 +23,7 @@ const SECURE_STORE_VALUES = {
         CREDENTIALS: {
             CODE: SecureStore.AUTH_TYPE.CREDENTIALS,
             NAME: 'Credentials',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.OTHER,
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         BIOMETRICS: {
             CODE: SecureStore.AUTH_TYPE.BIOMETRICS,

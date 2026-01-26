@@ -1,7 +1,7 @@
 /**
  * Helper utilities for multifactor authentication biometrics operations.
  */
-import type {ValueOf} from 'type-fest';
+import type {Entries, ValueOf} from 'type-fest';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {
     MultifactorAuthenticationProcessScenarioParameters,
@@ -20,22 +20,52 @@ import type {
 } from './types';
 import VALUES, {MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS} from './VALUES';
 
+type ParseHTTPSource = ValueOf<MultifactorAuthenticationResponseMap>;
+
+const httpCodeIsDefined = (source: ParseHTTPSource, httpCode: number): httpCode is keyof ParseHTTPSource => Object.keys(source).some((key) => Number(key) === httpCode);
+
+const findMessageInSource = (source: ParseHTTPSource[keyof ParseHTTPSource], message: string | undefined): MultifactorAuthenticationReason => {
+    if (!message) {
+        return VALUES.REASON.BACKEND.UNKNOWN_RESPONSE;
+    }
+
+    const sourceEntries = Object.entries(source) as Entries<typeof source>;
+    const [, value] = sourceEntries.find(([, predefinedMessage]) => predefinedMessage === message) ?? [];
+    return value ?? VALUES.REASON.BACKEND.UNKNOWN_RESPONSE;
+};
+
 /**
- * Parses an HTTP response code and returns the corresponding HTTP code and reason.
+ * Parses an HTTP response code along with a message and returns the corresponding HTTP code and reason.
  */
-function parseHttpCode(
+function parseHttpRequest(
     jsonCode: string | number | undefined,
-    source: ValueOf<Omit<MultifactorAuthenticationResponseMap, 'UNKNOWN'>>,
+    source: ParseHTTPSource,
+    message: string | undefined,
 ): {
     httpCode: number;
     reason: MultifactorAuthenticationReason;
 } {
-    const httpCode = Number(jsonCode) || 0;
-    const reason = source[httpCode as keyof typeof source] ?? VALUES.API_RESPONSE_MAP.UNKNOWN;
+    const httpCode = Number(jsonCode ?? 0);
+
+    if (!httpCodeIsDefined(source, httpCode)) {
+        return {
+            httpCode,
+            reason: VALUES.REASON.BACKEND.UNKNOWN_RESPONSE,
+        };
+    }
+
+    if (httpCode === 200) {
+        return {
+            httpCode,
+            reason: source[200],
+        };
+    }
+
+    const codes = source[httpCode];
 
     return {
         httpCode,
-        reason,
+        reason: findMessageInSource(codes, message),
     };
 }
 
@@ -121,15 +151,6 @@ const transformMultifactorAuthenticationActionResponse = <T extends MultifactorA
     const {successful} = status.value;
     const {validateCode} = params;
 
-    // Determine the appropriate error reason
-    let reason = status.reason;
-
-    if (status.reason !== VALUES.REASON.BACKEND.UNABLE_TO_AUTHORIZE) {
-        reason = status.reason;
-    } else if (!validateCode) {
-        reason = VALUES.REASON.BACKEND.VALIDATE_CODE_INVALID;
-    }
-
     return {
         ...status,
         value: validateCode && successful ? validateCode : undefined,
@@ -138,7 +159,7 @@ const transformMultifactorAuthenticationActionResponse = <T extends MultifactorA
             wasRecentStepSuccessful: successful,
             isRequestFulfilled: !failedFactor,
         },
-        reason,
+        reason: status.reason,
     };
 };
 
@@ -210,4 +231,4 @@ function isChallengeSigned(challenge: MultifactorAuthenticationChallengeObject |
     return 'rawId' in challenge;
 }
 
-export {processMultifactorAuthenticationScenario as processScenario, decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, isChallengeSigned, parseHttpCode};
+export {processMultifactorAuthenticationScenario as processScenario, decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, isChallengeSigned, parseHttpRequest};

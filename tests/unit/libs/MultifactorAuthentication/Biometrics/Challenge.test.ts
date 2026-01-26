@@ -81,7 +81,7 @@ describe('MultifactorAuthenticationChallenge', () => {
             const result = await challenge.request();
 
             expect(result.value).toBe(true);
-            expect(result.reason).toBe(VALUES.REASON.CHALLENGE.BAD_TOKEN);
+            expect(result.reason).toBe(VALUES.REASON.CHALLENGE.COULD_NOT_RETRIEVE_A_CHALLENGE);
         });
     });
 

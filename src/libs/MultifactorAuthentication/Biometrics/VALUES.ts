@@ -12,25 +12,27 @@ const MultifactorAuthenticationCallbacks: {
     onFulfill: {},
 };
 
-/**
- * Backend reason messages for multifactor authentication responses.
- */
 const REASON = {
+    /** Backend reason messages for multifactor authentication responses. */
     BACKEND: {
-        REGISTRATION_REQUIRED: 'Registration is required',
+        INVALID_CHALLENGE_TYPE: 'Invalid challenge type',
         CHALLENGE_GENERATED: 'Challenge generated successfully',
-        KEY_INFO_MISSING: 'Key info not provided',
-        KEY_ALREADY_REGISTERED: 'This public key is already registered',
-        VALIDATE_CODE_MISSING: 'Validate code is missing',
-        VALIDATE_CODE_INVALID: 'Validate code is invalid',
         BIOMETRICS_REGISTERED: 'Biometrics registration successful',
-        UNABLE_TO_AUTHORIZE: 'Authorization failed with provided credentials',
         AUTHORIZATION_SUCCESSFUL: 'User authorized successfully',
-        BAD_REQUEST: 'Bad request',
-        UNKNOWN_RESPONSE: 'Unrecognized response type',
+        REGISTRATION_REQUIRED: 'Registration required',
+        TOO_MANY_ATTEMPTS: 'Too many attempts',
+        MISSING_CHALLENGE_TYPE: 'Missing challengeType',
+        INVALID_SIGNED_CHALLENGE: 'Invalid signed challenge',
+        AUTHENTICATION_REQUIRED: 'Authentication required',
+        UNAUTHORIZED: 'Unauthorized',
+        INVALID_KEY: 'Invalid key',
+        INVALID_VALIDATE_CODE: 'Invalid validate code',
+        SIGNATURE_VERIFICATION_FAILED: 'Signature verification failed',
+        NO_PENDING_REGISTRATION_CHALLENGE: 'No pending registration challenge',
+        UNKNOWN_RESPONSE: 'Unknown response',
     },
     CHALLENGE: {
-        BAD_TOKEN: 'Bad token',
+        COULD_NOT_RETRIEVE_A_CHALLENGE: 'Could not retrieve a challenge',
         CHALLENGE_MISSING: 'Challenge is missing',
         CHALLENGE_ALREADY_SIGNED: 'Challenge is already signed',
         CHALLENGE_RECEIVED: 'Challenge received successfully',
@@ -51,6 +53,7 @@ const REASON = {
         NO_ACTION_MADE_YET: 'No action has been made yet',
         FACTORS_ERROR: 'Authentication factors error',
         FACTORS_VERIFIED: 'Authentication factors verified',
+        VALIDATE_CODE_MISSING: 'Validate code is missing',
     },
     KEYSTORE: {
         KEY_DELETED: 'Key successfully deleted from SecureStore',
@@ -65,28 +68,48 @@ const REASON = {
     },
 } as const;
 
+/* eslint-disable @typescript-eslint/naming-convention */
+const MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP = {
+    401: {
+        INVALID_SIGNED_CHALLENGE: REASON.BACKEND.INVALID_SIGNED_CHALLENGE,
+        REGISTRATION_REQUIRED: REASON.BACKEND.REGISTRATION_REQUIRED,
+        AUTHENTICATION_REQUIRED: REASON.BACKEND.AUTHENTICATION_REQUIRED,
+        UNAUTHORIZED: REASON.BACKEND.UNAUTHORIZED,
+    },
+} as const;
+
 /**
  * Maps API endpoints to their HTTP status codes and corresponding reason messages.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
 const API_RESPONSE_MAP = {
-    UNKNOWN: REASON.BACKEND.UNKNOWN_RESPONSE,
     REQUEST_AUTHENTICATION_CHALLENGE: {
-        401: REASON.BACKEND.REGISTRATION_REQUIRED,
         200: REASON.BACKEND.CHALLENGE_GENERATED,
+        400: {
+            INVALID_CHALLENGE_TYPE: REASON.BACKEND.INVALID_CHALLENGE_TYPE,
+            REGISTRATION_REQUIRED: REASON.BACKEND.REGISTRATION_REQUIRED,
+        },
+        401: {
+            TOO_MANY_ATTEMPTS: REASON.BACKEND.TOO_MANY_ATTEMPTS,
+        },
+        402: {
+            MISSING_CHALLENGE_TYPE: REASON.BACKEND.MISSING_CHALLENGE_TYPE,
+        },
     },
     REGISTER_AUTHENTICATION_KEY: {
-        422: REASON.BACKEND.KEY_INFO_MISSING,
-        409: REASON.BACKEND.KEY_ALREADY_REGISTERED,
-        401: REASON.BACKEND.VALIDATE_CODE_MISSING,
-        400: REASON.BACKEND.VALIDATE_CODE_INVALID,
         200: REASON.BACKEND.BIOMETRICS_REGISTERED,
+        400: {
+            INVALID_KEY: REASON.BACKEND.INVALID_KEY,
+        },
+        401: {
+            INVALID_VALIDATE_CODE: REASON.BACKEND.INVALID_VALIDATE_CODE,
+            SIGNATURE_VERIFICATION_FAILED: REASON.BACKEND.SIGNATURE_VERIFICATION_FAILED,
+            TOO_MANY_ATTEMPTS: REASON.BACKEND.TOO_MANY_ATTEMPTS,
+            NO_PENDING_REGISTRATION_CHALLENGE: REASON.BACKEND.NO_PENDING_REGISTRATION_CHALLENGE,
+        },
     },
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: {
-        401: REASON.BACKEND.REGISTRATION_REQUIRED,
-        409: REASON.BACKEND.UNABLE_TO_AUTHORIZE,
+        ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP,
         200: REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
-        400: REASON.BACKEND.BAD_REQUEST,
     },
 } as const;
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -128,13 +151,13 @@ const EXPO_ERRORS = {
 const MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS = {
     /** Maps authentication factors to their missing error translation paths */
     FACTOR_MISSING_REASONS: {
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.BACKEND.VALIDATE_CODE_MISSING,
+        [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.GENERIC.VALIDATE_CODE_MISSING,
         [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: REASON.GENERIC.SIGNATURE_MISSING,
     },
 
     /** Maps authentication factors to their invalid error translation paths */
     FACTOR_INVALID_REASONS: {
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.BACKEND.VALIDATE_CODE_INVALID,
+        [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.BACKEND.INVALID_VALIDATE_CODE,
         [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: REASON.GENERIC.SIGNATURE_INVALID,
     },
     EXPO_ERROR_MAPPINGS: {

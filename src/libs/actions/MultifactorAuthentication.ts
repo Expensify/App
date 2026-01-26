@@ -5,7 +5,7 @@ import type {MultifactorAuthenticationScenarioParameters} from '@components/Mult
 import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import {parseHttpCode} from '@libs/MultifactorAuthentication/Biometrics/helpers';
+import {parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import type {ChallengeType} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 
@@ -29,28 +29,28 @@ async function registerAuthenticationKey({keyInfo, validateCode}: MultifactorAut
     try {
         const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo, validateCode}, {});
 
-        const {jsonCode} = response ?? {};
-        return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY);
+        const {jsonCode, message} = response ?? {};
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, message);
     } catch (error) {
         Log.hmmm('[MultifactorAuthentication] Failed to register an authentication key', {error});
-        return parseHttpCode(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY);
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, undefined);
     }
 }
 
 async function requestAuthenticationChallenge(challengeType: ChallengeType = 'authentication') {
     try {
         const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE, {challengeType}, {});
-        const {jsonCode, challenge, publicKeys} = response ?? {};
+        const {jsonCode, challenge, publicKeys, message} = response ?? {};
 
         return {
-            ...parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE),
+            ...parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, message),
             challenge,
             publicKeys,
         };
     } catch (error) {
         Log.hmmm('[MultifactorAuthentication] Failed to request an authentication challenge', {error});
         return {
-            ...parseHttpCode(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE),
+            ...parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, undefined),
             challenge: undefined,
             publicKeys: undefined,
         };
@@ -61,12 +61,12 @@ async function troubleshootMultifactorAuthentication({signedChallenge}: Multifac
     try {
         const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, {signedChallenge}, {});
 
-        const {jsonCode} = response ?? {};
+        const {jsonCode, message} = response ?? {};
 
-        return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION);
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, message);
     } catch (error) {
         Log.hmmm('[MultifactorAuthentication] Failed to troubleshoot multifactor authentication', {error});
-        return parseHttpCode(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION);
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, undefined);
     }
 }
 

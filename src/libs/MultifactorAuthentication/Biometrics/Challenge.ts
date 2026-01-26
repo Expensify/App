@@ -42,7 +42,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         const {challenge, publicKeys: authPublicKeys, reason: apiReason} = await requestAuthenticationChallenge(this.challengeType);
         this.publicKeys = authPublicKeys ?? [];
 
-        const reason = apiReason === VALUES.REASON.BACKEND.UNKNOWN_RESPONSE ? VALUES.REASON.CHALLENGE.BAD_TOKEN : apiReason;
+        const reason = apiReason === VALUES.REASON.BACKEND.UNKNOWN_RESPONSE ? VALUES.REASON.CHALLENGE.COULD_NOT_RETRIEVE_A_CHALLENGE : apiReason;
 
         this.challenge = challenge;
 
