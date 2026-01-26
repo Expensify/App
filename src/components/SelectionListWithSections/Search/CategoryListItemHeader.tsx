@@ -120,7 +120,7 @@ function CategoryListItemHeader<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && <>{columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}</>}
+                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
