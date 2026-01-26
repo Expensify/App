@@ -11,9 +11,8 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionListWithSections';
-import RadioListItem from './SelectionListWithSections/RadioListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SelectionList from './SelectionList/SelectionListWithSections';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -64,7 +63,7 @@ function TagPicker({
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
 
-    const selectedOptions: SelectedTagOption[] = useMemo(() => {
+    const getSelectedOptions = (): SelectedTagOption[] => {
         if (!selectedTag) {
             return [];
         }
@@ -76,7 +75,8 @@ function TagPicker({
                 accountID: undefined,
             },
         ];
-    }, [selectedTag]);
+    };
+    const selectedOptions = getSelectedOptions();
 
     const enabledTags: PolicyTags | Array<PolicyTag | SelectedTagOption> = useMemo(() => {
         if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
@@ -114,38 +114,41 @@ function TagPicker({
     }, [enabledTags]);
     const shouldShowTextInput = availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
-    const sections = useMemo(() => {
-        const tagSections = getTagListSections({
-            searchValue,
-            selectedOptions,
-            tags: enabledTags,
-            recentlyUsedTags: policyRecentlyUsedTagsList,
-            localeCompare,
-            translate,
-        });
-        return shouldOrderListByTagName
-            ? tagSections.map((option) => ({
-                  ...option,
-                  data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
-              }))
-            : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, localeCompare, translate, shouldOrderListByTagName]);
-
-    const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
+    const tagSections = getTagListSections({
+        searchValue,
+        selectedOptions,
+        tags: enabledTags,
+        recentlyUsedTags: policyRecentlyUsedTagsList,
+        localeCompare,
+        translate,
+    });
+    const sections = shouldOrderListByTagName
+        ? tagSections.map((option) => ({
+              ...option,
+              data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
+          }))
+        : tagSections;
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
+    const textInputOptions = {
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
+        label: translate('common.search'),
+    };
+
     return (
         <SelectionList
-            ListItem={RadioListItem}
-            sectionTitleStyles={styles.mt5}
-            listItemTitleStyles={styles.breakAll}
             sections={sections}
-            textInputValue={searchValue}
-            headerMessage={headerMessage}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            initiallyFocusedOptionKey={selectedOptionKey}
-            onChangeText={setSearchValue}
+            ListItem={RadioListItem}
+            style={{
+                sectionTitleStyles: styles.mt5,
+                listItemTitleStyles: styles.breakAll,
+            }}
+            textInputOptions={textInputOptions}
+            shouldShowTextInput={shouldShowTextInput}
+            initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
         />
     );
