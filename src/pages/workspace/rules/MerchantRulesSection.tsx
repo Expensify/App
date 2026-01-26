@@ -25,7 +25,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     const actions: string[] = [];
 
     if (rule.merchant) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSumarySubtitleMerchant', rule.merchant));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', rule.merchant));
     }
     if (rule.category) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.category').toLowerCase(), rule.category));
