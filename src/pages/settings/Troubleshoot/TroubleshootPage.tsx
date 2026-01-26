@@ -1,5 +1,5 @@
 import {differenceInDays} from 'date-fns';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -64,7 +64,7 @@ function TroubleshootPage() {
     const {showConfirmModal} = useConfirmModal();
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchContext();
-    const showResetAndRefreshModal = useCallback(async () => {
+    const showResetAndRefreshModal = async () => {
         const result = await showConfirmModal({
             title: translate('common.areYouSure'),
             prompt: translate('initialSettingsPage.troubleshoot.confirmResetDescription'),
@@ -78,15 +78,15 @@ function TroubleshootPage() {
         resetOptions();
         setShouldResetSearchQuery(true);
         clearOnyxAndResetApp();
-    }, [showConfirmModal, translate, resetOptions, setShouldResetSearchQuery]);
-    const exportOnyxState = useCallback(() => {
+    };
+    const exportOnyxState = () => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
-    }, [shouldMaskOnyxState]);
+    };
 
-    const surveyCompletedWithinLastMonth = useMemo(() => {
+    const getSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;
         const {dismissedReasons} = tryNewDot?.classicRedirect ?? {};
         if (dismissedReasons?.length === 0) {
@@ -109,9 +109,10 @@ function TroubleshootPage() {
 
         const daysSinceLastSurvey = differenceInDays(new Date(), timestampToCheck);
         return daysSinceLastSurvey < surveyThresholdInDays;
-    }, [tryNewDot?.classicRedirect]);
+    };
+    const surveyCompletedWithinLastMonth = getSurveyCompletedWithinLastMonth();
 
-    const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
+    const getClassicRedirectMenuItem = (): BaseMenuItem | null => {
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
             return null;
         }
@@ -140,9 +141,10 @@ function TroubleshootPage() {
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
+    };
+    const classicRedirectMenuItem = getClassicRedirectMenuItem();
 
-    const menuItems = useMemo(() => {
+    const getMenuItems = () => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
             icon: icons.Bug,
@@ -177,18 +179,8 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [
-        icons.Bug,
-        icons.RotateLeft,
-        icons.Download,
-        waitForNavigate,
-        exportOnyxState,
-        shouldStoreLogs,
-        classicRedirectMenuItem,
-        translate,
-        styles.sectionMenuItemTopDescription,
-        showResetAndRefreshModal,
-    ]);
+    };
+    const menuItems = getMenuItems();
 
     return (
         <ScreenWrapper

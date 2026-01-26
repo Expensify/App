@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
@@ -61,26 +61,24 @@ function CardSection() {
     const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const {isOffline} = useNetwork();
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
-    const hasFailedLastBilling = useMemo(
-        () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
-        [purchaseList],
-    );
+    const defaultCard = Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard);
+    const cardMonth = DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1];
+    const hasFailedLastBilling =
+        purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018;
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
-    const requestRefund = useCallback(() => {
+    const requestRefund = () => {
         requestRefundByUser();
         Navigation.goBackToHome();
-    }, []);
+    };
 
     const {showConfirmModal} = useConfirmModal();
-    const refundPrompt = useMemo(() => <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />, [translate]);
+    const refundPrompt = <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />;
 
-    const showRequestRefundModal = useCallback(() => {
+    const showRequestRefundModal = () => {
         return showConfirmModal({
             title: translate('subscription.cardSection.requestRefund'),
             prompt: refundPrompt,
@@ -88,9 +86,9 @@ function CardSection() {
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
         });
-    }, [showConfirmModal, translate, refundPrompt]);
+    };
 
-    const viewPurchases = useCallback(() => {
+    const viewPurchases = () => {
         const query = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
@@ -99,7 +97,7 @@ function CardSection() {
 
         // rawQuery is needed to populate rawFilterList, which prevents useSuggestedSearchDefaultNavigation from auto-redirecting to actionable searches.
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
-    }, []);
+    };
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
         CardSectionUtils.getBillingStatus({

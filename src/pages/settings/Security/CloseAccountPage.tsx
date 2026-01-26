@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
@@ -34,7 +34,7 @@ function CloseAccountPage() {
     const {translate, formatPhoneNumber} = useLocalize();
 
     const {showConfirmModal} = useConfirmModal();
-    const showCloseAccountWarningModal = useCallback(() => {
+    const showCloseAccountWarningModal = () => {
         return showConfirmModal({
             title: translate('closeAccountPage.closeAccountWarning'),
             prompt: translate('closeAccountPage.closeAccountPermanentlyDeleteData'),
@@ -44,7 +44,7 @@ function CloseAccountPage() {
             danger: true,
             shouldDisableConfirmButtonWhenOffline: true,
         });
-    }, [showConfirmModal, translate]);
+    };
 
     // If you are new to hooks this might look weird but basically it is something that only runs when the component unmounts
     // nothing runs on mount and we pass empty dependencies to prevent this from running on every re-render.
