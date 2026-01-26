@@ -6362,6 +6362,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             symbols: 'Symboles',
             flags: 'Drapeaux',
         },
+        emojiNotSelected: 'Emoji non sélectionné',
     },
     newRoomPage: {
         newRoom: 'Nouvelle salle',
