@@ -59,11 +59,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
 };
 
 const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
-const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean, isZeroAmountBetaEnabled: boolean) => {
-    if (!isZeroAmountBetaEnabled) {
-        return !amount.length || parseFloat(amount) < 0.01;
-    }
-
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean) => {
     if (!amount.length || parseFloat(amount) < 0) {
         return true;
     }
@@ -169,7 +165,7 @@ function MoneyRequestAmountForm({
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P, isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)))) {
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
