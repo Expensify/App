@@ -1,5 +1,5 @@
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -30,9 +30,12 @@ function EnabledPage() {
 
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();
-    const selector = (policies: OnyxCollection<Policy>) => {
-        return activeAdminPoliciesSelector(policies, login ?? '');
-    };
+    const selector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            return activeAdminPoliciesSelector(policies, login ?? '');
+        },
+        [login],
+    );
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
