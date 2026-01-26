@@ -1,13 +1,10 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import EmptyStateComponent from '@components/EmptyStateComponent';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -21,26 +18,26 @@ type MerchantRulesSectionProps = {
 function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate']): string {
     const actions: string[] = [];
 
+    if (rule.merchant) {
+        actions.push(translate('workspace.rules.merchantRules.ruleSumarySubtitleMerchant', rule.merchant));
+    }
     if (rule.category) {
-        actions.push(`${translate('workspace.rules.merchantRules.setCategory')}: ${rule.category}`);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.category').toLowerCase(), rule.category));
     }
     if (rule.tag) {
-        actions.push(`${translate('workspace.rules.merchantRules.setTag')}: ${rule.tag}`);
-    }
-    if (rule.merchant) {
-        actions.push(`${translate('workspace.rules.merchantRules.renameMerchant')}: ${rule.merchant}`);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.tag').toLowerCase(), rule.tag));
     }
     if (rule.comment) {
-        actions.push(`${translate('workspace.rules.merchantRules.setDescription')}: ${rule.comment}`);
-    }
-    if (rule.reimbursable !== undefined) {
-        actions.push(`${translate('workspace.rules.merchantRules.setReimbursable')}: ${rule.reimbursable ? translate('common.yes') : translate('common.no')}`);
-    }
-    if (rule.billable !== undefined) {
-        actions.push(`${translate('workspace.rules.merchantRules.setBillable')}: ${rule.billable ? translate('common.yes') : translate('common.no')}`);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.description').toLowerCase(), rule.comment));
     }
     if (rule.tax?.field_id_TAX?.value) {
-        actions.push(`${translate('workspace.rules.merchantRules.setTax')}: ${rule.tax.field_id_TAX.value}`);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.tax').toLowerCase(), rule.tax.field_id_TAX.value));
+    }
+    if (rule.reimbursable !== undefined) {
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
+    }
+    if (rule.billable !== undefined) {
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
     }
 
     return actions.join(', ') || '';
@@ -79,21 +76,11 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
         >
-            <View style={[styles.mt3]}>
-                {!hasRules ? (
-                    <EmptyStateComponent
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ICON}
-                        title={translate('workspace.rules.merchantRules.emptyTitle')}
-                        subtitle={translate('workspace.rules.merchantRules.emptySubtitle')}
-                        containerStyles={styles.mt0}
-                    />
-                ) : (
-                    sortedRules.map((rule) => {
+            {hasRules && (
+                <View style={[styles.mt3]}>
+                    {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
-                        const isExactMatch = rule.filters?.operator === 'eq';
-                        const matchDescription = isExactMatch
-                            ? translate('workspace.rules.merchantRules.ruleAppliesWhenExact', {merchantName})
-                            : translate('workspace.rules.merchantRules.ruleAppliesWhen', {merchantName});
+                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName);
                         const ruleDescription = getRuleDescription(rule, translate);
 
                         return (
@@ -107,14 +94,9 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                 />
                             </View>
                         );
-                    })
-                )}
-                {hasRules && (
-                    <Text style={[styles.mutedNormalTextLabel, styles.mt3]}>
-                        {translate('workspace.rules.merchantRules.subtitle')}
-                    </Text>
-                )}
-            </View>
+                    })}
+                </View>
+            )}
         </Section>
     );
 }
