@@ -1,4 +1,5 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {filterPersonalCards} from '@selectors/Card';
 import {differenceInDays} from 'date-fns';
 import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -34,7 +35,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
-import {filterPersonalCards} from '@selectors/Card';
 import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';

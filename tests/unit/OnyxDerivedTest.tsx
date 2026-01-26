@@ -13,9 +13,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
+import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const renderLocaleContextProvider = () => {
@@ -424,7 +424,6 @@ describe('OnyxDerived', () => {
             const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
             expect(derivedCardList).toEqual({});
         });
-
 
         it('merges cardList and workspaceCardFeeds when dependencies are set', async () => {
             // Non-personal cards (fundID !== '0') from cardList are kept, workspace cards are always included

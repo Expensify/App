@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {filterObject} from '@libs/ObjectUtils';
-import {isCard, isCardHiddenFromSearch, isPersonalCard} from '@libs/CardUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
+import {isCard, isCardHiddenFromSearch, isPersonalCard} from '@libs/CardUtils';
+import {filterObject} from '@libs/ObjectUtils';
 import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue} from '@src/types/onyx';
 
 /**

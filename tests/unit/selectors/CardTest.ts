@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {ValueOf} from 'type-fest';
 import {defaultExpensifyCardSelector, filterCardsHiddenFromSearch} from '@selectors/Card';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Card, CardList} from '@src/types/onyx';
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';

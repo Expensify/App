@@ -1,6 +1,6 @@
+import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import {emailSelector} from '@selectors/Session';
 import type {OnyxCollection} from 'react-native-onyx';
-import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import {getAllTaxRates, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';

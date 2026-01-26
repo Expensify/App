@@ -1,3 +1,4 @@
+import {filterPersonalCards} from '@selectors/Card';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -13,7 +14,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {activatePhysicalExpensifyCard, clearCardListErrors} from '@libs/actions/Card';
-import {filterPersonalCards} from '@selectors/Card';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';

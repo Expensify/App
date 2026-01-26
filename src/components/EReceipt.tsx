@@ -1,3 +1,4 @@
+import {filterPersonalCards} from '@selectors/Card';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useCurrencyList from '@hooks/useCurrencyList';
@@ -8,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterPersonalCards} from '@selectors/Card';
 import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
