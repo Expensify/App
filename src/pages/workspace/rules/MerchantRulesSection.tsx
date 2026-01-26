@@ -47,9 +47,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     }
 
     // Lowercase any subsequent rule after the first one
-    return actions
-        .map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1)))
-        .join(', ');
+    return actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
 }
 
 function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
@@ -84,9 +82,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>
-                {translate('workspace.rules.merchantRules.title')}
-            </Text>
+            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
                 badgeStyles={styles.badgeNewFeature}
