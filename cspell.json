@@ -815,7 +815,9 @@
         "RNCORE",
         "Wooo",
         "Splittable",
-        "pgrep"
+        "pgrep",
+        "Nesw",
+        "nesw"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
