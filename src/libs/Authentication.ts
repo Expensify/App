@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account} from '@src/types/onyx';
+import type {Account, Session} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
@@ -33,16 +33,42 @@ let isSupportAuthTokenUsed = false;
 
 // These session values are only used to help the user authentication with the API.
 // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
+
+let session: OnyxEntry<Session>;
+let tryNewDotCohort: string | undefined;
+
+function updateSentryUser() {
+    if (!session) {
+        return;
+    }
+
+    // console.log('Sentry SET USER: ', session.email);
+    // console.log('tryNewDotCohort: ', tryNewDotCohort);
+
+    Sentry.setUser({
+        id: session.accountID,
+        email: session.email,
+        username: tryNewDotCohort,
+    });
+}
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
+    callback: (value) => {
+        // console.log('NVP_TRY_NEW_DOT callback fired with value:', value);
+        tryNewDotCohort = value?.nudgeMigration?.cohort ?? 'testing_cohort';
+        updateSentryUser();
+    },
+});
+
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
+        // console.log('Authentication: SESSION callback fired with value:', value);
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
-
-        Sentry.setUser({
-            id: value?.accountID,
-            email: value?.email,
-        });
+        session = value;
+        updateSentryUser();
     },
 });
 
