@@ -872,9 +872,6 @@ Onyx.connect({
     },
 });
 
-// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
-// `allPolicyTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
-// All uses of this variable should be replaced with `useOnyx`.
 let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
@@ -884,7 +881,6 @@ Onyx.connect({
             allPolicyTags = {};
             return;
         }
-
         allPolicyTags = value;
     },
 });
@@ -958,13 +954,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
     callback: (val) => (recentWaypoints = val ?? []),
 });
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
     return allPersonalDetails;
@@ -992,6 +981,19 @@ function getCurrentUserEmail(): string {
 
 function getUserAccountID(): number {
     return userAccountID;
+}
+
+function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
+    return allPolicyTags;
+}
+
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getPolicyTagsData(policyID: string | undefined) {
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
 /**
@@ -13168,6 +13170,7 @@ export {
     getUserAccountID,
     getReceiptError,
     getSearchOnyxUpdate,
+    getPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     buildMinimalTransactionForFormula,

@@ -55,6 +55,7 @@ import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/type
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
+import {getPolicyTags} from './IOU/index';
 
 let allTransactionDrafts: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -95,28 +96,13 @@ Onyx.connect({
     callback: (val) => (allTransactionViolations = val ?? []),
 });
 
-// TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/72720)
-// `allPolicyTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
-// All uses of this variable should be replaced with `useOnyx`.
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
-
 /**
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/72720)
  * All usages of this function should be replaced with useOnyx hook in React components.
  */
 function getPolicyTagsData(policyID: string | undefined) {
+    const allPolicyTags = getPolicyTags();
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
