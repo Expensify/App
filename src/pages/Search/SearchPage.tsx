@@ -79,7 +79,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -244,18 +244,6 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
-
-    // Peggy injects default sortBy/sortOrder at parse time, so queryJSON
-    // can differ from the URL’s raw query. When they diverge, we need to replace the URL
-    useEffect(() => {
-        if (!queryJSON || !route.params.q) {
-            return;
-        }
-        const normalizedQueryString = buildSearchQueryString(queryJSON);
-        if (normalizedQueryString !== route.params.q) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: normalizedQueryString}), {forceReplace: true});
-        }
-    }, [queryJSON, route.params.q]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -593,7 +581,7 @@ function SearchPage({route}: SearchPageProps) {
                     );
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReportID, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
                     }
                 }
             }

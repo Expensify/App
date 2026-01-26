@@ -483,7 +483,7 @@ function Search({
         }
         // For group-by views, check if all transactions in groups have been loaded
         return (baseFilteredData as TransactionGroupListItemType[]).every((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            const snapshot = item.transactionsQueryJSON?.hash || item.transactionsQueryJSON?.hash === 0 ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
             // If snapshot doesn't exist, the group hasn't been expanded yet (transactions not loaded)
             // If snapshot exists and has hasMoreResults: true, not all transactions are loaded
             return !!snapshot && !snapshot?.search?.hasMoreResults;
@@ -678,8 +678,20 @@ function Search({
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
+    const isUnmounted = useRef(false);
+
     useEffect(
         () => () => {
+            isUnmounted.current = true;
+        },
+        [],
+    );
+
+    useEffect(
+        () => () => {
+            if (!isFocused && !isUnmounted.current) {
+                return;
+            }
             if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
                 return;
             }

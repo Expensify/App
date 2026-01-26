@@ -1585,17 +1585,15 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
 /**
  * This will navigate to an existing thread, or create a new one if necessary
  *
- * @param childReportID The reportID we are trying to open
+ * @param childReport The report we are trying to open
  * @param parentReportAction the parent comment of a thread
- * @param parentReportID The reportID of the parent
+ * @param parentReport The parent report
  */
-function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
-    const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
+function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>) {
     if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
     } else {
         const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
         const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
         const newChat = buildOptimisticChatReport({
@@ -1607,10 +1605,11 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             oldPolicyName: parentReport?.policyName ?? '',
             notificationPreference: getChildReportNotificationPreference(parentReportAction),
             parentReportActionID: parentReportAction.reportActionID,
-            parentReportID,
-            optimisticReportID: childReportID,
+            parentReportID: parentReport?.reportID,
+            optimisticReportID: parentReportAction.childReportID,
         });
 
+        const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
             openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
@@ -4602,11 +4601,12 @@ function clearNewRoomFormError() {
 }
 
 function resolveActionableMentionWhisper(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     isReportArchived: boolean | undefined,
 ) {
+    const reportID = report?.reportID;
     if (!reportAction || !reportID) {
         return;
     }
@@ -4629,13 +4629,12 @@ function resolveActionableMentionWhisper(
         },
     };
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, isReportArchived, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
-        lastMessageText: report?.lastMessageText,
-        lastVisibleActionCreated: report?.lastVisibleActionCreated,
-        lastActorAccountID: report?.lastActorAccountID,
+        lastMessageText: report.lastMessageText,
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
+        lastActorAccountID: report.lastActorAccountID,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
@@ -4687,20 +4686,21 @@ function resolveActionableMentionWhisper(
 }
 
 function resolveActionableMentionConfirmWhisper(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     isReportArchived: boolean,
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution, isReportArchived);
+    resolveActionableMentionWhisper(report, reportAction, resolution, isReportArchived);
 }
 
 function resolveActionableReportMentionWhisper(
-    reportId: string | undefined,
+    report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
     isReportArchived: boolean | undefined,
 ) {
+    const reportId = report?.reportID;
     if (!reportAction || !reportId) {
         return;
     }
@@ -4713,13 +4713,12 @@ function resolveActionableReportMentionWhisper(
         },
     };
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
     const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, isReportArchived, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
-        lastMessageText: report?.lastMessageText,
-        lastVisibleActionCreated: report?.lastVisibleActionCreated,
-        lastActorAccountID: report?.lastActorAccountID,
+        lastMessageText: report.lastMessageText,
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
+        lastActorAccountID: report.lastActorAccountID,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
@@ -5357,18 +5356,17 @@ function deleteAppReport(
  * Moves an IOU report to a policy by converting it to an expense report
  */
 function moveIOUReportToPolicy(
-    reportID: string,
+    iouReport: OnyxEntry<Report>,
     policy: Policy,
     isFromSettlementButton?: boolean,
     reportTransactions: Transaction[] = [],
     isCustomReportNamesBetaEnabled?: boolean,
 ): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
     // This flow only works for IOU reports
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
         return;
     }
+    const reportID = iouReport.reportID;
     const isReimbursed = isReportManuallyReimbursed(iouReport);
 
     // We do not want to create negative amount expenses

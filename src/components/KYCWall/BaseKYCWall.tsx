@@ -150,7 +150,7 @@ function KYCWall({
                                 Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
                             });
                         } else {
-                            const moveResult = moveIOUReportToPolicy(iouReport?.reportID, adminPolicy, true, reportTransactions, isCustomReportNamesBetaEnabled);
+                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, true, reportTransactions, isCustomReportNamesBetaEnabled);
                             savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[adminPolicy.id]);
 
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
