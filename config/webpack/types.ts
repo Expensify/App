@@ -1,6 +1,6 @@
 type Environment = {
     file?: string;
-    platform?: 'web' | 'desktop';
+    platform?: 'web';
 };
 
 export default Environment;

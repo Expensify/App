@@ -1,13 +1,14 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import React, {useContext, useMemo} from 'react';
 import type {ColorValue} from 'react-native';
+import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -58,6 +59,9 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -104,27 +108,22 @@ function HeaderFirstRow<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
 }: FirstRowReportHeaderProps<TItem>) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
-    const {total, currency} = useMemo(() => {
-        let reportTotal = reportItem.total ?? 0;
-
-        if (reportTotal) {
-            if (reportItem.type === CONST.REPORT.TYPE.IOU) {
-                reportTotal = Math.abs(reportTotal ?? 0);
-            } else {
-                reportTotal *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-            }
+    let total = reportItem.total ?? 0;
+    if (total) {
+        if (reportItem.type === CONST.REPORT.TYPE.IOU) {
+            total = Math.abs(total);
+        } else {
+            total *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
         }
-
-        const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
-
-        return {total: reportTotal, currency: reportCurrency};
-    }, [reportItem.type, reportItem.total, reportItem.currency]);
+    }
+    const currency = reportItem.currency ?? CONST.CURRENCY.USD;
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
@@ -165,7 +164,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         >
                             {({hovered}) => (
                                 <Icon
-                                    src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                    src={isExpanded ? icons.UpArrow : icons.DownArrow}
                                     fill={theme.icon}
                                     additionalStyles={!hovered && styles.opacitySemiTransparent}
                                     small
@@ -207,37 +206,43 @@ function ReportListItemHeader<TItem extends ListItem>({
     isExpanded,
     isHovered,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
     }, [snapshot, reportItem.reportID]);
     const snapshotPolicy = useMemo(() => {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
+        handleActionButtonPress({
+            hash: currentSearchHash,
+            item: reportItem,
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
-        );
+            isDEWBetaEnabled,
+            isDelegateAccessRestricted,
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+        });
     };
     return !isLargeScreenWidth ? (
         <View style={[styles.pv1Half]}>

@@ -18,8 +18,6 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import * as NetworkStore from '@libs/Network/NetworkStore';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -433,6 +431,8 @@ function clearIssueNewCardFlow(policyID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
+        isSuccessful: false,
+        isLoading: false,
     });
 }
 
@@ -453,12 +453,6 @@ function updateExpensifyCardLimit(
     oldAvailableSpend?: number,
     isVirtualCard?: boolean,
 ) {
-    const authToken = NetworkStore.getAuthToken();
-
-    if (!authToken) {
-        return;
-    }
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -517,7 +511,6 @@ function updateExpensifyCardLimit(
     ];
 
     const parameters: UpdateExpensifyCardLimitParams = {
-        authToken,
         cardID,
         limit: newLimit,
         isVirtualCard: isVirtualCard ?? false,
@@ -527,12 +520,6 @@ function updateExpensifyCardLimit(
 }
 
 function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, newCardTitle: string, oldCardTitle?: string) {
-    const authToken = NetworkStore.getAuthToken();
-
-    if (!authToken) {
-        return;
-    }
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -586,7 +573,6 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
     ];
 
     const parameters: UpdateExpensifyCardTitleParams = {
-        authToken,
         cardID,
         cardTitle: newCardTitle,
     };
@@ -595,12 +581,6 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
 }
 
 function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number, newLimitType: CardLimitType, oldLimitType?: CardLimitType) {
-    const authToken = NetworkStore.getAuthToken();
-
-    if (!authToken) {
-        return;
-    }
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -657,7 +637,6 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
     ];
 
     const parameters: UpdateExpensifyCardLimitTypeParams = {
-        authToken,
         cardID,
         limitType: newLimitType,
     };
@@ -666,12 +645,7 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
 }
 
 function deactivateCard(workspaceAccountID: number, card?: Card) {
-    const authToken = NetworkStore.getAuthToken();
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-
-    if (!authToken) {
-        return;
-    }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
         {
@@ -714,7 +688,6 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
     ];
 
     const parameters: CardDeactivateParams = {
-        authToken,
         cardID,
     };
 
@@ -729,12 +702,10 @@ function startIssueNewCardFlow(policyID: string | undefined) {
     API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
 }
 
-function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: number) {
+function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: number, bankAccountID?: number) {
     if (!bankAccountID) {
         return;
     }
-
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA>> = [
         {
@@ -879,14 +850,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
 }
 
 function openCardDetailsPage(cardID: number) {
-    const authToken = NetworkStore.getAuthToken();
-
-    if (!authToken) {
-        return;
-    }
-
     const parameters: OpenCardDetailsPageParams = {
-        authToken,
         cardID,
     };
 

@@ -2,7 +2,7 @@ import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
@@ -22,12 +22,10 @@ import type {
     PrivatePersonalDetails,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {FilteredCardList} from '@src/types/onyx/Card';
+import type {UnassignedCard} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -106,14 +104,13 @@ function isExpensifyCard(card?: Card) {
  * @param card
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
-function getCardDescription(card?: Card) {
+function getCardDescription(card: Card | undefined, translate: LocalizedTranslate) {
     if (!card) {
         return '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
     const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
+    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
     return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
@@ -470,7 +467,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
-function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
+function getCustomOrFormattedFeedName(translate: LocalizedTranslate, feed?: CompanyCardFeed, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
     if (!feed) {
         return;
     }
@@ -480,8 +477,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, customFeedName?: s
     }
 
     const feedName = getBankName(feed);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const formattedFeedName = feedName && shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', feedName) : feedName;
+    const formattedFeedName = feedName && shouldAddCardsSuffix ? translate('workspace.companyCards.feedName', feedName) : feedName;
 
     // Custom feed name can be empty. Fallback to default feed name
     // Fallback to feed key name for unknown feeds
@@ -532,39 +528,6 @@ function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, c
     return country ?? '';
 }
 
-// We will simplify the logic below once we have #50450 #50451 implemented
-const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
-    const banksWithFeedType = [
-        CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
-        CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
-        CONST.COMPANY_CARDS.BANKS.CHASE,
-        CONST.COMPANY_CARDS.BANKS.CITI_BANK,
-        CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
-    ];
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
-        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.AMEX) {
-        return CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.BREX) {
-        return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
-    }
-
-    if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
-        return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
-    }
-
-    if (banksWithFeedType.includes(selectedBank)) {
-        return CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE;
-    }
-
-    return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
-};
-
 function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) {
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
         return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
@@ -578,11 +541,11 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
 }
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID>, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithDomainID | undefined {
-    const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeedWithDomainID | undefined;
-    if (!lastSelectedFeed?.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR)) {
-        return defaultFeed;
-    }
-    return lastSelectedFeed;
+    const availableFeeds = getCompanyFeeds(cardFeeds, true);
+    const defaultFeed = Object.keys(availableFeeds).at(0) as CompanyCardFeedWithDomainID | undefined;
+    const isValidLastFeed = !!lastSelectedFeed && lastSelectedFeed.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR) && availableFeeds[lastSelectedFeed];
+
+    return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
 function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeed, domainID: number | string): CompanyCardFeedWithDomainID {
@@ -593,8 +556,16 @@ function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean 
     return cardFeed?.expiration ? isBefore(fromUnixTime(cardFeed.expiration), new Date()) : false;
 }
 
-/** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
+/**
+ * Returns list of unassigned cards that can be assigned.
+ *
+ * This function normalizes the difference between:
+ * - Direct feeds (Plaid/OAuth): cards stored as string[] in accountList
+ * - Commercial feeds (Visa/Mastercard/Amex): cards stored as Record<displayName, encryptedValue> in cardList
+ *
+ * @returns Array of UnassignedCard objects with consistent displayName and cardIdentifier properties
+ */
+function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): UnassignedCard[] {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
 
@@ -613,16 +584,27 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: 
         }
     }
 
+    // For direct feeds (Plaid/OAuth): displayName === cardIdentifier
     if (accountList) {
-        const unassignedDirectFeedCards = accountList.filter((cardNumber) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
-        return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
+        return accountList
+            .filter((cardName) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+            .map((cardName) => ({
+                cardName,
+                cardID: cardName,
+            }));
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
+    // For commercial feeds: displayName is the key, cardIdentifier is the encrypted value
+    return Object.entries(customFeedCardsToAssign ?? {})
+        .filter(([cardName]) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+        .map(([cardName, encryptedCardNumber]) => ({
+            cardName,
+            cardID: encryptedCardNumber,
+        }));
 }
 
-function hasOnlyOneCardToAssign(list: FilteredCardList) {
-    return Object.keys(list).length === 1;
+function hasOnlyOneCardToAssign(list: UnassignedCard[]) {
+    return list.length === 1;
 }
 
 function getDefaultCardName(cardholder?: string) {
@@ -835,6 +817,23 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
     return feed as CompanyCardFeed;
 }
 
+/**
+ * Check if the given card is a personal card.
+ *
+ * @param card the card which needs to be checked
+ * @returns true if the card is a personal card, false otherwise
+ */
+function isPersonalCard(card?: Card) {
+    return !!card?.fundID && card.fundID !== '0';
+}
+
+/**
+ * Filter out personal (including cash) cards from the card list.
+ */
+function filterPersonalCards(cards: CardList | undefined): CardList {
+    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
+}
+
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -861,60 +860,20 @@ function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string 
     };
 }
 
-/**
- * Check if two masked card numbers (PAN) are equal.
- * This function compares the first and last digits of the masked card numbers.
- * If the number of revealed digits do not match, it will compare the the number of revealed digits.
- *
- * @param a the first masked card number
- * @param b the second masked card number
- * @param maskChar the character used to mask the card number
- * @returns true if the two masked card numbers are equal, false otherwise
- */
-function isMaskedCardNumberEqual(a: string | undefined, b: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, compareIfPatternDoesNotMatch = true) {
-    if (!a || !b) {
+function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): boolean {
+    if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
 
-    const aParts = splitMaskedCardNumber(a, maskChar);
-    const bParts = splitMaskedCardNumber(b, maskChar);
-
-    const aFirstDigitsCount = aParts.firstDigits?.length ?? 0;
-    const bFirstDigitsCount = bParts.firstDigits?.length ?? 0;
-    const aLastDigitsCount = aParts.lastDigits?.length ?? 0;
-    const bLastDigitsCount = bParts.lastDigits?.length ?? 0;
-
-    if (!compareIfPatternDoesNotMatch) {
-        return aFirstDigitsCount === bFirstDigitsCount && aLastDigitsCount === bLastDigitsCount;
-    }
-
-    const firstDigitsCount = Math.min(aFirstDigitsCount, bFirstDigitsCount);
-    const lastDigitsCount = Math.min(aLastDigitsCount, bLastDigitsCount);
-
-    const areFirstDigitsEqual = aParts.firstDigits?.slice(0, firstDigitsCount) === bParts.firstDigits?.slice(0, firstDigitsCount);
-    const areLastDigitsEqual = aParts.lastDigits?.slice(-lastDigitsCount) === bParts.lastDigits?.slice(-lastDigitsCount);
-    return areFirstDigitsEqual && areLastDigitsEqual;
-}
-
-function isCardAlreadyAssigned(cardNumber: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): boolean {
-    if (!cardNumber || !workspaceCardFeeds) {
-        return false;
-    }
-    for (const workspaceCards of Object.values(workspaceCardFeeds)) {
+    return Object.values(workspaceCardFeeds).some((workspaceCards) => {
         if (!workspaceCards) {
-            continue;
+            return false;
         }
         const {cardList, ...assignedCards} = workspaceCards;
-        for (const card of Object.values(assignedCards)) {
-            if (card?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                continue;
-            }
-            if (card?.cardName === cardNumber) {
-                return true;
-            }
-        }
-    }
-    return false;
+        return Object.values(assignedCards).some(
+            (card) => card?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (card?.encryptedCardNumber === cardNumberToCheck || card?.cardName === cardNumberToCheck),
+        );
+    });
 }
 
 export {
@@ -940,7 +899,6 @@ export {
     isCustomFeed,
     getBankCardDetailsImage,
     getSelectedFeed,
-    getCorrectStepForSelectedBank,
     getPlaidCountry,
     getCustomOrFormattedFeedName,
     isCardClosed,
@@ -979,9 +937,10 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    filterPersonalCards,
+    isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
-    isMaskedCardNumberEqual,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
 };

@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {FormAlertWithSubmitButtonProps} from '@components/FormAlertWithSubmitButton';

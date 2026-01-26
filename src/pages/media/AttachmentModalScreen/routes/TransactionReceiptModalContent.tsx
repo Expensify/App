@@ -41,14 +41,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
     const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
-    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(mergeTransactionID)}`, {canBeMissing: true});
 
     const isDraftTransaction = !!action;
     const draftTransactionID = isDraftTransaction ? transactionID : undefined;
@@ -70,6 +70,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         return transactionMain;
     }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
 
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
@@ -100,7 +101,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
         openReport(reportID);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -154,7 +155,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 ),
         );
 
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [receiptPath]);
 
@@ -280,7 +280,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             }
 
             const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-            if (shouldShowDeleteReceiptButton && !hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !hasMissingSmartscanFields(transaction)) {
+            if (
+                shouldShowDeleteReceiptButton &&
+                !hasOnlyEReceipt &&
+                hasReceipt(transaction) &&
+                !isReceiptBeingScanned(transaction) &&
+                !hasMissingSmartscanFields(transaction, transactionReport)
+            ) {
                 menuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('receipt.deleteReceipt'),
@@ -290,22 +296,23 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 });
             }
             return menuItems;
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [
-            icons.Download,
             shouldShowReplaceReceiptButton,
             isOffline,
             allowDownload,
             draftTransactionID,
             transaction,
             shouldShowDeleteReceiptButton,
+            transactionReport,
+            expensifyIcons.Camera,
             translate,
             action,
             iouType,
             report?.reportID,
+            icons.Download,
             onDownloadAttachment,
-            expensifyIcons.Camera,
         ],
     );
 
@@ -342,6 +349,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isRotating,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
+            shouldMinimizeMenuButton: false,
         }),
         [
             allowDownload,

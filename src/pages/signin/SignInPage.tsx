@@ -314,8 +314,7 @@ function SignInPage({ref}: SignInPageProps) {
                     <LoginForm
                         ref={loginFormRef}
                         isVisible={shouldShowLoginForm}
-                        blurOnSubmit={isAccountValidated === false}
-                        // eslint-disable-next-line react-compiler/react-compiler
+                        submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
                         scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                     />
                     {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}

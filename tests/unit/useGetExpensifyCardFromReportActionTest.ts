@@ -2,7 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 import usePolicy from '@hooks/usePolicy';
-import {getWorkspaceAccountID, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isCardIssuedAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import useGetExpensifyCardFromReportAction from '@src/hooks/useGetExpensifyCardFromReportAction';
@@ -21,7 +21,6 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 jest.mock('@hooks/usePolicy');
 
 const mockUsePolicy = usePolicy as jest.MockedFunction<typeof usePolicy>;
-const mockGetWorkspaceAccountID = getWorkspaceAccountID as jest.MockedFunction<typeof getWorkspaceAccountID>;
 const mockIsPolicyAdmin = isPolicyAdmin as jest.MockedFunction<typeof isPolicyAdmin>;
 const mockGetOriginalMessage = getOriginalMessage as jest.MockedFunction<typeof getOriginalMessage>;
 const mockIsCardIssuedAction = isCardIssuedAction as jest.MockedFunction<typeof isCardIssuedAction>;
@@ -79,7 +78,6 @@ describe('useGetExpensifyCardFromReportAction', () => {
         jest.clearAllMocks();
 
         mockUsePolicy.mockReturnValue(mockPolicy);
-        mockGetWorkspaceAccountID.mockReturnValue(123);
         mockIsPolicyAdmin.mockReturnValue(false);
         mockGetOriginalMessage.mockReturnValue({cardID: 123, assigneeAccountID: 1});
         mockIsCardIssuedAction.mockReturnValue(true);
@@ -132,7 +130,6 @@ describe('useGetExpensifyCardFromReportAction', () => {
         describe('when user is a policy admin', () => {
             beforeEach(() => {
                 mockIsPolicyAdmin.mockReturnValue(true);
-                mockGetWorkspaceAccountID.mockReturnValue(123);
                 // Override the default policy for admin tests
                 mockUsePolicy.mockReturnValue({
                     id: 'policy123',
@@ -224,19 +221,6 @@ describe('useGetExpensifyCardFromReportAction', () => {
         });
     });
 
-    describe('workspace account ID generation', () => {
-        it('calls getWorkspaceAccountID with correct policyID', async () => {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            mockUseCardList.mockReturnValue({'123': mockCard});
-
-            const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'test-policy-123'}));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockGetWorkspaceAccountID).toHaveBeenCalledWith('test-policy-123');
-            expect(result.current).toEqual(mockCard);
-        });
-    });
-
     describe('policy admin check', () => {
         it('calls isPolicyAdmin with correct policy', async () => {
             const testPolicy = {
@@ -260,6 +244,44 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
             expect(mockUsePolicy).toHaveBeenCalledWith('policy123');
             expect(mockIsPolicyAdmin).toHaveBeenCalledWith(testPolicy);
+            expect(result.current).toEqual(mockCard);
+        });
+    });
+
+    describe('workspaceAccountID handling', () => {
+        it('uses policy workspaceAccountID for building expensify cards key', async () => {
+            const policyWithWorkspaceID = {
+                ...mockPolicy,
+                workspaceAccountID: 456,
+            };
+            mockUsePolicy.mockReturnValue(policyWithWorkspaceID);
+            mockIsPolicyAdmin.mockReturnValue(true);
+
+            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}456_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
+
+            const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current).toEqual(mockCard);
+        });
+
+        it('uses DEFAULT_NUMBER_ID when policy has no workspaceAccountID', async () => {
+            const policyWithoutWorkspaceID = {
+                ...mockPolicy,
+                workspaceAccountID: undefined,
+            };
+            mockUsePolicy.mockReturnValue(policyWithoutWorkspaceID);
+            mockIsPolicyAdmin.mockReturnValue(true);
+
+            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
+
+            const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
+            await waitForBatchedUpdatesWithAct();
+
             expect(result.current).toEqual(mockCard);
         });
     });

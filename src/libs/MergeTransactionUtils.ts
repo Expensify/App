@@ -176,15 +176,15 @@ function getTransactionsAndReportsFromSearch(
 } {
     const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
     const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`];
+    const policyID1 = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`]?.policyID;
+    const policyID2 = searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]?.policyID;
 
     return {
         transactions: [transaction1, transaction2].filter((transaction) => !!transaction),
         reports: [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]].filter(
             (report) => !!report,
         ),
-        policies: [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`]].filter(
-            (policy) => !!policy,
-        ),
+        policies: [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${policyID2}`]].filter((policy) => !!policy),
     };
 }
 

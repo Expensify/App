@@ -1146,31 +1146,33 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps>(Wra
 
 ### Forwarding refs
 
-When forwarding a ref define named component and pass it directly to the `forwardRef`. By doing this, we remove potential extra layer in React tree in the form of anonymous component.
+In React 19, `forwardRef` is deprecated and no longer necessary. Simply pass `ref` as a prop instead of using `forwardRef`.
+
+***Note:*** *prop must be named `ref` explicitly (it's a special prop like `children`)*
 
 ```tsx
-import type {ForwarderRef} from 'react';
+import type {Ref} from 'react';
 
 type FancyInputProps = {
+    ref?: Ref<TextInput>; // Note: prop must be named "ref" explicitly
     ...
 };
 
-function FancyInput(props: FancyInputProps, ref: ForwardedRef<TextInput>) {
+function FancyInput({ ref, ...props }: FancyInputProps) {
     ...
-    return <input {...props} ref={ref} />
+    return <TextInput ref={myRef} {...props} />
 };
 
-export default React.forwardRef(FancyInput)
+export default FancyInput
 ```
 
-If the ref handle is not available (e.g. `useImperativeHandle` is used) you can define a custom handle type above the component.
+For imperative handles using `useImperativeHandle`, now you can also just pass `ref` as a prop:
 
 ```tsx
-import type {ForwarderRef} from 'react';
 import {useImperativeHandle} from 'react';
 
 type FancyInputProps = {
-    ...
+    ref?: React.Ref<FancyInputHandle>; // Note: prop must be named "ref" explicitly
     onButtonPressed: () => void;
 };
 
@@ -1178,14 +1180,14 @@ type FancyInputHandle = {
   onButtonPressed: () => void;
 }
 
-function FancyInput(props: FancyInputProps, ref: ForwardedRef<FancyInputHandle>) {
+function FancyInput({ ref, ...props }: FancyInputProps) {
     useImperativeHandle(ref, () => ({onButtonPressed}));
 
     ...
-    return <input {...props} ref={ref} />;
+    return <TextInput {...props} />;
 };
 
-export default React.forwardRef(FancyInput)
+export default FancyInput
 ```
 
 ### Hooks and HOCs

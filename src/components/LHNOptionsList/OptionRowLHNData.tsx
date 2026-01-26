@@ -41,6 +41,7 @@ function OptionRowLHNData({
     isReportArchived = false,
     lastAction,
     lastActionReport,
+    currentUserAccountID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -76,20 +77,18 @@ function OptionRowLHNData({
             lastActionReport,
             movedFromReport,
             movedToReport,
+            currentUserAccountID,
         });
-        // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
-            // eslint-disable-next-line react-compiler/react-compiler
             return optionItemRef.current;
         }
 
-        // eslint-disable-next-line react-compiler/react-compiler
         optionItemRef.current = item;
 
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         fullReport,
         reportAttributes?.brickRoadStatus,
@@ -114,6 +113,7 @@ function OptionRowLHNData({
         isReportArchived,
         movedFromReport,
         movedToReport,
+        currentUserAccountID,
     ]);
 
     return (
@@ -126,6 +126,8 @@ function OptionRowLHNData({
         />
     );
 }
+
+OptionRowLHNData.displayName = 'OptionRowLHNData';
 
 /**
  * This component is rendered in a list.

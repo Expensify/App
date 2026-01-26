@@ -25,7 +25,6 @@ type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNav
 
 function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
-
     const {translate} = useLocalize();
     const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();

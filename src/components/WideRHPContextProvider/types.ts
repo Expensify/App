@@ -32,7 +32,7 @@ type WideRHPContextType = {
     removeSuperWideRHPRouteKey: (route: NavigationRoute) => void;
 
     // Mark reportID as expense before condition check
-    markReportIDAsExpense: (reportID: string) => void;
+    markReportIDAsExpense: (reportID?: string) => void;
 
     // Mark reportID as multi-transaction expense before condition check
     markReportIDAsMultiTransactionExpense: (reportID: string) => void;
@@ -49,11 +49,20 @@ type WideRHPContextType = {
     // Whether the currently focused route is inside the wide RHP set
     isWideRHPFocused: boolean;
 
+    // Whether the currently focused route is inside the super wide RHP set
+    isSuperWideRHPFocused: boolean;
+
     // Sync super wide and wide RHP keys with the visible RHP screens
     syncRHPKeys: () => void;
 
     // Clear the arrays of wide and super wide rhp keys
     clearWideRHPKeys: () => void;
+
+    // Set that wide rhp is closing
+    setIsWideRHPClosing: (isClosing: boolean) => void;
+
+    // Set that super wide rhp is closing
+    setIsSuperWideRHPClosing: (isClosing: boolean) => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export

@@ -8,7 +8,6 @@ import {interpolate, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,7 +18,6 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -74,7 +72,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
     const {translate} = useLocalize();
     const buttonText = buttonLabel ?? translate('common.save');
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Check if image cropping, saving or uploading is in progress
     const isLoading = useSharedValue(false);
@@ -370,7 +367,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 shouldEnableKeyboardAvoidingView={false}
                 testID="AvatarCropModal"
             >
-                {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
                     title={translate('avatarCropModal.title')}
                     onBackButtonPress={onClose}

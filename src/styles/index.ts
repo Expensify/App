@@ -1,5 +1,4 @@
 /* eslint-disable max-lines */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
@@ -8,8 +7,8 @@ import type {LineLayer} from 'react-map-gl';
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
-import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
+import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -1145,15 +1144,6 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
-        headerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING,
-        },
-
-        searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 2,
-            backgroundColor: theme.appBG,
-        },
-
         reportOptions: {
             marginLeft: 8,
         },
@@ -1648,6 +1638,15 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        floatingSecondaryActionButton: {
+            backgroundColor: theme.buttonDefaultBG,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
+            borderRadius: 999,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -1656,6 +1655,15 @@ const staticStyles = (theme: ThemeColors) =>
         floatingCameraButton: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButton: {
+            position: 'absolute',
+            // floatingCameraButton top property value (componentSizeLarge + 16) +
+            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
             right: 16,
             zIndex: 10,
         },
@@ -2103,6 +2111,13 @@ const staticStyles = (theme: ThemeColors) =>
                 paddingBottom: 0,
                 alignSelf: 'center',
                 verticalAlign: 'middle',
+                ...(Platform.OS === 'android' && {
+                    height: undefined,
+                    lineHeight: undefined,
+                    alignSelf: 'stretch',
+                    flexGrow: 1,
+                    flexShrink: 1,
+                }),
             },
             0,
         ),
@@ -3295,6 +3310,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
         },
 
+        mfaBlockingViewAnimation: {
+            width: 180,
+            height: 180,
+        },
+
         locationErrorLinkText: {
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
@@ -4111,11 +4131,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 10,
         },
 
-        desktopSignInButtonContainer: {
-            width: 40,
-            height: 40,
-        },
-
         signInIconButton: {
             paddingVertical: 2,
         },
@@ -4245,10 +4260,6 @@ const staticStyles = (theme: ThemeColors) =>
         reportPreviewBoxHoverBorder: {
             borderColor: theme.cardBG,
             backgroundColor: theme.cardBG,
-        },
-
-        reportPreviewBoxHoverBorderColor: {
-            borderColor: theme.cardBG,
         },
 
         reportContainerBorderRadius: {
@@ -5056,13 +5067,8 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
-        desktopAppRetiredIllustration: {
-            width: variables.desktopAppRetiredIllustrationW,
-            height: variables.desktopAppRetiredIllustrationH,
-        },
-
-        desktopAppRetiredViewTextContainer: {
-            width: variables.desktopAppRetiredViewContainerWidth,
+        twoFARequiredOverlay: {
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
         },
 
         twoFARequiredContainer: {
@@ -5084,6 +5090,11 @@ const staticStyles = (theme: ThemeColors) =>
         uberConfirmationIllustrationContainer: {
             width: 260,
             height: 172,
+        },
+
+        gpsWebIllustrationContainer: {
+            width: 286,
+            height: 188,
         },
 
         emptyStateCardIllustrationContainer: {
@@ -5285,6 +5296,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        workflowApprovalLimitText: {
+            marginLeft: 32,
+            paddingBottom: 0,
+        },
+
         integrationIcon: {
             overflow: 'hidden',
             borderRadius: variables.buttonBorderRadius,
@@ -5294,7 +5310,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
             padding: 16,
-            flexWrap: 'wrap',
         },
 
         accountSwitcherPopover: {
@@ -5399,10 +5414,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
-        testDriveBannerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
 
         twoColumnLayoutCol: {
@@ -5644,6 +5655,9 @@ const staticStyles = (theme: ThemeColors) =>
         saveTheWorldStaticIllustration: {
             width: 179,
             height: 180,
+        },
+        paymentMethodErrorRow: {
+            paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
     }) satisfies StaticStyles;
 

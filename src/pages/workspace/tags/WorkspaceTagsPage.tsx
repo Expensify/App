@@ -14,10 +14,10 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import ListItemRightCaretWithLabel from '@components/SelectionListWithSections/ListItemRightCaretWithLabel';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import ListItemRightCaretWithLabel from '@components/SelectionListWithModal/ListItemRightCaretWithLabel';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -134,7 +134,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useEffect(() => {
         fetchTags();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -184,7 +183,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
             return newSelectedTags;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tagsList]);
     const cleanupSelectedOption = useCallback(() => setSelectedTags([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
@@ -714,9 +713,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const subtitleText = useMemo(() => {
         const emptyTagsSubtitle = hasAccountingConnections
-            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', {
-                  accountingPageURL: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`,
-              })
+            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`)
             : translate('workspace.tags.emptyTags.subtitleHTML');
         return (
             <View style={[styles.renderHTML]}>
@@ -771,26 +768,26 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     )}
                     {hasVisibleTags && !isLoading && (
                         <SelectionListWithModal
-                            canSelectMultiple={canSelectMultiple}
-                            turnOnSelectionModeOnLongPress={!hasDependentTags}
-                            onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                            sections={[{data: filteredTagList, isDisabled: false}]}
-                            shouldUseDefaultRightHandSideCheckmark={false}
-                            selectedItems={selectedTags}
-                            isSelected={isTagSelected}
-                            onCheckboxPress={toggleTag}
-                            onSelectRow={navigateToTagSettings}
-                            shouldSingleExecuteRowSelect={!canSelectMultiple}
-                            onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
+                            data={filteredTagList}
                             ListItem={TableListItem}
+                            selectedItems={selectedTags}
+                            onSelectRow={navigateToTagSettings}
+                            canSelectMultiple={canSelectMultiple}
+                            onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                             customListHeader={filteredTagList.length > 0 ? getCustomListHeader() : undefined}
-                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                            listHeaderContent={headerContent}
-                            shouldShowListEmptyContent={false}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
+                            style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            onTurnOnSelectionMode={(item) => item && toggleTag(item)}
+                            turnOnSelectionModeOnLongPress={!hasDependentTags}
+                            shouldSingleExecuteRowSelect={!canSelectMultiple}
+                            shouldUseDefaultRightHandSideCheckmark={false}
+                            customListHeaderContent={headerContent}
+                            showListEmptyContent={false}
                             showScrollIndicator={false}
-                            addBottomSafeAreaPadding
+                            onCheckboxPress={toggleTag}
+                            isSelected={isTagSelected}
+                            shouldHeaderBeInsideList
                             shouldShowRightCaret
                         />
                     )}

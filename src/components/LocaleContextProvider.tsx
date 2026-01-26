@@ -8,7 +8,6 @@ import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
-import localeEventCallback from '@libs/Localize/localeEventCallback';
 import {format} from '@libs/NumberFormatUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {setLocale} from '@userActions/App';
@@ -103,14 +102,16 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         return isSupportedLocale(deviceLocale) ? deviceLocale : CONST.LOCALES.DEFAULT;
     }, [nvpPreferredLocale, nvpPreferredLocaleMetadata]);
 
+    if (localeToApply) {
+        IntlStore.load(localeToApply);
+    }
+
     useEffect(() => {
         if (!localeToApply) {
             return;
         }
 
         setLocale(localeToApply, nvpPreferredLocale);
-        IntlStore.load(localeToApply);
-        localeEventCallback(localeToApply);
 
         // For locales without emoji support, fallback on English
         const normalizedLocale = isFullySupportedLocale(localeToApply) ? localeToApply : CONST.LOCALES.DEFAULT;

@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {StyleProp} from 'react-native';
 import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
 import Avatar from '@components/Avatar';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,7 @@ type AvatarWithDelegateAvatarProps = {
 };
 
 function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
+    const defaultAvatars = useDefaultAvatars();
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct avatar size
@@ -38,7 +40,7 @@ function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerS
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
                         size={isSmallScreenWidth ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALL}
-                        source={getSmallSizeAvatar({avatarSource: delegatePersonalDetail?.avatar, accountID: delegatePersonalDetail?.accountID})}
+                        source={getSmallSizeAvatar({avatarSource: delegatePersonalDetail?.avatar, accountID: delegatePersonalDetail?.accountID, defaultAvatars})}
                         fallbackIcon={delegatePersonalDetail?.fallbackIcon}
                         type={CONST.ICON_TYPE_AVATAR}
                     />

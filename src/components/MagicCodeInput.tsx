@@ -4,6 +4,7 @@ import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -100,6 +101,9 @@ type MagicCodeInputProps = {
     /** TestID for test */
     testID?: string;
 
+    /** Accessibility label for the input */
+    accessibilityLabel?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
 };
@@ -150,10 +154,12 @@ function MagicCodeInput({
     autoComplete,
     hasError = false,
     testID = '',
+    accessibilityLabel,
     ref,
 }: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
@@ -249,7 +255,7 @@ function MagicCodeInput({
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // + the onFulfill as the dependency because onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, shouldSubmitOnComplete]);
 
     /**
@@ -270,7 +276,6 @@ function MagicCodeInput({
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
-        // eslint-disable-next-line react-compiler/react-compiler
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
@@ -434,14 +439,14 @@ function MagicCodeInput({
 
         // We have not added:
         // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
     const cursorOpacity = useSharedValue(1);
 
     useEffect(() => {
         cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedCursorStyle = useAnimatedStyle(() => ({
@@ -487,7 +492,7 @@ function MagicCodeInput({
                             }}
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
-                            role={CONST.ROLE.PRESENTATION}
+                            accessibilityLabel={`${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}

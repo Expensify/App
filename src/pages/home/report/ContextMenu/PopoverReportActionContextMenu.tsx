@@ -1,7 +1,5 @@
-/* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
-
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
@@ -18,7 +16,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactions from '@hooks/useReportTransactions';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
@@ -87,6 +85,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -325,6 +324,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         canBeMissing: true,
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {currentSearchHash} = useSearchContext();
     const {deleteTransactions} = useDeleteTransactions({
         report,
@@ -337,7 +337,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
-    const reportAllTransactions = useReportTransactions(originalReport?.iouReportID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
@@ -362,16 +362,17 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isSingleTransactionView: undefined,
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
+                    allTransactionViolationsParam: allTransactionViolations,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', reportAllTransactions);
+            deleteAppReport(reportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived);
+                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
             });
         }
 
@@ -387,9 +388,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         isChatIOUReportArchived,
         deleteTransactions,
         currentSearchHash,
-        isOriginalReportArchived,
         email,
-        reportAllTransactions,
+        reportTransactions,
+        isOriginalReportArchived,
+        allTransactionViolations,
+        bankAccountList,
     ]);
 
     const hideDeleteModal = () => {
