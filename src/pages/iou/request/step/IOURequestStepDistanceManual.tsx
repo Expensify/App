@@ -28,7 +28,6 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getRateID} from '@libs/TransactionUtils';
-import getDistanceInMeters from '@libs/TransactionUtils/getDistanceInMeters';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,7 +62,6 @@ function IOURequestStepDistanceManual({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const previousUnitRef = useRef<string | undefined>(undefined);
 
     const [formError, setFormError] = useState<string>('');
 
@@ -101,36 +99,6 @@ function IOURequestStepDistanceManual({
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-
-    // Convert distance when unit changes (e.g., when recipient/workspace changes)
-    useEffect(() => {
-        const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit ?? previousUnitRef.current;
-        const currentDistance = transaction?.comment?.customUnit?.quantity;
-
-        // Only convert if:
-        // 1. We have a previous unit (not initial load)
-        // 2. The unit actually changed
-        // 3. There's an existing distance value
-        // 4. The existing distance unit is different from the new unit
-        if (
-            previousUnitRef.current !== undefined &&
-            previousUnitRef.current !== unit &&
-            typeof currentDistance === 'number' &&
-            existingDistanceUnit &&
-            existingDistanceUnit !== unit
-        ) {
-            // Convert distance: get current distance in meters, then convert to new unit
-            const distanceInMeters = getDistanceInMeters(transaction, existingDistanceUnit);
-            const convertedDistance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
-            const roundedConvertedDistance = roundToTwoDecimalPlaces(convertedDistance);
-
-            // Update the transaction with the converted distance
-            setMoneyRequestDistance(transactionID, roundedConvertedDistance, isTransactionDraft);
-        }
-
-        // Update the previous unit ref
-        previousUnitRef.current = unit;
-    }, [unit, transaction, transactionID, isTransactionDraft]);
 
     useEffect(() => {
         if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
