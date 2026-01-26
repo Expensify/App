@@ -1,16 +1,15 @@
 ---
 title: Billing and Subscriptions
-description: Learn how Expensify bills for Collect and Control plans, including localized pricing, billing eligibility, and how to transfer billing ownership.
-keywords: [billing, subscription, pricing, Collect, Control, plan comparison, currency, transfer billing, New Expensify]
+description: Learn how Collect and Control plans are billed in different currencies, how card usage affects pricing, and which members are charged.
+keywords: [localized billing, pricing, Collect, Control, subscription, billing currency, seat count, Expensify Card, workspace eligibility]
+internalScope: Audience is Workspace Admins. Covers pricing for Collect and Control plans across multiple currencies, eligibility rules, and how billing is calculated. Does not cover ownership transfer or billing issue resolution.
 ---
-
-<div id="new-expensify" markdown="1">
 
 Expensify offers two subscription plans — **Collect** and **Control** — designed to scale with your team's needs. This article explains how each plan is billed, pricing by currency, and how to manage your billing setup.
 
 ---
 
-# Subscription pricing by currency
+# How Collect and Control pricing works by currency
 
 <p><strong>Select your billing currency:</strong></p>
 
@@ -25,7 +24,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 <br><br>
 
 <div class="currency-block" data-currency="usd">
-  <h2>💵 USD pricing</h2>
+  <h2> USD subscription pricing</h2>
   <strong>Collect</strong>
   <ul>
     <li>$5 per unique member/month</li>
@@ -42,7 +41,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 </div>
 
 <div class="currency-block" data-currency="gbp" style="display:none;">
-  <h2>💵 GBP pricing</h2>
+  <h2>💵 GBP subscription pricing</h2>
   <strong>Collect</strong>
   <ul>
     <li>£5 per unique member/month</li>
@@ -56,7 +55,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 </div>
 
 <div class="currency-block" data-currency="eur" style="display:none;">
-  <h2>💵 EUR pricing</h2>
+  <h2> EUR subscription pricing</h2>
   <strong>Collect</strong>
   <ul>
     <li>€5 per unique member/month</li>
@@ -70,7 +69,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 </div>
 
 <div class="currency-block" data-currency="aud" style="display:none;">
-  <h2>💵 AUD pricing</h2>
+  <h2> AUD subscription pricing</h2>
   <strong>Collect</strong>
   <ul>
     <li>AU$8 per unique member/month</li>
@@ -84,7 +83,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 </div>
 
 <div class="currency-block" data-currency="nzd" style="display:none;">
-  <h2>💵 NZD pricing</h2>
+  <h2> NZD subscription pricing</h2>
   <strong>Collect</strong>
   <ul>
     <li>NZ$9 per unique member/month</li>
@@ -117,7 +116,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 
 ---
 
-# Who gets billed
+# Who gets billed under Collect and Control plans
 
 ## Collect plan
 
@@ -131,43 +130,36 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 - Add users anytime (extends your subscription term)
 - Remove users only after the term ends
 
+**Note:** Billing details and actions are controlled by the workspace’s **billing owner**.
+
 ---
 
-# Billing eligibility and details
+# Billing eligibility and how pricing is calculated
 
-## 💳 Expensify Card usage (US Only)
+## Expensify Card usage (US Only)
 
 - **Collect:** Card is optional — but earns 1% cash back on US spend
 - **Control:** Card is required for discounted pricing and cash back
 
-## 📅 Collect plan eligibility
+## Collect plan eligibility
 
 - Applies to customers whose **first workspace** was created on or after **April 1, 2025**
 
-## 🌍 Localized billing
+## Annual Subscription details
+
+Annual plans lock the minimum seat count for a 12-month term. You can add members anytime, but you cannot remove them until the term ends.
+
+## Localized billing
 
 - Pricing is available in **USD, GBP, EUR, AUD, and NZD**
 - All pricing auto-adjusts based on your currency selection
 
-## 🧾 Where to find your billing receipts
+# How to view your billing receipts
 
 - **Web:** Go to `Account > Settings > Subscription`
 - **Mobile:** Tap the **Settings** tab, then select **Subscription**
 
----
-
-# How to transfer billing ownership
-
-To transfer billing ownership of a workspace:
-
-1. Confirm the new owner is a **Workspace Admin**
-2. Have them go to:
-   - **Web:** `Settings > Workspaces > [Workspace Name] > Members`
-   - **Mobile:** Tap the hamburger menu, then go to **Workspaces > [Workspace Name] > Members**
-3. Click or tap the current billing owner’s name
-4. Select **Transfer Ownership**
-5. The new owner adds a payment card
-6. Ownership transfers on the **1st of the next month**
+**ADD A SCREENSHOT HERE.** Suggestion: Account > Settings > Subscription screen showing billing receipt history.
 
 ---
 
@@ -188,4 +180,12 @@ Yes! To change your plan:
 - Go to **Settings > Workspaces > [Workspace Name] > Settings**
 - Choose between **Collect** and **Control** based on your team's needs
 
-</div>
+**Note:** For step-by-step instructions, see [how to switch between Collect and Control plans](#).
+
+
+## What if I need to change the billing owner?
+
+See [How to transfer billing ownership](#) for step-by-step instructions on how another Workspace Admin can take over billing responsibilities.
+
+
+
