@@ -332,7 +332,7 @@ describe('getViolationsOnyxData', () => {
         it('should not add a category violation when the transaction is scanning', () => {
             const partialTransaction = {
                 ...transaction,
-                amount: 0,
+                amount: undefined,
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 category: undefined,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
