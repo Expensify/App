@@ -43,6 +43,19 @@ type TagPickerProps = {
     tagListIndex: number;
 };
 
+const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
+    if (!selectedTag) {
+        return [];
+    }
+    return [
+        {
+            name: selectedTag,
+            enabled: true,
+            accountID: undefined,
+        },
+    ];
+};
+
 function TagPicker({
     selectedTag,
     transactionTag,
@@ -62,23 +75,9 @@ function TagPicker({
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
+    const selectedOptions = getSelectedOptions(selectedTag);
 
-    const getSelectedOptions = (): SelectedTagOption[] => {
-        if (!selectedTag) {
-            return [];
-        }
-
-        return [
-            {
-                name: selectedTag,
-                enabled: true,
-                accountID: undefined,
-            },
-        ];
-    };
-    const selectedOptions = getSelectedOptions();
-
-    const enabledTags: PolicyTags | Array<PolicyTag | SelectedTagOption> = useMemo(() => {
+    const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
         if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
             return policyTagList.tags;
         }
@@ -103,16 +102,11 @@ function TagPicker({
         const selectedNames = new Set(selectedOptions.map((s) => s.name));
 
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
-    }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
+    };
 
-    const availableTagsCount = useMemo(() => {
-        if (Array.isArray(enabledTags)) {
-            return enabledTags.filter((tag) => tag.enabled).length;
-        }
-
-        return Object.values(enabledTags ?? {}).filter((tag) => tag.enabled).length;
-    }, [enabledTags]);
-    const shouldShowTextInput = availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const enabledTags = getEnabledTags();
+    const enabledTagsList = Array.isArray(enabledTags) ? enabledTags : Object.values(enabledTags ?? {});
+    const availableTagsCount = enabledTagsList.filter((tag) => tag.enabled).length;
 
     const tagSections = getTagListSections({
         searchValue,
@@ -147,7 +141,7 @@ function TagPicker({
                 listItemTitleStyles: styles.breakAll,
             }}
             textInputOptions={textInputOptions}
-            shouldShowTextInput={shouldShowTextInput}
+            shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
         />
