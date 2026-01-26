@@ -659,21 +659,29 @@ function getLastMessageTextForReport({
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
         const iouReportID = iouReport?.reportID;
-        const lastIOUMoneyReportAction = iouReportID
-            ? allSortedReportActions[iouReportID]?.find(
-                  (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                      isReportActionVisible(reportAction, iouReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsDataParam) &&
-                      reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                      isMoneyRequestAction(reportAction),
-              )
-            : undefined;
-        // For workspace chats, use the report title
-        if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
+        const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
+        const visibleReportActionsForIOUReport =
+            reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
+        const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] : undefined;
+        const lastIOUMoneyReportAction =
+            iouReportID && iouReportActions
+                ? iouReportActions.find(
+                      (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                          isReportActionVisible(reportAction, iouReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsForIOUReport) &&
+                          reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                          isMoneyRequestAction(reportAction),
+                  )
+                : undefined;
+
+        if (reportUtilsIsPolicyExpenseChat(report) && iouReport?.reportID) {
+            const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
+            lastMessageTextFromReport = formatReportLastMessageText(reportName);
+        } else if (!lastIOUMoneyReportAction && iouReport?.reportID) {
             const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
-                !isEmptyObject(iouReport) ? iouReport : null,
+                iouReport?.reportID ? iouReport : null,
                 lastIOUMoneyReportAction ?? lastReportAction,
                 true,
                 reportUtilsIsChatReport(report),

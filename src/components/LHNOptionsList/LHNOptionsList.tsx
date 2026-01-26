@@ -35,6 +35,7 @@ import {
     getReportActionActorAccountID,
     isInviteOrRemovedAction,
     isMoneyRequestAction,
+    isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -235,10 +236,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
-            // For archived reports, always call getLastMessageTextForReport to get the archive reason message
-            // instead of using lastMessageText from the report
+            const shouldAlwaysRecalculateMessage = isReportArchived || isReportPreviewAction(lastAction);
             const lastMessageTextFromReport =
-                (isReportArchived ? undefined : item.lastMessageText) ??
+                (shouldAlwaysRecalculateMessage ? undefined : item.lastMessageText) ??
                 getLastMessageTextForReport({
                     translate,
                     report: item,
