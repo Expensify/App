@@ -54,6 +54,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card number */
     cardNumber?: string;
 
+    /** Encrypted card number */
+    encryptedCardNumber?: string;
+
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
@@ -224,6 +227,21 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
+/**
+ * Unified type for unassigned cards that normalizes the difference between
+ * direct feeds (Plaid/OAuth) and commercial/custom feeds (Visa/Mastercard/Amex).
+ *
+ * For direct feeds: cardName === cardID (both are the card name string)
+ * For commercial feeds: cardName is the masked card number, cardID is the encrypted value
+ */
+type UnassignedCard = {
+    /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234") */
+    cardName: string;
+
+    /** The identifier sent to backend - equals cardName for direct feeds, encrypted value for commercial feeds */
+    cardID: string;
+};
+
 /** List of assignable cards */
 type AssignableCardsList = Record<string, string>;
 
@@ -309,14 +327,29 @@ type FailedCompanyCardAssignment = {
     /** The name of the card */
     cardName: string;
 
-    /** The card number */
-    cardNumber: string;
+    /** Custom card name */
+    customCardName?: string;
+
+    /** Failed company card assignment */
+    hasFailedCardAssignment: boolean;
+
+    /** Encrypted card number */
+    encryptedCardNumber: string;
 
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
     /** Collection of form field errors  */
     errorFields?: OnyxCommon.ErrorFields;
+
+    /** Whether the card is deleted */
+    isCardDeleted: boolean;
+
+    /** Whether the card is assigned */
+    isAssigned: boolean;
+
+    /** Assigned card */
+    assignedCard: Card | undefined;
 
     /**
      * The type of action that's pending
@@ -327,9 +360,6 @@ type FailedCompanyCardAssignment = {
 /** Pending action for a company card assignment */
 type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
 
-/** Card list with only available card */
-type FilteredCardList = Record<string, string>;
-
 export default Card;
 export type {
     ExpensifyCardDetails,
@@ -338,10 +368,10 @@ export type {
     IssueNewCardStep,
     IssueNewCardData,
     WorkspaceCardsList,
-    CardLimitType,
-    FilteredCardList,
-    ProvisioningCardData,
-    AssignableCardsList,
     FailedCompanyCardAssignment,
     FailedCompanyCardAssignments,
+    CardLimitType,
+    ProvisioningCardData,
+    AssignableCardsList,
+    UnassignedCard,
 };
