@@ -64,6 +64,10 @@ function preloadInboxTab(navigation: PlatformStackNavigationProp<AuthScreensPara
     navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {screen: SCREENS.INBOX});
 }
 
+function preloadHomeTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
+    navigation.preload(SCREENS.HOME);
+}
+
 function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {
     switch (tabName) {
         case NAVIGATION_TABS.WORKSPACES:
@@ -77,6 +81,9 @@ function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<Aut
             return;
         case NAVIGATION_TABS.INBOX:
             preloadInboxTab(navigation);
+            return;
+        case NAVIGATION_TABS.HOME:
+            preloadHomeTab(navigation);
             return;
         default:
             return undefined;
