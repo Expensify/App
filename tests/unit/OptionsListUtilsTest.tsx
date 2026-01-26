@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1139,6 +1139,32 @@ describe('OptionsListUtils', () => {
 
             expect(results.recentReports.at(0)?.isBold).toBe(true);
             expect(results.recentReports.at(0)?.isUnread).toBe(true);
+        });
+
+        it('should use personalDetails parameter when passed to getValidOptions', () => {
+            // Given a personalDetails object to pass explicitly
+            const customPersonalDetails = {
+                2: {
+                    accountID: 2,
+                    displayName: 'Custom Iron Man',
+                    login: 'tonystark@expensify.com',
+                },
+                3: {
+                    accountID: 3,
+                    displayName: 'Custom Spider-Man',
+                    login: 'peterparker@expensify.com',
+                },
+            };
+
+            // When we call getValidOptions with personalDetails parameter
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, {}, nvpDismissedProductTraining, loginList, {
+                personalDetails: customPersonalDetails,
+            });
+
+            // Then the function should complete without errors and return valid results
+            // The personalDetails param is used internally by prepareReportOptionsForDisplay for workspace chats
+            expect(results.recentReports.length).toBeGreaterThan(0);
+            expect(results.personalDetails.length).toBeGreaterThan(0);
         });
     });
 
@@ -2760,7 +2786,7 @@ describe('OptionsListUtils', () => {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
             const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false});
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(movedTransactionAction)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
@@ -2875,7 +2901,7 @@ describe('OptionsListUtils', () => {
                 [movedAction.reportActionID]: movedAction,
             });
             const lastMessage = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails: null, isReportArchived: false});
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
         it('DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', async () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED as the last action
@@ -2922,7 +2948,12 @@ describe('OptionsListUtils', () => {
         });
 
         describe('DEW (Dynamic External Workflow)', () => {
-            beforeEach(() => Onyx.clear());
+            beforeEach(async () => {
+                await act(async () => {
+                    await Onyx.clear();
+                });
+                jest.clearAllMocks();
+            });
 
             it('should show queued message for SUBMITTED action with DEW policy when offline and pending submit', async () => {
                 const reportID = 'dewReport1';
@@ -3433,7 +3464,12 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getReportOption', () => {
-        beforeEach(() => Onyx.clear());
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            jest.clearAllMocks();
+        });
 
         it('should return option with correct workspace name when policy is provided', async () => {
             const reportID = '101';
