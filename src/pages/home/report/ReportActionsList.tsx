@@ -804,7 +804,7 @@ function ReportActionsList({
         }
 
         return (
-            <>
+            <View>
                 {isConciergeProcessing && <ConciergeThinkingMessage reasoningHistory={conciergeReasoningHistory} />}
                 {canShowHeader && (
                     <ListBoundaryLoader
@@ -812,7 +812,7 @@ function ReportActionsList({
                         onRetry={retryLoadNewerChatsError}
                     />
                 )}
-            </>
+            </View>
         );
     }, [canShowHeader, retryLoadNewerChatsError, isConciergeProcessing, conciergeReasoningHistory]);
 

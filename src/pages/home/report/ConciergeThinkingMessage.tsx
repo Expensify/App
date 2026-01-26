@@ -30,24 +30,24 @@ function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMess
     };
 
     return (
-        <View style={[styles.chatItem]}>
-            <View style={[styles.chatItemRightGrouped]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
-                    <Avatar
-                        source={CONST.CONCIERGE_ICON_URL}
-                        size={CONST.AVATAR_SIZE.DEFAULT}
-                        containerStyles={[styles.mr2]}
-                    />
-                    <View style={[styles.flexColumn]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textStrong, styles.mr1]}>{CONST.CONCIERGE_DISPLAY_NAME}</Text>
-                            <Text style={[styles.textSupporting, styles.textMicro]}>{formattedTime}</Text>
-                        </View>
-                    </View>
+        <View style={styles.chatItem}>
+            <View style={[styles.alignSelfStart, styles.mr3]}>
+                <Avatar
+                    source={CONST.CONCIERGE_ICON_URL}
+                    size={CONST.AVATAR_SIZE.DEFAULT}
+                    containerStyles={styles.actionAvatar}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    name={CONST.CONCIERGE_DISPLAY_NAME}
+                />
+            </View>
+            <View style={styles.chatItemRight}>
+                <View style={styles.chatItemMessageHeader}>
+                    <Text style={[styles.chatItemMessageHeaderSender, styles.mr1]}>{CONST.CONCIERGE_DISPLAY_NAME}</Text>
+                    <Text style={styles.chatItemMessageHeaderTimestamp}>{formattedTime}</Text>
                 </View>
-                <View style={[styles.chatItemMessage, styles.ml10]}>
+                <View style={styles.chatItemMessage}>
                     {!hasReasoningHistory ? (
-                        <Text style={styles.textSupporting}>{translate('common.thinking')}</Text>
+                        <Text>{translate('common.thinking')}</Text>
                     ) : (
                         <>
                             <PressableWithFeedback
@@ -58,10 +58,10 @@ function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMess
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.8}
                             >
-                                <Text style={styles.textSupporting}>{translate('common.thinking')}</Text>
+                                <Text>{translate('common.thinking')}</Text>
                                 <Icon
                                     src={isExpanded ? icons.UpArrow : icons.DownArrow}
-                                    fill={theme.textSupporting}
+                                    fill={theme.icon}
                                     width={12}
                                     height={12}
                                 />
@@ -73,8 +73,8 @@ function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMess
                                             key={`reasoning-${index}`}
                                             style={styles.mb2}
                                         >
-                                            <Text style={[styles.textSupporting, styles.textStrong]}>{item.split('\n')[0]}</Text>
-                                            {item.split('\n').length > 1 && <Text style={styles.textSupporting}>{item.split('\n').slice(1).join('\n')}</Text>}
+                                            <Text style={styles.textStrong}>{item.split('\n')[0]}</Text>
+                                            {item.split('\n').length > 1 && <Text>{item.split('\n').slice(1).join('\n')}</Text>}
                                         </View>
                                     ))}
                                 </View>
