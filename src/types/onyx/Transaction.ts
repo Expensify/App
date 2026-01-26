@@ -428,7 +428,7 @@ type SplitShares = Record<number, SplitShare | null>;
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
-        amount: number;
+        amount?: number;
 
         /** Selected accountant */
         accountant?: Accountant;
