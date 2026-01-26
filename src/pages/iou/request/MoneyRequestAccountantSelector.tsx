@@ -90,6 +90,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
+                personalDetails,
             },
             countryCode,
         );
@@ -112,6 +113,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         betas,
         action,
         countryCode,
+        personalDetails,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -178,7 +180,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, personalDetails, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
