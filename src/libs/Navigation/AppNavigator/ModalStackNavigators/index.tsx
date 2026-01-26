@@ -188,6 +188,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.SET_DEFAULT_WORKSPACE]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
     [SCREENS.MONEY_REQUEST.STEP_TIME_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTimeRate').default,
     [SCREENS.MONEY_REQUEST.STEP_HOURS]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepHours').default,
+    [SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepHours').default,
 });
 
 const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
@@ -973,7 +974,7 @@ const ShareModalStackNavigator = createModalStackNavigator<ShareNavigatorParamLi
 });
 
 const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<MissingPersonalDetailsParamList>({
-    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
+    [SCREENS.MISSING_PERSONAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
     [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails/MissingPersonalDetailsMagicCodePage').default,
 });
 

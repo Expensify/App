@@ -305,6 +305,7 @@ export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspac
 export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
 export type {default as EnableWorkspaceReportFieldListValueParams} from './EnableWorkspaceReportFieldListValueParams';
 export type {default as EnablePolicyInvoicingParams} from './EnablePolicyInvoicingParams';
+export type {default as EnablePolicyTimeTrackingParams} from './EnablePolicyTimeTrackingParams';
 export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
 export type {default as RemoveWorkspaceReportFieldListValueParams} from './RemoveWorkspaceReportFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
