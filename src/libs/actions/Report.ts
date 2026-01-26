@@ -90,15 +90,7 @@ import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {
-    getDefaultApprover,
-    getMemberAccountIDsForWorkspace,
-    isInstantSubmitEnabled,
-    isPaidGroupPolicy,
-    isPolicyAdmin as isPolicyAdminPolicyUtils,
-    isPolicyMember,
-    isSubmitAndClose,
-} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, isInstantSubmitEnabled, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember, isSubmitAndClose} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
@@ -125,6 +117,7 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    computeOptimisticReportName,
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
@@ -142,7 +135,6 @@ import {
     getPendingChatMembers,
     getPolicyExpenseChat,
     getReportFieldKey,
-    getReportFieldsByPolicyID,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
     getReportMetadata,
@@ -151,7 +143,6 @@ import {
     getReportPreviewMessage,
     getReportTransactions,
     getReportViolations,
-    getTitleReportField,
     hasOutstandingChildRequest,
     isAdminRoom,
     isChatThread as isChatThreadReportUtils,
@@ -5589,27 +5580,18 @@ function convertIOUReportToExpenseReport(
         expenseReport.managerID = nextApproverAccountID;
     }
 
-    // Only compute optimistic report name if the user is on the CUSTOM_REPORT_NAMES beta
-    if (isCustomReportNamesBetaEnabled) {
-        const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-        if (!!titleReportField && isPaidGroupPolicy(policy)) {
-            // Convert transactions array to Record<string, Transaction> for FormulaContext
-            const transactionsRecord: Record<string, Transaction> = {};
-            for (const transaction of reportTransactions) {
-                if (transaction?.transactionID) {
-                    transactionsRecord[transaction.transactionID] = transaction;
-                }
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-            const Formula = require('@libs/Formula') as {compute: (formula?: string, context?: {report: Report; policy: Policy; allTransactions?: Record<string, Transaction>}) => string};
-            const computedName = Formula.compute(titleReportField.defaultValue, {
-                report: expenseReport,
-                policy,
-                allTransactions: transactionsRecord,
-            });
-            expenseReport.reportName = computedName ?? expenseReport.reportName;
+    // Convert transactions array to Record<string, Transaction> for computeOptimisticReportName
+    const transactionsRecord: Record<string, Transaction> = {};
+    for (const transaction of reportTransactions) {
+        if (transaction?.transactionID) {
+            transactionsRecord[transaction.transactionID] = transaction;
         }
+    }
+
+    // Compute optimistic report name if applicable
+    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, transactionsRecord, isCustomReportNamesBetaEnabled);
+    if (computedName !== null) {
+        expenseReport.reportName = computedName;
     }
 
     const reportID = iouReport.reportID;
@@ -6612,6 +6594,7 @@ export {
     saveReportDraft,
     moveIOUReportToPolicy,
     moveIOUReportToPolicyAndInviteSubmitter,
+    convertIOUReportToExpenseReport,
     dismissChangePolicyModal,
     changeReportPolicy,
     changeReportPolicyAndInviteSubmitter,
