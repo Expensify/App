@@ -57,6 +57,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    isSelfTourViewed: boolean;
 };
 
 type InitialTransactionParams = {
@@ -97,6 +98,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
+    isSelfTourViewed: boolean;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -153,6 +155,7 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    isSelfTourViewed,
 }: CreateTransactionParams) {
     const recentWaypoints = getRecentWaypoints();
 
@@ -218,6 +221,7 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                isSelfTourViewed,
             });
         }
     }
@@ -266,6 +270,7 @@ function handleMoneyRequestStepScanParticipants({
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
+    isSelfTourViewed,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -359,6 +364,7 @@ function handleMoneyRequestStepScanParticipants({
                             policyParams,
                             billable: false,
                             reimbursable: true,
+                            isSelfTourViewed,
                         });
                     },
                     (errorData) => {
@@ -380,6 +386,7 @@ function handleMoneyRequestStepScanParticipants({
                             activePolicyID,
                             files,
                             participant,
+                            isSelfTourViewed,
                         });
                     },
                 );
@@ -401,6 +408,7 @@ function handleMoneyRequestStepScanParticipants({
                 activePolicyID,
                 files,
                 participant,
+                isSelfTourViewed,
             });
             return;
         }

@@ -334,11 +334,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const leaveChat = useCallback(() => {
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
-                leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID);
+                leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID);
                 return;
             }
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-            leaveRoom(report.reportID, currentUserPersonalDetails.accountID, isWorkspaceMemberLeavingWorkspaceRoom);
+            leaveRoom(report, currentUserPersonalDetails.accountID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
     }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID]);
 
@@ -673,9 +673,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
-                    updateGroupChatAvatar(report.reportID);
+                    updateGroupChatAvatar(report.reportID, report.avatarUrl);
                 }}
-                onImageSelected={(file) => updateGroupChatAvatar(report.reportID, file)}
+                onImageSelected={(file) => updateGroupChatAvatar(report.reportID, report.avatarUrl, file)}
                 editIcon={expensifyIcons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
                 pendingAction={report.pendingFields?.avatar ?? undefined}

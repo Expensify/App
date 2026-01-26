@@ -1,4 +1,5 @@
 import reportsSelector from '@selectors/Attributes';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -210,6 +211,7 @@ function IOURequestStepConfirmation({
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
@@ -635,6 +637,7 @@ function IOURequestStepConfirmation({
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    isSelfTourViewed,
                 });
                 existingIOUReport = iouReport;
             }
@@ -669,6 +672,7 @@ function IOURequestStepConfirmation({
             hasOutstandingChildTask,
             parentReportAction,
             isTimeRequest,
+            isSelfTourViewed,
         ],
     );
 
