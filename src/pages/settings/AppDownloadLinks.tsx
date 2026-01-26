@@ -49,15 +49,6 @@ function AppDownloadLinksPage() {
             icon: Expensicons.Apple,
             iconRight: icons.NewWindow,
         },
-        {
-            translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
-            action: () => {
-                openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
-            },
-            link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
-            icon: icons.Monitor,
-            iconRight: icons.NewWindow,
-        },
     ];
 
     return (
@@ -96,6 +87,7 @@ function AppDownloadLinksPage() {
                         iconRight={item.iconRight}
                         shouldBlockSelection
                         shouldShowRightIcon
+                        role={CONST.ROLE.LINK}
                     />
                 ))}
             </ScrollView>

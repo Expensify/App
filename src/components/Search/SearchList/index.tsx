@@ -100,9 +100,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Columns to show */
     columns: SearchColumnType[];
 
-    /** Whether the screen is focused */
-    isFocused: boolean;
-
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchListItem>>; viewableItems: Array<ViewToken<SearchListItem>>}) => void;
 
@@ -120,11 +117,20 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
+    /** Custom card names */
+    customCardNames?: Record<number, string>;
+
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
+
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
+
+    /** Whether all transactions have been loaded from snapshots in group-by views */
+    hasLoadedAllTransactions?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -168,15 +174,17 @@ function SearchList({
     shouldPreventLongPressRow,
     queryJSON,
     columns,
-    isFocused,
     onViewableItemsChanged,
     onLayout,
     shouldAnimate,
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
+    customCardNames,
     onDEWModalOpen,
+    isDEWBetaEnabled,
     selectedTransactions,
+    hasLoadedAllTransactions,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -378,10 +386,10 @@ function SearchList({
 
             return (
                 <Animated.View
-                    exiting={shouldApplyAnimation && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    exiting={shouldApplyAnimation ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldApplyAnimation && hasItemsBeingRemoved && isFocused ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                    layout={shouldApplyAnimation && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip
@@ -400,6 +408,7 @@ function SearchList({
                         groupBy={groupBy}
                         searchType={type}
                         onDEWModalOpen={onDEWModalOpen}
+                        isDEWBetaEnabled={isDEWBetaEnabled}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -407,6 +416,7 @@ function SearchList({
                         accountID={accountID}
                         isOffline={isOffline}
                         violations={violations}
+                        customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                     />
@@ -418,7 +428,6 @@ function SearchList({
             groupBy,
             newTransactions,
             shouldAnimate,
-            isFocused,
             data.length,
             itemsWithSelection,
             styles.overflowHidden,
@@ -441,12 +450,14 @@ function SearchList({
             isOffline,
             violations,
             onDEWModalOpen,
+            isDEWBetaEnabled,
+            customCardNames,
         ],
     );
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length && hasLoadedAllTransactions;
 
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -456,7 +467,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedItemsWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== flattenedItemsWithoutPendingDelete.length || !hasLoadedAllTransactions)}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
@@ -490,7 +501,6 @@ function SearchList({
                 ref={listRef}
                 columns={columns}
                 scrollToIndex={scrollToIndex}
-                isFocused={isFocused}
                 flattenedItemsLength={flattenedItems.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
@@ -500,6 +510,7 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
+                customCardNames={customCardNames}
             />
             <Modal
                 isVisible={isModalVisible}

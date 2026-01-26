@@ -62,9 +62,9 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                         <Text style={[styles.textNormal, styles.textSupporting]}>{benefit}</Text>
                     </View>
                 ))}
-                <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
+                <View style={[styles.textNormal, styles.textSupporting, styles.mt4, styles.flexRow]}>
                     <RenderHTML html={translate('workspace.upgrade.commonFeatures.benefits.startsAtFull', {learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing})} />
-                </Text>
+                </View>
             </View>
             {!policyID && (
                 <Text style={[styles.mb5, styles.textNormal, styles.textSupporting]}>

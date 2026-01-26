@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -41,7 +41,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
-    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
+    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
 
@@ -77,13 +77,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, icons.FallbackAvatar]);
 
-    const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
-    const allApprovers = useMemo(() => {
-        const members: SelectionListApprover[] = [...selectedMembers];
+    const approversEmail = approvalWorkflow?.approvers.map((member) => member?.email);
+    const allApprovers: SelectionListApprover[] = [...selectedMembers];
 
-        if (!approvalWorkflow?.availableMembers) {
-            return members;
-        }
+    if (approvalWorkflow?.availableMembers) {
         const availableMembers = approvalWorkflow.availableMembers
             .map((member) => {
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -110,12 +107,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
             );
 
-        members.push(...availableMembers);
+        allApprovers.push(...availableMembers);
+    }
 
-        return members;
-    }, [selectedMembers, approvalWorkflow?.availableMembers, policy?.employeeList, policy?.owner, policy?.preventSelfApproval, personalDetailLogins, icons.FallbackAvatar, approversEmail]);
-
-    const goBack = useCallback(() => {
+    const goBack = () => {
         let backTo;
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
@@ -123,9 +118,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
         Navigation.goBack(backTo);
-    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
+    };
 
-    const nextStep = useCallback(() => {
+    const nextStep = () => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text ?? '', avatar: member.icons?.at(0)?.source, email: member.login ?? ''}));
         setApprovalWorkflowMembers(members);
 
@@ -134,25 +129,22 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         } else {
             goBack();
         }
-    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, goBack]);
+    };
 
-    const button = useMemo(() => {
-        let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
+    let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
+    if (shouldShowListEmptyContent) {
+        buttonText = translate('common.buttonConfirm');
+    }
 
-        if (shouldShowListEmptyContent) {
-            buttonText = translate('common.buttonConfirm');
-        }
-
-        return (
-            <FormAlertWithSubmitButton
-                isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
-                buttonText={buttonText}
-                onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-            />
-        );
-    }, [isInitialCreationFlow, nextStep, selectedMembers.length, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
+    const button = (
+        <FormAlertWithSubmitButton
+            isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
+            buttonText={buttonText}
+            onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+        />
+    );
 
     const toggleMember = (members: SelectionListApprover[]) => setSelectedMembers(members);
 

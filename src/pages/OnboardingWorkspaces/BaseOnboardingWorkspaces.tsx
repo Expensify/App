@@ -3,11 +3,11 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -30,6 +30,7 @@ import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -45,7 +46,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
-
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
@@ -70,13 +71,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 firstName: onboardingPersonalDetails?.firstName ?? '',
                 lastName: onboardingPersonalDetails?.lastName ?? '',
                 shouldSkipTestDriveModal: !!(policy.automaticJoiningEnabled ? policy.policyID : undefined),
+                companySize: onboardingCompanySize,
             });
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
 
             navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), policy.automaticJoiningEnabled ? policy.policyID : undefined);
         },
-        [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, isBetaEnabled],
+        [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, isBetaEnabled, onboardingCompanySize],
     );
 
     const policyIDItems = useMemo(() => {
@@ -101,14 +103,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     {
                         id: policyInfo.policyID,
                         source: getDefaultWorkspaceAvatar(policyInfo.policyName),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
                         name: policyInfo.policyName,
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
             };
         });
-    }, [translate, isOffline, joinablePolicies, handleJoinWorkspace]);
+    }, [translate, isOffline, joinablePolicies, handleJoinWorkspace, icons.FallbackWorkspaceAvatar]);
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 

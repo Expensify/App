@@ -3,16 +3,17 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
+import type {ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
+    /** The transaction itself */
+    transaction: Transaction;
+
     /** Whether the transaction is selected */
     isSelected: boolean;
-
-    /** If the transaction can be deleted */
-    canDelete: boolean;
 
     /** If the transaction can be rejected */
     canReject: boolean;
@@ -39,7 +40,7 @@ type SelectedTransactionInfo = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
     /** The reportID of the transaction */
-    reportID: string;
+    reportID?: string;
 
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
@@ -60,10 +61,12 @@ type SelectedTransactionInfo = {
     groupExchangeRate?: number;
 
     /** Whether it is the only expense of the parent expense report */
-    isFromOneTransactionReport?: boolean;
+    isFromOneTransactionReport: boolean;
 
     /** Account ID of the report owner */
     ownerAccountID?: number;
+
+    reportAction?: ReportAction;
 };
 
 /** Model of selected transactions */
@@ -71,7 +74,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 /** Model of selected reports */
 type SelectedReports = {
-    reportID: string;
+    reportID: string | undefined;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
@@ -125,6 +128,7 @@ type SearchContextData = {
     currentSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
+    currentSearchResults: SearchResults | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -134,6 +138,9 @@ type SearchContextData = {
 };
 
 type SearchContextProps = SearchContextData & {
+    currentSearchResults: SearchResults | undefined;
+    /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
+    shouldUseLiveData: boolean;
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
@@ -236,11 +243,11 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
-    columns?: SearchCustomColumnIds[];
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
     rawFilterList?: RawQueryFilter[];
+    columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
 };
 
 type SearchQueryJSON = {

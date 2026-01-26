@@ -20,7 +20,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
 import {formatAirportInfo, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
@@ -91,7 +90,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                             <>
                                 <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
                                 <Icon
-                                    src={Expensicons.ArrowRightLong}
+                                    src={expensifyIcons.ArrowRightLong}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
                                     fill={theme.icon}

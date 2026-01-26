@@ -1,7 +1,7 @@
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -11,6 +11,8 @@ import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +50,7 @@ import {areAllModalsHidden} from '@userActions/Modal';
 import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -168,8 +171,8 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
 const debouncedBroadcastUserIsTyping = lodashDebounce(
-    (reportID: string) => {
-        broadcastUserIsTyping(reportID);
+    (reportID: string, currentUserAccountID: number) => {
+        broadcastUserIsTyping(reportID, currentUserAccountID);
     },
     1000,
     {
@@ -231,6 +234,7 @@ function ComposerWithSuggestions({
     // Fullstory
     forwardedFSClass,
 }: ComposerWithSuggestionsProps) {
+    const route = useRoute();
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -250,8 +254,13 @@ function ComposerWithSuggestions({
         }
         return draftComment;
     });
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const commentRef = useRef(value);
+
+    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
+    // Autofocus is disabled on SearchReport when another RHP is displayed below as it causes animation issues
+    const shouldDisableAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
@@ -264,7 +273,8 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus =
+        (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput && !shouldDisableAutoFocus;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -444,7 +454,7 @@ function ComposerWithSuggestions({
                 saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
-                debouncedBroadcastUserIsTyping(reportID);
+                debouncedBroadcastUserIsTyping(reportID, currentUserAccountID);
             }
         },
         [
@@ -458,6 +468,7 @@ function ComposerWithSuggestions({
             debouncedSaveReportComment,
             selection?.end,
             selection?.start,
+            currentUserAccountID,
         ],
     );
 
@@ -689,7 +700,7 @@ function ComposerWithSuggestions({
     useEffect(() => {
         const isModalVisible = modal?.isVisible;
         if (isModalVisible && !prevIsModalVisible) {
-            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+            // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
 
@@ -721,7 +732,7 @@ function ComposerWithSuggestions({
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useImperativeHandle(
