@@ -332,7 +332,7 @@ describe('getViolationsOnyxData', () => {
         it('should not add a category violation when the transaction is scanning', () => {
             const partialTransaction = {
                 ...transaction,
-                amount: undefined,
+                amount: 0,
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 category: undefined,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
@@ -376,7 +376,7 @@ describe('getViolationsOnyxData', () => {
         it('should keep other violations while adding smartscanFailed for smart scan failed transactions', () => {
             const partialTransaction = {
                 ...transaction,
-                amount: undefined,
+                amount: 0,
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 category: undefined,
                 iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,

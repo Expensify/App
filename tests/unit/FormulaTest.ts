@@ -808,8 +808,9 @@ describe('CustomFormula', () => {
                 {
                     transactionID: 'trans2',
                     created: '2025-01-08T16:45:00Z', // Older but partial
-                    amount: 1000,
-                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, // Partial merchant = partial transaction
+                    amount: 0,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 },
                 {
                     transactionID: 'trans3',
