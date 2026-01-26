@@ -80,8 +80,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             </Text>
             <Badge
                 text={translate('common.newFeature')}
-                badgeStyles={[styles.badgeBordered, {borderColor: theme.success}]}
-                textStyles={{color: theme.success}}
+                badgeStyles={[styles.badgeBordered, {borderColor: theme.success, paddingHorizontal: 6, minHeight: 20}]}
+                textStyles={{color: theme.success, fontSize: 11}}
             />
         </View>
     );
