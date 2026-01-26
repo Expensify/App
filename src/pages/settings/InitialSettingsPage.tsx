@@ -197,7 +197,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             shouldShowCancelButton: true,
             danger: true,
         });
-    }, [showConfirmModal, translate]);
+    }, [showConfirmModal, translate, confirmModalTitle, confirmModalPrompt, confirmModalConfirmText]);
 
     const signOut = async (shouldForceSignout = false) => {
         if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {

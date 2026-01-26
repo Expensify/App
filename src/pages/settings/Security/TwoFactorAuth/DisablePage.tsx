@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -32,22 +32,22 @@ function DisablePage() {
         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLED, {forceReplace: true});
     }, [account?.requiresTwoFactorAuth]);
 
-    const closeModal = () => {
+    const closeModal = useCallback(() => {
         clearDisableTwoFactorAuthErrors();
 
         // Go back to the previous page because the user can't disable 2FA and this page is no longer relevant
         Navigation.goBack();
-    };
+    }, []);
 
     const {showConfirmModal} = useConfirmModal();
-    const showTwoFactorAuthRequireModal = () => {
+    const showTwoFactorAuthRequireModal = useCallback(() => {
         return showConfirmModal({
             title: translate('twoFactorAuth.twoFactorAuthCannotDisable'),
             prompt: translate('twoFactorAuth.twoFactorAuthRequired'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    };
+    }, [translate, showConfirmModal]);
 
     useEffect(() => {
         if (isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})) {
