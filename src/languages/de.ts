@@ -8085,6 +8085,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         },
         fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
     },
+    accessibilityLabels: {selectAllFeatures: 'Alle Funktionen auswählen'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

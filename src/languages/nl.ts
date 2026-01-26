@@ -8047,6 +8047,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         },
         fabGpsTripExplained: 'Ga naar GPS-scherm (Zwevende actie)',
     },
+    accessibilityLabels: {selectAllFeatures: 'Alle functies selecteren'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

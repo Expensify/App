@@ -7987,6 +7987,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
+    accessibilityLabels: {selectAllFeatures: 'すべての機能を選択'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

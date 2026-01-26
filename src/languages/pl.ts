@@ -8034,6 +8034,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
         },
         fabGpsTripExplained: 'Przejdź do ekranu GPS (przycisk akcji)',
     },
+    accessibilityLabels: {selectAllFeatures: 'Zaznacz wszystkie funkcje'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

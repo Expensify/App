@@ -8073,6 +8073,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
     },
+    accessibilityLabels: {selectAllFeatures: 'Seleziona tutte le funzionalità'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

@@ -397,6 +397,9 @@ const translations: TranslationDeepObject<typeof en> = {
         title: 'Cuenta Bloqueada',
         description: 'No puedes completar esta acción porque esta cuenta ha sido bloqueada. Para obtener más información, escribe a concierge@expensify.com.',
     },
+    accessibilityLabels: {
+        selectAllFeatures: 'Seleccionar todas las características',
+    },
     connectionComplete: {
         title: 'Conexión completa',
         supportingText: 'Ya puedes cerrar esta página y volver a la App de Expensify.',

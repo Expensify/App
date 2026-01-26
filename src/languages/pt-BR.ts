@@ -8044,6 +8044,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
     },
+    accessibilityLabels: {selectAllFeatures: 'Selecionar todos os recursos'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

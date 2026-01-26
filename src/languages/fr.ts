@@ -8091,6 +8091,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
     },
+    accessibilityLabels: {selectAllFeatures: 'Sélectionner toutes les fonctionnalités'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
