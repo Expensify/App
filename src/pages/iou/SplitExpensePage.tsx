@@ -186,7 +186,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
         }
-        if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
+        if (sumOfSplitExpenses < transactionDetailsAmount) {
             const difference = transactionDetailsAmount - sumOfSplitExpenses;
             setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
