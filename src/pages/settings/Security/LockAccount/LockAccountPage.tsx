@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
@@ -23,7 +23,7 @@ function LockAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const {showConfirmModal} = useConfirmModal();
-    const showReportSuspiciousActivityModal = useCallback(async () => {
+    const showReportSuspiciousActivityModal = async () => {
         const result = await showConfirmModal({
             title: translate('lockAccountPage.reportSuspiciousActivity'),
             prompt: (
@@ -57,7 +57,7 @@ function LockAccountPage() {
         } else {
             Navigation.navigate(ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT);
         }
-    }, [showConfirmModal, translate, session?.accountID, styles.mb5]);
+    };
 
     const lockAccountButton = (
         <Button
