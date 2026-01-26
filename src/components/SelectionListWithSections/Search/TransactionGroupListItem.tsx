@@ -17,6 +17,7 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
@@ -40,6 +41,7 @@ import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
+import MonthListItemHeader from './MonthListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
@@ -270,6 +272,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
                     <WithdrawalIDListItemHeader
                         withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.MONTH]: (
+                    <MonthListItemHeader
+                        month={groupItem as TransactionMonthGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
                         columns={columns}

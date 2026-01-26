@@ -632,6 +632,7 @@ const translations = {
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        month: 'Month',
     },
     supportalNoAccess: {
         title: 'Not so fast',

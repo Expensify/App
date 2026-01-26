@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -2086,19 +2087,48 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
+function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionMonthGroupListItemType[], number] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
-
     for (const key in data) {
         if (isGroupEntry(key)) {
-            const monthGroup = data[key] as SearchMonthGroup;
+            const groupData = data[key];
+            // Check if this is a month group by checking for year and month properties
+            if (!('year' in groupData) || !('month' in groupData)) {
+                continue;
+            }
+            const monthGroup = groupData as SearchMonthGroup;
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
+            if (queryJSON && monthGroup.year && monthGroup.month) {
+                // Create date range for the month (first day to last day of the month)
+                const monthStart = new Date(monthGroup.year, monthGroup.month - 1, 1);
+                const monthEnd = new Date(monthGroup.year, monthGroup.month, 0);
+
+                const startDateStr = format(monthStart, 'yyyy-MM-dd');
+                const endDateStr = format(monthEnd, 'yyyy-MM-dd');
+
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: startDateStr},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: endDateStr},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+
+            // Format month display: "January 2026"
+            const monthDate = new Date(monthGroup.year, monthGroup.month - 1, 1);
+            const formattedMonth = format(monthDate, 'MMMM yyyy');
 
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
                 transactions: [],
-                transactionsQueryJSON: queryJSON,
+                transactionsQueryJSON,
                 ...monthGroup,
-                formattedMonth: `${monthGroup.year}_${monthGroup.month}`,
+                formattedMonth,
             };
         }
     }
@@ -2181,7 +2211,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.MONTH:
-                return getMonthSections(data, queryJSON);
+                return getMonthSections(data, queryJSON, translate);
         }
     }
 
