@@ -312,6 +312,5 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
         });
-
     });
 });
