@@ -3504,7 +3504,43 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+function getCollectionsFromSearchResults(currentSearch?: SearchResults) {
+    const policies = {};
+    const reports = {};
+    const transactions = {};
+    const transactionViolations = {};
+
+    if (!currentSearch?.data) {
+        return {
+            reports,
+            transactions,
+            transactionViolations,
+            policies,
+        };
+    }
+
+    for (const key of Object.keys(currentSearch.data)) {
+        if (isPolicyEntry(key)) {
+            policies[key] = currentSearch.data[key];
+        } else if (isTransactionEntry(key)) {
+            transactions[key] = currentSearch.data[key];
+        } else if (isReportEntry(key)) {
+            reports[key] = currentSearch.data[key];
+        } else if (isViolationEntry(key)) {
+            transactionViolations[key] = currentSearch.data[key];
+        }
+    }
+
+    return {
+        reports,
+        transactions,
+        transactionViolations,
+        policies,
+    };
+}
+
 export {
+    getCollectionsFromSearchResults,
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
     getListItem,
