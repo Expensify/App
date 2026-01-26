@@ -1,6 +1,6 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -16,9 +16,6 @@ import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
 import type CalendarPickerListItem from './types';
 import YearPickerModal from './YearPickerModal';
-
-const SELECTED_ACCESSIBILITY_STATE = {selected: true} as const;
-const UNSELECTED_ACCESSIBILITY_STATE = {selected: false} as const;
 
 type CalendarPickerProps = {
     /** An initial value of date string */
@@ -179,6 +176,8 @@ function CalendarPicker({
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
     const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
 
+    const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
+
     return (
         <View style={[themeStyles.pb4]}>
             <View
@@ -283,7 +282,7 @@ function CalendarPicker({
                                     onPress={handleOnPress}
                                     style={themeStyles.calendarDayRoot}
                                     accessibilityLabel={accessibilityDateLabel}
-                                    accessibilityState={isSelected ? SELECTED_ACCESSIBILITY_STATE : UNSELECTED_ACCESSIBILITY_STATE}
+                                    accessibilityState={getAccessibilityState(isSelected)}
                                     aria-selected={isSelected}
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
