@@ -989,7 +989,7 @@ function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
 
 /**
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `allPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
+ * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
  * All usages of this function should be replaced with useOnyx hook in React components.
  */
 function getPolicyTagsData(policyID: string | undefined) {
