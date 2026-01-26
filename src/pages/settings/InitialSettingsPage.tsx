@@ -184,11 +184,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, []);
 
     const {showConfirmModal} = useConfirmModal();
+    const confirmModalTitle = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
+    const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
+    const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
+
     const showSignOutModal = useCallback(() => {
         return showConfirmModal({
-            title: translate('common.areYouSure'),
-            prompt: translate('initialSettingsPage.signOutConfirmationText'),
-            confirmText: translate('initialSettingsPage.signOut'),
+            title: confirmModalTitle,
+            prompt: confirmModalPrompt,
+            confirmText: confirmModalConfirmText,
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
             danger: true,
@@ -487,10 +491,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         }
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
-
-    const confirmModalTitle = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
-    const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
-    const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
 
     return (
         <ScreenWrapper
