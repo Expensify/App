@@ -21,6 +21,8 @@ type MultifactorAuthenticationReason = ValueOf<{
     [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
 }>;
 
+type MultifactorAuthenticationMethodCode = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
+
 /**
  * Conditional type for including or omitting the step field in partial status.
  */
@@ -39,7 +41,7 @@ type MultifactorAuthenticationPartialStatus<T, OmitStep = false> = MultifactorAu
 
     reason: MultifactorAuthenticationReason;
 
-    type?: ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
+    type?: MultifactorAuthenticationMethodCode;
 };
 
 /**
@@ -135,9 +137,11 @@ type MultifactorAuthenticationKeyInfo<T extends KeyInfoType> = {
 /**
  * Configuration options for multifactor key store operations.
  */
-type MultifactorKeyStoreOptions = {
-    nativePromptTitle?: string;
-};
+type MultifactorKeyStoreOptions<T extends MultifactorAuthenticationKeyType> = T extends typeof VALUES.KEY_ALIASES.PRIVATE_KEY
+    ? {
+          nativePromptTitle: string;
+      }
+    : void;
 
 type ChallengeType = ValueOf<typeof VALUES.CHALLENGE_TYPE>;
 
@@ -152,6 +156,7 @@ export type {
     MultifactorKeyStoreOptions,
     MultifactorAuthenticationReason,
     MultifactorAuthenticationKeyInfo,
+    MultifactorAuthenticationMethodCode,
     ResponseDetails,
     ChallengeType,
 };

@@ -37,7 +37,7 @@ describe('MultifactorAuthenticationChallenge', () => {
 
     describe('constructor', () => {
         it('should initialize challenge instance with scenario and params', () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
             expect(challenge).toBeDefined();
         });
 
@@ -50,7 +50,7 @@ describe('MultifactorAuthenticationChallenge', () => {
 
     describe('request method', () => {
         it('should successfully request a challenge from the server', async () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
 
             // Mock the requestAuthenticationChallenge function
             mockMFAActions.requestAuthenticationChallenge.mockResolvedValueOnce({
@@ -69,7 +69,7 @@ describe('MultifactorAuthenticationChallenge', () => {
         });
 
         it('should handle bad token error', async () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
 
             mockMFAActions.requestAuthenticationChallenge.mockResolvedValueOnce({
                 challenge: undefined,
@@ -87,7 +87,7 @@ describe('MultifactorAuthenticationChallenge', () => {
 
     describe('sign method', () => {
         it('should return error if challenge is not requested yet', async () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
 
             const result = await challenge.sign(mockAccountID);
 
@@ -96,7 +96,7 @@ describe('MultifactorAuthenticationChallenge', () => {
         });
 
         it('should return error if challenge is already signed', async () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
 
             // Mock request
             mockMFAActions.requestAuthenticationChallenge.mockResolvedValueOnce({
@@ -118,7 +118,7 @@ describe('MultifactorAuthenticationChallenge', () => {
         });
 
         it('should handle missing private key', async () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
 
             // Mock request
             mockMFAActions.requestAuthenticationChallenge.mockResolvedValueOnce({
@@ -146,7 +146,7 @@ describe('MultifactorAuthenticationChallenge', () => {
         });
 
         it('should delete keys if public key is missing from backend', async () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
 
             // Mock request
             mockMFAActions.requestAuthenticationChallenge.mockResolvedValueOnce({
@@ -186,7 +186,7 @@ describe('MultifactorAuthenticationChallenge', () => {
 
     describe('send method', () => {
         it('should return error if challenge is not signed', async () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
 
             const result = await challenge.send();
 
@@ -195,7 +195,7 @@ describe('MultifactorAuthenticationChallenge', () => {
         });
 
         it('should process scenario with signed challenge', async () => {
-            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams);
+            const challenge = new MultifactorAuthenticationChallenge(mockScenario, mockParams, {nativePromptTitle: 'Test'});
 
             // Mock request and helpers
             mockMFAActions.requestAuthenticationChallenge.mockResolvedValueOnce({

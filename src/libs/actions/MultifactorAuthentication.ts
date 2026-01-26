@@ -27,10 +27,6 @@ import CONST from '@src/CONST';
 
 async function registerAuthenticationKey({keyInfo, validateCode}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
     try {
-        if (!validateCode) {
-            return parseHttpCode(401, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY);
-        }
-
         const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo, validateCode}, {});
 
         const {jsonCode} = response ?? {};
@@ -63,10 +59,6 @@ async function requestAuthenticationChallenge(challengeType: ChallengeType = 'au
 
 async function troubleshootMultifactorAuthentication({signedChallenge}: MultifactorAuthenticationScenarioParameters['BIOMETRICS-TEST']) {
     try {
-        if (!signedChallenge) {
-            return parseHttpCode(400, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION);
-        }
-
         const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, {signedChallenge}, {});
 
         const {jsonCode} = response ?? {};

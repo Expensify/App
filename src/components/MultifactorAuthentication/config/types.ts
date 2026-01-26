@@ -67,7 +67,9 @@ type MultifactorAuthenticationModal = {
 };
 
 /**
- * Optional modal configuration for scenarios that may not have custom modals.
+ * Override configuration for modals with partial properties.
+ * This allows customization of specific modal aspects without redefining the entire structure.
+ * e.g. "Authentication attempt" in the cancel confirmation modal can be changed to "Transaction approval".
  */
 type MultifactorAuthenticationModalOptional = {
     cancelConfirmation?: Partial<MultifactorAuthenticationCancelConfirm>;

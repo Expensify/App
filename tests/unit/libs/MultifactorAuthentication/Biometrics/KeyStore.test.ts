@@ -42,7 +42,7 @@ describe('MultifactorAuthentication KeyStore', () => {
             it('should save a private key successfully', async () => {
                 mockedSecureStoreMethods.setItemAsync.mockResolvedValueOnce('biometric');
 
-                const result = await PrivateKeyStore.set(mockAccountID, mockKey);
+                const result = await PrivateKeyStore.set(mockAccountID, mockKey, {nativePromptTitle: 'Test'});
 
                 expect(result.value).toBe(true);
                 expect(result.reason).toBe(VALUES.REASON.KEYSTORE.KEY_SAVED);
@@ -53,7 +53,7 @@ describe('MultifactorAuthentication KeyStore', () => {
             it('should handle save errors', async () => {
                 mockedSecureStoreMethods.setItemAsync.mockRejectedValueOnce(new Error('Save failed'));
 
-                const result = await PrivateKeyStore.set(mockAccountID, mockKey);
+                const result = await PrivateKeyStore.set(mockAccountID, mockKey, {nativePromptTitle: 'Test'});
 
                 expect(result.value).toBe(false);
             });
@@ -71,7 +71,7 @@ describe('MultifactorAuthentication KeyStore', () => {
             it('should retrieve a stored private key', async () => {
                 mockedSecureStoreMethods.getItemAsync.mockResolvedValueOnce([mockKey, 'biometric']);
 
-                const result = await PrivateKeyStore.get(mockAccountID);
+                const result = await PrivateKeyStore.get(mockAccountID, {nativePromptTitle: 'Test'});
 
                 expect(result.value).toBe(mockKey);
                 expect(result.reason).toBe(VALUES.REASON.KEYSTORE.KEY_RETRIEVED);
@@ -81,7 +81,7 @@ describe('MultifactorAuthentication KeyStore', () => {
             it('should return KEY_NOT_FOUND when key is null', async () => {
                 mockedSecureStoreMethods.getItemAsync.mockResolvedValueOnce([null, undefined]);
 
-                const result = await PrivateKeyStore.get(mockAccountID);
+                const result = await PrivateKeyStore.get(mockAccountID, {nativePromptTitle: 'Test'});
 
                 expect(result.value).toBeNull();
                 expect(result.reason).toBe(VALUES.REASON.KEYSTORE.KEY_NOT_FOUND);
@@ -90,7 +90,7 @@ describe('MultifactorAuthentication KeyStore', () => {
             it('should handle retrieval errors', async () => {
                 mockedSecureStoreMethods.getItemAsync.mockRejectedValueOnce(new Error('Retrieval failed'));
 
-                const result = await PrivateKeyStore.get(mockAccountID);
+                const result = await PrivateKeyStore.get(mockAccountID, {nativePromptTitle: 'Test'});
 
                 expect(result.value).toBeNull();
             });

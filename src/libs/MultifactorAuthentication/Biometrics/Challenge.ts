@@ -7,7 +7,7 @@ import {signToken as signTokenED25519} from './ED25519';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import {isChallengeSigned, processScenario} from './helpers';
 import {PrivateKeyStore, PublicKeyStore} from './KeyStore';
-import type {ChallengeType, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason, MultifactorKeyStoreOptions} from './types';
+import type {ChallengeType, MultifactorAuthenticationMethodCode, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason, MultifactorKeyStoreOptions} from './types';
 import VALUES from './VALUES';
 
 /**
@@ -15,17 +15,16 @@ import VALUES from './VALUES';
  * Manages requesting challenges from the server, signing them with the private key, and sending signed challenges back.
  */
 class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScenario> {
-    private auth: MultifactorAuthenticationPartialStatus<MultifactorAuthenticationChallengeObject | SignedChallenge | undefined, true> = {
-        value: undefined,
-        reason: VALUES.REASON.GENERIC.NO_ACTION_MADE_YET,
-    };
+    private challenge: MultifactorAuthenticationChallengeObject | SignedChallenge | undefined = undefined;
+
+    private authenticationMethod: MultifactorAuthenticationMethodCode | undefined = undefined;
 
     private publicKeys: string[] = [];
 
     constructor(
         private readonly scenario: T,
         private readonly params: MultifactorAuthenticationScenarioAdditionalParams<T>,
-        private readonly options?: MultifactorKeyStoreOptions,
+        private readonly options: MultifactorKeyStoreOptions<typeof VALUES.KEY_ALIASES.PRIVATE_KEY>,
         private readonly challengeType: ChallengeType = 'authentication',
     ) {}
 
@@ -38,7 +37,6 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
 
     /**
      * Requests a new authentication challenge from the server and stores public keys.
-     * Sends the appropriate challengeType (authentication or registration) to the backend.
      */
     public async request(): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
         const {challenge, publicKeys: authPublicKeys, reason: apiReason} = await requestAuthenticationChallenge(this.challengeType);
@@ -46,12 +44,9 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
 
         const reason = apiReason === VALUES.REASON.BACKEND.UNKNOWN_RESPONSE ? VALUES.REASON.CHALLENGE.BAD_TOKEN : apiReason;
 
-        this.auth = {
-            value: challenge,
-            reason: challenge ? VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED : reason,
-        };
+        this.challenge = challenge;
 
-        return {...this.auth, value: true};
+        return {reason: challenge ? VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED : reason, value: true};
     }
 
     /**
@@ -61,11 +56,11 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         accountID: number,
         chainedPrivateKeyStatus?: MultifactorAuthenticationPartialStatus<string | null, true>,
     ): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
-        if (!this.auth.value) {
+        if (!this.challenge) {
             return this.createErrorReturnValue(VALUES.REASON.CHALLENGE.CHALLENGE_MISSING);
         }
 
-        if (isChallengeSigned(this.auth.value)) {
+        if (isChallengeSigned(this.challenge)) {
             return this.createErrorReturnValue(VALUES.REASON.CHALLENGE.CHALLENGE_ALREADY_SIGNED);
         }
 
@@ -82,22 +77,17 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
             return this.createErrorReturnValue(VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED);
         }
 
-        this.auth = {
-            value: signTokenED25519(this.auth.value, value, publicKey),
-            reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
-            type,
-        };
+        this.challenge = signTokenED25519(this.challenge, value, publicKey);
+        this.authenticationMethod = type;
 
-        return {...this.auth, value: true};
+        return {value: true, reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED, type};
     }
 
     /**
      * Sends the signed challenge to the server for the specific scenario.
      */
     public async send(): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
-        const {value} = this.auth;
-
-        if (!value || !isChallengeSigned(value)) {
+        if (!this.challenge || !isChallengeSigned(this.challenge)) {
             return this.createErrorReturnValue(VALUES.REASON.GENERIC.SIGNATURE_MISSING);
         }
 
@@ -105,7 +95,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
             this.scenario,
             {
                 ...this.params,
-                signedChallenge: value,
+                signedChallenge: this.challenge,
             },
             VALUES.FACTOR_COMBINATIONS.BIOMETRICS_AUTHENTICATION,
         );
@@ -122,7 +112,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         return {
             value: true,
             reason: VALUES.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
-            type: this.auth.type,
+            type: this.authenticationMethod,
         };
     }
 }

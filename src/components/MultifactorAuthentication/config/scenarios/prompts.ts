@@ -5,8 +5,6 @@ import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 /**
  * Configuration for multifactor authentication prompt UI with animations and translations.
  */
-
-/* eslint-disable @typescript-eslint/naming-convention */
 export default {
     [VALUES.PROMPT.ENABLE_BIOMETRICS]: {
         animation: LottieAnimations.Fingerprint,
@@ -14,4 +12,3 @@ export default {
         subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',
     },
 } as const satisfies MultifactorAuthenticationPrompt;
-/* eslint-enable @typescript-eslint/naming-convention */
