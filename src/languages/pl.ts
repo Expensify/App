@@ -911,6 +911,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySystemDM: 'Witamy! Skonfigurujmy wszystko.',
         chatWithAccountManager: 'Czat z Twoim opiekunem klienta tutaj',
         askMeAnything: 'Zapytaj mnie o cokolwiek!',
+        sayHello: 'Przywitaj się!',
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witamy w ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Użyj przycisku +, aby ${additionalText} wydatek.`,

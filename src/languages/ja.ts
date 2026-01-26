@@ -910,6 +910,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySystemDM: 'ようこそ！さっそく設定を始めましょう。',
         chatWithAccountManager: 'ここでアカウントマネージャーとチャットする',
         askMeAnything: '何でも聞いてください！',
+        sayHello: 'こんにちはと言ってください！',
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `「＋」ボタンを使って経費を${additionalText}してください。`,
