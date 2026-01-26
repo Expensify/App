@@ -267,6 +267,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     disabled={false}
                                                     interactive
                                                     title={translate(item.translationPath)}
+                                                    badgeStyle={styles.todoBadge}
                                                     icon={icon}
                                                     iconWidth={variables.iconSizeNormal}
                                                     iconHeight={variables.iconSizeNormal}
