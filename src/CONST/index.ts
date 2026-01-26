@@ -7046,6 +7046,7 @@ const CONST = {
             GROUP_BANK_ACCOUNT: 'groupBankAccount',
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
+            GROUP_MONTH: 'groupMonth',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
