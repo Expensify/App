@@ -41,7 +41,6 @@ import type {
     PersonalDetails,
     Policy,
     PolicyCategories,
-    PolicyTagLists,
     RecentWaypoint,
     Report,
     ReportAction,
