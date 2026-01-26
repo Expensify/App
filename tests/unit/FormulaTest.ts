@@ -797,7 +797,7 @@ describe('CustomFormula', () => {
             expect(endResult).toBe('2025-01-15');
         });
 
-        test('should skip partial transactions (zero amount)', () => {
+        test('should skip partial transactions (partial merchant)', () => {
             const mockTransactions = [
                 {
                     transactionID: 'trans1',
@@ -808,9 +808,8 @@ describe('CustomFormula', () => {
                 {
                     transactionID: 'trans2',
                     created: '2025-01-08T16:45:00Z', // Older but partial
-                    amount: 0, // Zero amount = partial
-                    merchant: 'Beta Corp.',
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    amount: 1000,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, // Partial merchant = partial transaction
                 },
                 {
                     transactionID: 'trans3',
