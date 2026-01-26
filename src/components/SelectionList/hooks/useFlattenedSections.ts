@@ -53,7 +53,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                 data.push({
                     type: CONST.SECTION_LIST_ITEM_TYPE.HEADER,
                     title: section.title,
-                    keyForList: `header-${section.title}`,
+                    keyForList: `header-${section.sectionIndex}`,
                     isDisabled: true,
                 });
             }
@@ -64,6 +64,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                     ...item,
                     type: CONST.SECTION_LIST_ITEM_TYPE.ROW,
                     isDisabled: section.isDisabled === true || item.isDisabled === true,
+                    flatListKey: `${section.sectionIndex}-${item.keyForList}`,
                 } as SectionListItem<TItem>;
                 data.push(itemData);
 
