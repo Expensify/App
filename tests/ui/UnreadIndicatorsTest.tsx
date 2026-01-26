@@ -9,7 +9,6 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import getOnyxValue from 'tests/utils/getOnyxValue';
 import {setSidebarLoaded} from '@libs/actions/App';
 import {trackExpense} from '@libs/actions/IOU';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
@@ -23,7 +22,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -699,7 +698,11 @@ describe('Unread Indicators', () => {
             comment: 'description',
         };
 
-        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        let recentWaypoints: RecentWaypoint[] = [];
+        Onyx.connect({
+            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            callback: (val) => (recentWaypoints = val ?? []),
+        });
 
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};

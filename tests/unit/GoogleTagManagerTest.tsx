@@ -2,7 +2,6 @@ import {NavigationContainer} from '@react-navigation/native';
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import getOnyxValue from 'tests/utils/getOnyxValue';
 import {trackExpense} from '@libs/actions/IOU';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
@@ -13,6 +12,7 @@ import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FundList} from '@src/types/onyx';
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
