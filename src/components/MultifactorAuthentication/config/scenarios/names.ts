@@ -6,6 +6,15 @@
  * as the Multifactor Authentication configs imports SCREENS, actions, and other shared modules,
  * and at the same time the config is imported in the CONSTs.
  */
-export default {
+const SCENARIO_NAMES = {
     BIOMETRICS_TEST: 'BIOMETRICS-TEST',
 } as const;
+
+/**
+ * Prompt identifiers for multifactor authentication scenarios.
+ */
+const PROMPT_NAMES = {
+    ENABLE_BIOMETRICS: 'enable-biometrics',
+};
+
+export {SCENARIO_NAMES, PROMPT_NAMES};

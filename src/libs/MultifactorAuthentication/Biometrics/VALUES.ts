@@ -1,7 +1,7 @@
 /**
  * Constants for multifactor authentication biometrics flow and API responses.
  */
-import SCENARIO from '@components/MultifactorAuthentication/config/scenarios/names';
+import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthentication/config/scenarios/names';
 
 /**
  * Callback registry for multifactor authentication flow events.
@@ -207,7 +207,12 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     /**
      * Scenario name mappings.
      */
-    SCENARIO,
+    SCENARIO: SCENARIO_NAMES,
+
+    /**
+     * Prompt name mappings.
+     */
+    PROMPT: PROMPT_NAMES,
 
     /**
      * Authentication type identifiers.

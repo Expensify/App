@@ -1,5 +1,6 @@
 import LottieAnimations from '@components/LottieAnimations';
 import type {MultifactorAuthenticationPrompt} from '@components/MultifactorAuthentication/config/types';
+import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 
 /**
  * Configuration for multifactor authentication prompt UI with animations and translations.
@@ -7,7 +8,7 @@ import type {MultifactorAuthenticationPrompt} from '@components/MultifactorAuthe
 
 /* eslint-disable @typescript-eslint/naming-convention */
 export default {
-    'enable-biometrics': {
+    [VALUES.PROMPT.ENABLE_BIOMETRICS]: {
         animation: LottieAnimations.Fingerprint,
         title: 'multifactorAuthentication.verifyYourself.biometrics',
         subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',
