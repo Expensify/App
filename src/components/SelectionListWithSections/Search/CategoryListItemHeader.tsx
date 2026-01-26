@@ -123,7 +123,7 @@ function CategoryListItemHeader<TItem extends ListItem>({
                     {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
-                    <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
+                    <View style={[styles.flexShrink0, styles.ml2, styles.mr3, styles.gap1]}>
                         <TotalCell
                             total={categoryItem.total}
                             currency={categoryItem.currency}
