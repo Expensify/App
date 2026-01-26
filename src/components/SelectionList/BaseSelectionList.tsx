@@ -566,57 +566,7 @@ function BaseSelectionList<TItem extends ListItem>({
         [data.length, scrollToIndex, setFocusedIndex],
     );
 
-<<<<<<< HEAD
-    useEffect(() => {
-        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputOptions?.value) {
-            return;
-        }
-        setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedItemIndex]);
-
-    const prevSearchValue = usePrevious(textInputOptions?.value);
-    const prevSelectedOptionsLength = usePrevious(dataDetails.selectedOptions.length);
-    const prevAllOptionsLength = usePrevious(data.length);
-
-    useEffect(() => {
-        const currentSearchValue = textInputOptions?.value;
-        const searchChanged = prevSearchValue !== currentSearchValue;
-        const selectedOptionsChanged = dataDetails.selectedOptions.length !== prevSelectedOptionsLength;
-        const selectionChangedByClicking = !searchChanged && selectedOptionsChanged && shouldUpdateFocusedIndex;
-        // Do not change focus if:
-        // 1. Input value is the same or
-        // 2. Data length is 0 or
-        // 3. Selection changed via user interaction (not filtering), so focus is handled externally
-        if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || selectionChangedByClicking) {
-            return;
-        }
-
-        const hasSearchBeenCleared = prevSearchValue && !currentSearchValue;
-        if (hasSearchBeenCleared) {
-            const foundSelectedItemIndex = data.findIndex(isItemSelected);
-
-            if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
-                scrollToIndex(foundSelectedItemIndex);
-                setFocusedIndex(foundSelectedItemIndex);
-                return;
-            }
-        }
-
-        // Remove focus (set focused index to -1) if:
-        // 1. If the search is idle or
-        // 2. If the user is just toggling options without changing the list content
-        // Otherwise (e.g. when filtering/typing), focus on the first item (0)
-        const isSearchIdle = !prevSearchValue && !currentSearchValue;
-        const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevAllOptionsLength === data.length) ? -1 : 0;
-
-        scrollToIndex(newSelectedIndex);
-        setFocusedIndex(newSelectedIndex);
-    }, [
-        canSelectMultiple,
-=======
     useSelectedItemFocusSync({
->>>>>>> 87e6d666b4e4ecd51eaee9ef21a9eee4d4f470ff
         data,
         initiallyFocusedItemKey,
         isItemSelected,
