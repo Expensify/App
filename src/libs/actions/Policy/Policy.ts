@@ -114,7 +114,6 @@ import type {
     Report,
     ReportAction,
     ReportActions,
-    Request,
     TaxRatesWithDefault,
     Transaction,
     TransactionViolations,
@@ -1725,7 +1724,7 @@ function updateGeneralSettings(policyID: string | undefined, name: string, curre
 
     const createWorkspaceRequest = persistedRequests.at(createWorkspaceRequestChangedIndex);
     if (createWorkspaceRequest && createWorkspaceRequestChangedIndex !== -1) {
-        const workspaceRequest: Request<any> = {
+        const workspaceRequest = {
             ...createWorkspaceRequest,
             data: {
                 ...createWorkspaceRequest.data,

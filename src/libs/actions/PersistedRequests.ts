@@ -59,7 +59,7 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
-        ongoingRequest = val?.at(0) ?? null;
+        ongoingRequest = val ?? null;
     },
 });
 
@@ -87,7 +87,7 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>) {
     }
 
     // If the command is not in the keepLastInstance array, add the new request as usual
-    const requests: GenericRequest[] = [...persistedRequests, requestToPersist];
+    const requests = [...persistedRequests, requestToPersist];
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)
         .then(() => {
@@ -135,10 +135,10 @@ function deleteRequestsByIndices(indices: number[]) {
 }
 
 function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>) {
-    const requests: GenericRequest[] = [...persistedRequests];
+    const requests = [...persistedRequests];
     const oldRequest = requests.at(oldRequestIndex);
     Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
-    requests.splice(oldRequestIndex, 1, newRequest as GenericRequest);
+    requests.splice(oldRequestIndex, 1, newRequest);
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
@@ -148,7 +148,7 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     ongoingRequest = newRequest;
 
     if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, [newRequest]);
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
     }
 }
 
@@ -170,7 +170,7 @@ function processNextRequest(): GenericRequest | null {
     persistedRequests = newPersistedRequests;
 
     if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, [ongoingRequest]);
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);
     }
 
     return ongoingRequest;
