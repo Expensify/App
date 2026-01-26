@@ -97,12 +97,9 @@ function IOURequestStepUpgrade({
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
 
-        // Handle bulk move for REPORTS case separately - it needs to close the entire RHP flow
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.length > 0) {
-            // Get the newly created policy
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            // Create a new report for the policy
             const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, false, false);
 
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
@@ -180,6 +177,7 @@ function IOURequestStepUpgrade({
         session?.accountID,
         session?.email,
         currentUserPersonalDetails,
+        allTransactions,
     ]);
 
     const participant = transaction?.participants?.[0];
