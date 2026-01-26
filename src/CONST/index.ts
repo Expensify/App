@@ -6833,6 +6833,7 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+            MONTH: 'month',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
