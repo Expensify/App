@@ -2408,27 +2408,40 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
  *
  * @param childReportID The reportID we are trying to open
  * @param parentReportAction the parent comment of a thread
- * @param parentReportID The reportID of the parent
+ * @param parentReport The parent report
  * @param prevNotificationPreference The previous notification preference for the child report
  */
 function toggleSubscribeToChildReport(
     childReportID: string | undefined,
     currentUserAccountID: number,
-    parentReportAction: Partial<ReportAction> = {},
-    parentReportID?: string,
+    parentReportAction: ReportAction,
+    parentReport: OnyxEntry<Report>,
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
         openReport(childReportID);
-        const parentReportActionID = parentReportAction?.reportActionID;
+        const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
-            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, currentUserAccountID, parentReportID, parentReportActionID);
+            updateNotificationPreference(
+                childReportID,
+                prevNotificationPreference,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                currentUserAccountID,
+                parentReport?.reportID,
+                parentReportActionID,
+            );
         } else {
-            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, currentUserAccountID, parentReportID, parentReportActionID);
+            updateNotificationPreference(
+                childReportID,
+                prevNotificationPreference,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                currentUserAccountID,
+                parentReport?.reportID,
+                parentReportActionID,
+            );
         }
     } else {
-        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])];
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const newChat = buildOptimisticChatReport({
             participantList: participantAccountIDs,
             reportName: ReportActionsUtils.getReportActionText(parentReportAction),
@@ -2437,13 +2450,13 @@ function toggleSubscribeToChildReport(
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             parentReportActionID: parentReportAction.reportActionID,
-            parentReportID,
+            parentReportID: parentReport?.reportID,
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
         openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReportID, parentReportAction?.reportActionID);
+        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction.reportActionID);
     }
 }
 
