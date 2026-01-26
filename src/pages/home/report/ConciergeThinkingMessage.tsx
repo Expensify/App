@@ -23,7 +23,7 @@ function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMess
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
 
     const hasReasoningHistory = reasoningHistory.length > 0;
-    const formattedTime = DateUtils.getStatusUntilOfflineTime().slice(0, 5);
+    const formattedTime = DateUtils.formatToLocalTime(new Date());
 
     const toggleExpanded = () => {
         setIsExpanded(!isExpanded);
