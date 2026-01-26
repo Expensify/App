@@ -40,7 +40,10 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
     }
 
-    return actions.join(', ') || '';
+    // Lowercase any subsequent rule after the first one
+    return actions
+        .map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1)))
+        .join(', ');
 }
 
 function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
