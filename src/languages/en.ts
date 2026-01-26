@@ -7976,6 +7976,10 @@ const translations = {
         members: {
             title: 'Members',
             findMember: 'Find member',
+            closeAccount: () => ({
+                one: 'Close account',
+                other: 'Close accounts',
+            }),
         },
     },
 };

@@ -8061,6 +8061,12 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+
+        PRIMARY_ACTIONS: {},
+
+        MEMBERS_BULK_ACTION_TYPES: {
+            CLOSE_ACCOUNT: 'closeAccount',
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {
