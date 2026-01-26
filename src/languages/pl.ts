@@ -2124,6 +2124,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} utraci dostęp do tego firmowego konta bankowego. Nadal będziemy realizować wszystkie płatności w toku.`,
         reachOutForHelp: 'Jest ono używane z kartą Expensify. <concierge-link>Skontaktuj się z Concierge</concierge-link>, jeśli chcesz je anulować.',
         unshareErrorModalTitle: 'Nie można anulować udostępniania konta bankowego',
+        chaseAccountNumberDifferent: 'Dlaczego mój numer konta jest inny?',
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',

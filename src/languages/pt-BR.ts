@@ -2123,6 +2123,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderá o acesso a esta conta bancária comercial. Ainda concluiremos quaisquer pagamentos em andamento.`,
         reachOutForHelp: 'Está sendo usada com o Cartão Expensify. <concierge-link>Entre em contato com o Concierge</concierge-link> se precisar descompartilhar.',
         unshareErrorModalTitle: 'Não foi possível descompartilhar a conta bancária',
+        chaseAccountNumberDifferent: 'Por que meu número de conta é diferente?',
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',

@@ -2129,6 +2129,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderà l'accesso a questo conto bancario aziendale. Completeremo comunque tutti i pagamenti in corso.`,
         reachOutForHelp: 'È in uso con la carta Expensify. <concierge-link>Contatta il Concierge</concierge-link> se devi revocare la condivisione.',
         unshareErrorModalTitle: 'Impossibile revocare la condivisione del conto bancario',
+        chaseAccountNumberDifferent: 'Perché il mio numero di conto è diverso?',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',

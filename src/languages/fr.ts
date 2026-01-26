@@ -2137,6 +2137,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perdra l’accès à ce compte bancaire professionnel. Les paiements en cours seront honorés.`,
         reachOutForHelp: 'Ce compte est utilisé avec la carte Expensify. <concierge-link>Contactez le service de conciergerie</concierge-link> si vous souhaitez le retirer du partage.',
         unshareErrorModalTitle: 'Impossible de retirer le partage du compte bancaire',
+        chaseAccountNumberDifferent: 'Pourquoi mon numéro de compte est-il différent ?',
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',
