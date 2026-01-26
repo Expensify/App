@@ -145,10 +145,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions]);
 
-    const isSelectAllChecked = selectedItemsLength === transactions.length && transactions.length > 0;
+    const isEmpty = transactions.length === 0;
+
+    const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
-    const isEmpty = transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
@@ -208,11 +211,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
-        if (isEmpty) {
-            return;
-        }
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
-    }, [isEmpty, isExpenseReportType, item, onLongPressRow, transactions]);
+    }, [isExpenseReportType, item, onLongPressRow, transactions]);
 
     const onExpandedRowLongPress = useCallback(
         (transaction: TransactionListItemType) => {
@@ -288,7 +288,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         report={groupItem as TransactionReportGroupListItemType}
                         onSelectRow={(listItem) => onSelectRow(listItem, transactionPreviewData)}
                         onCheckboxPress={onCheckboxPress}
-                        isDisabled={isDisabledOrEmpty}
+                        isDisabled={isDisabled}
                         isFocused={isFocused}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
@@ -316,13 +316,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
             canSelectMultiple,
             isSelectAllChecked,
             isIndeterminate,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
-            groupBy,
-            isExpanded,
             onExpandIconPress,
+            isExpanded,
             isFocused,
             searchType,
+            groupBy,
+            isDisabled,
+            onDEWModalOpen,
+            isDEWBetaEnabled,
             onSelectRow,
             transactionPreviewData,
         ],
