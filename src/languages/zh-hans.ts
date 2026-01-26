@@ -6052,6 +6052,10 @@ ${reportName}
                     `<muted-text>为单笔报销设置支出控制和默认值。您还可以为<a href="${categoriesPageLink}">类别</a>和<a href="${tagsPageLink}">标签</a>创建规则。</muted-text>`,
                 receiptRequiredAmount: '所需收据金额',
                 receiptRequiredAmountDescription: '当支出超过此金额时要求提供收据，除非被类别规则覆盖。',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `金额不能高于明细收据所需金额（${amount}）`,
+                itemizedReceiptRequiredAmount: '明细收据所需金额',
+                itemizedReceiptRequiredAmountDescription: '当支出超过此金额时需要明细收据，除非被类别规则覆盖。',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `金额不能低于常规收据所需金额（${amount}）`,
                 maxExpenseAmount: '最大报销金额',
                 maxExpenseAmountDescription: '标记超过此金额的支出，除非被类别规则覆盖。',
                 maxAge: '最大年龄',
@@ -6139,6 +6143,12 @@ ${reportName}
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} 默认`,
                     never: '从不要求收据',
                     always: '始终要求收据',
+                },
+                requireItemizedReceiptsOver: '要求明细收据超过',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} 默认`,
+                    never: '从不要求明细收据',
+                    always: '始终要求明细收据',
                 },
                 defaultTaxRate: '默认税率',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) => `前往[更多功能](${moreFeaturesLink})并启用工作流，然后添加审批以解锁此功能。`,
@@ -6285,11 +6295,17 @@ ${reportName}
         },
         updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
             if (!oldValue) {
-                return `通过将收据更改为 ${newValue}，已更新类别 “${categoryName}”`;
+                return `通过将收据更改为 ${newValue}，已更新类别 "${categoryName}"`;
             }
-            return `将“${categoryName}”类别更改为 ${newValue}（之前为 ${oldValue}）`;
+            return `将"${categoryName}"类别更改为 ${newValue}（之前为 ${oldValue}）`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `已将类别“${oldName}”重命名为“${newName}”`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `通过将明细收据更改为${newValue}来更新类别"${categoryName}"`;
+            }
+            return `将"${categoryName}"类别的明细收据更改为${newValue}（之前为${oldValue}）`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `已将类别"${oldName}"重命名为"${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `从类别 “${categoryName}” 中移除了描述提示 “${oldValue}”`;
@@ -7142,6 +7158,7 @@ ${reportName}
             }
             return '需要收据';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `需要明细收据${formattedLimit ? `超过 ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止报销的费用：';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7657,6 +7674,7 @@ ${reportName}
         },
         outstandingFilter: '<tooltip>筛选<strong>需要批准</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS 跟踪进行中！完成后，请在下方停止跟踪。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
@@ -7815,7 +7833,6 @@ ${reportName}
         domainAdmins: '域管理员',
     },
     gps: {
-        tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',
         disclaimer: '使用 GPS 根据您的行程创建报销。点击下方的“开始”以开始跟踪。',
         error: {failedToStart: '启动位置跟踪失败。', failedToGetPermissions: '获取必需的位置权限失败。'},
         trackingDistance: '正在跟踪距离…',
