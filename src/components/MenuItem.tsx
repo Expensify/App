@@ -158,6 +158,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Overrides the icon for shouldShowRightIcon */
         iconRight?: IconAsset;
 
+        /** Should dim and apply small size for right icon */
+        shouldDimIconRight?: boolean;
+
         /** Should render component on the right */
         shouldShowRightComponent?: boolean;
 
@@ -469,6 +472,7 @@ function MenuItem({
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
+    shouldDimIconRight = false,
     iconRight,
     furtherDetailsIcon,
     furtherDetails,
@@ -1019,13 +1023,18 @@ function MenuItem({
                                                             styles.pointerEventsAuto,
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
-                                                            hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
+                                                            isHovered || shouldDimIconRight ? styles.opacity1 : styles.opacitySemiTransparent,
+                                                            styles.alignItemsEnd,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight ?? icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
+                                                            fill={
+                                                                shouldDimIconRight
+                                                                    ? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
+                                                                    : theme.icon
+                                                            }
                                                             width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                             height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                         />
