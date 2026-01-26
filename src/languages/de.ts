@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Passwort',
         magicCode: 'Magischer Code',
+        digits: 'Ziffern',
         twoFactorCode: 'Zwei-Faktor-Code',
         workspaces: 'Arbeitsbereiche',
         inbox: 'Posteingang',
@@ -634,6 +635,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Nicht erstattungsfähiger Gesamtbetrag',
         originalAmount: 'Ursprünglicher Betrag',
         insights: 'Einblicke',
+        duplicateExpense: 'Doppelte Ausgabe',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1476,6 +1478,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / Stunde`,
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
+        correctDistanceRateError: 'Beheben Sie den Fehler beim Entfernungssatz und versuchen Sie es erneut.',
     },
     transactionMerge: {
         listPage: {
@@ -5130,8 +5133,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     `Wählen Sie das ${integration}-Konto, in das die Transaktionen exportiert werden sollen. Wählen Sie eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.`,
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsanfangsdatum',
-                changeTransactionStartDateWarning:
-                    'Durch das Ändern des Startdatums werden alle nicht gemeldeten/entworfenen Berichtstransaktionen entfernt und alle Transaktionen ab dem neuen Startdatum erneut importiert. Dies kann zu doppelten Transaktionen führen.',
                 updateCard: 'Karte aktualisieren',
                 unassignCard: 'Karte zuweisen aufheben',
                 unassign: 'Zuweisung aufheben',
@@ -5540,7 +5541,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 giveItNameInstruction: 'Mach sie eindeutig genug, um sie von anderen Karten unterscheiden zu können. Konkrete Anwendungsfälle sind sogar noch besser!',
                 cardName: 'Kartenname',
                 letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
-                willBeReady: 'Diese Karte ist sofort einsatzbereit.',
+                willBeReadyToUse: 'Diese Karte ist sofort einsatzbereit.',
+                willBeReadyToShip: 'Diese Karte ist sofort versandbereit.',
                 cardholder: 'Karteninhaber',
                 cardType: 'Kartentyp',
                 limit: 'Limit',
@@ -8080,6 +8082,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             button: 'App herunterladen',
         },
         notification: {title: 'GPS-Tracking läuft', body: 'Zur App gehen, um abzuschließen'},
+        signOutWarningTripInProgress: {title: 'GPS-Tracking läuft', prompt: 'Sind Sie sicher, dass Sie die Reise verwerfen und sich abmelden möchten?', confirm: 'Verwerfen und abmelden'},
         locationServicesRequiredModal: {
             title: 'Standortzugriff erforderlich',
             confirm: 'Einstellungen öffnen',
