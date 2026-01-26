@@ -217,7 +217,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => {
+                            onPress={async () => {
                                 if (shouldPreventDisableOrDelete) {
                                     showConfirmModal({
                                         title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
@@ -227,22 +227,20 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                     });
                                     return;
                                 }
-                                showConfirmModal({
+                                const {action} = await showConfirmModal({
                                     title: translate('workspace.tags.deleteTag'),
                                     prompt: translate('workspace.tags.deleteTagConfirmation'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
                                     danger: true,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
+                                });
+                                if (action === ModalActions.CONFIRM) {
                                     if (!currentPolicyTag?.name) {
                                         return;
                                     }
                                     deletePolicyTags(policyData, [currentPolicyTag.name]);
                                     Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
-                                });
+                                }
                             }}
                         />
                     )}

@@ -339,6 +339,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         glCodeContainerStyle,
         glCodeTextStyle,
         switchContainerStyle,
+        showConfirmModal,
     ]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
@@ -473,7 +474,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
                 : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
         );
-    }, [backTo, isOffline, isQuickSettingsFlow, policyID]);
+    }, [backTo, isOffline, isQuickSettingsFlow, policyID, showConfirmModal, translate]);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const secondaryActions = useMemo(() => {
@@ -535,7 +536,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToTagsSettings, hasAccountingConnections, hasVisibleTags, navigateToImportSpreadsheet, isOffline, isMultiLevelTags, policyID, hasDependentTags, expensifyIcons]);
+    }, [
+        translate,
+        navigateToTagsSettings,
+        hasAccountingConnections,
+        hasVisibleTags,
+        navigateToImportSpreadsheet,
+        isOffline,
+        isMultiLevelTags,
+        policyID,
+        hasDependentTags,
+        expensifyIcons,
+        showConfirmModal,
+    ]);
 
     const getHeaderButtons = () => {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
@@ -574,7 +587,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => {
+                onSelected: async () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
                         showConfirmModal({
                             title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
@@ -585,18 +598,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
 
-                    showConfirmModal({
+                    const {action} = await showConfirmModal({
                         title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                         prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-                        deleteTags();
                     });
+                    if (action === ModalActions.CONFIRM) {
+                        deleteTags();
+                    }
                 },
             });
         }
