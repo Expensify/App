@@ -3727,11 +3727,11 @@ const ROUTES = {
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
 
-    // The exact notification & prompt type will be added as a part of Multifactor Authentication config in another PR,
+    // The exact outcome & prompt type will be added as a part of Multifactor Authentication config in another PR,
     // for now a string is accepted to avoid blocking this PR.
-    MULTIFACTOR_AUTHENTICATION_NOTIFICATION: {
-        route: 'multifactor-authentication/notification/:notificationType',
-        getRoute: (notificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE>) => `multifactor-authentication/notification/${notificationType}` as const,
+    MULTIFACTOR_AUTHENTICATION_OUTCOME: {
+        route: 'multifactor-authentication/outcome/:outcomeType',
+        getRoute: (outcomeType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE>) => `multifactor-authentication/outcome/${outcomeType}` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_PROMPT: {
