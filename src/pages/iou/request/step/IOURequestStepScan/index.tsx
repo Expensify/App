@@ -31,6 +31,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -97,6 +98,7 @@ function IOURequestStepScan({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const isArchived = isArchivedReport(reportNameValuePairs);
     const policy = usePolicy(report?.policyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -347,38 +349,41 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
+                policyForMovingExpenses,
             });
         },
         [
-            backTo,
-            backToReport,
-            shouldGenerateTransactionThreadReport,
-            transactions,
-            initialTransaction?.isFromGlobalCreate,
-            initialTransaction?.currency,
-            initialTransaction?.participants,
-            initialTransaction?.reportID,
-            isArchived,
             iouType,
-            defaultExpensePolicy,
+            policy,
             report,
-            initialTransactionID,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails?.login,
-            shouldSkipConfirmation,
-            personalDetails,
-            reportAttributesDerived,
             reportID,
+            reportAttributesDerived,
+            transactions,
+            initialTransactionID,
+            initialTransaction?.reportID,
+            initialTransaction?.currency,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.participants,
             transactionTaxCode,
             transactionTaxAmount,
-            quickAction,
-            policyRecentlyUsedCurrencies,
-            policy,
+            personalDetails,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            backTo,
+            backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            shouldGenerateTransactionThreadReport,
+            isArchived,
             personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            reportNameValuePairs?.private_isArchived,
+            policyForMovingExpenses,
         ],
     );
 

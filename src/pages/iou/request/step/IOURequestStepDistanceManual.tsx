@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMoneyRequestParticipantsFromReport, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
@@ -75,6 +76,7 @@ function IOURequestStepDistanceManual({
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
@@ -194,40 +196,44 @@ function IOURequestStepDistanceManual({
                 introSelected,
                 activePolicyID,
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
+                policyForMovingExpenses,
             });
         },
         [
             transactionID,
             isTransactionDraft,
             action,
-            backTo,
-            report,
-            isArchived,
             iouType,
-            distance,
-            transaction,
-            parentReport,
+            report,
             policy,
-            policyTags,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            shouldSkipConfirmation,
-            personalDetails,
+            transaction,
+            reportID,
             reportAttributesDerived,
-            translate,
-            lastSelectedDistanceRates,
+            personalDetails,
+            customUnitRateID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+            backTo,
             backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            isArchived,
+            personalPolicy?.autoReporting,
+            isASAPSubmitBetaEnabled,
             transactionViolations,
+            lastSelectedDistanceRates,
+            translate,
             quickAction,
             policyRecentlyUsedCurrencies,
-            customUnitRateID,
             introSelected,
             activePolicyID,
-            defaultExpensePolicy,
-            personalPolicy?.autoReporting,
-            reportID,
+            reportNameValuePairs?.private_isArchived,
+            policyForMovingExpenses,
+            distance,
+            parentReport,
+            policyTags,
+            policyCategories,
+            parentReportNextStep,
         ],
     );
 
