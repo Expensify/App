@@ -5046,7 +5046,7 @@ function getTransactionReportName({
     }
 
     // The unit does not matter as we are only interested in whether the distance is zero or not
-    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)) {
+    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) && !hasReceiptTransactionUtils(transaction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('violations.noRoute');
     }

@@ -2662,9 +2662,9 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
 }
 
 /**
- * Check if there is a smartscan failed or no route violation for the transaction.
+ * Returns true if a transaction have violations that should block report submission.
  */
-function hasSmartScanFailedOrNoRouteViolation(
+function hasSubmissionBlockingViolations(
     transaction: Transaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
@@ -2780,7 +2780,7 @@ export {
     hasViolation,
     hasDuplicateTransactions,
     hasBrokenConnectionViolation,
-    hasSmartScanFailedOrNoRouteViolation,
+    hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
