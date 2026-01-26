@@ -189,9 +189,6 @@ type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Whether receipt partners are enabled */
         enabled?: boolean;
-
-        /** Whether the receipt partners page is loading */
-        isLoading?: boolean;
     } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
 >;
 
@@ -1965,6 +1962,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
         isLoadingWorkspaceReimbursement?: boolean;
+
+        /** Indicates if the receipt partners page is loading */
+        isLoadingReceiptPartners?: boolean;
 
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;

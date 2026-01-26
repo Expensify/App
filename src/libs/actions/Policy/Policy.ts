@@ -3093,9 +3093,7 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    receiptPartners: {
-                        isLoading: true,
-                    },
+                    isLoadingReceiptPartners: true,
                 },
             },
         ],
@@ -3104,9 +3102,7 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    receiptPartners: {
-                        isLoading: null,
-                    },
+                    isLoadingReceiptPartners: null,
                 },
             },
         ],
@@ -3115,9 +3111,7 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    receiptPartners: {
-                        isLoading: null,
-                    },
+                    isLoadingReceiptPartners: null,
                 },
             },
         ],

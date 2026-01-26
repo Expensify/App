@@ -224,7 +224,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                     text={translate('workspace.accounting.setup')}
                                     style={styles.justifyContentCenter}
                                     small
-                                    isLoading={!isOffline && !!policy?.receiptPartners?.isLoading}
+                                    isLoading={!isOffline && !!policy?.isLoadingReceiptPartners}
                                     isDisabled={isOffline}
                                 />
                             ),
