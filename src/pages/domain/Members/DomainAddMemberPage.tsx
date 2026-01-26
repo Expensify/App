@@ -81,6 +81,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
+                onEntryTransitionEnd={() => emailInputRef.current?.focus()}
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
                 testID="DomainAddMemberPage"
