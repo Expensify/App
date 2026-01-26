@@ -89,6 +89,7 @@ function ProcessMoneyReportHoldMenu({
             return;
         }
 
+        console.log(isApprove, chatReport, paymentType);
         if (isApprove) {
             if (startAnimation) {
                 startAnimation();

@@ -35,6 +35,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onCheckboxPress,
     onDEWModalOpen,
     isDEWBetaEnabled,
+    onHoldMenuOpen,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
@@ -83,6 +84,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onHoldMenuOpen,
         });
     }, [
         currentSearchHash,
@@ -201,6 +203,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isDisabledCheckbox={isDisabledCheckbox}
                         isHovered={hovered}
                         isFocused={isFocused}
+                        onHoldMenuOpen={onHoldMenuOpen}
                     />
                     {getDescription}
                 </View>

@@ -8,8 +8,17 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {
+    ReportActionListItemType,
+    SearchListItem,
+    SelectionListHandle,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
@@ -36,7 +45,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getNonHeldAndFullAmount, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -70,7 +79,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
-import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, Transaction} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -90,6 +100,8 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
+
+type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -208,6 +220,19 @@ function Search({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
+    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const [holdMenuParams, setHoldMenuParams] = useState<{
+        chatReport: OnyxEntry<Report>;
+        fullAmount: string;
+        moneyRequestReport: OnyxEntry<Report>;
+        transactionCount: number;
+        nonHeldAmount: string;
+        requestType: ActionHandledType;
+        paymentType?: PaymentMethodType;
+        hasValidNonHeldAmount: boolean;
+        hasNoneHeldExpenses: boolean;
+    } | null>(null);
+
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
 
@@ -218,6 +243,27 @@ function Search({
             setIsDEWModalVisible(true);
         }
     }, [onDEWModalOpen]);
+
+    const handleHoldMenuOpen = useCallback(
+        (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => {
+            const chatReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
+            const moneyRequestReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, item.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false);
+            setHoldMenuParams({
+                chatReport,
+                moneyRequestReport,
+                transactionCount: item.transactionCount ?? 0,
+                fullAmount,
+                requestType,
+                paymentType,
+                nonHeldAmount,
+                hasValidNonHeldAmount,
+                hasNoneHeldExpenses: item.transactions.some((t) => !isOnHold(t)),
+            });
+            setIsHoldMenuVisible(true);
+        },
+        [searchResults?.data],
+    );
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
@@ -1118,6 +1164,7 @@ function Search({
                     selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
                     onDEWModalOpen={handleDEWModalOpen}
+                    onHoldMenuOpen={handleHoldMenuOpen}
                     isDEWBetaEnabled={isDEWBetaEnabled}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
@@ -1178,6 +1225,20 @@ function Search({
                     confirmText={translate('customApprovalWorkflow.goToExpensifyClassic')}
                     shouldShowCancelButton={false}
                 />
+                {isHoldMenuVisible && !!holdMenuParams && (
+                    <ProcessMoneyReportHoldMenu
+                        isVisible={isHoldMenuVisible}
+                        onClose={() => setIsHoldMenuVisible(false)}
+                        chatReport={holdMenuParams.chatReport}
+                        fullAmount={holdMenuParams.fullAmount}
+                        moneyRequestReport={holdMenuParams.moneyRequestReport}
+                        transactionCount={holdMenuParams.transactionCount}
+                        hasNonHeldExpenses={holdMenuParams?.hasNoneHeldExpenses}
+                        nonHeldAmount={holdMenuParams.hasNoneHeldExpenses && holdMenuParams.hasValidNonHeldAmount ? holdMenuParams.nonHeldAmount : undefined}
+                        requestType={holdMenuParams.requestType}
+                        paymentType={holdMenuParams.paymentType}
+                    />
+                )}
             </Animated.View>
         </SearchScopeProvider>
     );
@@ -1185,7 +1246,7 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {SearchProps};
+export type {SearchProps, HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 

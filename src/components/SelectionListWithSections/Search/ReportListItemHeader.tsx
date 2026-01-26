@@ -6,6 +6,7 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
+import type {HoldMenuCallback} from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -59,6 +60,9 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Callback to fire when hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
 
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
@@ -206,6 +210,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     isExpanded,
     isHovered,
     onDEWModalOpen,
+    onHoldMenuOpen,
     isDEWBetaEnabled,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
@@ -242,6 +247,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onHoldMenuOpen,
         });
     };
     return !isLargeScreenWidth ? (
