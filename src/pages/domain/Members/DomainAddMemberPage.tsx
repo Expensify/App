@@ -88,7 +88,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.members.addMember')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID))}
                 />
 
                 <FormProvider
