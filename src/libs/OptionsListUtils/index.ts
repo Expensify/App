@@ -660,8 +660,7 @@ function getLastMessageTextForReport({
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
         const iouReportID = iouReport?.reportID;
         const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
-        const visibleReportActionsForIOUReport =
-            reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
+        const visibleReportActionsForIOUReport = reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
         const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] : undefined;
         const lastIOUMoneyReportAction =
             iouReportID && iouReportActions
