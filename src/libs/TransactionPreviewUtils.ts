@@ -22,11 +22,11 @@ import {
     isSettled,
 } from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
-import {getExpenseTypeTranslationKey} from './SearchUIUtils';
 import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getAmount,
+    getExpenseTypeTranslationKey,
     getFormattedCreated,
     getTransactionType,
     hasMissingSmartscanFields,

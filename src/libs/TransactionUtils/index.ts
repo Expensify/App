@@ -52,6 +52,7 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -318,6 +319,10 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
         return CONST.SEARCH.TRANSACTION_TYPE.TIME;
     }
 
+    if (isManagedCardTransaction(transaction)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CARD;
+    }
+
     const cardID = transaction?.cardID;
     if (cardID && cardList?.[cardID]?.cardName === CONST.COMPANY_CARDS.CARD_NAME.CASH) {
         return CONST.SEARCH.TRANSACTION_TYPE.CASH;
@@ -328,6 +333,25 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
     }
 
     return CONST.SEARCH.TRANSACTION_TYPE.CARD;
+}
+
+/**
+ * Returns the corresponding translation key for expense type
+ */
+function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (expenseType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            return 'common.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+            return 'iou.cash';
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            return 'common.perDiem';
+        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
+            return 'iou.time';
+    }
 }
 
 function isManualRequest(transaction: Transaction): boolean {
@@ -2775,6 +2799,7 @@ export {
     getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,
+    getExpenseTypeTranslationKey,
 };
 
 export type {TransactionChanges};
