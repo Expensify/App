@@ -333,6 +333,7 @@ Onyx.connect({
 });
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
+const reasoningSubscriptionReportIdentifiers = new Set<string>();
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
@@ -489,6 +490,12 @@ function subscribeToReportReasoningEvents(reportID: string) {
         return;
     }
 
+    if (reasoningSubscriptionReportIdentifiers.has(reportID)) {
+        return;
+    }
+
+    reasoningSubscriptionReportIdentifiers.add(reportID);
+
     const pusherChannelName = getReportChannelName(reportID);
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: ConciergeReasoningEvent) => {
         const reasoningData: ReasoningEventData = {
@@ -498,6 +505,7 @@ function subscribeToReportReasoningEvents(reportID: string) {
         };
         ConciergeReasoningStore.addReasoning(reportID, reasoningData);
     }).catch((error: ReportError) => {
+        reasoningSubscriptionReportIdentifiers.delete(reportID);
         Log.hmmm('[Report] Failed to subscribe to Concierge reasoning events', {errorType: error.type, pusherChannelName});
     });
 }
@@ -509,6 +517,7 @@ function unsubscribeFromReportReasoningChannel(reportID: string) {
     }
 
     const pusherChannelName = getReportChannelName(reportID);
+    reasoningSubscriptionReportIdentifiers.delete(reportID);
     ConciergeReasoningStore.clearReasoning(reportID);
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING);
 }
