@@ -5502,7 +5502,7 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
-    MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE: {
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE: {
         SUCCESS: 'success',
         FAILURE: 'failure',
     },

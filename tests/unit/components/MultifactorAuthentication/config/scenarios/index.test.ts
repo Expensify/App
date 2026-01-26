@@ -21,27 +21,27 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             expect(cancelConfirmation).toHaveProperty('confirmButtonText');
             expect(cancelConfirmation).toHaveProperty('cancelButtonText');
 
-            // Verify NOTIFICATIONS exists and has all required notification types
-            expect(scenarioConfig).toHaveProperty('NOTIFICATIONS');
-            expect(scenarioConfig.NOTIFICATIONS).toHaveProperty('success');
-            expect(scenarioConfig.NOTIFICATIONS).toHaveProperty('failure');
-            expect(scenarioConfig.NOTIFICATIONS).toHaveProperty('outOfTime');
-            expect(scenarioConfig.NOTIFICATIONS).toHaveProperty('noEligibleMethods');
+            // Verify OUTCOMES exists and has all required outcome types
+            expect(scenarioConfig).toHaveProperty('OUTCOMES');
+            expect(scenarioConfig.OUTCOMES).toHaveProperty('success');
+            expect(scenarioConfig.OUTCOMES).toHaveProperty('failure');
+            expect(scenarioConfig.OUTCOMES).toHaveProperty('outOfTime');
+            expect(scenarioConfig.OUTCOMES).toHaveProperty('noEligibleMethods');
         }
     });
 
     /**
-     * Verifies that each notification in every scenario has all required properties
+     * Verifies that each outcome in every scenario has all required properties
      */
-    it('should have all required notification properties for each notification type', () => {
+    it('should have all required outcome properties for each outcome type', () => {
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
 
-        const requiredNotificationProps = ['illustration', 'iconWidth', 'iconHeight', 'padding', 'headerTitle', 'title', 'description'];
+        const requiredOutcomeProps = ['illustration', 'iconWidth', 'iconHeight', 'padding', 'headerTitle', 'title', 'description'];
 
         for (const scenarioConfig of Object.values(config)) {
-            for (const notification of Object.values(scenarioConfig.NOTIFICATIONS)) {
-                for (const prop of requiredNotificationProps) {
-                    expect(notification).toHaveProperty(prop);
+            for (const outcome of Object.values(scenarioConfig.OUTCOMES)) {
+                for (const prop of requiredOutcomeProps) {
+                    expect(outcome).toHaveProperty(prop);
                 }
             }
         }
@@ -78,18 +78,18 @@ describe('MultifactorAuthentication Scenarios Config', () => {
     /**
      * Verifies that the customConfig properly merges defaults with custom overrides
      */
-    it('should properly merge default and custom notification configurations', () => {
+    it('should properly merge default and custom outcome configurations', () => {
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
         const biometricsTestConfig = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
         // Verify that custom success headerTitle is applied
-        expect(biometricsTestConfig.NOTIFICATIONS.success.headerTitle).toBe('multifactorAuthentication.biometricsTest.biometricsTest');
+        expect(biometricsTestConfig.OUTCOMES.success.headerTitle).toBe('multifactorAuthentication.biometricsTest.biometricsTest');
 
         // Verify that default illustration is preserved
-        expect(biometricsTestConfig.NOTIFICATIONS.success).toHaveProperty('illustration');
+        expect(biometricsTestConfig.OUTCOMES.success).toHaveProperty('illustration');
 
-        // Verify that other notifications still have defaults
-        expect(biometricsTestConfig.NOTIFICATIONS.failure.illustration).toBe('HumptyDumpty');
-        expect(biometricsTestConfig.NOTIFICATIONS.outOfTime.illustration).toBe('RunOutOfTime');
+        // Verify that other outcomes still have defaults
+        expect(biometricsTestConfig.OUTCOMES.failure.illustration).toBe('HumptyDumpty');
+        expect(biometricsTestConfig.OUTCOMES.outOfTime.illustration).toBe('RunOutOfTime');
     });
 });

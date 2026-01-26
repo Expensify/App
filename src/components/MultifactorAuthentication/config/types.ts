@@ -36,9 +36,9 @@ type MultifactorAuthenticationPromptConfig = {
 };
 
 /**
- * Configuration for displaying multifactor authentication notifications with illustrations and text.
+ * Configuration for displaying multifactor authentication outcomes with illustrations and text.
  */
-type MultifactorAuthenticationNotificationConfig = {
+type MultifactorAuthenticationOutcomeConfig = {
     illustration: IllustrationName;
     iconWidth: number;
     iconHeight: number;
@@ -55,9 +55,9 @@ type MultifactorAuthenticationNotificationConfig = {
 type MultifactorAuthenticationPrompt = Record<string, MultifactorAuthenticationPromptConfig>;
 
 /**
- * Collection of notifications keyed by notification type.
+ * Collection of outcomes keyed by an outcome type.
  */
-type MultifactorAuthenticationNotification = Record<string, MultifactorAuthenticationNotificationConfig>;
+type MultifactorAuthenticationOutcome = Record<string, MultifactorAuthenticationOutcomeConfig>;
 
 /**
  * Configuration for modals in multifactor authentication flows.
@@ -76,9 +76,9 @@ type MultifactorAuthenticationModalOptional = {
 };
 
 /**
- * Optional notification configuration with partial properties for scenario overrides.
+ * Optional outcome configuration with partial properties for scenario overrides.
  */
-type MultifactorAuthenticationNotificationOptional = Record<string, Partial<MultifactorAuthenticationNotificationConfig>>;
+type MultifactorAuthenticationOutcomeOptional = Record<string, Partial<MultifactorAuthenticationOutcomeConfig>>;
 
 /**
  * Type representation of the scenario configuration constant.
@@ -86,53 +86,53 @@ type MultifactorAuthenticationNotificationOptional = Record<string, Partial<Mult
 type MultifactorAuthenticationConfigRecordConst = typeof MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG;
 
 /**
- * Maps each scenario to its notifications configuration type.
+ * Maps each scenario to its outcomes configuration type.
  */
-type MultifactorAuthenticationScenarioNotificationConst = {
-    [K in MultifactorAuthenticationScenario]: MultifactorAuthenticationConfigRecordConst[K]['NOTIFICATIONS'];
+type MultifactorAuthenticationScenarioOutcomeConst = {
+    [K in MultifactorAuthenticationScenario]: MultifactorAuthenticationConfigRecordConst[K]['OUTCOMES'];
 };
 
 /**
- * Available notification options for each scenario.
+ * Available outcome options for each scenario.
  */
-type MultifactorAuthenticationNotificationScenarioOptions = {
-    [K in MultifactorAuthenticationScenario]: keyof MultifactorAuthenticationScenarioNotificationConst[K];
+type MultifactorAuthenticationOutcomeScenarioOptions = {
+    [K in MultifactorAuthenticationScenario]: keyof MultifactorAuthenticationScenarioOutcomeConst[K];
 };
 
 /**
- * Maps scenarios to their notification configurations.
+ * Maps scenarios to their outcome configurations.
  */
-type MultifactorAuthenticationNotificationRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationNotification>;
+type MultifactorAuthenticationOutcomeRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationOutcome>;
 
 /**
- * Constructs a kebab-case notification type string from scenario and notification name.
+ * Constructs a kebab-case outcome type string from scenario and outcome name.
  */
-type MultifactorAuthenticationNotificationType<T extends MultifactorAuthenticationScenario> = `${Lowercase<T>}-${KebabCase<MultifactorAuthenticationNotificationScenarioOptions[T]>}`;
+type MultifactorAuthenticationOutcomeType<T extends MultifactorAuthenticationScenario> = `${Lowercase<T>}-${KebabCase<MultifactorAuthenticationOutcomeScenarioOptions[T]>}`;
 
 type MultifactorAuthenticationUI = {
     MODALS: MultifactorAuthenticationModal;
-    NOTIFICATIONS: MultifactorAuthenticationNotification;
+    OUTCOMES: MultifactorAuthenticationOutcome;
 };
 
 /**
- * All possible notification type keys across all scenarios.
+ * All possible outcome types key across all scenarios.
  */
-type AllMultifactorAuthenticationNotificationType = MultifactorAuthenticationNotificationType<MultifactorAuthenticationScenario>;
+type AllMultifactorAuthenticationOutcomeType = MultifactorAuthenticationOutcomeType<MultifactorAuthenticationScenario>;
 
 /**
- * Maps all notification type keys to their configurations.
+ * Maps all outcome type keys to their configurations.
  */
-type MultifactorAuthenticationNotificationMap = Record<AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationNotificationConfig>;
+type MultifactorAuthenticationOutcomeMap = Record<AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationOutcomeConfig>;
 
 /**
- * All available notification options across scenarios.
+ * All available outcome options across scenarios.
  */
-type MultifactorAuthenticationNotificationOptions = keyof MultifactorAuthenticationScenarioNotificationConst[MultifactorAuthenticationScenario];
+type MultifactorAuthenticationOutcomeOptions = keyof MultifactorAuthenticationScenarioOutcomeConst[MultifactorAuthenticationScenario];
 
 /**
- * Notification type suffixes for a specific scenario (removes the scenario prefix).
+ * Outcome type suffixes for a specific scenario (removes the scenario prefix).
  */
-type MultifactorAuthenticationNotificationSuffixes<T extends MultifactorAuthenticationScenario> = Replace<AllMultifactorAuthenticationNotificationType, `${Lowercase<T>}-`, ''>;
+type MultifactorAuthenticationOutcomeSuffixes<T extends MultifactorAuthenticationScenario> = Replace<AllMultifactorAuthenticationOutcomeType, `${Lowercase<T>}-`, ''>;
 
 /**
  * Response from a multifactor authentication scenario action.
@@ -176,17 +176,17 @@ type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> =
  */
 type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = Omit<
     MultifactorAuthenticationScenarioConfig<T>,
-    'MODALS' | 'NOTIFICATIONS' | 'nativePromptTitle'
+    'MODALS' | 'OUTCOMES' | 'nativePromptTitle'
 > & {
     nativePromptTitle?: TranslationPaths;
     MODALS?: MultifactorAuthenticationModalOptional;
-    NOTIFICATIONS: MultifactorAuthenticationNotificationOptional;
+    OUTCOMES: MultifactorAuthenticationOutcomeOptional;
 };
 
 /**
  * Default UI configuration shared across scenarios.
  */
-type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig, 'nativePromptTitle' | 'MODALS' | 'NOTIFICATIONS'>;
+type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig, 'nativePromptTitle' | 'MODALS' | 'OUTCOMES'>;
 
 /**
  * Record mapping all scenarios to their configurations.
@@ -250,18 +250,18 @@ type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHEN
 
 export type {
     MultifactorAuthenticationPrompt,
-    MultifactorAuthenticationNotificationRecord,
-    MultifactorAuthenticationNotificationMap,
+    MultifactorAuthenticationOutcomeRecord,
+    MultifactorAuthenticationOutcomeMap,
     MultifactorAuthenticationScenarioResponseWithSuccess,
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParameters,
     MultifactorAuthenticationScenario,
-    MultifactorAuthenticationNotificationOptions,
+    MultifactorAuthenticationOutcomeOptions,
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationScenarioConfigRecord,
     MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationDefaultUIConfig,
-    MultifactorAuthenticationNotificationSuffixes,
+    MultifactorAuthenticationOutcomeSuffixes,
     MultifactorAuthenticationScenarioCustomConfig,
 };

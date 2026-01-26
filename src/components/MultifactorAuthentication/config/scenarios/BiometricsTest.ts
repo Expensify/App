@@ -11,7 +11,7 @@ export default {
     action: troubleshootMultifactorAuthentication,
     screen: SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST,
     pure: true,
-    NOTIFICATIONS: {
+    OUTCOMES: {
         success: {
             headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
         },
