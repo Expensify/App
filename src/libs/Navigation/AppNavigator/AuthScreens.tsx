@@ -595,7 +595,6 @@ function AuthScreens() {
                     options={defaultScreenOptions}
                     getComponent={loadSubmitExpensePage}
                 />
-
                 <RootStack.Screen
                     name={SCREENS.REPORT_ATTACHMENTS}
                     options={attachmentModalScreenOptions}
