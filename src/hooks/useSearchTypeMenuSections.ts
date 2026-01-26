@@ -45,6 +45,8 @@ const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspac
     return Object.values(cards)?.at(0);
 };
 
+export {defaultExpensifyCardSelector};
+
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
