@@ -9,6 +9,11 @@ type GeneralDomainAdminPendingAction = {
      * Base pending actions
      */
     pendingAction: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action related to a specific domain vacation delegate
+     */
+    vacationDelegate?: OnyxCommon.PendingAction;
 };
 
 /**
@@ -19,6 +24,11 @@ type DomainPendingAction = {
      * Pending actions for specific administrators, keyed by their accountID
      */
     admin?: Record<number, GeneralDomainAdminPendingAction>;
+
+    /**
+     * Pending actions for a specific member, keyed by their accountID
+     */
+    member?: Record<number, GeneralDomainAdminPendingAction>;
 
     /**
      * Pending action for the technical contact email

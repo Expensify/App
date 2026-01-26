@@ -903,6 +903,7 @@ const SCREENS = {
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
+        VACATION_DELEGATE: 'Vacation_Delegate',
         RESET_DOMAIN: 'Domain_Reset',
     },
     MULTIFACTOR_AUTHENTICATION: {
