@@ -614,6 +614,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Total non remboursable',
         originalAmount: 'Montant d’origine',
         insights: 'Analyses',
+        duplicateExpense: 'Note de frais en double',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1178,7 +1179,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Voulez-vous vraiment supprimer ces dépenses ?',
         }),
         deleteReport: 'Supprimer le rapport',
-        deleteReportConfirmation: 'Voulez-vous vraiment supprimer ce rapport ?',
+        deleteReportConfirmation: 'Voulez-vous vraiment supprimer ce rapport ?',
         settledExpensify: 'Payé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
@@ -1457,6 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / heure`,
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le tarif.',
         },
+        correctDistanceRateError: 'Corrigez l’erreur de taux de distance et réessayez.',
     },
     transactionMerge: {
         listPage: {
@@ -8056,6 +8058,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
             button: 'Télécharger l’application',
         },
+        signOutWarningTripInProgress: {title: 'Suivi GPS en cours', prompt: 'Voulez-vous vraiment abandonner le déplacement et vous déconnecter ?', confirm: 'Ignorer et se déconnecter'},
         notification: {title: 'Suivi GPS en cours', body: 'Aller dans l’application pour terminer'},
         locationServicesRequiredModal: {
             title: 'Accès à la localisation requis',

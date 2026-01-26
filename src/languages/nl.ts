@@ -613,6 +613,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
         insights: 'Inzichten',
+        duplicateExpense: 'Dubbele uitgave',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1174,7 +1175,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Weet je zeker dat je deze uitgaven wilt verwijderen?',
         }),
         deleteReport: 'Rapport verwijderen',
-        deleteReportConfirmation: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+        deleteReportConfirmation: 'Weet je zeker dat je dit rapport wilt verwijderen?',
         settledExpensify: 'Betaald',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
@@ -1450,6 +1451,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / uur`,
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
+        correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
     },
     transactionMerge: {
         listPage: {
@@ -8011,6 +8013,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
         notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
+        signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',
             confirm: 'Instellingen openen',
