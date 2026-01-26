@@ -105,7 +105,7 @@ function BaseDomainMembersPage({
             rightElement: getCustomRightElement?.(accountID),
             errors: getLatestError(customProps?.errors),
             pendingAction: customProps?.pendingAction,
-            isInteractive: !isPendingActionDelete,
+            isInteractive: !isPendingActionDelete && !details?.isOptimisticPersonalDetail,
             isDisabled: isPendingActionDelete,
         };
     });

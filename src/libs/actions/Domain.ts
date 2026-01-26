@@ -814,6 +814,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     login: email,
+                    isOptimisticPersonalDetail: true,
                 },
             },
         },
