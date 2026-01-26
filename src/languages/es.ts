@@ -383,6 +383,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Acción requerida',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
+        duplicateExpense: 'Duplicar gasto',
         exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
@@ -1206,6 +1207,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / hora`,
             amountTooLargeError: 'El importe total es demasiado alto. Reduce las horas o disminuye la tasa.',
         },
+        correctDistanceRateError: 'Corrige el error de la tasa de distancia y vuelve a intentarlo.',
     },
     transactionMerge: {
         listPage: {
@@ -8187,6 +8189,11 @@ ${amount} para ${merchant} - ${date}`,
         notification: {
             title: 'Seguimiento GPS en curso',
             body: 'Ve a la app para finalizar',
+        },
+        signOutWarningTripInProgress: {
+            title: 'Seguimiento por GPS en curso',
+            prompt: '¿Seguro que quieres descartar el viaje y cerrar sesión?',
+            confirm: 'Descartar y cerrar sesión',
         },
         locationServicesRequiredModal: {
             title: 'Se requiere acceso a la ubicación',

@@ -196,7 +196,6 @@ function SearchAutocompleteList({
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -220,9 +219,8 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
-            visibleReportActionsData,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, visibleReportActionsData]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -431,7 +429,6 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -463,7 +460,6 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;
@@ -538,14 +534,14 @@ function SearchAutocompleteList({
                     .filter(
                         (card) =>
                             (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
-                            !alreadyAutocompletedKeys.has(getCardDescription(card).toLowerCase()),
+                            !alreadyAutocompletedKeys.has(getCardDescription(card, translate).toLowerCase()),
                     )
                     .sort()
                     .slice(0, 10);
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
-                    text: getCardDescription(card),
+                    text: getCardDescription(card, translate),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
@@ -638,10 +634,10 @@ function SearchAutocompleteList({
         statusAutocompleteList,
         feedAutoCompleteList,
         cardAutocompleteList,
+        translate,
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
-        visibleReportActionsData,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
