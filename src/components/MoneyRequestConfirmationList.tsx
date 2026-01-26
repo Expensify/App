@@ -1260,7 +1260,7 @@ function MoneyRequestConfirmationList({
                 containerStyle={[styles.flexBasisAuto]}
                 removeClippedSubviews={false}
                 disableKeyboardShortcuts
-                contentContainerStyle={shouldRestrictHeight ? [styles.flexGrow1] : undefined}
+                contentContainerStyle={shouldRestrictHeight ? [styles.flex1] : undefined}
                 ListFooterComponentStyle={shouldRestrictHeight ? [styles.flex1] : undefined}
             />
         </MouseProvider>

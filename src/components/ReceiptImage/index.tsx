@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
@@ -126,6 +126,9 @@ type ReceiptImageProps = (
 
     /** Callback to be called when the image fails to load */
     onLoadFailure?: () => void;
+
+    /** The resize mode of the image */
+    resizeMode?: ImageResizeMode;
 };
 
 function ReceiptImage({
@@ -154,6 +157,7 @@ function ReceiptImage({
     thumbnailContainerStyles,
     onLoad,
     onLoadFailure,
+    resizeMode,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -245,6 +249,7 @@ function ReceiptImage({
             shouldCalculateAspectRatioForWideImage={shouldUseFullHeight}
             imageWidthToCalculateHeight={receiptImageWidth}
             onError={onLoadFailure}
+            resizeMode={resizeMode}
         />
     );
 }

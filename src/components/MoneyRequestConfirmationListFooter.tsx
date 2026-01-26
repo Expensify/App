@@ -4,6 +4,7 @@ import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {ImageResizeMode, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrencyList from '@hooks/useCurrencyList';
@@ -1008,7 +1009,8 @@ function MoneyRequestConfirmationListFooter({
     }, []);
 
     const receiptSizeStyle = styles.expenseViewImageSmall;
-    let receiptHeightStyle: {width?: number; height?: number} | undefined;
+    let receiptHeightStyle: ViewStyle | undefined;
+    let receiptResizeMode: ImageResizeMode | undefined;
     if (shouldRestrictHeight) {
         const horizontalMargin = typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
         const availableWidth = receiptContainerWidth ?? variables.receiptPreviewMaxWidth;
@@ -1019,7 +1021,9 @@ function MoneyRequestConfirmationListFooter({
             const effectiveWidth = Math.min(Math.max(receiptContainerWidth - horizontalMargin * 2, 0), variables.receiptPreviewMaxWidth);
             const minHeight = effectiveWidth / (16 / 9);
             const calculatedHeight = effectiveWidth / receiptAspectRatio;
-            receiptHeightStyle = {width: effectiveWidth, height: Math.min(variables.receiptPreviewMaxHeight, Math.max(minHeight, calculatedHeight))};
+            const isWide = calculatedHeight < minHeight;
+            receiptHeightStyle = {width: effectiveWidth, height: Math.max(minHeight, calculatedHeight), flexShrink: 1};
+            receiptResizeMode = isWide ? 'contain' : undefined;
         }
     }
 
@@ -1084,6 +1088,7 @@ function MoneyRequestConfirmationListFooter({
                             shouldUseThumbnailImage
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             onLoad={handleReceiptLoad}
+                            resizeMode={receiptResizeMode}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -1196,7 +1201,7 @@ function MoneyRequestConfirmationListFooter({
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View
                     onLayout={handleReceiptLayout}
-                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3]}
+                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight ? {flexShrink: 1} : undefined, styles.overflowHidden]}
                 >
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
