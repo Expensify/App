@@ -2054,6 +2054,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
     },
+    WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: {
+        route: 'workspaces/:policyID/category/:categoryName/require-itemized-receipts-over',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-itemized-receipts-over` as const,
+    },
     WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
         route: 'workspaces/:policyID/category/:categoryName/required-fields',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
@@ -2637,6 +2641,10 @@ const ROUTES = {
     RULES_RECEIPT_REQUIRED_AMOUNT: {
         route: 'workspaces/:policyID/rules/receipt-required-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/receipt-required-amount` as const,
+    },
+    RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT: {
+        route: 'workspaces/:policyID/rules/itemized-receipt-required-amount',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/itemized-receipt-required-amount` as const,
     },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
@@ -3719,11 +3727,11 @@ const ROUTES = {
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
 
-    // The exact notification & prompt type will be added as a part of Multifactor Authentication config in another PR,
+    // The exact outcome & prompt type will be added as a part of Multifactor Authentication config in another PR,
     // for now a string is accepted to avoid blocking this PR.
-    MULTIFACTOR_AUTHENTICATION_NOTIFICATION: {
-        route: 'multifactor-authentication/notification/:notificationType',
-        getRoute: (notificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE>) => `multifactor-authentication/notification/${notificationType}` as const,
+    MULTIFACTOR_AUTHENTICATION_OUTCOME: {
+        route: 'multifactor-authentication/outcome/:outcomeType',
+        getRoute: (outcomeType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE>) => `multifactor-authentication/outcome/${outcomeType}` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_PROMPT: {

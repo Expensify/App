@@ -305,6 +305,7 @@ export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspac
 export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
 export type {default as EnableWorkspaceReportFieldListValueParams} from './EnableWorkspaceReportFieldListValueParams';
 export type {default as EnablePolicyInvoicingParams} from './EnablePolicyInvoicingParams';
+export type {default as EnablePolicyTimeTrackingParams} from './EnablePolicyTimeTrackingParams';
 export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
 export type {default as RemoveWorkspaceReportFieldListValueParams} from './RemoveWorkspaceReportFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
@@ -333,6 +334,7 @@ export type {default as SetPolicyAutoReimbursementLimitParams} from './SetPolicy
 export type {default as EnablePolicyAutoReimbursementLimitParams} from './EnablePolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoApprovalOptionsParams} from './EnablePolicyAutoApprovalOptions';
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
+export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetPolicyExpenseMaxAmountNoItemizedReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
@@ -363,6 +365,8 @@ export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
 export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
 export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';
+export type {default as SetPolicyCategoryItemizedReceiptsRequiredParams} from './SetPolicyCategoryItemizedReceiptsRequiredParams';
+export type {default as RemovePolicyCategoryItemizedReceiptsRequiredParams} from './RemovePolicyCategoryItemizedReceiptsRequiredParams';
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
@@ -462,3 +466,6 @@ export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleCon
 export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
+export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
+export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
+export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';

@@ -525,6 +525,10 @@ const translations = {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        downloadFailedEmptyReportDescription: () => ({
+            one: "You can't export an empty report.",
+            other: () => `You can't export empty reports.`,
+        }),
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
@@ -1195,8 +1199,14 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: 'Delete report',
-        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
+        deleteReport: () => ({
+            one: 'Delete report',
+            other: 'Delete reports',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Are you sure that you want to delete this report?',
+            other: 'Are you sure that you want to delete these reports?',
+        }),
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -4800,6 +4810,7 @@ const translations = {
             ukRegulation:
                 'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
             assignCardFailedError: 'Card assignment failed.',
+            unassignCardFailedError: 'Card unassignment failed.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
@@ -5138,6 +5149,10 @@ const translations = {
             rules: {
                 title: 'Rules',
                 subtitle: 'Require receipts, flag high spend, and more.',
+            },
+            timeTracking: {
+                title: 'Time',
+                subtitle: 'Set an hourly billable rate for employees to get paid for their time.',
             },
         },
         reports: {
@@ -6088,6 +6103,10 @@ const translations = {
                     `<muted-text>Set spend controls and defaults for individual expenses. You can also create rules for <a href="${categoriesPageLink}">categories</a> and <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Receipt required amount',
                 receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Amount can't be greater than the itemized receipt required amount (${amount})`,
+                itemizedReceiptRequiredAmount: 'Itemized receipt required amount',
+                itemizedReceiptRequiredAmountDescription: 'Require itemized receipts when spend exceeds this amount, unless overridden by a category rule.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Amount can't be lower than the amount required for regular receipts (${amount})`,
                 maxExpenseAmount: 'Max expense amount',
                 maxExpenseAmountDescription: 'Flag spend that exceeds this amount, unless overridden by a category rule.',
                 maxAge: 'Max age',
@@ -6178,6 +6197,12 @@ const translations = {
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
                     never: 'Never require receipts',
                     always: 'Always require receipts',
+                },
+                requireItemizedReceiptsOver: 'Require itemized receipts over',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
+                    never: 'Never require itemized receipts',
+                    always: 'Always require itemized receipts',
                 },
                 defaultTaxRate: 'Default tax rate',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6349,6 +6374,12 @@ const translations = {
                 return `updated the category "${categoryName}" by changing Receipts to ${newValue}`;
             }
             return `changed the "${categoryName}" category to ${newValue} (previously ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `updated the category "${categoryName}" by changing Itemized receipts to ${newValue}`;
+            }
+            return `changed the "${categoryName}" category Itemized receipts to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -7112,7 +7143,6 @@ const translations = {
         },
     },
     gps: {
-        tooltip: "GPS tracking in progress! When you're done, stop tracking below.",
         disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
         error: {
             failedToStart: 'Failed to start location tracking.',
@@ -7159,6 +7189,11 @@ const translations = {
         notification: {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
+        },
+        signOutWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to discard the trip and sign out?',
+            confirm: 'Discard and sign out',
         },
         locationServicesRequiredModal: {
             title: 'Location access required',
@@ -7269,6 +7304,7 @@ const translations = {
 
             return 'Receipt required';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Itemized receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Prohibited expense:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7798,6 +7834,7 @@ const translations = {
         },
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
+        gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
