@@ -12697,16 +12697,13 @@ class OpenAIUtils {
         this.client = new openai_1.default({ apiKey });
     }
     /**
-     * Prompt the Responses API with optional conversation context and prompt caching.
+     * Prompt the Responses API with optional prompt caching.
      */
-    async promptResponses({ input, instructions, conversationID, previousResponseID, promptCacheKey, model = 'gpt-5.1', }) {
+    async promptResponses({ input, instructions, promptCacheKey, model = 'gpt-5.1', }) {
         const response = await (0, retryWithBackoff_1.default)(() => this.client.responses.create({
             model,
             input,
             instructions,
-            conversation: conversationID,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            previous_response_id: previousResponseID,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             prompt_cache_key: promptCacheKey,
             // eslint-disable-next-line @typescript-eslint/naming-convention
