@@ -166,7 +166,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 icon={expensifyIcons.Plus}
                 iconHeight={20}
                 iconWidth={20}
-                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
                 onPress={() => {}}
             />
         </Section>
