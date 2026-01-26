@@ -1,0 +1,144 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+index 2982e59..25dcbb7 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+@@ -25,6 +25,9 @@ void TextAttributes::apply(TextAttributes textAttributes) {
+   backgroundColor = textAttributes.backgroundColor
+       ? textAttributes.backgroundColor
+       : backgroundColor;
++  borderTopLeftRadius = !std::isnan(textAttributes.borderTopLeftRadius)
++      ? textAttributes.borderTopLeftRadius
++      : borderTopLeftRadius;
+   opacity =
+       !std::isnan(textAttributes.opacity) ? textAttributes.opacity : opacity;
+ 
+@@ -171,6 +174,7 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+       floatEquality(fontSizeMultiplier, rhs.fontSizeMultiplier) &&
+       floatEquality(letterSpacing, rhs.letterSpacing) &&
+       floatEquality(lineHeight, rhs.lineHeight) &&
++      floatEquality(borderTopLeftRadius, rhs.borderTopLeftRadius) &&
+       floatEquality(textShadowRadius, rhs.textShadowRadius);
+ }
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+index 8a7e26c..d94b269 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+@@ -41,6 +41,7 @@ class TextAttributes : public DebugStringConvertible {
+   // Color
+   SharedColor foregroundColor{};
+   SharedColor backgroundColor{};
++  Float borderTopLeftRadius{std::numeric_limits<Float>::quiet_NaN()};
+   Float opacity{std::numeric_limits<Float>::quiet_NaN()};
+ 
+   // Font
+@@ -112,6 +113,7 @@ struct hash<facebook::react::TextAttributes> {
+     return facebook::react::hash_combine(
+         textAttributes.foregroundColor,
+         textAttributes.backgroundColor,
++        textAttributes.borderTopLeftRadius,
+         textAttributes.opacity,
+         textAttributes.fontFamily,
+         textAttributes.fontSize,
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+index 01bbdbc..c5069f1 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+@@ -222,6 +222,12 @@ static TextAttributes convertRawProp(
+       "backgroundColor",
+       sourceTextAttributes.backgroundColor,
+       defaultTextAttributes.backgroundColor);
++  textAttributes.borderTopLeftRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderTopLeftRadius",
++      sourceTextAttributes.borderTopLeftRadius,
++      defaultTextAttributes.borderTopLeftRadius);
+ 
+   return textAttributes;
+ }
+@@ -334,6 +340,8 @@ void BaseTextProps::setProp(
+         defaults, value, textAttributes, opacity, "opacity");
+     REBUILD_FIELD_SWITCH_CASE(
+         defaults, value, textAttributes, backgroundColor, "backgroundColor");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderTopLeftRadius, "borderTopLeftRadius");
+   }
+ }
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
+index 908cfc0..8cb7415 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
+@@ -18,6 +18,7 @@ NSString *const RCTAttributedStringEventEmitterKey = @"EventEmitter";
+ 
+ // String representation of either `role` or `accessibilityRole`
+ NSString *const RCTTextAttributesAccessibilityRoleAttributeName = @"AccessibilityRole";
++NSString *const RCTTextBackgroundBorderRadiusAttributeName = @"TextBackgroundBorderRadius";
+ 
+ /*
+  * Creates `NSTextAttributes` from given `facebook::react::TextAttributes`
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+index 1062814..517342b 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+@@ -179,7 +179,12 @@ inline static CGFloat RCTEffectiveFontSizeMultiplierFromTextAttributes(const Tex
+   }
+ 
+   if (textAttributes.backgroundColor || !isnan(textAttributes.opacity)) {
+-    attributes[NSBackgroundColorAttributeName] = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
++    UIColor *bgColor = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
++    if (!isnan(textAttributes.borderTopLeftRadius) && textAttributes.borderTopLeftRadius > 0) {
++      attributes[RCTTextBackgroundBorderRadiusAttributeName] = @[@(textAttributes.borderTopLeftRadius), bgColor];
++    } else {
++      attributes[NSBackgroundColorAttributeName] = bgColor;
++    }
+   }
+ 
+   // Kerning
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+index 216bb23..65afb2a 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+@@ -86,6 +86,41 @@ - (void)drawAttributedString:(AttributedString)attributedString
+ 
+   NSRange glyphRange = [layoutManager glyphRangeForTextContainer:textContainer];
+ 
++  NSRange characterRange = [layoutManager characterRangeForGlyphRange:glyphRange actualGlyphRange:NULL];
++  [textStorage enumerateAttribute:RCTTextBackgroundBorderRadiusAttributeName
++                          inRange:characterRange
++                          options:0
++                       usingBlock:^(NSArray *value, NSRange range, BOOL *stop) {
++                         if (!value) {
++                           return;
++                         }
++                         CGFloat radius = [value[0] floatValue];
++                         UIColor *color = value[1];
++                         NSRange rangeGlyphRange = [layoutManager glyphRangeForCharacterRange:range actualCharacterRange:NULL];
++                         NSMutableArray<NSValue *> *rects = [NSMutableArray array];
++                         [layoutManager enumerateEnclosingRectsForGlyphRange:rangeGlyphRange
++                                                     withinSelectedGlyphRange:rangeGlyphRange
++                                                              inTextContainer:textContainer
++                                                                   usingBlock:^(CGRect enclosingRect, BOOL *anotherStop) {
++                             [rects addObject:[NSValue valueWithCGRect:enclosingRect]];
++                         }];
++                         NSUInteger count = rects.count;
++                         for (NSUInteger i = 0; i < count; i++) {
++                             CGRect rect = CGRectInset(CGRectOffset([rects[i] CGRectValue], frame.origin.x, frame.origin.y), 0, 1);
++                             UIRectCorner corners = 0;
++                             if (count == 1) {
++                                 corners = UIRectCornerAllCorners;
++                             } else if (i == 0) {
++                                 corners = UIRectCornerTopLeft | UIRectCornerBottomLeft;
++                             } else if (i == count - 1) {
++                                 corners = UIRectCornerTopRight | UIRectCornerBottomRight;
++                             }
++                             UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:rect byRoundingCorners:corners cornerRadii:CGSizeMake(radius, radius)];
++                             [color setFill];
++                             [path fill];
++                         }
++                       }];
++
+   [self processTruncatedAttributedText:textStorage textContainer:textContainer layoutManager:layoutManager];
+ 
+   [layoutManager drawBackgroundForGlyphRange:glyphRange atPoint:frame.origin];
