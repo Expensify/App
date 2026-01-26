@@ -2,6 +2,7 @@
  * Manages the multifactor authentication challenge flow including requesting, signing, and sending challenges.
  */
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
+import {resetKeys} from '@components/MultifactorAuthentication/helpers';
 import {requestAuthenticationChallenge} from '@libs/actions/MultifactorAuthentication';
 import {signToken as signTokenED25519} from './ED25519';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
@@ -73,7 +74,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         const {value: publicKey} = await PublicKeyStore.get(accountID);
 
         if (!publicKey || !this.publicKeys.includes(publicKey)) {
-            await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
+            resetKeys(accountID);
             return this.createErrorReturnValue(VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED);
         }
 

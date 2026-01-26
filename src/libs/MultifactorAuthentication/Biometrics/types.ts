@@ -2,6 +2,8 @@
  * Type definitions for multifactor authentication biometrics operations.
  */
 import type {EmptyObject, Simplify, ValueOf} from 'type-fest';
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
+import type {OutcomePaths} from '@components/MultifactorAuthentication/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -42,6 +44,20 @@ type MultifactorAuthenticationPartialStatus<T, OmitStep = false> = MultifactorAu
     reason: MultifactorAuthenticationReason;
 
     type?: MultifactorAuthenticationMethodCode;
+};
+
+type MultifactorAuthenticationStatus<T, OmitStep = false> = MultifactorAuthenticationPartialStatus<T, OmitStep> & {
+    typeName?: string;
+
+    headerTitle: string;
+
+    title: string;
+
+    description: string;
+
+    scenario: MultifactorAuthenticationScenario | undefined;
+
+    outcomePaths: OutcomePaths;
 };
 
 /**
@@ -151,6 +167,7 @@ export type {
     MultifactorAuthenticationResponseMap,
     MultifactorAuthenticationKeyType,
     AllMultifactorAuthenticationFactors,
+    MultifactorAuthenticationStatus,
     MultifactorAuthenticationPartialStatus,
     MultifactorAuthenticationActionParams,
     MultifactorKeyStoreOptions,
