@@ -45,7 +45,17 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import {
+    filterValidHasValues,
+    getDatePresets,
+    getFeedOptions,
+    getGroupByOptions,
+    getGroupCurrencyOptions,
+    getHasOptions,
+    getStatusOptions,
+    getTypeOptions,
+    getWithdrawalTypeOptions,
+} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -299,8 +309,10 @@ function SearchFiltersBar({
 
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
-                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
                 updatedFilterFormValues.columns = [];
+                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                // Filter out invalid "has" values for the new type
+                updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
             }
 
             if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
@@ -318,7 +330,7 @@ function SearchFiltersBar({
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, translate],
     );
 
     const openAdvancedFilters = useCallback(() => {
