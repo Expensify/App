@@ -102,7 +102,7 @@ import {unholdRequest} from './actions/IOU/Hold';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handlePreexistingReport, openUnreportedExpense} from './actions/Report';
+import {openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactions} from './actions/TransactionEdit';
@@ -1081,8 +1081,6 @@ Onyx.connectWithoutView({
             if (!report) {
                 return acc;
             }
-
-            handlePreexistingReport(report);
 
             // Get all reports, which are the ones that are:
             // - Owned by the same user
