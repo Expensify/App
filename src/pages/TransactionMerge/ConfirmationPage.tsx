@@ -58,6 +58,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`, {canBeMissing: true});
+    const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`, {
+        canBeMissing: true,
+    });
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -76,6 +79,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             sourceTransaction,
             targetTransactionThreadReport,
             targetTransactionThreadParentReport,
+            targetTransactionThreadParentReportNextStep,
             allTransactionViolations,
             policy: targetTransactionPolicy,
             policyTags,

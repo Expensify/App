@@ -15,6 +15,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
+import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
@@ -163,8 +164,10 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName({report: rootParentReport}) : buildReportNameFromParticipantNames({report: rootParentReport});
+    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
+    const reportName = isPolicyExpenseChat(rootParentReport)
+        ? getPolicyExpenseChatName({report: rootParentReport})
+        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
