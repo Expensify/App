@@ -12582,7 +12582,7 @@ function initSplitExpense(
         const currency = mileageRate?.currency ?? transactionDetails?.currency ?? CONST.CURRENCY.USD;
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {
-            for (let i = 0; i < 2; i++) {
+            for (let i = 0; i < splitAmounts.length; i++) {
                 if (splitAmounts[i] !== 0) {
                     // Calculate distance from amount and rate: distance = amount / rate
                     // Both amount and rate are in cents, so the result is in distance units
