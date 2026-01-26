@@ -34,7 +34,6 @@ describe('ChatGPTTranslator.performTranslation', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        MockedOpenAIUtils.prototype.createConversation = jest.fn().mockResolvedValue('conversation_test_123');
         MockedOpenAIUtils.prototype.promptResponses = jest.fn();
         translator = new ChatGPTTranslator(apiKey);
     });
@@ -86,53 +85,6 @@ describe('ChatGPTTranslator.performTranslation', () => {
         const result = await translator.performTranslation(targetLang, originalText);
 
         expect(result).toBe(expectedFixed);
-    });
-
-    it('creates a conversation once per locale and reuses it', async () => {
-        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValue(mockResponse(validTranslation));
-
-        // @ts-expect-error TS2445
-        await translator.performTranslation(targetLang, original);
-        // @ts-expect-error TS2445
-        await translator.performTranslation(targetLang, original);
-
-        // createConversation should only be called once for the same locale
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
-
-        // promptResponses should be called twice (once per translation)
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(2);
-    });
-
-    it('passes conversation ID to promptResponses and seeds instructions when creating conversation', async () => {
-        (MockedOpenAIUtils.prototype.promptResponses as jest.Mock).mockResolvedValueOnce(mockResponse(validTranslation)).mockResolvedValueOnce(mockResponse(validTranslation));
-
-        // @ts-expect-error TS2445
-        await translator.performTranslation(targetLang, original);
-        // @ts-expect-error TS2445
-        await translator.performTranslation(targetLang, original);
-
-        // Verify createConversation was called with system instructions (base prompt string)
-        const mockedUtils = MockedOpenAIUtils.prototype as jest.Mocked<OpenAIUtils>;
-        const createConversationCalls = mockedUtils.createConversation.mock.calls;
-        const basePrompt = createConversationCalls.at(0)?.at(0);
-
-        expect(typeof basePrompt).toBe('string');
-        expect(basePrompt?.length).toBeGreaterThan(0);
-
-        const promptResponsesCalls = mockedUtils.promptResponses.mock.calls;
-        const firstCall = promptResponsesCalls.at(0)?.at(0);
-        const secondCall = promptResponsesCalls.at(1)?.at(0);
-
-        // All translation calls should use conversationID (context managed by Conversations API)
-        expect(firstCall?.conversationID).toBe('conversation_test_123');
-        expect(firstCall?.previousResponseID).toBeUndefined();
-        expect(firstCall?.instructions).toBeUndefined();
-
-        expect(secondCall?.conversationID).toBe('conversation_test_123');
-        expect(secondCall?.previousResponseID).toBeUndefined();
-        expect(secondCall?.instructions).toBeUndefined();
     });
 
     it('tracks failed translations after exhausting all retries', async () => {

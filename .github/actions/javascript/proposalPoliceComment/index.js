@@ -12697,24 +12697,6 @@ class OpenAIUtils {
         this.client = new openai_1.default({ apiKey });
     }
     /**
-     * Create a conversation using the OpenAI Conversations API.
-     * Optionally accepts a base prompt (system instructions) to seed the conversation.
-     * Returns the conversation ID which can be used in subsequent responses.
-     */
-    async createConversation(basePrompt) {
-        const items = basePrompt
-            ? [
-                {
-                    type: 'message',
-                    role: 'system',
-                    content: [{ type: 'input_text', text: basePrompt }],
-                },
-            ]
-            : undefined;
-        const conversation = await (0, retryWithBackoff_1.default)(() => this.client.conversations.create({ items }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        return conversation.id;
-    }
-    /**
      * Prompt the Responses API with optional conversation context and prompt caching.
      */
     async promptResponses({ input, instructions, conversationID, previousResponseID, promptCacheKey, model = 'gpt-5.1', }) {

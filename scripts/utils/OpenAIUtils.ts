@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
-import type {ResponseCreateParamsNonStreaming, ResponseInputItem} from 'openai/resources/responses/responses';
+import type {ResponseCreateParamsNonStreaming} from 'openai/resources/responses/responses';
 import type {AssistantResponse} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
 import retryWithBackoff from '@scripts/utils/retryWithBackoff';
@@ -53,25 +53,6 @@ class OpenAIUtils {
 
     public constructor(apiKey: string) {
         this.client = new OpenAI({apiKey});
-    }
-
-    /**
-     * Create a conversation using the OpenAI Conversations API.
-     * Optionally accepts a base prompt (system instructions) to seed the conversation.
-     * Returns the conversation ID which can be used in subsequent responses.
-     */
-    public async createConversation(basePrompt?: string): Promise<string> {
-        const items = basePrompt
-            ? ([
-                  {
-                      type: 'message',
-                      role: 'system',
-                      content: [{type: 'input_text', text: basePrompt}],
-                  },
-              ] as const satisfies ResponseInputItem[])
-            : undefined;
-        const conversation = await retryWithBackoff(() => this.client.conversations.create({items}), {isRetryable: (err) => OpenAIUtils.isRetryableError(err)});
-        return conversation.id;
     }
 
     /**
