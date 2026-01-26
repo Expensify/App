@@ -34,7 +34,7 @@ type ColumnItem = {
     leftElement: React.JSX.Element;
 };
 
-type ActiveList = 'group' | 'type';
+type ActiveList = 'group' | 'type' | 'none';
 
 function SearchColumnsPage() {
     const theme = useTheme();
@@ -133,7 +133,7 @@ function SearchColumnsPage() {
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
 
-    const onSelectItem = (item: ListItem, listType: ActiveList) => {
+    const onSelectItem = (item: ListItem, listType: 'group' | 'type') => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
         setActiveList(listType);
 
@@ -241,15 +241,17 @@ function SearchColumnsPage() {
                                 <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
                             </View>
 
-                            <DraggableList
-                                disableScroll
-                                data={groupColumnsList}
-                                keyExtractor={(item) => item.value}
-                                onDragEnd={onGroupDragEnd}
-                                onSelectRow={onSelectGroupItem}
-                                isKeyboardActive={activeList === 'group'}
-                                renderItem={renderGroupItem}
-                            />
+                            <View onPointerEnter={() => setActiveList('group')}>
+                                <DraggableList
+                                    disableScroll
+                                    data={groupColumnsList}
+                                    keyExtractor={(item) => item.value}
+                                    onDragEnd={onGroupDragEnd}
+                                    onSelectRow={onSelectGroupItem}
+                                    isKeyboardActive={activeList === 'group'}
+                                    renderItem={renderGroupItem}
+                                />
+                            </View>
 
                             <View style={styles.dividerLine} />
 
@@ -259,18 +261,23 @@ function SearchColumnsPage() {
                         </>
                     )}
 
-                    <DraggableList
-                        disableScroll
-                        data={typeColumnsList}
-                        keyExtractor={(item) => item.value}
-                        onDragEnd={onTypeDragEnd}
-                        onSelectRow={onSelectTypeItem}
-                        isKeyboardActive={activeList === 'type'}
-                        renderItem={renderTypeItem}
-                    />
+                    <View onPointerEnter={() => setActiveList('type')}>
+                        <DraggableList
+                            disableScroll
+                            data={typeColumnsList}
+                            keyExtractor={(item) => item.value}
+                            onDragEnd={onTypeDragEnd}
+                            onSelectRow={onSelectTypeItem}
+                            isKeyboardActive={activeList === 'type'}
+                            renderItem={renderTypeItem}
+                        />
+                    </View>
                 </ScrollView>
             </View>
-            <View style={[styles.ph5, styles.pb5]}>
+            <View
+                style={[styles.ph5, styles.pb5]}
+                onPointerEnter={() => setActiveList('none')}
+            >
                 <Button
                     large
                     success

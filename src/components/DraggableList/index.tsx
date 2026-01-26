@@ -2,7 +2,7 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment, useCallback} from 'react';
+import React, {Fragment, useCallback, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -55,7 +55,7 @@ function DraggableList<T>({
     }, [data, focusedIndex, onSelectRow]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
-        isActive: isKeyboardActive && focusedIndex >= 0,
+        isActive: isKeyboardActive && focusedIndex >= 0 && !!onSelectRow,
     });
 
     /**
@@ -76,32 +76,36 @@ function DraggableList<T>({
         }
     };
 
-    const sortableItems = data.map((item, index) => {
-        const key = keyExtractor(item, index);
-        const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemState(item);
-        const isFocused = index === focusedIndex && !isItemDisabled;
+    const sortableItems = useMemo(
+        () =>
+            data.map((item, index) => {
+                const key = keyExtractor(item, index);
+                const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemState(item);
+                const isFocused = index === focusedIndex && !isItemDisabled;
 
-        const renderedItem = renderItem({
-            item,
-            getIndex: () => index,
-            isActive: false,
-            drag: () => {},
-        });
+                const renderedItem = renderItem({
+                    item,
+                    getIndex: () => index,
+                    isActive: false,
+                    drag: () => {},
+                });
 
-        const itemWithFocus = React.isValidElement(renderedItem) ? React.cloneElement(renderedItem, {isFocused} as React.Attributes) : renderedItem;
+                const itemWithFocus = React.isValidElement(renderedItem) ? React.cloneElement(renderedItem, {isFocused} as React.Attributes) : renderedItem;
 
-        return (
-            <SortableItem
-                id={key}
-                key={key}
-                disabled={isDragDisabled}
-                isFocused={isFocused}
-                isItemDisabled={isItemDisabled}
-            >
-                {itemWithFocus}
-            </SortableItem>
-        );
-    });
+                return (
+                    <SortableItem
+                        id={key}
+                        key={key}
+                        disabled={isDragDisabled}
+                        isFocused={isFocused}
+                        isItemDisabled={isItemDisabled}
+                    >
+                        {itemWithFocus}
+                    </SortableItem>
+                );
+            }),
+        [data, focusedIndex, keyExtractor, renderItem],
+    );
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
