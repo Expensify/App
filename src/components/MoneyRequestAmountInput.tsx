@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
-import {Platform} from 'react-native';
 import React, {useCallback, useEffect, useRef} from 'react';
+import {Platform} from 'react-native';
 import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
