@@ -260,7 +260,9 @@ const ViolationsUtils = {
         }
 
         // Only show SmartScan failed when scan failed AND the user hasn't filled required fields yet
-        const hasUserStartedFixingSmartscan = !TransactionUtils.isAmountMissing(updatedTransaction) || !TransactionUtils.isMerchantMissing(updatedTransaction);
+        // Note: amount === 0 is a placeholder value for scanning transactions, not a user-entered value
+        const hasUserStartedFixingSmartscan =
+            (!TransactionUtils.isAmountMissing(updatedTransaction) && updatedTransaction.amount !== 0) || !TransactionUtils.isMerchantMissing(updatedTransaction);
         const shouldShowSmartScanFailedError =
             isScanRequest &&
             updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
