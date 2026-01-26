@@ -5378,7 +5378,7 @@ const staticStyles = (theme: ThemeColors) =>
         translucentNavigationBarBG: {
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
-        
+
         todoBadge: {
             width: variables.w36,
             alignItems: 'center',
