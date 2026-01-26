@@ -2029,7 +2029,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 top: cropY - variables.cornerTapTargetSize / 2,
                 width: variables.cornerTapTargetSize,
                 height: variables.cornerTapTargetSize,
-                ...styles.cursorNwResize,
+                ...styles.cursorNwseResize,
             },
             cornerTopRight: {
                 ...styles.pAbsolute,
@@ -2037,7 +2037,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 top: cropY - variables.cornerTapTargetSize / 2,
                 width: variables.cornerTapTargetSize,
                 height: variables.cornerTapTargetSize,
-                ...styles.cursorNeResize,
+                ...styles.cursorNeswResize,
             },
             cornerBottomLeft: {
                 ...styles.pAbsolute,
@@ -2045,7 +2045,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 top: cropY + cropHeight - variables.cornerTapTargetSize / 2,
                 width: variables.cornerTapTargetSize,
                 height: variables.cornerTapTargetSize,
-                ...styles.cursorSwResize,
+                ...styles.cursorNeswResize,
             },
             cornerBottomRight: {
                 ...styles.pAbsolute,
@@ -2053,7 +2053,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 top: cropY + cropHeight - variables.cornerTapTargetSize / 2,
                 width: variables.cornerTapTargetSize,
                 height: variables.cornerTapTargetSize,
-                ...styles.cursorSeResize,
+                ...styles.cursorNwseResize,
             },
             edgeTop: {
                 ...styles.pAbsolute,
@@ -2061,7 +2061,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 top: cropY - variables.edgeHandleTapTargetThickness / 2,
                 width: cropWidth,
                 height: variables.edgeHandleTapTargetThickness,
-                ...styles.cursorNResize,
+                ...styles.cursorNsResize,
             },
             edgeBottom: {
                 ...styles.pAbsolute,
@@ -2069,7 +2069,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 top: cropY + cropHeight - variables.edgeHandleTapTargetThickness / 2,
                 width: cropWidth,
                 height: variables.edgeHandleTapTargetThickness,
-                ...styles.cursorSResize,
+                ...styles.cursorNsResize,
             },
             edgeLeft: {
                 ...styles.pAbsolute,
@@ -2077,7 +2077,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 top: cropY,
                 width: variables.edgeHandleTapTargetThickness,
                 height: cropHeight,
-                ...styles.cursorWResize,
+                ...styles.cursorEwResize,
             },
             edgeRight: {
                 ...styles.pAbsolute,
@@ -2085,7 +2085,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 top: cropY,
                 width: variables.edgeHandleTapTargetThickness,
                 height: cropHeight,
-                ...styles.cursorEResize,
+                ...styles.cursorEwResize,
             },
             overlayTop: {
                 ...styles.pAbsolute,
