@@ -4895,6 +4895,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Reglas',
                 subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
             },
+            timeTracking: {
+                title: 'Tiempo',
+                subtitle: 'Establece una tarifa facturable por hora para que los empleados reciban pago por su tiempo.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',
@@ -8192,6 +8196,11 @@ ${amount} para ${merchant} - ${date}`,
         notification: {
             title: 'Seguimiento GPS en curso',
             body: 'Ve a la app para finalizar',
+        },
+        signOutWarningTripInProgress: {
+            title: 'Seguimiento por GPS en curso',
+            prompt: '¿Seguro que quieres descartar el viaje y cerrar sesión?',
+            confirm: 'Descartar y cerrar sesión',
         },
         locationServicesRequiredModal: {
             title: 'Se requiere acceso a la ubicación',
