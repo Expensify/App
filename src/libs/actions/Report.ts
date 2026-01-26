@@ -705,7 +705,6 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     };
     const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {

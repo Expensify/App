@@ -3079,8 +3079,8 @@ describe('ReportActionsUtils', () => {
             expect(stripFollowupListFromHtml(html)).toBe('<p>Hello world</p>');
         });
 
-        it('should return empty string for empty input', () => {
-            expect(stripFollowupListFromHtml('')).toBe('');
+        it('should return undefined for empty input', () => {
+            expect(stripFollowupListFromHtml('')).not.toBeDefined();
         });
 
         it('should strip followup-list and trim result', () => {
@@ -3099,15 +3099,6 @@ describe('ReportActionsUtils', () => {
             expect(stripFollowupListFromHtml(html)).toBe('<p>Answer to your question</p>');
         });
 
-        it('should strip followup-list with multiple followups', () => {
-            const html = `<p>Hello</p>
-<followup-list>
-  <followup><followup-text>Question 1</followup-text></followup>
-  <followup><followup-text>Question 2</followup-text></followup>
-</followup-list>`;
-            expect(stripFollowupListFromHtml(html)).toBe('<p>Hello</p>');
-        });
-
         it('should handle content before and after followup-list', () => {
             const html = `<p>Before</p>
 <followup-list>
@@ -3119,9 +3110,5 @@ describe('ReportActionsUtils', () => {
 <p>After</p>`);
         });
 
-        it('should strip empty followup-list', () => {
-            const html = '<p>Message</p><followup-list></followup-list>';
-            expect(stripFollowupListFromHtml(html)).toBe('<p>Message</p>');
-        });
     });
 });

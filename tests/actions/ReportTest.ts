@@ -3458,8 +3458,8 @@ describe('actions/Report', () => {
             expect(result).not.toBeNull();
 
             expect(result?.reportActionID).toBe('123');
-            expect((result?.message as Array<Message>).at(0)?.html).toContain('<followup-list selected>');
-            expect((result?.message as Array<Message>).at(0)?.html).not.toMatch(/<followup-list>/);
+            expect((result?.message as Message[]).at(0)?.html).toContain('<followup-list selected>');
+            expect((result?.message as Message[]).at(0)?.html).not.toMatch(/<followup-list>/);
         });
 
         it('should handle followup-list with attributes before adding selected', () => {
@@ -3496,8 +3496,8 @@ describe('actions/Report', () => {
             const result = Report.buildOptimisticResolvedFollowups(reportAction);
 
             expect(result).not.toBeNull();
-            expect((result?.message as Array<Message>).at(0)?.text).toBe('Help');
-            expect((result?.message as Array<Message>).at(0)?.type).toBe(CONST.REPORT.MESSAGE.TYPE.COMMENT);
+            expect((result?.message as Message[]).at(0)?.text).toBe('Help');
+            expect((result?.message as Message[]).at(0)?.type).toBe(CONST.REPORT.MESSAGE.TYPE.COMMENT);
         });
     });
 });
