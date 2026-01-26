@@ -1,14 +1,13 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, Section} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,7 +39,7 @@ type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
-type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
+type MembersSection = Section<MemberOption>;
 
 function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -131,20 +130,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 {
                     title: undefined,
                     data: filteredOptions,
-                    shouldShow: true,
                 },
             ];
         }
 
         sectionsArray.push({
             data: formattedAuthorizedPayer,
-            shouldShow: true,
         });
 
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
-            shouldShow: true,
         });
         return sectionsArray;
     }, [searchTerm, formattedAuthorizedPayer, translate, formattedPolicyAdmins, countryCode]);
@@ -183,7 +179,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     }, [isDeletedPolicyEmployee, policy?.employeeList, policy?.owner]);
 
     const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const textInputLabel = shouldShowSearchInput ? translate('selectionList.findMember') : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -208,15 +203,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     />
                     <SelectionList
                         sections={sections}
-                        textInputLabel={textInputLabel}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyAuthorizedPayer}
-                        initiallyFocusedOptionKey={formattedAuthorizedPayer.at(0)?.keyForList}
+                        shouldShowTextInput={shouldShowSearchInput}
+                        textInputOptions={{
+                            label: translate('selectionList.findMember'),
+                            value: searchTerm,
+                            onChangeText: setSearchTerm,
+                            headerMessage,
+                        }}
+                        initiallyFocusedItemKey={formattedAuthorizedPayer.at(0)?.keyForList}
                         shouldSingleExecuteRowSelect
-                        showScrollIndicator
                         addBottomSafeAreaPadding
                     />
                 </ScreenWrapper>
