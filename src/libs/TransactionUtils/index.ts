@@ -296,23 +296,21 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
 }
 
 /**
- * Determines the transaction type based on custom unit name or card name.
+ * Determines the transaction type based on custom unit name, comment type or card name.
  * Returns 'distance' for Distance transactions, 'perDiem' for Per Diem International transactions,
  * 'time' for time transactions,
  * 'cash' for cash transactions, or 'card' for card transactions.
  *
  * @param transaction - The transaction to check
  * @param cardList - Optional card list to check for cash transactions
- * @returns The transaction type: 'distance', 'perDiem', 'cash', or 'card'
+ * @returns The transaction type: 'distance', 'perDiem', 'time', 'cash', or 'card'
  */
 function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
-    const customUnitName = transaction?.comment?.customUnit?.name;
-
-    if (customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE) {
+    if (isDistanceRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.DISTANCE;
     }
 
-    if (customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL) {
+    if (isPerDiemRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM;
     }
 
