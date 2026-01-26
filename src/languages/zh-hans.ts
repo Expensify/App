@@ -630,6 +630,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: '汇率',
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
+        opensInNewTab: '在新标签页中打开',
         originalAmount: '原始金额',
         insights: '洞察',
         duplicateExpense: '重复报销',

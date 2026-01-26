@@ -628,6 +628,7 @@ const translations = {
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        opensInNewTab: 'Opens in a new tab',
     },
     supportalNoAccess: {
         title: 'Not so fast',

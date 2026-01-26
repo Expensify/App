@@ -634,6 +634,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Kurs wymiany',
         reimbursableTotal: 'Łączna kwota podlegająca zwrotowi',
         nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
+        opensInNewTab: 'Otwiera się w nowej karcie',
         originalAmount: 'Kwota pierwotna',
         insights: 'Analizy',
         duplicateExpense: 'Zduplikowany wydatek',
