@@ -8,10 +8,13 @@ type Section<TItem extends ListItem> = {
     title?: string;
 
     /** Array of items in the section */
-    data?: TItem[];
+    data: TItem[];
 
     /** Whether this section is disabled */
     isDisabled?: boolean;
+
+    /** Index of the section, used to create a unique flatListKey */
+    sectionIndex: number;
 };
 
 /**
