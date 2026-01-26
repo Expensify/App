@@ -5,7 +5,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,16 +20,18 @@ function AddTaxPage({route}: AddTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID ?? '-1';
-    const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
     const taxItems = useMemo(() => {
         const taxes = policy?.taxRates?.taxes ?? {};
-        return Object.entries(taxes).map(([taxKey, tax]) => ({
-            name: `${tax.name} (${tax.value})`,
-            value: taxKey,
-        }));
+        return Object.entries(taxes)
+            .filter(([, tax]) => !tax.isDisabled)
+            .map(([taxKey, tax]) => ({
+                name: `${tax.name} (${tax.value})`,
+                value: taxKey,
+            }));
     }, [policy?.taxRates?.taxes]);
 
     const selectedTaxItem = form?.tax ? taxItems.find(({value}) => value === form.tax) : undefined;

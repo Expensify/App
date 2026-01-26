@@ -5,7 +5,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,17 +21,16 @@ function AddTagPage({route}: AddTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID ?? '-1';
-    const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
     const selectedTagItem = form?.tag ? {name: getCleanedTagName(form.tag), value: form.tag} : undefined;
 
     const tagItems = useMemo(() => {
-        const tagLists = policy?.tagList ?? {};
         const tags: Array<{name: string; value: string}> = [];
 
-        Object.values(tagLists).forEach((tagList) => {
+        Object.values(policyTags ?? {}).forEach((tagList) => {
             Object.values(tagList?.tags ?? {}).forEach((tag) => {
                 if (tag.enabled) {
                     tags.push({name: getCleanedTagName(tag.name), value: tag.name});
@@ -41,7 +39,7 @@ function AddTagPage({route}: AddTagPageProps) {
         });
 
         return tags;
-    }, [policy?.tagList]);
+    }, [policyTags]);
 
     const backToRoute = ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 

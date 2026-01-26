@@ -5,7 +5,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -22,21 +21,20 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID ?? '-1';
-    const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
     const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
 
     const categoryItems = useMemo(() => {
-        const categories = policy?.categories ?? {};
-        return Object.values(categories)
+        return Object.values(policyCategories ?? {})
             .filter((category) => category.enabled)
             .map((category) => {
                 const decodedCategoryName = getDecodedCategoryName(category.name);
                 return {name: decodedCategoryName, value: category.name};
             });
-    }, [policy?.categories]);
+    }, [policyCategories]);
 
     const backToRoute = ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
