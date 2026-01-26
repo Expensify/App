@@ -64,6 +64,7 @@ import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
+    containsActionableFollowUps,
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
@@ -1688,7 +1689,8 @@ function PureReportActionItem({
                                                 isActionableTrackExpense(action) ||
                                                 isConciergeCategoryOptions(action) ||
                                                 isConciergeDescriptionOptions(action) ||
-                                                isActionableMentionWhisper(action)
+                                                isActionableMentionWhisper(action) ||
+                                                containsActionableFollowUps(action)
                                                     ? 'vertical'
                                                     : 'horizontal'
                                             }

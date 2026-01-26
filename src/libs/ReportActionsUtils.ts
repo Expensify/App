@@ -959,6 +959,29 @@ function isActionableMentionWhisper(reportAction: OnyxInputOrEntry<ReportAction>
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
 }
 
+/**
+ * Checks if a report action contains actionable (unresolved) followup suggestions.
+ * @param reportAction - The report action to check
+ * @returns true if the action is an ADD_COMMENT with unresolved followups, false otherwise
+ */
+function containsActionableFollowUps(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    const isActionAComment = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+    if (!isActionAComment) {
+        return false;
+    }
+    const messageHtml = getReportActionMessage(reportAction)?.html;
+    if (!messageHtml) {
+        return false;
+    }
+    const followups = parseFollowupsFromHtml(messageHtml);
+
+    if (!followups || followups?.length === 0) {
+        return false;
+    }
+
+    return true;
+}
+
 function isActionableMentionInviteToSubmitExpenseConfirmWhisper(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> {
@@ -3983,6 +4006,7 @@ export {
     getReportActionActorAccountID,
     parseFollowupsFromHtml,
     stripFollowupListFromHtml,
+    containsActionableFollowUps,
 };
 
 export type {LastVisibleMessage, Followup};

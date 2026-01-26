@@ -11,6 +11,7 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
+    containsActionableFollowUps,
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -3108,6 +3109,63 @@ describe('ReportActionsUtils', () => {
             expect(stripFollowupListFromHtml(html)).toBe(`<p>Before</p>
 
 <p>After</p>`);
+        });
+    });
+
+    describe('containsActionableFollowUps', () => {
+        it('should return false for null/undefined reportAction', () => {
+            expect(containsActionableFollowUps(null)).toBe(false);
+            expect(containsActionableFollowUps(undefined)).toBe(false);
+        });
+
+        it('should return false for non-ADD_COMMENT action types', () => {
+            const action = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                message: [{html: '<followup-list><followup><followup-text>Question</followup-text></followup></followup-list>', text: '', type: 'COMMENT'}],
+            } as ReportAction;
+
+            expect(containsActionableFollowUps(action)).toBe(false);
+        });
+
+        it('should return false for ADD_COMMENT without message html', () => {
+            const action = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{text: 'Just text', type: 'COMMENT'}],
+            } as ReportAction;
+
+            expect(containsActionableFollowUps(action)).toBe(false);
+        });
+
+        it('should return false for ADD_COMMENT without followup-list', () => {
+            const action = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{html: '<p>Regular message</p>', text: 'Regular message', type: 'COMMENT'}],
+            } as ReportAction;
+
+            expect(containsActionableFollowUps(action)).toBe(false);
+        });
+
+        it('should return false for ADD_COMMENT with resolved followup-list (selected attribute)', () => {
+            const action = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{html: '<p>Message</p><followup-list selected><followup><followup-text>Question</followup-text></followup></followup-list>', text: 'Message', type: 'COMMENT'}],
+            } as ReportAction;
+
+            expect(containsActionableFollowUps(action)).toBe(false);
+        });
+
+        it('should return true for ADD_COMMENT with unresolved followup-list', () => {
+            const action = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{html: '<p>Message</p><followup-list><followup><followup-text>Question</followup-text></followup></followup-list>', text: 'Message', type: 'COMMENT'}],
+            } as ReportAction;
+
+            expect(containsActionableFollowUps(action)).toBe(true);
         });
     });
 });
