@@ -61,7 +61,7 @@ function Socials() {
                     }}
                     style={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
-                    accessibilityRole="link"
+                    accessibilityRole={CONST.ROLE.LINK}
                     accessibilityLabel={social.accessibilityLabel}
                 >
                     {({hovered, pressed}) => (
