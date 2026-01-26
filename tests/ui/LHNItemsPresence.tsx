@@ -545,14 +545,7 @@ describe('SidebarLinksData', () => {
         it('should not display the single transaction thread', async () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const expenseReport = buildOptimisticExpenseReport({
-                chatReportID: chatReportR14932.reportID,
-                policyID: '123',
-                payeeAccountID: 100,
-                total: 122,
-                currency: 'USD',
-                allBetas: [CONST.BETAS.ALL],
-            });
+            const expenseReport = buildOptimisticExpenseReport(chatReportR14932.reportID, '123', 100, 122, 'USD');
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,

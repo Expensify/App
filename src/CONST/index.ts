@@ -24,6 +24,7 @@ const EMPTY_OBJECT = Object.freeze({});
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
 
 const DEFAULT_NUMBER_ID = 0;
+const DEFAULT_MISSING_ID = -1;
 const DEFAULT_COUNTRY_CODE = 1;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -225,6 +226,7 @@ const CONST = {
         OUT: 'out',
     },
     ELEMENT_NAME: {
+        DIV: 'DIV',
         INPUT: 'INPUT',
         TEXTAREA: 'TEXTAREA',
     },
@@ -974,6 +976,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
     FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
@@ -2684,6 +2687,16 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    MISSING_PERSONAL_DETAILS: {
+        STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+            CONFIRM: 'confirm',
+        },
+    },
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -3159,6 +3172,7 @@ const CONST = {
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
             IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
+            IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3703,6 +3717,24 @@ const CONST = {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
             INVOICING: 'invoicing2018',
+        },
+    },
+    EXPENSE_RULES: {
+        FIELDS: {
+            BILLABLE: 'billable',
+            CATEGORY: 'category',
+            DESCRIPTION: 'comment',
+            CREATE_REPORT: 'createReport',
+            MERCHANT: 'merchantToMatch',
+            RENAME_MERCHANT: 'merchant',
+            REIMBURSABLE: 'reimbursable',
+            REPORT: 'report',
+            TAG: 'tag',
+            TAX: 'tax',
+        },
+        BULK_ACTION_TYPES: {
+            EDIT: 'edit',
+            DELETE: 'delete',
         },
     },
 
@@ -6680,6 +6712,8 @@ const CONST = {
 
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
 
+    FLIGHT_SEAT_TEST_ID: 'FlightSeat',
+
     CANCELLATION_POLICY: {
         UNKNOWN: 'UNKNOWN',
         NON_REFUNDABLE: 'NON_REFUNDABLE',
@@ -7237,6 +7271,7 @@ const CONST = {
         ANIMATION: {
             FADE_DURATION: 200,
         },
+        TODO_BADGE_MAX_COUNT: 50,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -7583,10 +7618,11 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
-        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
+        HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
+        HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
     },
 
     DEBUG: {
@@ -8033,6 +8069,11 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+    },
+
+    SECTION_LIST_ITEM_TYPE: {
+        HEADER: 'header',
+        ROW: 'row',
     },
 } as const;
 

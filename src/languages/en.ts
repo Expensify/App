@@ -269,6 +269,7 @@ const translations = {
         zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
+        digits: 'digits',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         inbox: 'Inbox',
@@ -524,6 +525,10 @@ const translations = {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        downloadFailedEmptyReportDescription: () => ({
+            one: "You can't export an empty report.",
+            other: () => `You can't export empty reports.`,
+        }),
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
@@ -623,6 +628,7 @@ const translations = {
         actionRequired: 'Action required',
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
+        duplicateExpense: 'Duplicate expense',
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
@@ -955,8 +961,8 @@ const translations = {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
-        fabNewChatExplained: 'Start chat (Floating action)',
-        fabScanReceiptExplained: 'Scan receipt (Floating action)',
+        fabNewChatExplained: 'Open actions menu',
+        fabScanReceiptExplained: 'Scan receipt',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -1193,8 +1199,14 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: 'Delete report',
-        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
+        deleteReport: () => ({
+            one: 'Delete report',
+            other: 'Delete reports',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Are you sure that you want to delete this report?',
+            other: 'Are you sure that you want to delete these reports?',
+        }),
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -1460,6 +1472,7 @@ const translations = {
             ratePreview: (rate: string) => `${rate} / hour`,
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
+        correctDistanceRateError: 'Fix the distance rate error and try again.',
     },
     transactionMerge: {
         listPage: {
@@ -2365,9 +2378,32 @@ const translations = {
             comment: (value: string) => `Change description to "${value}"`,
             merchant: (value: string) => `Update merchant to "${value}"`,
             reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
-            report: (value: string) => `Add a report named "${value}"`,
+            report: (value: string) => `Add to a report named "${value}"`,
             tag: (value: string) => `Update tag to "${value}"`,
             tax: (value: string) => `Update tax rate to "${value}"`,
+        },
+        newRule: 'New rule',
+        addRule: {
+            title: 'Add rule',
+            expenseContains: 'If expense contains:',
+            applyUpdates: 'Then apply these updates:',
+            merchantHint: 'Type * to create a rule that applies to all merchants',
+            addToReport: 'Add to a report named',
+            createReport: 'Create report if necessary',
+            applyToExistingExpenses: 'Apply to existing matching expenses',
+            confirmError: 'Enter merchant and apply at least one update',
+            confirmErrorMerchant: 'Please enter merchant',
+            confirmErrorUpdate: 'Please apply at least one update',
+            saveRule: 'Save rule',
+        },
+        editRule: {
+            title: 'Edit rule',
+        },
+        deleteRule: {
+            deleteSingle: 'Delete rule',
+            deleteMultiple: 'Delete rules',
+            deleteSinglePrompt: 'Are you sure you want to delete this rule?',
+            deleteMultiplePrompt: 'Are you sure you want to delete these rules?',
         },
     },
     preferencesPage: {
@@ -4774,6 +4810,7 @@ const translations = {
             ukRegulation:
                 'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
             assignCardFailedError: 'Card assignment failed.',
+            unassignCardFailedError: 'Card unassignment failed.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
@@ -5014,8 +5051,6 @@ const translations = {
                     `Choose the ${integration} account where transactions should be exported. Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
-                changeTransactionStartDateWarning:
-                    'Changing start date will remove all unreported/draft report transactions and reimport all transactions from the new start date. This can cause duplicate transactions.',
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
                 unassign: 'Unassign',
@@ -5114,6 +5149,10 @@ const translations = {
             rules: {
                 title: 'Rules',
                 subtitle: 'Require receipts, flag high spend, and more.',
+            },
+            timeTracking: {
+                title: 'Time',
+                subtitle: 'Set an hourly billable rate for employees to get paid for their time.',
             },
         },
         reports: {
@@ -5422,7 +5461,8 @@ const translations = {
                 giveItNameInstruction: 'Make it unique enough to tell apart from other cards. Specific use cases are even better!',
                 cardName: 'Card name',
                 letsDoubleCheck: 'Let’s double check that everything looks right.',
-                willBeReady: 'This card will be ready to use immediately.',
+                willBeReadyToUse: 'This card will be ready to use immediately.',
+                willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
                 cardType: 'Card type',
                 limit: 'Limit',
@@ -7134,6 +7174,11 @@ const translations = {
         notification: {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
+        },
+        signOutWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to discard the trip and sign out?',
+            confirm: 'Discard and sign out',
         },
         locationServicesRequiredModal: {
             title: 'Location access required',
