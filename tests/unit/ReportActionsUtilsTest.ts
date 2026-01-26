@@ -3109,6 +3109,5 @@ describe('ReportActionsUtils', () => {
 
 <p>After</p>`);
         });
-
     });
 });
