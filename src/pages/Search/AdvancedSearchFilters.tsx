@@ -434,8 +434,8 @@ function getFilterDisplayTitle(
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
-        const filterValues = filters[key] ?? [];
-        return filterValues.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`)).join(', ');
+        const filterValue = filters[key];
+        return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`) : undefined;
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {

@@ -642,11 +642,11 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ASSIGNEE]: string[];
         [FILTER_KEYS.ASSIGNEE_NOT]: string[];
 
-        [FILTER_KEYS.REIMBURSABLE]: string[];
-        [FILTER_KEYS.REIMBURSABLE_NOT]: string[];
+        [FILTER_KEYS.REIMBURSABLE]: string;
+        [FILTER_KEYS.REIMBURSABLE_NOT]: string;
 
-        [FILTER_KEYS.BILLABLE]: string[];
-        [FILTER_KEYS.BILLABLE_NOT]: string[];
+        [FILTER_KEYS.BILLABLE]: string;
+        [FILTER_KEYS.BILLABLE_NOT]: string;
 
         [FILTER_KEYS.ACTION]: string;
         [FILTER_KEYS.ACTION_NOT]: string;

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FixedFooter from '@components/FixedFooter';
@@ -39,30 +39,31 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const [selectedItem, setSelectedItem] = useState(() => {
-        return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey]?.includes(value)) ?? null;
+        return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey] === value) ?? null;
     });
 
-    const items = booleanValues.map((value) => ({
-        value,
-        keyForList: value,
-        text: translate(`common.${value}`),
-        isSelected: selectedItem === value,
-    }));
+    const items = useMemo(() => {
+        return booleanValues.map((value) => ({
+            value,
+            keyForList: value,
+            text: translate(`common.${value}`),
+            isSelected: selectedItem === value,
+        }));
+    }, [selectedItem, translate, booleanValues]);
 
-    const updateFilter = (selectedFilter: BooleanFilterItem) => {
+    const updateFilter = useCallback((selectedFilter: BooleanFilterItem) => {
         const newValue = selectedFilter.isSelected ? null : selectedFilter.value;
         setSelectedItem(newValue);
-    };
+    }, []);
 
-    const resetChanges = () => {
+    const resetChanges = useCallback(() => {
         setSelectedItem(null);
-    };
+    }, []);
 
-    const applyChanges = () => {
-        const selectedItems = selectedItem ? [selectedItem] : [];
-        updateAdvancedFilters({[booleanKey]: selectedItems} as Partial<Record<SearchBooleanFilterKeys, string[]>>);
+    const applyChanges = useCallback(() => {
+        updateAdvancedFilters({[booleanKey]: selectedItem});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    };
+    }, [booleanKey, selectedItem]);
 
     return (
         <ScreenWrapper

@@ -486,7 +486,7 @@ function getSuggestedSearches(
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                reimbursable: [CONST.SEARCH.BOOLEAN.YES],
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
                 payer: accountID?.toString(),
             }),
             get searchQueryJSON() {
@@ -550,7 +550,7 @@ function getSuggestedSearches(
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                reimbursable: [CONST.SEARCH.BOOLEAN.YES],
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
