@@ -13,12 +13,12 @@ const SECURE_STORE_VALUES = {
         UNKNOWN: {
             CODE: SecureStore.AUTH_TYPE.UNKNOWN,
             NAME: 'Unknown',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.OTHER,
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         NONE: {
             CODE: SecureStore.AUTH_TYPE.NONE,
             NAME: 'None',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.OTHER,
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.NONE,
         },
         CREDENTIALS: {
             CODE: SecureStore.AUTH_TYPE.CREDENTIALS,
@@ -47,7 +47,7 @@ const SECURE_STORE_VALUES = {
         OPTIC_ID: {
             CODE: SecureStore.AUTH_TYPE.OPTIC_ID,
             NAME: 'OpticID',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.OTHER,
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
     },
     /**

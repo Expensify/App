@@ -33,6 +33,9 @@ const AUTHENTICATION_METHOD = {
 
     /** Other authentication method not listed above */
     OTHER: 'OTHER',
+
+    /** None is used in case of an error; the server will reject authorization with this type. */
+    NONE: '',
 } as const;
 
 const MQ_VALUES = {
