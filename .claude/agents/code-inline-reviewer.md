@@ -914,11 +914,36 @@ type SelectionListProps = {
 };
 ```
 
-Bad (vertical growth):
+Good (children manage their own state):
 
 ```tsx
-// Structure that grows vertically over time
-// Parent has to handle more state to make child components happy with properties
+// Children are self-contained and manage their own state
+// Parent only passes minimal data (IDs)
+// Adding new features doesn't require changing the parent
+function ReportScreen({ params: { reportID }}) {
+  return (
+    <>
+      <ReportActionsView reportID={reportID} />
+      // other features
+      <Composer />
+    </>
+  );
+}
+
+// Component accesses stores and calculates its own state
+// Parent doesn't know the internals
+function ReportActionsView({ reportID }) {
+  const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+  const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+  // ...
+}
+```
+
+Bad (parent manages child state):
+
+```tsx
+// Parent fetches and manages state for its children
+// Parent has to know child implementation details
 function ReportScreen({ params: { reportID }}) {
   const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true, canBeMissing: true});
   const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
@@ -945,31 +970,6 @@ function ReportScreen({ params: { reportID }}) {
       <Composer />
     </>
   );
-}
-```
-
-Good (horizontal growth):
-
-```tsx
-// Structure that expands horizontally
-// Tree grows with nested structures that keep concerns separated
-// Adding new subcomponents (features) does not require changing the parent
-function ReportScreen({ params: { reportID }}) {
-  return (
-    <>
-      <ReportActionsView reportID={reportID} />
-      // other features
-      <Composer />
-    </>
-  );
-}
-
-// Component accesses stores and calculates its own state
-// Parent doesn't know the internals
-function ReportActionsView({ reportID }) {
-  const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-  const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-  // ...
 }
 ```
 
