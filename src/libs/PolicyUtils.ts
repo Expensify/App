@@ -107,6 +107,10 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: 
     });
 }
 
+function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -1896,6 +1900,7 @@ export {
     isDefaultTagName,
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
+    getActivePoliciesWithExpenseChatAndTimeEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
