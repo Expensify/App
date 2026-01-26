@@ -120,9 +120,7 @@ function IOURequestStepOdometerImage({
         >
             {(isDraggingOverWrapper) => (
                 <View style={[styles.flex1, styles.chooseFilesView(isSmallScreenWidth)]}>
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}
-                    </View>
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>{!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}</View>
                     <DragAndDropConsumer onDrop={handleDrop}>
                         <DropZoneUI
                             icon={lazyIcons.ReceiptScan}
