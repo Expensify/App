@@ -1,4 +1,3 @@
-import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -59,7 +58,6 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -92,6 +90,10 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
     }, [selectedOptions]);
 
+    const initialSelectedAccountIDs = useMemo(() => {
+        return new Set(initialSelectedOptions.map((option) => option.accountID).filter(Boolean));
+    }, [initialSelectedOptions]);
+
     const optionsList = useMemo(() => {
         return memoizedGetValidOptions(
             {
@@ -119,42 +121,39 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         });
     }, [optionsList, cleanSearchTerm, countryCode, loginList]);
 
-    const listData = useMemo(() => {
-        const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
+    const listData = useMemo<Array<Option & {keyForList: string; isSelected: boolean}>>(() => {
+        const initialOptions: Array<Option & {keyForList: string; isSelected: boolean}> = [];
+        const remainingOptions: Array<Option & {keyForList: string; isSelected: boolean}> = [];
+
+        const personalDetailOptions = filteredOptions.personalDetails.map((participant) => ({
             ...participant,
             isSelected: selectedAccountIDs.has(participant.accountID),
             keyForList: String(participant.accountID),
         }));
 
-        const recentReportsList = filteredOptions.recentReports.map((report) => ({
+        const recentReportOptions = filteredOptions.recentReports.map((report) => ({
             ...report,
             isSelected: selectedAccountIDs.has(report.accountID),
             keyForList: String(report.reportID),
         }));
 
-        const combined = [...personalDetailList, ...recentReportsList];
+        const totalOptions = personalDetailOptions.length + recentReportOptions.length;
+        const reordered = [...personalDetailOptions, ...recentReportOptions];
 
-        combined.sort((a, b) => {
-            // selected items first
-            if (a.isSelected && !b.isSelected) {
-                return -1;
-            }
-            if (!a.isSelected && b.isSelected) {
-                return 1;
-            }
+        if (totalOptions <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return reordered;
+        }
 
-            // Put the current user at the top of the list
-            if (a.accountID === accountID) {
-                return -1;
+        for (const option of reordered) {
+            if (option.accountID && initialSelectedAccountIDs.has(option.accountID)) {
+                initialOptions.push(option);
+            } else {
+                remainingOptions.push(option);
             }
-            if (b.accountID === accountID) {
-                return 1;
-            }
-            return 0;
-        });
+        }
 
-        return combined;
-    }, [filteredOptions, accountID, selectedAccountIDs]);
+        return [...initialOptions, ...remainingOptions];
+    }, [filteredOptions, initialSelectedAccountIDs, selectedAccountIDs]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
@@ -166,7 +165,6 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
 
             setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
-            selectionListRef?.current?.scrollToIndex(0);
         },
         [selectedOptions],
     );

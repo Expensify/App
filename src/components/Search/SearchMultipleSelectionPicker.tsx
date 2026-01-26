@@ -34,46 +34,47 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const selectedItemsSection = selectedItems
-            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
-            .map((item) => ({
+        const filteredItems = items.filter((item) => item.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+
+        const initialValues = new Set(initiallySelectedItems?.map((item) => item.value.toString()) ?? []);
+        const selectedValues = new Set(selectedItems.map((item) => item.value.toString()));
+
+        const initialItems: Array<{text: string; keyForList: string; isSelected: boolean; value: string | string[]}> = [];
+        const remainingItems: Array<{text: string; keyForList: string; isSelected: boolean; value: string | string[]}> = [];
+
+        const sortedItems = filteredItems.sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare));
+
+        for (const item of sortedItems) {
+            const mapped = {
                 text: item.name,
                 keyForList: item.name,
-                isSelected: true,
+                isSelected: selectedValues.has(item.value.toString()),
                 value: item.value,
-            }));
-        const remainingItemsSection = items
-            .filter(
-                (item) =>
-                    !selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
-            )
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.name,
-                isSelected: false,
-                value: item.value,
-            }));
-        const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
+            };
+            if (!initialValues.size || !initialValues.has(item.value.toString())) {
+                remainingItems.push(mapped);
+            } else {
+                initialItems.push(mapped);
+            }
+        }
+
+        const shouldReorder = !debouncedSearchTerm.trim() && initialItems.length > 0;
+        const data = shouldReorder ? [...initialItems, ...remainingItems] : [...initialItems, ...remainingItems];
+
+        const isEmpty = data.length === 0;
         return {
             sections: isEmpty
                 ? []
                 : [
                       {
-                          title: undefined,
-                          data: selectedItemsSection,
-                          shouldShow: selectedItemsSection.length > 0,
-                      },
-                      {
                           title: pickerTitle,
-                          data: remainingItemsSection,
-                          shouldShow: remainingItemsSection.length > 0,
+                          data,
+                          shouldShow: true,
                       },
                   ],
             noResultsFound: isEmpty,
         };
-    }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
+    }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare, initiallySelectedItems]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {

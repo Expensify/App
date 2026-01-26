@@ -45,16 +45,39 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
+    const orderedOptionKeys = useMemo(() => {
+        const keys = Object.keys(optionsList);
+        if (!selectedOption || keys.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return keys;
+        }
+
+        const selected: string[] = [];
+        const remaining: string[] = [];
+
+        for (const key of keys) {
+            if (key === selectedOption) {
+                selected.push(key);
+            } else {
+                remaining.push(key);
+            }
+        }
+
+        return [...selected, ...remaining];
+    }, [optionsList, selectedOption]);
+
     const options = useMemo(
         () =>
-            Object.entries(optionsList).map(([key, value]) => ({
-                value: key,
-                text: value,
-                keyForList: key,
-                isSelected: key === selectedOption,
-                searchValue: StringUtils.sanitizeString(value),
-            })),
-        [optionsList, selectedOption],
+            orderedOptionKeys.map((key) => {
+                const value = optionsList[key];
+                return {
+                    value: key,
+                    text: value,
+                    keyForList: key,
+                    isSelected: key === selectedOption,
+                    searchValue: StringUtils.sanitizeString(value),
+                };
+            }),
+        [optionsList, selectedOption, orderedOptionKeys],
     );
 
     const handleSelectRow = (option: ListItemType) => {
@@ -67,7 +90,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         setSearchValue('');
     };
 
-    const searchResults = searchOptions(debouncedSearchValue, options);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, options), [debouncedSearchValue, options]);
 
     const textInputOptions = useMemo(
         () => ({

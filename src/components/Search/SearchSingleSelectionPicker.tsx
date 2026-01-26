@@ -44,40 +44,33 @@ function SearchSingleSelectionPicker({
     }, [initiallySelectedItem]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const initiallySelectedItemSection = initiallySelectedItem?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
-            ? [
-                  {
-                      text: initiallySelectedItem.name,
-                      keyForList: initiallySelectedItem.value,
-                      isSelected: selectedItem?.value === initiallySelectedItem.value,
-                      value: initiallySelectedItem.value,
-                  },
-              ]
-            : [];
-        const remainingItemsSection = items
-            .filter((item) => item?.value !== initiallySelectedItem?.value && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.value,
-                isSelected: selectedItem?.value === item.value,
-                value: item.value,
-            }));
-        const isEmpty = !initiallySelectedItemSection.length && !remainingItemsSection.length;
+        const filteredItems = items.filter((item) => item.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+
+        const data = filteredItems.map((item) => ({
+            text: item.name,
+            keyForList: item.value,
+            isSelected: selectedItem?.value === item.value,
+            value: item.value,
+        }));
+
+        // Only reorder on first load (when no search) using the initial item
+        if (!debouncedSearchTerm.trim() && initiallySelectedItem) {
+            const index = data.findIndex((item) => item.value === initiallySelectedItem.value);
+            if (index > 0) {
+                const [selectedRow] = data.splice(index, 1);
+                data.unshift(selectedRow);
+            }
+        }
+
+        const isEmpty = data.length === 0;
         return {
             sections: isEmpty
                 ? []
                 : [
                       {
-                          title: undefined,
-                          data: initiallySelectedItemSection,
-                          shouldShow: initiallySelectedItemSection.length > 0,
-                          indexOffset: 0,
-                      },
-                      {
                           title: pickerTitle,
-                          data: remainingItemsSection,
-                          shouldShow: remainingItemsSection.length > 0,
-                          indexOffset: initiallySelectedItemSection.length,
+                          data,
+                          shouldShow: true,
                       },
                   ],
             noResultsFound: isEmpty,
@@ -122,7 +115,6 @@ function SearchSingleSelectionPicker({
     return (
         <SelectionList
             sections={sections}
-            initiallyFocusedOptionKey={initiallySelectedItem?.value}
             textInputValue={searchTerm}
             onChangeText={setSearchTerm}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
@@ -133,7 +125,6 @@ function SearchSingleSelectionPicker({
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             ListItem={SingleSelectListItem}
-            shouldUpdateFocusedIndex
         />
     );
 }

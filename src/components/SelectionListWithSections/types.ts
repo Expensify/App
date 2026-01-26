@@ -1010,6 +1010,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to scroll to the focused index */
     shouldScrollToFocusedIndex?: boolean;
 
+    /** Whether to scroll to the top when selecting an item in multi-select lists */
+    shouldScrollToTopOnSelect?: boolean;
+
     /** Whether the layout is narrow */
     isSmallScreenWidth?: boolean;
 

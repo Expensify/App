@@ -1985,6 +1985,8 @@ const CONST = {
         GLOBAL_CREATE: '\uE100',
     },
 
+    MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD: 8,
+
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
     UNICODE: {

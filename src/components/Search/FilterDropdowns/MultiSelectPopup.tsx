@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type MultiSelectItem<T> = {
@@ -39,9 +40,21 @@ type MultiSelectPopupProps<T> = {
 
     /** Search input placeholder. Defaults to 'common.search' when not provided. */
     searchPlaceholder?: string;
+
+    /** Whether to move initially selected items to the top on open (no reordering while toggling). */
+    shouldMoveSelectedItemsToTopOnOpen?: boolean;
 };
 
-function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
+function MultiSelectPopup<T extends string>({
+    label,
+    value,
+    items,
+    closeOverlay,
+    onChange,
+    isSearchable,
+    searchPlaceholder,
+    shouldMoveSelectedItemsToTopOnOpen = false,
+}: MultiSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -49,16 +62,35 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
     const {windowHeight} = useWindowDimensions();
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const initialSelectedValuesRef = useRef<Set<string>>(new Set(value.map((item) => item.value)));
 
     const listData: ListItem[] = useMemo(() => {
         const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items;
-        return filteredItems.map((item) => ({
+        const mappedItems = filteredItems.map((item) => ({
             text: item.text,
             keyForList: item.value,
             isSelected: !!selectedItems.find((i) => i.value === item.value),
             icons: item.icons,
         }));
-    }, [items, selectedItems, isSearchable, debouncedSearchTerm]);
+
+        if (!shouldMoveSelectedItemsToTopOnOpen || mappedItems.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return mappedItems;
+        }
+
+        const initialSelectedValues = initialSelectedValuesRef.current;
+        const initialItems: ListItem[] = [];
+        const remainingItems: ListItem[] = [];
+
+        for (const item of mappedItems) {
+            if (initialSelectedValues.has(item.keyForList)) {
+                initialItems.push(item);
+            } else {
+                remainingItems.push(item);
+            }
+        }
+
+        return [...initialItems, ...remainingItems];
+    }, [items, selectedItems, isSearchable, debouncedSearchTerm, shouldMoveSelectedItemsToTopOnOpen]);
 
     const headerMessage = isSearchable && listData.length === 0 ? translate('common.noResultsFound') : undefined;
 

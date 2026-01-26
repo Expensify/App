@@ -1,6 +1,4 @@
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -10,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {Section} from '@components/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useAncestors from '@hooks/useAncestors';
@@ -50,7 +47,6 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
 
-type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
 function RoomInvitePage({
     betas,
     report,
@@ -66,6 +62,8 @@ function RoomInvitePage({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
+    // Capture any initial pre-selected logins (currently none) so reordering happens only on reopen, not on toggle
+    const initialSelectedLoginsRef = useMemo(() => new Set<string>(), []);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const isReportArchived = useReportIsArchived(report.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -127,52 +125,71 @@ function RoomInvitePage({
     }, [debouncedSearchTerm, defaultOptions, countryCode, loginList, excludedUsers]);
 
     const sections = useMemo(() => {
-        const sectionsArr: Sections = [];
-
-        const {personalDetails, userToInvite} = inviteOptions;
         if (!areOptionsInitialized) {
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
-                const accountID = option?.accountID;
-                const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
-                const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm), countryCode));
-                const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : debouncedSearchTerm.toLowerCase();
-                const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
-            });
-        }
-        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptionsFormatted,
-        });
-
-        // Filtering out selected users from the search results
+        const {personalDetails, userToInvite} = inviteOptions;
         const selectedLogins = new Set(selectedOptions.map(({login}) => login));
-        const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.has(login)) : [];
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
-        const hasUnselectedUserToInvite = userToInvite && !selectedLogins.has(userToInvite.login);
 
-        sectionsArr.push({
-            title: translate('common.contacts'),
-            data: personalDetailsFormatted,
-        });
+        const allMembers: MemberForList[] = [];
 
-        if (hasUnselectedUserToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [formatMemberForList(userToInvite)],
+        for (const detail of personalDetails ?? []) {
+            allMembers.push({
+                ...formatMemberForList(detail),
+                isSelected: selectedLogins.has(detail.login),
             });
         }
 
-        return sectionsArr;
-    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate, countryCode]);
+        if (userToInvite) {
+            allMembers.push({
+                ...formatMemberForList(userToInvite),
+                isSelected: selectedLogins.has(userToInvite.login),
+            });
+        }
+
+        const seenLogins = new Set(allMembers.map((member) => member.login));
+        for (const selected of selectedOptions) {
+            if (selected.login && seenLogins.has(selected.login)) {
+                continue;
+            }
+            allMembers.push({
+                ...formatMemberForList(selected),
+                isSelected: true,
+            });
+            if (selected.login) {
+                seenLogins.add(selected.login);
+            }
+        }
+
+        const isSearching = debouncedSearchTerm.trim().length > 0;
+        let data = allMembers;
+
+        if (!isSearching && allMembers.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD && initialSelectedLoginsRef.size > 0) {
+            const initialMembers: MemberForList[] = [];
+            const remainingMembers: MemberForList[] = [];
+
+            for (const member of allMembers) {
+                if (member.login && initialSelectedLoginsRef.has(member.login)) {
+                    initialMembers.push(member);
+                } else {
+                    remainingMembers.push(member);
+                }
+            }
+
+            if (initialMembers.length > 0) {
+                data = [...initialMembers, ...remainingMembers];
+            }
+        }
+
+        return [
+            {
+                title: translate('common.contacts'),
+                data,
+                shouldShow: true,
+            },
+        ];
+    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate, initialSelectedLoginsRef]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {

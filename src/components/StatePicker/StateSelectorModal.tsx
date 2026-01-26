@@ -39,6 +39,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const styles = useThemeStyles();
+    const initialState = currentState;
 
     const countryStates = useMemo(
         () =>
@@ -57,7 +58,26 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         [translate, currentState],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countryStates);
+    const orderedCountryStates = useMemo(() => {
+        if (!initialState || countryStates.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return countryStates;
+        }
+
+        const selected: Option[] = [];
+        const remaining: Option[] = [];
+
+        for (const option of countryStates) {
+            if (option.value === initialState) {
+                selected.push(option);
+            } else {
+                remaining.push(option);
+            }
+        }
+
+        return [...selected, ...remaining];
+    }, [countryStates, initialState]);
+
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, orderedCountryStates), [orderedCountryStates, debouncedSearchValue]);
 
     const textInputOptions = useMemo(
         () => ({

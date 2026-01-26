@@ -19,10 +19,25 @@ type UseWorkspaceListParams = {
     searchTerm: string;
     localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
+    /** If false, keep ordering stable when selection changes; use initialSelectedPolicyIDs for one-time ordering */
+    prioritizeSelectedOnToggle?: boolean;
+    /** Initial selections to surface on first render when prioritizeSelectedOnToggle is false */
+    initialSelectedPolicyIDs?: string[];
 };
 
-function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, localeCompare, additionalFilter}: UseWorkspaceListParams) {
+function useWorkspaceList({
+    policies,
+    currentUserLogin,
+    selectedPolicyIDs,
+    searchTerm,
+    shouldShowPendingDeletePolicy,
+    localeCompare,
+    additionalFilter,
+    prioritizeSelectedOnToggle = true,
+    initialSelectedPolicyIDs,
+}: UseWorkspaceListParams) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
+    const prioritySelection = prioritizeSelectedOnToggle ? selectedPolicyIDs : initialSelectedPolicyIDs ?? selectedPolicyIDs;
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
@@ -57,9 +72,9 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
             tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) =>
-                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs, localeCompare),
+                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, prioritySelection, localeCompare),
             ),
-        [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare],
+        [searchTerm, usersWorkspaces, prioritySelection, localeCompare],
     );
 
     const sections = useMemo(() => {

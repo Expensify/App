@@ -36,10 +36,28 @@ type CountrySelectorModalProps = {
 function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onClose, label, onBackdropPress}: CountrySelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialCountry = currentCountry;
+
+    const orderedCountryISOs = useMemo(() => {
+        const countryKeys = Object.keys(CONST.ALL_COUNTRIES);
+        if (!initialCountry || countryKeys.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return countryKeys;
+        }
+        const selected: string[] = [];
+        const remaining: string[] = [];
+        for (const countryISO of countryKeys) {
+            if (countryISO === initialCountry) {
+                selected.push(countryISO);
+            } else {
+                remaining.push(countryISO);
+            }
+        }
+        return [...selected, ...remaining];
+    }, [initialCountry]);
 
     const countries = useMemo(
         () =>
-            Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
+            orderedCountryISOs.map((countryISO) => {
                 const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
                 return {
                     value: countryISO,
@@ -49,10 +67,10 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
                 };
             }),
-        [translate, currentCountry],
+        [translate, currentCountry, orderedCountryISOs],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries), [countries, debouncedSearchValue]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();

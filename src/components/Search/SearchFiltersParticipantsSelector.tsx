@@ -10,8 +10,8 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
-import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getParticipantsOption, getPolicyExpenseReportOption, getValidOptions} from '@libs/OptionsListUtils';
+import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -41,7 +41,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -80,13 +80,28 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         );
     }, [areOptionsInitialized, options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails]);
 
+    const initialSelectedOptions = useMemo(() => {
+        if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
+            return [];
+        }
+
+        const preSelectedOptions = initialAccountIDs.reduce<OptionData[]>((acc, accountID) => {
+            const participant = personalDetails[accountID];
+            if (participant) {
+                acc.push(getSelectedOptionData(participant));
+            }
+            return acc;
+        }, []);
+
+        return preSelectedOptions;
+    }, [initialAccountIDs, personalDetails]);
+
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, {
-            selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
@@ -100,10 +115,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
+        const sectionData: OptionData[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
@@ -127,8 +142,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== selectedCurrentUser.accountID);
         }
 
+        const selectedIDsSet = new Set(initialSelectedOptions.map((option) => option.accountID));
+
         // If the current user is not selected, add them to the top of the list
-        if (!selectedCurrentUser && chatOptions.currentUserOption) {
+        if (!selectedCurrentUser && chatOptions.currentUserOption && !selectedIDsSet.has(chatOptions.currentUserOption?.accountID)) {
             const formattedName = getDisplayNameForParticipant({
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
@@ -136,36 +153,56 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 formatPhoneNumber,
             });
             chatOptions.currentUserOption.text = formattedName;
-
-            newSections.push({
-                title: '',
-                data: [chatOptions.currentUserOption],
-                shouldShow: true,
-            });
+            sectionData.push(chatOptions.currentUserOption);
         }
 
-        newSections.push(formattedResults.section);
+        const unselectedFormattedSectionData = formattedResults.section.data.filter((option) => !selectedIDsSet.has(option.accountID));
+        if (unselectedFormattedSectionData.length) {
+            sectionData.push(...(unselectedFormattedSectionData as OptionData[]));
+        }
 
-        newSections.push({
-            title: '',
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
-        });
+        const unselectedRecentReports = chatOptions.recentReports.filter((report) => !selectedIDsSet.has(report.accountID));
+        if (unselectedRecentReports) {
+            sectionData.push(...unselectedRecentReports);
+        }
 
-        newSections.push({
-            title: '',
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
-        });
+        const unselectedPersonalDetails = chatOptions.personalDetails.filter((detail) => !selectedIDsSet.has(detail.accountID));
+        if (unselectedPersonalDetails) {
+            sectionData.push(...unselectedPersonalDetails);
+        }
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
+        let sortedSectionData = sectionData.sort((a, b) => localeCompare(a?.login?.toLowerCase() ?? '', b?.login?.toLowerCase() ?? ''));
+
+        if (initialSelectedOptions.length && cleanSearchTerm === '') {
+            const selectedAccountIDsSet = new Set(selectedOptions.map((option) => option.accountID));
+            sortedSectionData = [
+                ...(initialSelectedOptions.map((participant) => {
+                    const participantData = {
+                        ...participant,
+                        selected: selectedAccountIDsSet.has(participant.accountID),
+                    };
+                    const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                    return isReportPolicyExpenseChat
+                        ? getPolicyExpenseReportOption(participantData, personalDetails, reportAttributesDerived)
+                        : getParticipantsOption(participantData, personalDetails);
+                }) as OptionData[]),
+                ...sortedSectionData,
+            ];
+        }
 
         return {
-            sections: newSections,
+            sections: [
+                {
+                    title: '',
+                    data: sortedSectionData,
+                    shouldShow: sortedSectionData.length > 0,
+                },
+            ],
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, initialSelectedOptions, translate, formatPhoneNumber, localeCompare]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);

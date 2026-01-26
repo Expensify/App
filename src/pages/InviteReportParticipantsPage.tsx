@@ -59,13 +59,15 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         return res;
     }, [report]);
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} =
-        useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, searchOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
             selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
             searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
             includeUserToInvite: true,
             excludeLogins: excludedUsers,
             includeRecentReports: true,
+            getValidOptionsConfig: {
+                includeSelectedOptions: true,
+            },
             shouldInitialize: didScreenTransitionEnd,
         });
 
@@ -81,40 +83,32 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             return [];
         }
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArray.push({
-                title: undefined,
-                data: selectedOptionsForDisplay,
-            });
-        }
-
         // Recent reports section
-        if (availableOptions.recentReports.length > 0) {
+        if (searchOptions.recentReports.length > 0) {
             sectionsArray.push({
                 title: translate('common.recents'),
-                data: availableOptions.recentReports,
+                data: searchOptions.recentReports,
             });
         }
 
         // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
+        if (searchOptions.personalDetails.length > 0) {
             sectionsArray.push({
                 title: translate('common.contacts'),
-                data: availableOptions.personalDetails,
+                data: searchOptions.personalDetails,
             });
         }
 
         // User to invite section
-        if (availableOptions.userToInvite) {
+        if (searchOptions.userToInvite) {
             sectionsArray.push({
                 title: undefined,
-                data: [availableOptions.userToInvite],
+                data: [searchOptions.userToInvite],
             });
         }
 
         return sectionsArray;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, searchOptions.recentReports, searchOptions.personalDetails, searchOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -152,11 +146,11 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();
         const expensifyEmails = CONST.EXPENSIFY_EMAILS;
-        if (!availableOptions.userToInvite && expensifyEmails.includes(processedLogin)) {
+        if (!searchOptions.userToInvite && expensifyEmails.includes(processedLogin)) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
-            !availableOptions.userToInvite &&
+            !searchOptions.userToInvite &&
             excludedUsers[
                 parsePhoneNumber(appendCountryCode(processedLogin, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCode)) : processedLogin
             ]
@@ -164,18 +158,17 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }
         return getHeaderMessage(
-            selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
-            !!availableOptions.userToInvite,
+            searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
+            !!searchOptions.userToInvite,
             processedLogin,
             countryCode,
             false,
         );
     }, [
         debouncedSearchTerm,
-        availableOptions.userToInvite,
-        availableOptions.recentReports.length,
-        availableOptions.personalDetails.length,
-        selectedOptionsForDisplay.length,
+        searchOptions.userToInvite,
+        searchOptions.recentReports.length,
+        searchOptions.personalDetails.length,
         excludedUsers,
         translate,
         reportName,
@@ -225,6 +218,8 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
                 showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
                 onEndReached={onListEndReached}
+                shouldUpdateFocusedIndex={false}
+                shouldScrollToTopOnSelect={false}
             />
         </ScreenWrapper>
     );

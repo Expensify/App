@@ -23,7 +23,8 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getHeaderMessage, getParticipantsOption} from '@libs/OptionsListUtils';
+import {formatMemberForList, getHeaderMessage, getParticipantsOption} from '@libs/OptionsListUtils';
+import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -95,18 +96,11 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         });
     }, [invitedEmailsToAccountIDsDraft, personalDetails]);
 
-    const {
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        availableOptions,
-        selectedOptions,
-        selectedOptionsForDisplay,
-        toggleSelection,
-        areOptionsInitialized,
-        onListEndReached,
-        searchOptions,
-    } = useSearchSelector({
+    const initialSelectedAccountIDs = useMemo(() => {
+        return new Set(initiallySelectedOptions.map((option) => option.accountID).filter(Boolean));
+    }, [initiallySelectedOptions]);
+
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, searchOptions} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
@@ -117,38 +111,80 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     });
 
     const sections: Sections[] = useMemo(() => {
-        const sectionsArr: Sections[] = [];
-
         if (!areOptionsInitialized) {
             return [];
         }
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
+        const selectedLogins = new Set(selectedOptions.map(({login}) => login));
+        const selectedAccountIDs = new Set(selectedOptions.map(({accountID}) => accountID));
+        const isSearching = debouncedSearchTerm.trim().length > 0;
+
+        const allMembers: MemberForList[] = [];
+
+        for (const personalDetail of searchOptions.personalDetails) {
+            allMembers.push({
+                ...formatMemberForList(personalDetail),
+                isSelected: selectedLogins.has(personalDetail.login),
+            });
+        }
+
+        if (searchOptions.userToInvite) {
+            allMembers.push({
+                ...formatMemberForList(searchOptions.userToInvite),
+                isSelected: selectedLogins.has(searchOptions.userToInvite.login),
+            });
+        }
+
+        // Add any selected items not present in searchOptions (defensive)
+        if (!isSearching) {
+            const seenLogins = new Set(allMembers.map((member) => member.login));
+            for (const selected of selectedOptions) {
+                if (selected.login && seenLogins.has(selected.login)) {
+                    continue;
+                }
+                allMembers.push({
+                    ...formatMemberForList(selected),
+                    isSelected: true,
+                });
+                if (selected.login) {
+                    seenLogins.add(selected.login);
+                }
+            }
+        }
+
+        let data = allMembers;
+
+        if (!isSearching && allMembers.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD && initialSelectedAccountIDs.size > 0) {
+            const initialMembers: MemberForList[] = [];
+            const remainingMembers: MemberForList[] = [];
+
+            for (const member of allMembers) {
+                if (member.accountID && initialSelectedAccountIDs.has(member.accountID)) {
+                    initialMembers.push(member);
+                } else {
+                    remainingMembers.push(member);
+                }
+            }
+
+            if (initialMembers.length > 0) {
+                data = [...initialMembers, ...remainingMembers];
+            }
+        }
+
+        // Keep the original ordering for selections; do not reorder on toggle
+        data = data.map((member) => ({
+            ...member,
+            isSelected: member.isSelected || selectedAccountIDs.has(member.accountID),
+        }));
+
+        return [
+            {
                 title: undefined,
-                data: selectedOptionsForDisplay,
-            });
-        }
-
-        // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
-                title: translate('common.contacts'),
-                data: availableOptions.personalDetails,
-            });
-        }
-
-        // User to invite section
-        if (availableOptions.userToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [availableOptions.userToInvite],
-            });
-        }
-
-        return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+                data,
+                shouldShow: true,
+            },
+        ];
+    }, [areOptionsInitialized, searchOptions, selectedOptions, debouncedSearchTerm, initialSelectedAccountIDs]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {

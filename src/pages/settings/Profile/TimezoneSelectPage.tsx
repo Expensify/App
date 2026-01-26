@@ -70,6 +70,30 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
         [filterShownTimezones, timezoneInputText, timezoneOptions.length, translate],
     );
 
+    const orderedTimezoneOptions = useMemo(() => {
+        if (timezoneOptions.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return timezoneOptions;
+        }
+
+        const selected: typeof timezoneOptions = [];
+        const remaining: typeof timezoneOptions = [];
+
+        for (const option of timezoneOptions) {
+            if (option.isSelected) {
+                selected.push(option);
+            } else {
+                remaining.push(option);
+            }
+        }
+
+        return [...selected, ...remaining];
+    }, [timezoneOptions]);
+
+    const initiallyFocusedItemKey = useMemo(
+        () => orderedTimezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList,
+        [orderedTimezoneOptions, timezone.selected],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -80,11 +104,11 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
-                data={timezoneOptions}
+                data={orderedTimezoneOptions}
                 ListItem={RadioListItem}
                 onSelectRow={saveSelectedTimezone}
                 textInputOptions={textInputOptions}
-                initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
+                initiallyFocusedItemKey={initiallyFocusedItemKey}
                 isDisabled={timezone.automatic}
                 shouldShowTooltips={false}
                 shouldSingleExecuteRowSelect
