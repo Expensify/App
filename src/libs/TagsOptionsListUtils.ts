@@ -251,4 +251,4 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
 }
 
 export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag};
-export type {SelectedTagOption, TagVisibility};
+export type {SelectedTagOption, TagVisibility, TagOption};
