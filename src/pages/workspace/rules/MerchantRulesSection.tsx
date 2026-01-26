@@ -120,7 +120,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     }, [codingRules]);
 
     const renderTitle = () => (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>
                 {translate('workspace.rules.merchantRules.title')}
             </Text>
