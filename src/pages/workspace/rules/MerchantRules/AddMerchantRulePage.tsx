@@ -37,9 +37,7 @@ type SectionType = {
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
-    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(
-        ([key, value]) => key !== CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH && !!value,
-    );
+    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH && !!value);
     if (form?.merchantToMatch && hasAtLeastOneUpdate) {
         return '';
     }
@@ -165,21 +163,21 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     {sections.map((section) => (
                         <View key={section.titleTranslationKey}>
-                            <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>
-                                {translate(section.titleTranslationKey)}
-                            </Text>
-                            {section.items.filter((item): item is SectionItemType => !!item).map((item) => (
-                                <MenuItemWithTopDescription
-                                    key={item.descriptionTranslationKey}
-                                    description={translate(item.descriptionTranslationKey)}
-                                    errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                                    onPress={item.onPress}
-                                    rightLabel={item.required ? translate('common.required') : undefined}
-                                    shouldShowRightIcon
-                                    title={item.title}
-                                    titleStyle={styles.flex1}
-                                />
-                            ))}
+                            <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                            {section.items
+                                .filter((item): item is SectionItemType => !!item)
+                                .map((item) => (
+                                    <MenuItemWithTopDescription
+                                        key={item.descriptionTranslationKey}
+                                        description={translate(item.descriptionTranslationKey)}
+                                        errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                                        onPress={item.onPress}
+                                        rightLabel={item.required ? translate('common.required') : undefined}
+                                        shouldShowRightIcon
+                                        title={item.title}
+                                        titleStyle={styles.flex1}
+                                    />
+                                ))}
                         </View>
                     ))}
                 </ScrollView>
