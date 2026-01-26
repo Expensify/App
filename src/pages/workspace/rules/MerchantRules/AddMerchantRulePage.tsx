@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setPolicyMerchantRule} from '@libs/actions/Policy/Rules';
 import {clearDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -77,8 +78,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
             return;
         }
 
-        // TODO: Call SetPolicyMerchantRule API when available
-        // For now, just navigate back
+        setPolicyMerchantRule(policyID, form);
         Navigation.goBack();
     };
 

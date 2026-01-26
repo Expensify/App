@@ -463,3 +463,4 @@ export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleCon
 export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
+export type {default as SetPolicyMerchantRuleParams} from './SetPolicyMerchantRuleParams';
