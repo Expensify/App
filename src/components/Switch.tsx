@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -60,6 +60,15 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         backgroundColor: interpolateColor(offsetX.get(), [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
     }));
 
+    // Enhance accessibility label to include locked state when disabled
+    const enhancedAccessibilityLabel = useMemo(() => {
+        if (disabled || showLockIcon) {
+            return `${accessibilityLabel}, Locked`;
+        }
+        return accessibilityLabel;
+    }, [accessibilityLabel, disabled, showLockIcon]);
+
+
     return (
         <PressableWithFeedback
             disabled={!disabledAction && disabled}
@@ -67,7 +76,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={enhancedAccessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
