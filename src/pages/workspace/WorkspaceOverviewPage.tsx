@@ -223,7 +223,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const hasWorkspaceDeleteErrorOffline = !!hasExistingCards && !!isOffline;
-    const [hasShowWorkspaceDeleteErrorOffline, setHasShowWorkspaceDeleteErrorOffline] = useState(false);
+    const hasShowWorkspaceDeleteErrorOfflineRef = useRef(false);
 
     const confirmDelete = useCallback(() => {
         if (!policy?.id || !policyName) {
@@ -294,21 +294,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [isLoadingBill]);
 
     useEffect(() => {
-        if (!isOffline || !policyLastErrorMessage) {
+        // Handle offline error display
+        if (isOffline && policyLastErrorMessage) {
+            hasShowWorkspaceDeleteErrorOfflineRef.current = true;
+            setIsDeleteWorkspaceErrorModalOpen(true);
             return;
         }
 
-        setHasShowWorkspaceDeleteErrorOffline(true);
-        setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [policyLastErrorMessage]);
-
-    useEffect(() => {
+        // Handle post-delete navigation and error display
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
             return;
         }
 
         if (!policyLastErrorMessage) {
-            if (hasShowWorkspaceDeleteErrorOffline) {
+            if (hasShowWorkspaceDeleteErrorOfflineRef.current) {
                 return;
             }
             goBackFromInvalidPolicy();
@@ -316,9 +315,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         setIsDeleteModalOpen(false);
-
         setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage, hasShowWorkspaceDeleteErrorOffline]);
+    }, [isOffline, policyLastErrorMessage, isFocused, isPendingDelete, prevIsPendingDelete]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot(account?.canDowngrade)) {
