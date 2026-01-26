@@ -147,6 +147,7 @@ function SearchPage({route}: SearchPageProps) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
+    const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -439,8 +440,6 @@ function SearchPage({route}: SearchPageProps) {
             return;
         }
 
-        const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-
         // Use InteractionManager to ensure this runs after the dropdown modal closes
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(async () => {
@@ -488,6 +487,7 @@ function SearchPage({route}: SearchPageProps) {
         allTransactions,
         allTransactionViolations,
         bankAccountList,
+        isExpenseReportType,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -835,7 +835,7 @@ function SearchPage({route}: SearchPageProps) {
 
         options.push(exportButtonOption);
 
-        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
+        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold) && !isExpenseReportType;
 
         if (shouldShowHoldOption) {
             options.push({
@@ -867,7 +867,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold) && !isExpenseReportType;
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -1064,6 +1064,7 @@ function SearchPage({route}: SearchPageProps) {
         showDelegateNoAccessModal,
         currentUserPersonalDetails.accountID,
         personalPolicyID,
+        isExpenseReportType,
     ]);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
