@@ -275,7 +275,7 @@ type ReportError = {
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-let conciergeReportID: string | undefined;
+let conciergeReportIDOnyxConnect: string | undefined;
 let deprecatedCurrentUserAccountID = -1;
 /** @deprecated This value is deprecated and will be removed soon after migration. Use the email from useCurrentUserPersonalDetails hook instead. */
 let deprecatedCurrentUserLogin: string | undefined;
@@ -285,7 +285,7 @@ Onyx.connect({
     callback: (value) => {
         // When signed out, val is undefined
         if (!value?.accountID) {
-            conciergeReportID = undefined;
+            conciergeReportIDOnyxConnect = undefined;
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -296,7 +296,7 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => (conciergeReportID = value),
+    callback: (value) => (conciergeReportIDOnyxConnect = value),
 });
 
 // map of reportID to all reportActions for that report
@@ -2857,7 +2857,13 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true, linkToOptions?: LinkToOptions, reportActionID?: string) {
+function navigateToConciergeChat(
+    conciergeReportID: string | undefined,
+    shouldDismissModal = false,
+    checkIfCurrentPageActive = () => true,
+    linkToOptions?: LinkToOptions,
+    reportActionID?: string,
+) {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     if (!conciergeReportID) {
@@ -3323,7 +3329,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat();
+    navigateToConciergeChat(conciergeReportIDOnyxConnect, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
@@ -3696,13 +3702,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(false, () => true, {forceReplace: true});
+        navigateToConciergeChat(conciergeReportIDOnyxConnect, false, () => true, {forceReplace: true});
     }
 }
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
-    return lastAccessedReportID ?? conciergeReportID;
+    return lastAccessedReportID ?? conciergeReportIDOnyxConnect;
 }
 
 function joinRoom(report: OnyxEntry<Report>, currentUserAccountID: number) {
