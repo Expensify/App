@@ -490,7 +490,7 @@ function duplicateExpenseTransaction({
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
 
-    const participants = getMoneyRequestParticipantsFromReport(targetReport);
+    const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);
 
     const params: RequestMoneyInformation = {
