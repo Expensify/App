@@ -1367,7 +1367,8 @@ const ROUTES = {
     },
     ODOMETER_IMAGE: {
         route: 'odometer-image/:transactionID/:readingType',
-        getRoute: (transactionID: string, readingType: 'start' | 'end') => `odometer-image/${transactionID}/${readingType}` as const,
+        getRoute: (transactionID: string, readingType: 'start' | 'end', action?: IOUAction, iouType?: IOUType) =>
+            `odometer-image/${transactionID}/${readingType}${action ? `?action=${action}${iouType ? `&iouType=${iouType}` : ''}` : ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -2884,14 +2885,24 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, mergeTransactionID?: string) => {
+        getRoute: (
+            reportID: string | undefined,
+            transactionID: string | undefined,
+            readonly = false,
+            mergeTransactionID?: string,
+            imageType?: 'start' | 'end',
+            action?: IOUAction,
+            iouType?: IOUType,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the TRANSACTION_RECEIPT route');
             }
-            return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
+            const actionSegment = action ? `/${action}` : '';
+            const iouTypeSegment = iouType ? `/${iouType}` : '';
+            return `r/${reportID}/transaction/${transactionID}/receipt${actionSegment}${iouTypeSegment}?readonly=${readonly}${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}${imageType ? `&imageType=${imageType}` : ''}` as const;
         },
     },
 

@@ -20,8 +20,7 @@ import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDrag
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import variables from '@styles/variables';
-import {setMoneyRequestOdometerImage} from '@userActions/IOU';
-import CONST from '@src/CONST';
+import {setMoneyRequestOdometerReadingImage} from '@userActions/IOU';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -29,7 +28,7 @@ type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeo
 
 function IOURequestStepOdometerImage({
     route: {
-        params: {transactionID, readingType},
+        params: {transactionID, readingType, action, iouType},
     },
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -37,7 +36,7 @@ function IOURequestStepOdometerImage({
     const theme = useTheme();
     const {isDraggingOver} = useContext(DragAndDropContext);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'ReceiptScan']);
-    const isTransactionDraft = shouldUseTransactionDraft(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST);
+    const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -53,7 +52,7 @@ function IOURequestStepOdometerImage({
 
     const handleImageSelected = useCallback(
         (file: FileObject) => {
-            setMoneyRequestOdometerImage(transactionID, readingType, file as File, isTransactionDraft);
+            setMoneyRequestOdometerReadingImage(transactionID, readingType, file as File, isTransactionDraft);
             navigateBack();
         },
         [transactionID, readingType, isTransactionDraft, navigateBack],
