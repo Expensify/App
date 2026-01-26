@@ -525,6 +525,10 @@ const translations = {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        downloadFailedEmptyReportDescription: () => ({
+            one: "You can't export an empty report.",
+            other: () => `You can't export empty reports.`,
+        }),
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
@@ -1195,8 +1199,14 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: 'Delete report',
-        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
+        deleteReport: () => ({
+            one: 'Delete report',
+            other: 'Delete reports',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Are you sure that you want to delete this report?',
+            other: 'Are you sure that you want to delete these reports?',
+        }),
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -4800,6 +4810,7 @@ const translations = {
             ukRegulation:
                 'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
             assignCardFailedError: 'Card assignment failed.',
+            unassignCardFailedError: 'Card unassignment failed.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {

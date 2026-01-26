@@ -34,6 +34,7 @@ import {
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
+    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -254,8 +255,11 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
+        const amountMissing = isAmountMissing(transaction);
         const merchantMissing = isMerchantMissing(transaction);
-        if (merchantMissing) {
+        if (amountMissing && merchantMissing) {
+            RBRMessage = {translationPath: 'violations.reviewRequired'};
+        } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }

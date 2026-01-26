@@ -533,6 +533,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: '値',
         downloadFailedTitle: 'ダウンロードに失敗しました',
         downloadFailedDescription: 'ダウンロードを完了できませんでした。後でもう一度お試しください。',
+        downloadFailedEmptyReportDescription: () => ({
+            one: '空のレポートはエクスポートできません。',
+            other: () => '空のレポートはエクスポートできません。',
+        }),
         filterLogs: 'ログをフィルター',
         network: 'ネットワーク',
         reportID: 'レポート ID',
@@ -1197,8 +1201,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'この経費を削除してもよろしいですか？',
             other: 'これらの経費を削除してもよろしいですか？',
         }),
-        deleteReport: 'レポートを削除',
-        deleteReportConfirmation: 'このレポートを削除してもよろしいですか？',
+        deleteReport: () => ({
+            one: 'レポートを削除',
+            other: 'レポートを削除',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'このレポートを削除してもよろしいですか？',
+            other: 'これらのレポートを削除してもよろしいですか？',
+        }),
         settledExpensify: '支払済み',
         done: '完了',
         settledElsewhere: '他で支払済み',
@@ -4849,6 +4859,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',

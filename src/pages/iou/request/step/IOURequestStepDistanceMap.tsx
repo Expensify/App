@@ -341,6 +341,7 @@ function IOURequestStepDistanceMap({
         policyForMovingExpenses,
         personalPolicy?.autoReporting,
         reportID,
+        currentUserPersonalDetails.accountID,
     ]);
 
     const getError = () => {

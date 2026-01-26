@@ -532,6 +532,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wert',
         downloadFailedTitle: 'Download fehlgeschlagen',
         downloadFailedDescription: 'Ihr Download konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Sie können keinen leeren Bericht exportieren.',
+            other: () => 'Sie können keine leeren Berichte exportieren.',
+        }),
         filterLogs: 'Protokolle filtern',
         network: 'Netzwerk',
         reportID: 'Berichts-ID',
@@ -1200,8 +1204,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sind Sie sicher, dass Sie diese Ausgabe löschen möchten?',
             other: 'Sind Sie sicher, dass Sie diese Ausgaben löschen möchten?',
         }),
-        deleteReport: 'Bericht löschen',
-        deleteReportConfirmation: 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?',
+        deleteReport: () => ({
+            one: 'Bericht löschen',
+            other: 'Berichte löschen',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Möchten Sie diesen Bericht wirklich löschen?',
+            other: 'Möchten Sie diese Berichte wirklich löschen?',
+        }),
         settledExpensify: 'Bezahlt',
         done: 'Fertig',
         settledElsewhere: 'Anderswo bezahlt',
@@ -4890,6 +4900,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             assign: 'Zuweisen',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',

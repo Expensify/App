@@ -248,6 +248,10 @@ function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.S
     return typeof status === 'string' && status in expenseStatusActionMapping;
 }
 
+function formatBadgeText(count: number): string {
+    return count > CONST.SEARCH.TODO_BADGE_MAX_COUNT ? `${CONST.SEARCH.TODO_BADGE_MAX_COUNT}+` : count.toString();
+}
+
 function getExpenseStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
         {text: translate('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
@@ -332,6 +336,7 @@ type SearchTypeMenuItem = {
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
     similarSearchHash: number;
+    badgeText?: string;
     emptyState?: {
         title: TranslationPaths;
         subtitle: TranslationPaths;
@@ -2559,6 +2564,13 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
     if (groupBy) {
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
+
+    if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return !Object.keys(searchResults?.data).some(
+            (key) => isReportEntry(key) && (searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+    }
+
     return !Object.keys(searchResults?.data).some(
         (key) =>
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
@@ -2770,6 +2782,7 @@ function createTypeMenuSections(
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     shouldRedirectToExpensifyClassic: boolean,
     draftTransactions: OnyxCollection<OnyxTypes.Transaction>,
+    reportCounts: {[CONST.SEARCH.SEARCH_KEYS.SUBMIT]: number; [CONST.SEARCH.SEARCH_KEYS.APPROVE]: number; [CONST.SEARCH.SEARCH_KEYS.PAY]: number; [CONST.SEARCH.SEARCH_KEYS.EXPORT]: number},
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -2787,6 +2800,7 @@ function createTypeMenuSections(
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
+                badgeText: formatBadgeText(reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]),
                 emptyState: {
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
@@ -2815,6 +2829,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
+                badgeText: formatBadgeText(reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE]),
                 emptyState: {
                     title: 'search.searchResults.emptyApproveResults.title',
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
@@ -2824,6 +2839,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
+                badgeText: formatBadgeText(reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY]),
                 emptyState: {
                     title: 'search.searchResults.emptyPayResults.title',
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
@@ -2833,6 +2849,7 @@ function createTypeMenuSections(
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
+                badgeText: formatBadgeText(reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT]),
                 emptyState: {
                     title: 'search.searchResults.emptyExportResults.title',
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',

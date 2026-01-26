@@ -1161,7 +1161,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
     const creatorAccountID = isExpenseUnreported(transaction) ? currentUserPersonalDetails?.accountID : report?.ownerAccountID;
 
     if (creatorAccountID) {
-        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID]});
+        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
         const creatorEmail = creatorDetails?.login ?? '';
         const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
 
