@@ -22,6 +22,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,7 +72,7 @@ function IOURequestStepDistanceMap({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const isArchived = isArchivedReport(reportNameValuePairs);
@@ -310,35 +311,38 @@ function IOURequestStepDistanceMap({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            policyForMovingExpenses,
         });
     }, [
-        transaction,
-        backTo,
-        report,
-        isArchived,
         iouType,
-        defaultExpensePolicy,
-        currentUserAccountIDParam,
-        setDistanceRequestData,
-        shouldSkipConfirmation,
-        transactionID,
-        personalDetails,
-        reportAttributesDerived,
-        translate,
-        currentUserEmailParam,
+        report,
         policy,
+        transaction,
+        reportID,
+        transactionID,
+        reportAttributesDerived,
+        personalDetails,
         waypoints,
-        lastSelectedDistanceRates,
+        customUnitRateID,
+        currentUserEmailParam,
+        currentUserAccountIDParam,
+        backTo,
         backToReport,
+        shouldSkipConfirmation,
+        defaultExpensePolicy,
+        isArchived,
+        personalPolicy?.autoReporting,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        lastSelectedDistanceRates,
+        setDistanceRequestData,
+        translate,
         quickAction,
         policyRecentlyUsedCurrencies,
-        customUnitRateID,
         introSelected,
         activePolicyID,
-        personalPolicy?.autoReporting,
-        reportID,
+        reportNameValuePairs?.private_isArchived,
+        policyForMovingExpenses,
     ]);
 
     const getError = () => {

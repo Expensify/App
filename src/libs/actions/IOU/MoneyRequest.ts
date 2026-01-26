@@ -5,6 +5,7 @@ import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUt
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -76,6 +77,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     reportAttributesDerived?: Record<string, ReportAttributes>;
     transactions: Transaction[];
     initialTransaction: InitialTransactionParams;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     personalDetails?: PersonalDetailsList;
     currentUserLogin?: string;
     currentUserAccountID: number;
@@ -104,6 +106,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     report: OnyxEntry<Report>;
     reportID: string;
     transactionID: string;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     transaction?: Transaction;
     reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails?: PersonalDetailsList;
@@ -242,6 +245,7 @@ function handleMoneyRequestStepScanParticipants({
     reportAttributesDerived,
     transactions,
     initialTransaction,
+    policyForMovingExpenses,
     personalDetails,
     currentUserLogin,
     currentUserAccountID,
@@ -327,6 +331,11 @@ function handleMoneyRequestStepScanParticipants({
             if (!participant) {
                 return;
             }
+            const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+            const isUnreported = initialTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
+            const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
+            const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
             if (locationPermissionGranted) {
                 getCurrentPosition(
                     (successData) => {
@@ -354,7 +363,7 @@ function handleMoneyRequestStepScanParticipants({
                             gpsPoint,
                             policyParams,
                             billable: false,
-                            reimbursable: true,
+                            reimbursable: defaultReimbursable,
                         });
                     },
                     (errorData) => {
@@ -376,6 +385,7 @@ function handleMoneyRequestStepScanParticipants({
                             activePolicyID,
                             files,
                             participant,
+                            reimbursable: defaultReimbursable,
                         });
                     },
                 );
@@ -397,6 +407,7 @@ function handleMoneyRequestStepScanParticipants({
                 activePolicyID,
                 files,
                 participant,
+                reimbursable: defaultReimbursable,
             });
             return;
         }
@@ -481,6 +492,7 @@ function handleMoneyRequestStepDistanceNavigation({
     privateIsArchived,
     gpsCoordinates,
     gpsDistance,
+    policyForMovingExpenses,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
@@ -515,8 +527,14 @@ function handleMoneyRequestStepDistanceNavigation({
         if (shouldSkipConfirmation) {
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
+            const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+            const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const participant = participants.at(0);
-            if (iouType === CONST.IOU.TYPE.TRACK && participant) {
+            const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
+            const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
+            const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+
+            if (isCreatingTrackExpense && participant) {
                 trackExpense({
                     report,
                     isDraftPolicy: false,
@@ -536,7 +554,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         merchant: translate('iou.fieldPending'),
                         receipt: {},
                         billable: false,
-                        reimbursable: isManualDistance ? undefined : true,
+                        reimbursable: defaultReimbursable,
                         validWaypoints,
                         customUnitRateID,
                         attendees: transaction?.comment?.attendees,
@@ -551,7 +569,6 @@ function handleMoneyRequestStepDistanceNavigation({
                 });
                 return;
             }
-            const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
 
             createDistanceRequest({
                 report,
@@ -568,7 +585,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     currency: transaction?.currency ?? 'USD',
                     merchant: translate('iou.fieldPending'),
                     billable: !!policy?.defaultBillable,
-                    reimbursable: isManualDistance ? undefined : !!policy?.defaultReimbursable,
+                    reimbursable: defaultReimbursable,
                     validWaypoints,
                     customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                     splitShares: transaction?.splitShares,
