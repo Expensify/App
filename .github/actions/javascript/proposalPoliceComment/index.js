@@ -12698,10 +12698,20 @@ class OpenAIUtils {
     }
     /**
      * Create a conversation using the OpenAI Conversations API.
+     * Optionally accepts a base prompt (system instructions) to seed the conversation.
      * Returns the conversation ID which can be used in subsequent responses.
      */
-    async createConversation() {
-        const conversation = await (0, retryWithBackoff_1.default)(() => this.client.conversations.create(), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
+    async createConversation(basePrompt) {
+        const items = basePrompt
+            ? [
+                {
+                    type: 'message',
+                    role: 'system',
+                    content: [{ type: 'input_text', text: basePrompt }],
+                },
+            ]
+            : undefined;
+        const conversation = await (0, retryWithBackoff_1.default)(() => this.client.conversations.create({ items }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         return conversation.id;
     }
     /**
@@ -12783,9 +12793,17 @@ class OpenAIUtils {
     static isRetryableError(error) {
         // Handle known/predictable API errors
         if (error instanceof openai_1.default.APIError) {
-            // Only retry 429 (rate limit) or 5xx errors
             const status = error.status;
-            return !!status && (status === 429 || status >= 500);
+            // Retry 429 (rate limit) or 5xx errors
+            if (status === 429 || status >= 500) {
+                return true;
+            }
+            // Retry conversation_locked errors (another process is still operating on this conversation)
+            // This can happen when a previous request is still being processed by OpenAI
+            if ('code' in error && error.code === 'conversation_locked') {
+                return true;
+            }
+            return false;
         }
         // Handle random/unpredictable network errors
         if (error instanceof Error) {
