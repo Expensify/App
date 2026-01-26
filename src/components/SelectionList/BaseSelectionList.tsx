@@ -12,16 +12,18 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
-import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import TextInput from './components/TextInput';
+import useSearchFocusSync from './hooks/useSearchFocusSync';
+import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
 import ListItemRenderer from './ListItem/ListItemRenderer';
 import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
 
@@ -57,7 +59,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listFooterContent,
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
-    selectedItems = CONST.EMPTY_ARRAY as unknown as string[],
+    selectedItems = getEmptyArray<string>(),
     style,
     isSelected,
     isDisabled = false,
@@ -190,7 +192,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
             (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index);
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        setHasKeyBeenPressed,
         isFocused,
         onArrowUpDownCallback,
     });
@@ -564,6 +566,7 @@ function BaseSelectionList<TItem extends ListItem>({
         [data.length, scrollToIndex, setFocusedIndex],
     );
 
+<<<<<<< HEAD
     useEffect(() => {
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputOptions?.value) {
             return;
@@ -611,17 +614,27 @@ function BaseSelectionList<TItem extends ListItem>({
         setFocusedIndex(newSelectedIndex);
     }, [
         canSelectMultiple,
+=======
+    useSelectedItemFocusSync({
+>>>>>>> 87e6d666b4e4ecd51eaee9ef21a9eee4d4f470ff
         data,
-        dataDetails.selectedOptions.length,
+        initiallyFocusedItemKey,
         isItemSelected,
-        prevAllOptionsLength,
-        prevSelectedOptionsLength,
-        prevSearchValue,
+        focusedIndex,
+        searchValue: textInputOptions?.value,
+        setFocusedIndex,
+    });
+
+    useSearchFocusSync({
+        searchValue: textInputOptions?.value,
+        data,
+        selectedOptionsCount: dataDetails.selectedOptions.length,
+        isItemSelected,
+        canSelectMultiple,
+        shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
-        shouldUpdateFocusedIndex,
-        textInputOptions?.value,
-    ]);
+    });
 
     useEffect(() => {
         if (!itemFocusTimeoutRef.current) {
