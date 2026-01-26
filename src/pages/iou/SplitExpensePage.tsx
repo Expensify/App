@@ -33,9 +33,9 @@ import {
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
-    updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -50,7 +50,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -84,7 +84,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
@@ -224,7 +223,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             currentUserPersonalDetails,
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-            allBetas,
             quickAction,
             iouReportNextStep,
         });
@@ -243,15 +241,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
     const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
-    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
+    const transactionTypeTranslationPath = {translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))};
     const splitExpensesArray = draftTransaction?.comment?.splitExpenses ?? [];
 
     const splitAmounts = splitExpensesArray.map((item) => Number(item.amount ?? 0));
     const adjustedPercentages = calculateSplitPercentagesFromAmounts(splitAmounts, transactionDetailsAmount);
 
     const options: SplitListItemType[] = splitExpensesArray.map((item, index): SplitListItemType => {
-        const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
+        const previewHeaderText: TranslationPathOrText[] = [transactionTypeTranslationPath];
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
         const currentItemReport = getReportOrDraftReport(currentTransaction?.reportID);
         const isApproved = isReportApproved({report: currentItemReport});
