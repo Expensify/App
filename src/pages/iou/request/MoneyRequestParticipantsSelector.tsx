@@ -72,6 +72,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
+    /** Whether this is a time expense request */
+    isTimeRequest?: boolean;
+
     /** Whether this is a corporate card transaction */
     isCorporateCardTransaction?: boolean;
 
@@ -97,6 +100,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isTimeRequest = false,
     isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
     ref,
@@ -176,7 +180,7 @@ function MoneyRequestParticipantsSelector({
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
+            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
             action,
             shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -184,6 +188,7 @@ function MoneyRequestParticipantsSelector({
             includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
             canShowManagerMcTest,
             isPerDiemRequest,
+            isTimeRequest,
             showRBR: false,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
@@ -201,6 +206,7 @@ function MoneyRequestParticipantsSelector({
             isPaidGroupPolicy,
             isRestrictedToPreferredPolicy,
             preferredPolicyID,
+            isTimeRequest,
         ],
     );
 
@@ -218,7 +224,7 @@ function MoneyRequestParticipantsSelector({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -310,14 +316,14 @@ function MoneyRequestParticipantsSelector({
         if (!isWorkspacesOnly) {
             newSections.push({
                 title: translate('common.recents'),
-                data: isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
-                shouldShow: (isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0,
+                data: isPerDiemRequest || isTimeRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
+                shouldShow: (isPerDiemRequest || isTimeRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0,
             });
 
             newSections.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
-                shouldShow: availableOptions.personalDetails.length > 0 && !isPerDiemRequest,
+                shouldShow: availableOptions.personalDetails.length > 0 && !isPerDiemRequest && !isTimeRequest,
             });
         }
 
@@ -368,6 +374,7 @@ function MoneyRequestParticipantsSelector({
         isPerDiemRequest,
         showImportContacts,
         inputHelperText,
+        isTimeRequest,
     ]);
 
     /**

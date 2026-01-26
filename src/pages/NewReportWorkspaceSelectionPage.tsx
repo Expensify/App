@@ -25,11 +25,11 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, canSubmitTimeExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getPolicyIDsWithEmptyReportsForAccount, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isPerDiemRequest} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {changeTransactionsReport} from '@userActions/Transaction';
@@ -254,6 +254,17 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         return false;
     }, [selectedTransactionIDs, allTransactions]);
 
+    const hasTimeTransactions = useMemo(() => {
+        if (selectedTransactionIDs && selectedTransactionIDs.length > 0 && allTransactions) {
+            return selectedTransactionIDs.some((transactionID) => {
+                const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                return transaction && isTimeRequest(transaction);
+            });
+        }
+
+        return false;
+    }, [selectedTransactionIDs, allTransactions]);
+
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
@@ -265,7 +276,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) &&
                     !policy?.isJoinRequestPending &&
                     policy?.isPolicyExpenseChatEnabled &&
-                    (!hasPerDiemTransactions || canSubmitPerDiemExpenseFromWorkspace(policy)),
+                    (!hasPerDiemTransactions || canSubmitPerDiemExpenseFromWorkspace(policy)) &&
+                    (!hasTimeTransactions || canSubmitTimeExpenseFromWorkspace(policy)),
             )
             .map((policy, index) => ({
                 text: policy?.name ?? '',
@@ -284,7 +296,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 shouldSyncFocus: true,
             }))
             .sort((a, b) => localeCompare(a.text, b.text));
-    }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions, icons.FallbackWorkspaceAvatar]);
+    }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions, hasTimeTransactions, icons.FallbackWorkspaceAvatar]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),

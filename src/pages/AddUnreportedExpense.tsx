@@ -19,11 +19,11 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
-import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, canSubmitTimeExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
+import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
@@ -83,6 +83,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
 
                     return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
+                }
+
+                if (isTimeRequest(item)) {
+                    // Only show time expenses if the target workspace has time tracking enabled
+                    return canSubmitTimeExpenseFromWorkspace(policy);
                 }
 
                 return true;
