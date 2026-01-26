@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -422,6 +423,8 @@ const CONST = {
         MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
+
+    MULTIFACTOR_AUTHENTICATION: MULTIFACTOR_AUTHENTICATION_VALUES,
 
     DESKTOP_SHORTCUT_ACCELERATOR: {
         PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
@@ -3364,6 +3367,7 @@ const CONST = {
         DISABLED_MAX_EXPENSE_AGE: 10000000000,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
+        DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',
@@ -5501,7 +5505,7 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
-    MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE: {
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE: {
         SUCCESS: 'success',
         FAILURE: 'failure',
     },
@@ -5832,6 +5836,7 @@ const CONST = {
         PER_DAY_LIMIT: 'perDayLimit',
         RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
         RECEIPT_REQUIRED: 'receiptRequired',
+        ITEMIZED_RECEIPT_REQUIRED: 'itemizedReceiptRequired',
         CUSTOM_RULES: 'customRules',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
@@ -7742,6 +7747,7 @@ const CONST = {
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
+        GPS_TOOLTIP: 'gpsTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
