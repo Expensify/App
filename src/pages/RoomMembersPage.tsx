@@ -147,7 +147,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
      */
     const removeUsers = () => {
         if (report) {
-            removeFromRoom(report.reportID, selectedMembers);
+            removeFromRoom(report, selectedMembers);
         }
         setSearchValue('');
         setRemoveMembersConfirmModalVisible(false);
