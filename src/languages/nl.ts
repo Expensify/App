@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Wachtwoord',
         magicCode: 'Magische code',
+        digits: 'cijfers',
         twoFactorCode: 'Tweeledige code',
         workspaces: 'Werkruimtes',
         inbox: 'Inbox',
@@ -635,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
         insights: 'Inzichten',
+        duplicateExpense: 'Dubbele uitgave',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1196,7 +1198,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Weet je zeker dat je deze uitgaven wilt verwijderen?',
         }),
         deleteReport: 'Rapport verwijderen',
-        deleteReportConfirmation: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+        deleteReportConfirmation: 'Weet je zeker dat je dit rapport wilt verwijderen?',
         settledExpensify: 'Betaald',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
@@ -1472,6 +1474,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / uur`,
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
+        correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
     },
     transactionMerge: {
         listPage: {
@@ -5206,6 +5209,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Regels',
                 subtitle: 'Vereis bonnetjes, markeer hoge uitgaven en meer.',
             },
+            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -5513,7 +5517,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 giveItNameInstruction: 'Maak het uniek genoeg om het te onderscheiden van andere kaarten. Specifieke use-cases zijn zelfs nog beter!',
                 cardName: 'Kaartnaam',
                 letsDoubleCheck: 'Laten we nog eens controleren of alles er goed uitziet.',
-                willBeReady: 'Deze kaart is direct klaar voor gebruik.',
+                willBeReadyToUse: 'Deze kaart is direct klaar voor gebruik.',
+                willBeReadyToShip: 'Deze kaart is direct klaar om te worden verzonden.',
                 cardholder: 'Kaarthouder',
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
@@ -8035,6 +8040,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
         notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
+        signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',
             confirm: 'Instellingen openen',

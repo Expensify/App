@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: '密码',
         magicCode: '魔法代码',
+        digits: '位数字',
         twoFactorCode: '双重验证代码',
         workspaces: '工作区',
         inbox: '收件箱',
@@ -631,6 +632,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
         insights: '洞察',
+        duplicateExpense: '重复报销',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1178,7 +1180,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: '您确定要删除这些报销吗？',
         }),
         deleteReport: '删除报表',
-        deleteReportConfirmation: '您确定要删除此报表吗？',
+        deleteReportConfirmation: '您确定要删除此报告吗？',
         settledExpensify: '已支付',
         done: '完成',
         settledElsewhere: '在其他地方已支付',
@@ -1448,6 +1450,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / 小时`,
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
+        correctDistanceRateError: '修复里程费率错误后请重试。',
     },
     transactionMerge: {
         listPage: {
@@ -5093,6 +5096,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '规则',
                 subtitle: '要求收据、标记高额支出等。',
             },
+            timeTracking: {title: '时间', subtitle: '为员工设置按小时计费的费率，以便根据他们的工作时间获得报酬。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -5397,7 +5401,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 giveItNameInstruction: '让它足够独特，以便与其他卡片区分开来。提供具体的使用场景会更好！',
                 cardName: '卡片名称',
                 letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
-                willBeReady: '此卡将立即可用。',
+                willBeReadyToUse: '此卡将立即可用。',
+                willBeReadyToShip: '此卡将立即准备好发货。',
                 cardholder: '持卡人',
                 cardType: '卡类型',
                 limit: '限制',
@@ -7813,6 +7818,7 @@ ${reportName}
         androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
+        signOutWarningTripInProgress: {title: 'GPS 跟踪进行中', prompt: '您确定要放弃此行程并登出吗？', confirm: '放弃并退出'},
         notification: {title: '正在进行 GPS 跟踪', body: '前往应用完成'},
         locationServicesRequiredModal: {title: '需要访问位置信息', confirm: '打开设置', prompt: '请在设备设置中允许位置访问，以开始 GPS 距离跟踪。'},
         fabGpsTripExplained: '前往 GPS 屏幕（悬浮操作）',

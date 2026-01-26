@@ -107,6 +107,10 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: 
     });
 }
 
+function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -537,6 +541,27 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<Po
 }
 
 /**
+ * Checks if a policy has any tags
+ */
+function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
+    const tagLists = getTagLists(policyTagList);
+    return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
+}
+
+/**
+ * Checks if a policy has any custom categories (categories not in the default list)
+ */
+function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boolean {
+    if (!policyCategories) {
+        return false;
+    }
+
+    const defaultCategoryNames = new Set<string>(Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
+
+    return Object.values(policyCategories).some((category) => category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !defaultCategoryNames.has(category.name));
+}
+
+/**
  * Gets a tag list of a policy by a tag index
  */
 function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
@@ -841,6 +866,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED) {
+        return isTimeTrackingEnabled(policy);
     }
 
     return !!policy?.[featureName];
@@ -1735,6 +1763,8 @@ export {
     getTagListByOrderWeight,
     getTagListName,
     getTagLists,
+    hasTags,
+    hasCustomCategories,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -1873,6 +1903,7 @@ export {
     isDefaultTagName,
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
+    getActivePoliciesWithExpenseChatAndTimeEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
