@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobile} from '@libs/Browser';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
@@ -22,9 +21,9 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import variables from '@styles/variables';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import CONST from '@src/CONST';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
@@ -112,29 +111,6 @@ function IOURequestStepOdometerImage({
         </View>
     );
 
-    const mobileUploadView = () => (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <View style={styles.renderHTML}>
-                <RenderHTML html={messageHTML} />
-            </View>
-            <AttachmentPicker>
-                {({openPicker}) => (
-                    <Button
-                        success
-                        text={translate('common.chooseFile')}
-                        accessibilityLabel={translate('common.chooseFile')}
-                        style={[styles.p5, styles.mt4]}
-                        onPress={() => {
-                            openPicker({
-                                onPicked: (data) => validateFiles(data),
-                            });
-                        }}
-                    />
-                )}
-            </AttachmentPicker>
-        </View>
-    );
-
     return (
         <StepScreenDragAndDropWrapper
             headerTitle={title}
@@ -143,10 +119,8 @@ function IOURequestStepOdometerImage({
             testID="IOURequestStepOdometerImage"
         >
             {(isDraggingOverWrapper) => (
-                <View style={[styles.flex1, !isMobile() && styles.chooseFilesView(isSmallScreenWidth)]}>
-                    <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileUploadView() : desktopUploadView())}
-                    </View>
+                <View style={[styles.flex1, styles.chooseFilesView(isSmallScreenWidth)]}>
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>{!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}</View>
                     <DragAndDropConsumer onDrop={handleDrop}>
                         <DropZoneUI
                             icon={lazyIcons.ReceiptScan}

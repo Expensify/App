@@ -41,8 +41,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
-import variables from '@styles/variables';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -231,19 +231,17 @@ function IOURequestStepDistanceOdometer({
         if (!image) {
             return undefined;
         }
-        // Web: File object, create blob URL
-        if (typeof image !== 'string' && image instanceof File) {
-            return URL.createObjectURL(image);
-        }
+
         // Native: URI string, use directly
         if (typeof image === 'string') {
             return image;
         }
-        // Native: Object with uri property (fallback for compatibility)
-        if (typeof image === 'object' && 'uri' in image && typeof image.uri === 'string') {
-            return image.uri;
+        // Web: File object, create blob URL
+        if (image instanceof File) {
+            return URL.createObjectURL(image);
         }
-        return undefined;
+        // Native: Object with uri property (fallback)
+        return image?.uri;
     }, []);
 
     const startImageSource = getImageSource(odometerStartImage);
@@ -298,17 +296,6 @@ function IOURequestStepDistanceOdometer({
             Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType));
         },
         [transactionID],
-    );
-
-    const handleViewOdometerImage = useCallback(
-        (imageType: 'start' | 'end') => {
-            if (!reportID || !transactionID) {
-                return;
-            }
-            // Navigate to receipt modal with imageType parameter
-            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, false, undefined, imageType));
-        },
-        [reportID, transactionID],
     );
 
     // Navigate to confirmation page helper - following Manual tab pattern
@@ -564,13 +551,7 @@ function IOURequestStepDistanceOdometer({
                         <PressableWithFeedback
                             accessible={false}
                             accessibilityRole="button"
-                            onPress={() => {
-                                if (odometerStartImage) {
-                                    handleViewOdometerImage('start');
-                                } else {
-                                    handleCaptureImage('start');
-                                }
-                            }}
+                            onPress={() => handleCaptureImage('start')}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -609,13 +590,7 @@ function IOURequestStepDistanceOdometer({
                         <PressableWithFeedback
                             accessible={false}
                             accessibilityRole="button"
-                            onPress={() => {
-                                if (odometerEndImage) {
-                                    handleViewOdometerImage('end');
-                                } else {
-                                    handleCaptureImage('end');
-                                }
-                            }}
+                            onPress={() => handleCaptureImage('end')}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -672,7 +647,8 @@ function IOURequestStepDistanceOdometer({
                 isEnabled={shouldEnableDiscardConfirmation}
                 getHasUnsavedChanges={() => {
                     const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-                    const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+                    const hasImageChanges =
+                        transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
                     return hasReadingChanges || hasImageChanges;
                 }}
             />
