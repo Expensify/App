@@ -22,9 +22,9 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import variables from '@styles/variables';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import CONST from '@src/CONST';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
