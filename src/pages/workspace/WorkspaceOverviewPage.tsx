@@ -52,16 +52,16 @@ import {
     getConnectionExporters,
     getUserFriendlyWorkspaceType,
     goBackFromInvalidPolicy,
-    hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils,
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
+    shouldBlockWorkspaceDeletionForInvoicifyUser,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
-import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
+import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -177,6 +177,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
     const privateSubscription = usePrivateSubscription();
     const accountID = currentUserPersonalDetails?.accountID;
+
     const selector = useCallback(
         (policies: OnyxCollection<Policy>) => {
             return ownerPoliciesSelector(policies, accountID);
@@ -314,17 +315,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
 
     const onDeleteWorkspace = useCallback(() => {
-        if (isSubscriptionTypeOfInvoicing(subscriptionType) && policyID) {
-            const ownerPoliciesWithoutCreateOrDeletePendingAction = (ownerPolicies ?? []).filter(
-                (ownerPolicy) => ownerPolicy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && ownerPolicy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            );
-
-            const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(ownerPoliciesWithoutCreateOrDeletePendingAction, policyID);
-
-            if (!hasOtherControlWorkspaces) {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
-                return;
-            }
+        if (shouldBlockWorkspaceDeletionForInvoicifyUser(subscriptionType, ownerPolicies, policyID)) {
+            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+            return;
         }
 
         if (shouldCalculateBillNewDot(canDowngrade)) {

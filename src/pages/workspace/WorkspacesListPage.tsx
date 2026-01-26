@@ -56,23 +56,22 @@ import {
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
     getUserFriendlyWorkspaceType,
-    hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
+    shouldBlockWorkspaceDeletionForInvoicifyUser,
     shouldShowEmployeeListError,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -425,25 +424,9 @@ function WorkspacesListPage() {
                             return;
                         }
 
-                        if (isSubscriptionTypeOfInvoicing(privateSubscription?.type) && item?.policyID) {
-                            const ownerPolicies = (() => {
-                                if (!policies || !currentUserPersonalDetails?.accountID) {
-                                    return undefined;
-                                }
-
-                                return ownerPoliciesSelector(policies, currentUserPersonalDetails?.accountID);
-                            })();
-
-                            const ownerPoliciesWithoutCreateOrDeletePendingAction = (ownerPolicies ?? []).filter(
-                                (policy) => policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                            );
-
-                            const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(ownerPoliciesWithoutCreateOrDeletePendingAction, item.policyID);
-
-                            if (!hasOtherControlWorkspaces) {
-                                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
-                                return;
-                            }
+                        if (shouldBlockWorkspaceDeletionForInvoicifyUser(privateSubscription?.type, policies, item?.policyID, currentUserPersonalDetails?.accountID)) {
+                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                            return;
                         }
 
                         setPolicyIDToDelete(item.policyID);

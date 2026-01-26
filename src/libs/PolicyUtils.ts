@@ -5,8 +5,10 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
+import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
@@ -41,6 +43,7 @@ import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {isSubscriptionTypeOfInvoicing} from './SubscriptionUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -1580,6 +1583,54 @@ function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentP
     return (otherControlWorkspaces?.length ?? 0) > 0;
 }
 
+/**
+ * Determines whether workspace deletion should be blocked for an Invoicify user.
+ *
+ * The function normalizes owner policies to a flat `Policy[]` regardless of whether
+ * they are provided as an `OnyxCollection` or a precomputed array. For Invoicify users,
+ * it ensures that at least one other controllable workspace exists after excluding
+ * policies with pending ADD or DELETE actions.
+ *
+ * The filtering is done lazily to avoid unnecessary work for non-Invoicify users.
+ *
+ * @param privateSubscriptionType - Current private subscription type of the user
+ * @param ownerPolicies - Owner policies as an Onyx collection or a normalized array
+ * @param currentPolicyID - Policy ID of the workspace being evaluated
+ * @param accountID - Account ID used to resolve owned paid policies when needed
+ *
+ */
+function shouldBlockWorkspaceDeletionForInvoicifyUser(
+    privateSubscriptionType: SubscriptionType | undefined,
+    ownerPolicies: OnyxCollection<Policy> | Policy[] | undefined,
+    currentPolicyID: string | undefined,
+    accountID?: number,
+) {
+    if (!isSubscriptionTypeOfInvoicing(privateSubscriptionType) || !currentPolicyID) {
+        return false;
+    }
+    const normalizedOwnerPolicies: Policy[] = (() => {
+        if (!ownerPolicies) {
+            return [];
+        }
+
+        if (Array.isArray(ownerPolicies)) {
+            return ownerPolicies;
+        }
+
+        if (accountID) {
+            return getOwnedPaidPolicies(ownerPolicies, accountID);
+        }
+
+        return Object.values(ownerPolicies).filter((policy): policy is Policy => !!policy);
+    })();
+
+    const ownerPoliciesWithoutPendingActions = (normalizedOwnerPolicies ?? []).filter(
+        (policy) => policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+
+    return !hasOtherControlWorkspaces(ownerPoliciesWithoutPendingActions, currentPolicyID);
+}
+
 // If no policyID is provided, it indicates the workspace upgrade/downgrade URL
 // is being accessed from the Subscriptions page without a specific policyID.
 // In this case, check if the user is an admin on more than one policy.
@@ -1876,6 +1927,7 @@ export {
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     hasOtherControlWorkspaces,
+    shouldBlockWorkspaceDeletionForInvoicifyUser,
     getManagerAccountEmail,
     getRuleApprovers,
     canModifyPlan,
