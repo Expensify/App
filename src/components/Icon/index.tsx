@@ -1,4 +1,4 @@
-import type {ImageContentFit} from 'expo-image';
+import type {ImageContentFit, ImageProps} from 'expo-image';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, StyleSheet, View} from 'react-native';
@@ -60,6 +60,9 @@ type IconProps = {
 
     /** Renders the Icon component within a MultiGestureCanvas for improved gesture controls. */
     enableMultiGestureCanvas?: boolean;
+
+    /** The image cache policy */
+    cachePolicy?: ImageProps['cachePolicy'];
 };
 
 function Icon({
@@ -79,6 +82,7 @@ function Icon({
     contentFit = 'cover',
     isButtonIcon = false,
     enableMultiGestureCanvas = false,
+    cachePolicy,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -125,6 +129,7 @@ function Icon({
                         hovered={hovered}
                         pressed={pressed}
                         contentFit={contentFit}
+                        cachePolicy={cachePolicy}
                     />
                 </View>
             </View>
@@ -161,6 +166,7 @@ function Icon({
                                 hovered={hovered}
                                 pressed={pressed}
                                 contentFit={contentFit}
+                                cachePolicy={cachePolicy}
                             />
                         </View>
                     </MultiGestureCanvas>
@@ -182,6 +188,7 @@ function Icon({
                 hovered={hovered}
                 pressed={pressed}
                 contentFit={contentFit}
+                cachePolicy={cachePolicy}
             />
         </View>
     );
