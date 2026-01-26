@@ -200,6 +200,10 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     }
 }
 
+function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, policyRulesModifiedFields: any, policyID: string): string {
+    return '';
+}
+
 /**
  * Get the report action message when expense has been modified.
  *
@@ -717,10 +721,20 @@ function getForReportActionTemp({
         buildMessageFragmentForValue(translate, oldAttendees, attendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
+    const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
+    if (hasPolicyRulesModifiedFields) {
+        const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
+        const policyRulesModifiedFieldsMessage = getPolicyRulesModifiedFieldsMessage(translate, policyRulesModifiedFields, policyID);
+        if (policyRulesModifiedFieldsMessage) {
+            setFragments.push(policyRulesModifiedFieldsMessage);
+        }
+    }
+
     const message =
         getMessageLine(translate, `\n${translate('iou.changed')}`, changeFragments) +
         getMessageLine(translate, `\n${translate('iou.set')}`, setFragments) +
         getMessageLine(translate, `\n${translate('iou.removed')}`, removalFragments);
+
     if (message === '') {
         return translate('iou.changedTheExpense');
     }

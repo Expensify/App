@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {TaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
@@ -735,7 +736,17 @@ type OriginalMessageModifiedExpense = {
     policyID?: string;
 
     /** The fields that were modified by poliy rules*/
-    policyRulesModifiedFields: string[];
+    policyRulesModifiedFields?: PolicyRulesModifiedFields;
+};
+
+type PolicyRulesModifiedFields = {
+    merchant?: string;
+    category?: string;
+    tag?: string;
+    description?: string;
+    billable?: string;
+    reimbursable?: string;
+    tax?: Record<string, TaxRate>;
 };
 
 /** Model of a `travel update` report action */
