@@ -1,15 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
@@ -58,12 +55,11 @@ function CategoryListItemHeader<TItem extends ListItem>({
 }: CategoryListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     // formattedCategory is pre-decoded in SearchUIUtils, just translate empty values
     const rawCategory = categoryItem.formattedCategory ?? categoryItem.category;
-    const categoryName = !rawCategory || rawCategory === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('search.noCategory') : rawCategory;
+    const categoryName = !rawCategory || rawCategory === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('search.uncategorized') : rawCategory;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]: (
@@ -116,13 +112,6 @@ function CategoryListItemHeader<TItem extends ListItem>({
                     )}
                     {!isLargeScreenWidth && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.emptyAvatarSmall]}>
-                                <Icon
-                                    src={Expensicons.Folder}
-                                    fill={theme.icon}
-                                    additionalStyles={[styles.alignSelfCenter]}
-                                />
-                            </View>
                             <View style={[styles.gap1, styles.flexShrink1]}>
                                 <TextWithTooltip
                                     text={categoryName}
@@ -131,21 +120,7 @@ function CategoryListItemHeader<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && (
-                        <>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.emptyAvatarSmall]}>
-                                    <Icon
-                                        src={Expensicons.Folder}
-                                        fill={theme.icon}
-                                        additionalStyles={[styles.alignSelfCenter]}
-                                    />
-                                </View>
-                            </View>
-
-                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
-                        </>
-                    )}
+                    {isLargeScreenWidth && <>{columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}</>}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>

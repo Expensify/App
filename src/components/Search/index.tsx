@@ -1109,7 +1109,7 @@ function Search({
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
-        // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+        // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 

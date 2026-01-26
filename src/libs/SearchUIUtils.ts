@@ -237,7 +237,6 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
 };
 
 const transactionCategoryGroupColumnNamesToSortingProperty: TransactionCategoryGroupSorting = {
-    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]: 'formattedCategory' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'formattedCategory' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
@@ -3337,7 +3336,7 @@ function getColumnsToShow(
         }
 
         if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
-            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]);
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]);
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {

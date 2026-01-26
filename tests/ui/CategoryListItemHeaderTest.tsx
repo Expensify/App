@@ -146,22 +146,22 @@ describe('CategoryListItemHeader', () => {
             expect(screen.getByText('Travel & Entertainment')).toBeOnTheScreen();
         });
 
-        it('should display "No category" for empty category string', async () => {
+        it('should display "Uncategorized" for empty category string', async () => {
             const categoryItem = createCategoryListItem('', {formattedCategory: ''});
             renderCategoryListItemHeader(categoryItem);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('No category')).toBeOnTheScreen();
+            expect(screen.getByText('Uncategorized')).toBeOnTheScreen();
         });
 
-        it('should display "No category" for CATEGORY_EMPTY_VALUE', async () => {
+        it('should display "Uncategorized" for CATEGORY_EMPTY_VALUE', async () => {
             const categoryItem = createCategoryListItem(CONST.SEARCH.CATEGORY_EMPTY_VALUE, {
                 formattedCategory: CONST.SEARCH.CATEGORY_EMPTY_VALUE,
             });
             renderCategoryListItemHeader(categoryItem);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('No category')).toBeOnTheScreen();
+            expect(screen.getByText('Uncategorized')).toBeOnTheScreen();
         });
     });
 

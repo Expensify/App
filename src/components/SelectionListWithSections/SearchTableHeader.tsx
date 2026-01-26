@@ -341,22 +341,19 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return [
                 {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-                    translationKey: undefined,
-                    icon: icons.Folder,
-                    isColumnSortable: false,
-                },
-                {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
                     translationKey: 'common.category',
+                    isColumnSortable: true,
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
                     translationKey: 'common.expenses',
+                    isColumnSortable: true,
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                     translationKey: 'common.total',
+                    isColumnSortable: true,
                 },
             ];
         default:
