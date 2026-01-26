@@ -197,6 +197,7 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
+            allTransactionDrafts: {},
         });
 
         await waitForBatchedUpdatesWithAct();

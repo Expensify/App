@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import * as API from '@libs/API';
@@ -465,6 +465,7 @@ type DuplicateExpenseTransactionParams = {
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
+    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
 };
 
 function duplicateExpenseTransaction({
@@ -480,6 +481,7 @@ function duplicateExpenseTransaction({
     targetPolicy,
     targetPolicyCategories,
     targetReport,
+    allTransactionDrafts,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -550,6 +552,7 @@ function duplicateExpenseTransaction({
             introSelected,
             activePolicyID,
             quickAction,
+            allTransactionDrafts,
         };
         return trackExpense(trackExpenseParams);
     }

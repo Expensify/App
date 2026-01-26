@@ -132,6 +132,7 @@ function IOURequestStepConfirmation({
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -799,6 +800,7 @@ function IOURequestStepConfirmation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    allTransactionDrafts,
                 });
             }
         },
@@ -825,6 +827,7 @@ function IOURequestStepConfirmation({
             introSelected,
             activePolicyID,
             quickAction,
+            allTransactionDrafts,
         ],
     );
 

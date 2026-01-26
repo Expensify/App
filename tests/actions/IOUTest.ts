@@ -510,6 +510,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeTransaction.transactionID}`]: fakeTransaction},
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -610,6 +611,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: allTransactionsDraft ?? {},
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -693,6 +695,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`]: transaction},
             });
             await waitForBatchedUpdates();
 
@@ -745,6 +748,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`]: transaction},
             });
             await waitForBatchedUpdates();
 
@@ -823,6 +827,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`]: transaction},
             });
             await waitForBatchedUpdates();
 
@@ -875,6 +880,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`]: transaction},
             });
             await waitForBatchedUpdates();
 
@@ -2171,6 +2177,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {},
             });
 
             mockFetch?.resume?.();
@@ -2236,6 +2243,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {},
             });
             await waitForBatchedUpdates();
 
@@ -6118,6 +6126,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();
@@ -7771,6 +7780,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
+                allTransactionDrafts: {},
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

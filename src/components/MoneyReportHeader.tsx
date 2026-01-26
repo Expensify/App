@@ -264,6 +264,7 @@ function MoneyReportHeader({
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -657,10 +658,22 @@ function MoneyReportHeader({
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
+                    allTransactionDrafts,
                 });
             }
         },
-        [activePolicyExpenseChat, activePolicyID, allPolicyCategories, defaultExpensePolicy, introSelected, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies, policy?.id],
+        [
+            activePolicyExpenseChat,
+            activePolicyID,
+            allPolicyCategories,
+            defaultExpensePolicy,
+            introSelected,
+            isASAPSubmitBetaEnabled,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            policy?.id,
+            allTransactionDrafts,
+        ],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (

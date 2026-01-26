@@ -712,6 +712,7 @@ type CreateTrackExpenseParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -6506,6 +6507,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         introSelected,
         activePolicyID,
         quickAction,
+        allTransactionDrafts: allTransactionDraftsParam,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6545,8 +6547,11 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
     const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
+    // Omit allTransactionDrafts from retryParams so getReceiptError's JSON.stringify doesn't store
+    // the full draft collection in Onyx, which would bloat errors and cause nested payload ballooning on retries.
+    const paramsWithoutDrafts = {...params, allTransactionDrafts: undefined};
     const retryParams: CreateTrackExpenseParams = {
-        ...params,
+        ...paramsWithoutDrafts,
         report,
         isDraftPolicy,
         action,
@@ -6818,7 +6823,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     if (shouldHandleNavigation) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+        InteractionManager.runAfterInteractions(() => removeDraftTransactions(undefined, allTransactionDraftsParam));
 
         if (!params.isRetry) {
             dismissModalAndOpenReportInInboxTab(activeReportID);

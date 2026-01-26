@@ -98,6 +98,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.trackExpense).toHaveBeenCalledTimes(1);
@@ -136,6 +137,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SEND,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.requestMoney).toHaveBeenCalledTimes(1);
@@ -185,6 +187,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
                 files,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.trackExpense).toHaveBeenCalledTimes(files.length);
@@ -215,6 +218,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 files,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.requestMoney).toHaveBeenCalledWith(
@@ -233,6 +237,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 currentUserEmail: undefined,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.requestMoney).toHaveBeenCalledWith(
@@ -291,6 +296,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
+            allTransactionDrafts: {},
         };
 
         beforeEach(async () => {
@@ -314,6 +320,7 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 backTo,
+                allTransactionDrafts: {},
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -333,6 +340,7 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 isTestTransaction: true,
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();
@@ -363,6 +371,7 @@ describe('MoneyRequest', () => {
                     ...baseParams.initialTransaction,
                     isFromGlobalCreate: false,
                 },
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();
@@ -521,6 +530,9 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 shouldHandleNavigation: true,
+                activePolicyID: undefined,
+                introSelected: undefined,
+                allTransactionDrafts: {},
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
@@ -745,6 +757,7 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 backTo,
+                allTransactionDrafts: {},
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -762,6 +775,7 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
@@ -773,6 +787,7 @@ describe('MoneyRequest', () => {
                 manualDistance: 20,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.resetSplitShares).not.toHaveBeenCalled();
@@ -812,6 +827,9 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
+                activePolicyID: undefined,
+                introSelected: undefined,
+                allTransactionDrafts: {},
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -824,6 +842,7 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();
@@ -873,6 +892,9 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
+                activePolicyID: undefined,
+                introSelected: undefined,
+                allTransactionDrafts: {},
             });
         });
 
@@ -882,6 +904,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 manualDistance: 20,
                 iouType: CONST.IOU.TYPE.SUBMIT,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
@@ -920,6 +943,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 manualDistance: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
@@ -957,6 +981,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 shouldSkipConfirmation: false,
                 iouType: CONST.IOU.TYPE.SUBMIT,
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();
@@ -992,6 +1017,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy,
                 isAutoReporting: true,
                 iouType: CONST.IOU.TYPE.CREATE,
+                allTransactionDrafts: {},
             });
             await waitForBatchedUpdates();
 
@@ -1032,6 +1058,7 @@ describe('MoneyRequest', () => {
                 report: undefined,
                 defaultExpensePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
+                allTransactionDrafts: {},
             });
             await waitForBatchedUpdates();
 
@@ -1043,6 +1070,7 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.CREATE,
+                allTransactionDrafts: {},
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));

@@ -56,6 +56,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
 };
 
 type InitialTransactionParams = {
@@ -96,6 +97,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -128,6 +130,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     introSelected?: IntroSelected;
     activePolicyID?: string;
     privateIsArchived?: string;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     gpsCoordinates?: string;
     gpsDistance?: number;
 };
@@ -152,6 +155,7 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    allTransactionDrafts,
 }: CreateTransactionParams) {
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -184,6 +188,7 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
+                allTransactionDrafts,
             });
         } else {
             requestMoney({
@@ -262,6 +267,7 @@ function handleMoneyRequestStepScanParticipants({
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
+    allTransactionDrafts,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -355,6 +361,7 @@ function handleMoneyRequestStepScanParticipants({
                             policyParams,
                             billable: false,
                             reimbursable: true,
+                            allTransactionDrafts,
                         });
                     },
                     (errorData) => {
@@ -376,6 +383,7 @@ function handleMoneyRequestStepScanParticipants({
                             activePolicyID,
                             files,
                             participant,
+                            allTransactionDrafts,
                         });
                     },
                 );
@@ -397,6 +405,7 @@ function handleMoneyRequestStepScanParticipants({
                 activePolicyID,
                 files,
                 participant,
+                allTransactionDrafts,
             });
             return;
         }
@@ -479,6 +488,7 @@ function handleMoneyRequestStepDistanceNavigation({
     introSelected,
     activePolicyID,
     privateIsArchived,
+    allTransactionDrafts,
     gpsCoordinates,
     gpsDistance,
 }: MoneyRequestStepDistanceNavigationParams) {
@@ -548,6 +558,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    allTransactionDrafts,
                 });
                 return;
             }
