@@ -68,6 +68,7 @@ const REASON = {
     },
 } as const;
 
+// Disables ESLint rule because it throws an error when a key is a number like 401.
 /* eslint-disable @typescript-eslint/naming-convention */
 const MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP = {
     401: {
