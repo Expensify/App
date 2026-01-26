@@ -65,7 +65,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
 
     const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
     const areTagsEnabled = !!policy?.areTagsEnabled;
-    const isTaxTrackingEnabled = !!policy?.isTaxTrackingEnabled;
+    const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
     const trackBillables = policy?.disabledFields?.defaultBillable !== true;
 
     const errorMessage = getErrorMessage(translate, form);
