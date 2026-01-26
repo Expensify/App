@@ -35,6 +35,7 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
@@ -54,6 +55,7 @@ import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
+    SearchMonthGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWithdrawalIDGroup,
@@ -2072,6 +2074,33 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
 }
 
 /**
+ * @private
+ * Organizes data into List Sections grouped by member for display, for the TransactionGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
+    const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
+
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const monthGroup = data[key] as SearchMonthGroup;
+
+            monthSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+                transactions: [],
+                transactionsQueryJSON: queryJSON,
+                ...monthGroup,
+                formattedMonth: `${monthGroup.year}_${monthGroup.month}`,
+            };
+        }
+    }
+
+    const monthSectionsValues = Object.values(monthSections);
+    return [monthSectionsValues, monthSectionsValues.length];
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -2144,6 +2173,8 @@ function getSections({
                 return getCardSections(data, queryJSON, translate, cardFeeds);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
+            case CONST.SEARCH.GROUP_BY.MONTH:
+                return getMonthSections(data, queryJSON);
         }
     }
 
