@@ -188,7 +188,7 @@ function PaymentMethodList({
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
                 // Filter by active cards associated with a domain
-                .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
+                .filter((card) => (!!card.domainName || card.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
 
