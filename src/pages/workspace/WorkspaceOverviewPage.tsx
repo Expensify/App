@@ -15,6 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -67,8 +68,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
-import type {CurrencyList, Policy} from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -80,11 +81,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {getCurrencySymbol} = useCurrencyList();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus']);
 
     const backTo = route.params.backTo;
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
@@ -102,8 +103,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
-    const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
-    const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
+    const currencySymbol = getCurrencySymbol(outputCurrency) ?? '';
+    const formattedCurrency = !isEmptyObject(policy) ? `${outputCurrency} - ${currencySymbol}` : '';
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;

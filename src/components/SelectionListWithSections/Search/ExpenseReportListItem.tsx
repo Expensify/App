@@ -63,9 +63,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
     }, [searchData, reportItem.reportID]);
 
     const isDisabledCheckbox = useMemo(() => {
-        const isEmpty = reportItem.transactions.length === 0;
-        return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
-    }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
+        return reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
+    }, [reportItem.isDisabled, reportItem.isDisabledCheckbox]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 

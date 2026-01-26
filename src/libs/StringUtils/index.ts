@@ -182,6 +182,10 @@ function startsWithVowel(str: string): boolean {
     return /^[aeiouAEIOU]/.test(str);
 }
 
+function camelToHyphenCase(str: string) {
+    return str.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -200,4 +204,5 @@ export default {
     decodeUnicode,
     countWhiteSpaces,
     startsWithVowel,
+    camelToHyphenCase,
 };

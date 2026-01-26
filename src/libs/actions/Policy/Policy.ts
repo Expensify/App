@@ -4650,6 +4650,63 @@ function enablePolicyInvoicing(policyID: string, enabled: boolean) {
     }
 }
 
+/**
+ * Enable/disable the Time Tracking feature for the policy.
+ */
+function enablePolicyTimeTracking(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    units: {
+                        time: {
+                            enabled,
+                        },
+                    },
+                    pendingFields: {
+                        isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isTimeTrackingEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    units: {
+                        time: {
+                            enabled: !enabled,
+                        },
+                    },
+                    pendingFields: {
+                        isTimeTrackingEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TIME_TRACKING, {policyID, enabled}, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        goBackWhenEnableFeature(policyID);
+    }
+}
+
 function openPolicyMoreFeaturesPage(policyID: string) {
     const params: OpenPolicyMoreFeaturesPageParams = {policyID};
 
@@ -6593,6 +6650,7 @@ export {
     enablePolicyReportFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
+    enablePolicyTimeTracking,
     changePolicyUberBillingAccount,
     enableDistanceRequestTax,
     enablePolicyInvoicing,
