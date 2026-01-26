@@ -238,11 +238,13 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
     const onImageLoad = useCallback(
         (event: {nativeEvent: {width: number; height: number}}) => {
             const {width, height} = event.nativeEvent;
-            // Image component provides dimensions after load - use these as primary source
-            if (width && height && (!hasImageDimensions || imageSize.width !== width || imageSize.height !== height)) {
-                setImageSize({width, height});
+            if(!width || !height || (imageSize.width === width && imageSize.height === height)){
+                return;
+            }
+            if(!hasImageDimensions){
                 setHasImageDimensions(true);
             }
+            setImageSize({width, height});
         },
         [hasImageDimensions, imageSize.width, imageSize.height],
     );
