@@ -100,8 +100,6 @@ import {
     getDeletedParentActionMessageForChatReport,
     getDeletedTransactionMessage,
     getDisplayNameForParticipant,
-    getDowngradeWorkspaceMessage,
-    getForcedCorporateUpgradeMessage,
     getIcons,
     getMovedActionMessage,
     getMovedTransactionMessage,
@@ -110,14 +108,12 @@ import {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getRejectedReportMessage,
     getReportLastMessage,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportSubtitlePrefix,
     getUnreportedTransactionMessage,
-    getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
     isChatThread,
@@ -683,9 +679,9 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, formatPhoneNumber: formatPhoneNumberPhoneUtils, reportOrID: report});
+        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(lastReportAction, report);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -704,7 +700,7 @@ function getLastMessageTextForReport({
         });
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(lastReportAction));
+        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction));
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -744,13 +740,13 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = translate('iou.forwarded');
         }
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
-        lastMessageTextFromReport = getRejectedReportMessage();
+        lastMessageTextFromReport = translate('iou.rejectedThisReport');
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
-        lastMessageTextFromReport = getUpgradeWorkspaceMessage();
+        lastMessageTextFromReport = translate('workspaceActions.upgradedWorkspace');
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-        lastMessageTextFromReport = Parser.htmlToText(getForcedCorporateUpgradeMessage());
+        lastMessageTextFromReport = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
-        lastMessageTextFromReport = getDowngradeWorkspaceMessage();
+        lastMessageTextFromReport = translate('workspaceActions.downgradedWorkspace');
     } else if (isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
@@ -774,7 +770,7 @@ function getLastMessageTextForReport({
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         lastMessageTextFromReport = translate('iou.reopened');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
-        lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
+        lastMessageTextFromReport = getPolicyChangeMessage(translate, lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         lastMessageTextFromReport = getTravelUpdateMessage(translate, lastReportAction);
     } else if (isInviteOrRemovedAction(lastReportAction)) {
@@ -782,13 +778,13 @@ function getLastMessageTextForReport({
     } else if (isRenamedAction(lastReportAction)) {
         lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
-        lastMessageTextFromReport = getDeletedTransactionMessage(lastReportAction);
+        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
         lastMessageTextFromReport = Parser.htmlToText(getChangedApproverActionMessage(translate, lastReportAction));
     } else if (isMovedAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(lastReportAction, report));
+        lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(lastReportAction));
+        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction));
     } else if (isActionableMentionWhisper(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
