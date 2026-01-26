@@ -6666,7 +6666,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     if (isGPSDistanceRequest) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.GPS_DRAFT_DETAILS,
@@ -7626,7 +7625,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         }
 
         if (isGPSDistanceRequest) {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             onyxData?.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.GPS_DRAFT_DETAILS,
