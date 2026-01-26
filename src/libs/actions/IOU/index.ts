@@ -12573,8 +12573,8 @@ function initSplitExpense(
         calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
         calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
     ];
-    const splitCustomUnits: (TransactionCustomUnit | undefined)[] = [undefined, undefined];
-    const splitMerchants: (string | undefined)[] = [undefined, undefined];
+    const splitCustomUnits: Array<TransactionCustomUnit | undefined> = [undefined, undefined];
+    const splitMerchants: Array<string | undefined> = [undefined, undefined];
 
     if (isDistanceRequestTransactionUtils(transaction)) {
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
@@ -12583,10 +12583,10 @@ function initSplitExpense(
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {
             for (let i = 0; i < splitAmounts.length; i++) {
-                if (splitAmounts[i] !== 0) {
+                if (splitAmounts.at(i)) {
                     // Calculate distance from amount and rate: distance = amount / rate
                     // Both amount and rate are in cents, so the result is in distance units
-                    const distanceInUnits = Math.abs(splitAmounts[i]) / rate;
+                    const distanceInUnits = Math.abs(splitAmounts.at(i) ?? 0) / rate;
                     const quantity = Number(distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
 
                     splitCustomUnits[i] = {
@@ -12602,16 +12602,16 @@ function initSplitExpense(
 
     const splitExpenses = [
         initSplitExpenseItemData(transaction, {
-            amount: splitAmounts[0],
+            amount: splitAmounts.at(0) ?? 0,
             transactionID: NumberUtils.rand64(),
-            customUnit: splitCustomUnits[0],
-            merchant: splitMerchants[0],
+            customUnit: splitCustomUnits.at(0),
+            merchant: splitMerchants.at(0),
         }),
         initSplitExpenseItemData(transaction, {
-            amount: splitAmounts[1],
+            amount: splitAmounts.at(1) ?? 0,
             transactionID: NumberUtils.rand64(),
-            customUnit: splitCustomUnits[1],
-            merchant: splitMerchants[1],
+            customUnit: splitCustomUnits.at(1),
+            merchant: splitMerchants.at(1),
         }),
     ];
 
