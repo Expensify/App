@@ -601,6 +601,7 @@ describe('MergeTransactionUtils', () => {
                 taxValue: '9%',
                 taxAmount: convertToBackendAmount(calculateTaxAmount('9%', 2000, 'USD')),
                 taxCode: 'id_TAX_RATE_1',
+                taxName: 'Tax Rate 1 (9%)',
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -631,6 +632,7 @@ describe('MergeTransactionUtils', () => {
                 taxValue: '9%',
                 taxAmount: convertToBackendAmount(calculateTaxAmount('9%', 2000, 'USD')),
                 taxCode: 'id_TAX_RATE_1',
+                taxName: 'Tax Rate 1 (9%)',
             });
         });
     });
