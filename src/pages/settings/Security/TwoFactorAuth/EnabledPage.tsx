@@ -2,7 +2,6 @@ import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
@@ -11,7 +10,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -27,6 +26,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function EnabledPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();
@@ -70,7 +70,7 @@ function EnabledPage() {
                         }
                         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
                     }}
-                    icon={Expensicons.Close}
+                    icon={icons.Close}
                     iconFill={theme.danger}
                 />
             </ScrollView>
