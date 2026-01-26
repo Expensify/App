@@ -602,10 +602,6 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
     return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
 }
 
-function isPartial(transaction: OnyxEntry<Transaction>): boolean {
-    return isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction);
-}
-
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
     if (!transaction) {
         return true;
@@ -2747,7 +2743,6 @@ export {
     isAmountMissing,
     isMerchantMissing,
     isPartialMerchant,
-    isPartial,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,

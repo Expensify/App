@@ -240,7 +240,7 @@ const ViolationsUtils = {
     ): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
-        const isPartialTransaction = TransactionUtils.isPartial(updatedTransaction);
+        const isPartialTransaction = TransactionUtils.isPartialTransaction(updatedTransaction);
         if (isPartialTransaction && isScanning) {
             return {
                 onyxMethod: Onyx.METHOD.SET,
