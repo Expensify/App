@@ -1,0 +1,90 @@
+import React, {memo, useState} from 'react';
+import {View} from 'react-native';
+import Avatar from '@components/Avatar';
+import Icon from '@components/Icon';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
+import CONST from '@src/CONST';
+
+type ConciergeThinkingMessageProps = {
+    reasoningHistory?: string[];
+};
+
+function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMessageProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const [isExpanded, setIsExpanded] = useState(false);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
+
+    const hasReasoningHistory = reasoningHistory.length > 0;
+    const formattedTime = DateUtils.getStatusUntilOfflineTime().slice(0, 5);
+
+    const toggleExpanded = () => {
+        setIsExpanded(!isExpanded);
+    };
+
+    return (
+        <View style={[styles.chatItem]}>
+            <View style={[styles.chatItemRightGrouped]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
+                    <Avatar
+                        source={CONST.CONCIERGE_ICON_URL}
+                        size={CONST.AVATAR_SIZE.DEFAULT}
+                        containerStyles={[styles.mr2]}
+                    />
+                    <View style={[styles.flexColumn]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={[styles.textStrong, styles.mr1]}>{CONST.CONCIERGE_DISPLAY_NAME}</Text>
+                            <Text style={[styles.textSupporting, styles.textMicro]}>{formattedTime}</Text>
+                        </View>
+                    </View>
+                </View>
+                <View style={[styles.chatItemMessage, styles.ml10]}>
+                    {!hasReasoningHistory ? (
+                        <Text style={styles.textSupporting}>{translate('common.thinking')}</Text>
+                    ) : (
+                        <>
+                            <PressableWithFeedback
+                                onPress={toggleExpanded}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('common.thinking')}
+                                hoverDimmingValue={1}
+                                pressDimmingValue={0.8}
+                            >
+                                <Text style={styles.textSupporting}>{translate('common.thinking')}</Text>
+                                <Icon
+                                    src={isExpanded ? icons.UpArrow : icons.DownArrow}
+                                    fill={theme.textSupporting}
+                                    width={12}
+                                    height={12}
+                                />
+                            </PressableWithFeedback>
+                            {isExpanded && (
+                                <View style={[styles.mt2, styles.ml2, styles.pl3, styles.borderLeft]}>
+                                    {reasoningHistory.map((item, index) => (
+                                        <View
+                                            key={`reasoning-${index}`}
+                                            style={styles.mb2}
+                                        >
+                                            <Text style={[styles.textSupporting, styles.textStrong]}>{item.split('\n')[0]}</Text>
+                                            {item.split('\n').length > 1 && <Text style={styles.textSupporting}>{item.split('\n').slice(1).join('\n')}</Text>}
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
+                        </>
+                    )}
+                </View>
+            </View>
+        </View>
+    );
+}
+
+export default memo(ConciergeThinkingMessage);
