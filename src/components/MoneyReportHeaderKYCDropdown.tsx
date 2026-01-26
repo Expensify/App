@@ -32,6 +32,7 @@ function MoneyReportHeaderKYCDropdown({
     onPaymentSelect,
     ref,
     options,
+    customText,
     isSelectedTransactionAction,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
@@ -71,7 +72,7 @@ function MoneyReportHeaderKYCDropdown({
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
                     shouldPopoverUseScrollView={optionsShown.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
-                    customText={translate('common.more')}
+                    customText={customText ?? translate('common.more')}
                     options={optionsShown}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && applicableSecondaryActions && styles.flex1, options && styles.w100]}
