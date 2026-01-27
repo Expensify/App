@@ -26,6 +26,21 @@ function parseStringBoolean(value: string | undefined): boolean | undefined {
 }
 
 /**
+ * Maps form fields to rule properties
+ */
+function mapFormFieldsToRule(form: MerchantRuleForm) {
+    return {
+        merchant: form.merchant || undefined,
+        category: form.category || undefined,
+        tag: form.tag || undefined,
+        tax: form.tax || undefined,
+        comment: form.comment || undefined,
+        reimbursable: parseStringBoolean(form.reimbursable),
+        billable: parseStringBoolean(form.billable),
+    };
+}
+
+/**
  * Fetches policy rules data when the rules page is opened.
  * @param policyID - The ID of the policy to fetch rules for
  */
@@ -52,18 +67,15 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
 
     const optimisticRuleID = NumberUtils.rand64();
 
+    const ruleFields = mapFormFieldsToRule(form);
+
     const optimisticRule: CodingRule = {
         filters: {
             left: 'merchant',
             operator: 'eq',
             right: form.merchantToMatch,
         },
-        merchant: form.merchant || undefined,
-        category: form.category || undefined,
-        tag: form.tag || undefined,
-        comment: form.comment || undefined,
-        reimbursable: parseStringBoolean(form.reimbursable),
-        billable: parseStringBoolean(form.billable),
+        ...ruleFields,
         created: new Date().toISOString(),
     };
 
@@ -122,13 +134,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
     const parameters: SetPolicyMerchantRuleParams = {
         policyID,
         merchantToMatch: form.merchantToMatch,
-        merchant: form.merchant || undefined,
-        category: form.category || undefined,
-        tag: form.tag || undefined,
-        tax: form.tax || undefined,
-        comment: form.comment || undefined,
-        reimbursable: parseStringBoolean(form.reimbursable),
-        billable: parseStringBoolean(form.billable),
+        ...ruleFields,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_MERCHANT_RULE, parameters, onyxData);
