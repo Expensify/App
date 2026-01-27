@@ -614,6 +614,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `¿Estás seguro de que quieres eliminar este ${type}?`;
         },
         onlyVisible: 'Visible sólo para',
+        explain: 'Explicar',
+        explainMessage: 'Por favor explícame esto.',
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
         leaveThread: 'Dejar hilo',
@@ -1213,6 +1215,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'El importe total es demasiado alto. Reduce las horas o disminuye la tasa.',
         },
         correctDistanceRateError: 'Corrige el error de la tasa de distancia y vuelve a intentarlo.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -4459,14 +4462,6 @@ ${amount} para ${merchant} - ${date}`,
         companyCards: {
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
-                workspaceFeedsCouldNotBeLoadedMessage:
-                    'Ocurrió un error al cargar las fuentes de tarjetas del espacio de trabajo. Por favor, inténtelo de nuevo o contacte a su administrador.',
-                feedCouldNotBeLoadedTitle: 'Error al cargar esta fuente de tarjetas',
-                feedCouldNotBeLoadedMessage: 'Ocurrió un error al cargar esta fuente de tarjetas. Por favor, inténtelo de nuevo o contacte a su administrador.',
-                tryAgain: 'Inténtalo de nuevo',
-            },
             addNewCard: {
                 other: 'Otros',
                 fileImport: 'Importar transacciones desde un archivo',
@@ -6299,6 +6294,11 @@ ${amount} para ${merchant} - ${date}`,
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el autopago de informes aprobados`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `estableció el umbral de autopago de informes aprobados en "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `cambió el aprobador predeterminado a ${newApprover} (anteriormente ${previousApprover})` : `cambió el aprobador predeterminado a ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -8248,6 +8248,12 @@ ${amount} para ${merchant} - ${date}`,
         notification: {
             title: 'Seguimiento GPS en curso',
             body: 'Ve a la app para finalizar',
+        },
+        continueGpsTripModal: {
+            title: '¿Continuar el registro del viaje por GPS?',
+            prompt: 'Parece que la app se cerró durante tu último viaje por GPS. ¿Te gustaría continuar grabando ese viaje?',
+            confirm: 'Continuar viaje',
+            cancel: 'Ver viaje',
         },
         signOutWarningTripInProgress: {
             title: 'Seguimiento por GPS en curso',
