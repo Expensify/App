@@ -10,7 +10,7 @@ class DummyTranslator extends Translator {
         return Promise.resolve(0);
     }
 
-    public getFailedTranslations(): Array<{text: string; targetLang: TranslationTargetLocale; error: string}> {
+    public getFailedTranslations(): Array<{text: string; targetLang: TranslationTargetLocale; error: string; id?: string}> {
         return []; // Dummy translator never fails
     }
 }

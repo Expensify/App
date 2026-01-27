@@ -10,12 +10,12 @@ abstract class Translator {
      * Translate a string to the given locale.
      * Implements common logging logic, while concrete subclasses handle actual translations.
      */
-    public async translate(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
+    public async translate(targetLang: TranslationTargetLocale, text: string, context?: string, id?: string): Promise<string> {
         const isEmpty = !text || text.trim().length === 0;
         if (isEmpty) {
             return '';
         }
-        const result = await this.performTranslation(targetLang, text, context);
+        const result = await this.performTranslation(targetLang, text, context, id);
         const prefix = `🧠 Translated to [${targetLang}]: `;
         console.log(`${prefix}"${this.trimForLogs(text)}"\n${''.padStart(prefix.length - 2, ' ')}→ "${this.trimForLogs(result)}"`);
         if (context) {
@@ -27,7 +27,7 @@ abstract class Translator {
     /**
      * Translate a string to the given locale.
      */
-    protected abstract performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string>;
+    protected abstract performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string, id?: string): Promise<string>;
 
     /**
      * Estimate cost for translating the given strings across locales.
@@ -38,7 +38,7 @@ abstract class Translator {
      * Get all translations that failed after exhausting retries.
      * Used for summary reporting at the end of a translation run.
      */
-    public abstract getFailedTranslations(): Array<{text: string; targetLang: TranslationTargetLocale; error: string}>;
+    public abstract getFailedTranslations(): Array<{text: string; targetLang: TranslationTargetLocale; error: string; id?: string}>;
 
     /**
      * Trim a string to keep logs readable.

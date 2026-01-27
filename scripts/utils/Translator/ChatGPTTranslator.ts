@@ -12,6 +12,7 @@ type FailedTranslation = {
     text: string;
     targetLang: TranslationTargetLocale;
     error: string;
+    id?: string;
 };
 
 class ChatGPTTranslator extends Translator {
@@ -42,7 +43,7 @@ class ChatGPTTranslator extends Translator {
         return [...this.failedTranslations];
     }
 
-    protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
+    protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string, id?: string): Promise<string> {
         const instructions = await buildTranslationInstructions(targetLang);
         const userInput = buildTranslationRequestInput(text, context);
 
@@ -68,7 +69,7 @@ class ChatGPTTranslator extends Translator {
 
                 if (attempt === ChatGPTTranslator.MAX_RETRIES) {
                     console.error(`❌ Final attempt failed placeholder validation. Falling back to original.`);
-                    this.failedTranslations.push({text, targetLang, error: 'Failed placeholder/HTML validation after all retries'});
+                    this.failedTranslations.push({text, targetLang, error: 'Failed placeholder/HTML validation after all retries', id});
                     return text;
                 }
             } catch (error) {
@@ -76,7 +77,7 @@ class ChatGPTTranslator extends Translator {
 
                 if (attempt === ChatGPTTranslator.MAX_RETRIES) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
-                    this.failedTranslations.push({text, targetLang, error: errorMessage});
+                    this.failedTranslations.push({text, targetLang, error: errorMessage, id});
                     return text; // Final fallback
                 }
             }

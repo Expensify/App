@@ -297,11 +297,14 @@ class TranslationGenerator {
         }
 
         for (const [locale, localeFailures] of byLocale) {
-            console.log(`\n📍 ${locale.toUpperCase()} (${localeFailures.length} failure${localeFailures.length > 1 ? 's' : ''}):`);
+            console.log(`\n📍 ${locale} (${localeFailures.length} failure${localeFailures.length > 1 ? 's' : ''}):`);
             console.log('─'.repeat(60));
             for (const failure of localeFailures) {
                 const truncatedText = failure.text.length > 60 ? `${failure.text.slice(0, 60)}...` : failure.text;
                 console.log(`  • "${truncatedText}"`);
+                if (failure.id) {
+                    console.log(`    Path: ${failure.id}`);
+                }
                 const firstErrorLine = failure.error.split('\n').at(0) ?? failure.error;
                 console.log(`    Error: ${firstErrorLine}`);
             }
@@ -325,7 +328,7 @@ class TranslationGenerator {
         const translationPool = new PromisePool<void>(8);
         const translationPromises: Array<Promise<void>> = [];
 
-        for (const [key, {text, context}] of stringsToTranslate) {
+        for (const [key, {text, context, id}] of stringsToTranslate) {
             if (translationsForLocale.has(key)) {
                 // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
                 continue;
@@ -340,7 +343,7 @@ class TranslationGenerator {
                     textToTranslate = dedent(text);
                 }
 
-                let result = await this.translator.translate(targetLanguage, textToTranslate, context);
+                let result = await this.translator.translate(targetLanguage, textToTranslate, context, id);
 
                 // Special handling for dedent strings - add back leading newline if it was removed
                 if (hadLeadingNewline) {
@@ -725,13 +728,13 @@ class TranslationGenerator {
 
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-                stringsToTranslate.set(translationKey, {text: node.text, context});
+                stringsToTranslate.set(translationKey, {text: node.text, context, id: currentPath});
             }
 
             // Template expressions must be encoded directly before they can be translated
             else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
-                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
+                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context, id: currentPath});
                 } else {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
@@ -739,7 +742,7 @@ class TranslationGenerator {
                     for (const span of node.templateSpans) {
                         this.extractStringsToTranslate(span, stringsToTranslate, currentPath);
                     }
-                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
+                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context, id: currentPath});
                 }
             }
         }

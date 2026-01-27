@@ -7,6 +7,7 @@ import path from 'path';
 import dedent from '@libs/StringUtils/dedent';
 import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
 import Git from '@scripts/utils/Git';
+import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
 import Translator from '@scripts/utils/Translator/Translator';
 
 let processExitSpy: jest.SpyInstance;
@@ -2198,6 +2199,158 @@ describe('generateTranslations', () => {
 
             // Verify only 1 translation was requested
             expect(translateSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('error summary', () => {
+        let consoleLogSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            consoleLogSpy = jest.spyOn(console, 'log');
+        });
+
+        it('does not print error summary when there are no failures', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            await generateTranslations();
+
+            // Should not print error summary header
+            expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('TRANSLATION ERRORS SUMMARY'));
+        });
+
+        it('prints error summary when there are failures', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations to return failures
+            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error message'}];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should print error summary header
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('TRANSLATION ERRORS SUMMARY'));
+            // Should print failure count
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('1 translation(s) failed'));
+        });
+
+        it('displays locales in lowercase', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations with uppercase locale
+            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error'}];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should display locale in lowercase (as stored), not uppercase
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 it (1 failure)'));
+            expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('📍 IT'));
+        });
+
+        it('displays the id (path) when present', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations with id
+            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error', id: 'common.greeting'}];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should display the path
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Path: common.greeting'));
+        });
+
+        it('does not display path line when id is not present', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations without id
+            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error'}];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should not display "Path:" line
+            const pathCalls = consoleLogSpy.mock.calls.filter((call: unknown[]) => {
+                const firstArg = call.at(0);
+                return typeof firstArg === 'string' && firstArg.includes('Path:');
+            });
+            expect(pathCalls).toHaveLength(0);
+        });
+
+        it('groups failures by locale', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    farewell: 'Goodbye',
+                    welcome: 'Welcome',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock getFailedTranslations with multiple locales
+            const mockFailures = [
+                {text: 'Hello', targetLang: 'it' as const, error: 'Error 1'},
+                {text: 'Goodbye', targetLang: 'it' as const, error: 'Error 2'},
+                {text: 'Welcome', targetLang: 'fr' as const, error: 'Error 3'},
+            ];
+            jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
+
+            await generateTranslations();
+
+            // Should group by locale with correct counts
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 it (2 failures)'));
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 fr (1 failure)'));
+            // Should show total count
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Total failures: 3'));
         });
     });
 });
