@@ -215,6 +215,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
+                personalDetails,
                 mockedBetas,
                 {},
                 false,
