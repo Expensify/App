@@ -209,8 +209,6 @@ function PaymentMethodList({
                 let icon;
                 if (isUserPersonalCard && isCSVCard) {
                     icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
-                } else if (isUserPersonalCard) {
-                    icon = getBankIcon({styles, bankName: card.bank as BankName, isCard: true}).icon;
                 } else {
                     icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
                 }
