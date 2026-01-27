@@ -390,6 +390,47 @@ type GetSectionsParams = {
 };
 
 /**
+ * Creates a top search menu item with common structure for TOP_SPENDERS and TOP_CATEGORIES
+ */
+function createTopSearchMenuItem(
+    key: SearchKey,
+    translationPath: TranslationPaths,
+    icon: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank'>,
+    groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
+    limit?: number,
+): SearchTypeMenuItem {
+    const searchQuery = buildQueryStringFromFilterFormValues(
+        {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            groupBy,
+            dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+        },
+        {
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            ...(limit && {limit}),
+        },
+    );
+
+    return {
+        key,
+        translationPath,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        icon,
+        searchQuery,
+        get searchQueryJSON() {
+            return buildSearchQueryJSON(this.searchQuery);
+        },
+        get hash() {
+            return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+        },
+        get similarSearchHash() {
+            return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+        },
+    };
+}
+
+/**
  * Returns a list of all possible searches in the LHN, along with their query & hash.
  * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
  * contains the conditionals for rendering each of these.
@@ -623,32 +664,14 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            translationPath: 'search.topSpenders',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.User,
-            searchQuery: buildQueryStringFromFilterFormValues(
-                {
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                },
-                {
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                },
-            ),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: createTopSearchMenuItem(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, 'search.topSpenders', Expensicons.User, CONST.SEARCH.GROUP_BY.FROM),
+        [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: createTopSearchMenuItem(
+            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+            'search.topCategories',
+            Expensicons.Folder,
+            CONST.SEARCH.GROUP_BY.CATEGORY,
+            CONST.SEARCH.TOP_SEARCH_LIMIT,
+        ),
     };
 }
 
@@ -671,6 +694,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
     let shouldShowTopSpendersSuggestion = false;
+    let shouldShowTopCategoriesSuggestion = false;
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
 
@@ -707,6 +731,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasVBBA && hasReimburser) || isECardEnabled);
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover);
+        const isEligibleForTopCategoriesSuggestion = isPaidPolicy;
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -717,6 +742,7 @@ function getSuggestedSearchesVisibility(
         shouldShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
         shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
         shouldShowTopSpendersSuggestion ||= isEligibleForTopSpendersSuggestion;
+        shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
         return (
@@ -728,7 +754,8 @@ function getSuggestedSearchesVisibility(
             shouldShowUnapprovedCashSuggestion &&
             shouldShowUnapprovedCardSuggestion &&
             shouldShowReconciliationSuggestion &&
-            shouldShowTopSpendersSuggestion
+            shouldShowTopSpendersSuggestion &&
+            shouldShowTopCategoriesSuggestion
         );
     });
 
@@ -745,6 +772,7 @@ function getSuggestedSearchesVisibility(
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowReconciliationSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
     };
 }
 
@@ -1393,9 +1421,18 @@ function getTransactionsSections(
 
  */
 function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportID: string): OnyxTypes.Transaction[] {
-    return Object.entries(data)
-        .filter(([key, value]) => isTransactionEntry(key) && (value as OnyxTypes.Transaction)?.reportID === reportID)
-        .map(([, value]) => value as OnyxTypes.Transaction);
+    const transactions: OnyxTypes.Transaction[] = [];
+
+    for (const key in data) {
+        if (isTransactionEntry(key)) {
+            const transaction = data[key];
+            if (transaction?.reportID === reportID) {
+                transactions.push(transaction);
+            }
+        }
+    }
+
+    return transactions;
 }
 
 /**
@@ -2652,13 +2689,6 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
     if (groupBy) {
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
-
-    if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return !Object.keys(searchResults?.data).some(
-            (key) => isReportEntry(key) && (searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-    }
-
     return !Object.keys(searchResults?.data).some(
         (key) =>
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
@@ -3026,9 +3056,15 @@ function createTypeMenuSections(
             menuItems: [],
         };
 
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]) {
+        const insightsSearchKeys = [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
+
+        for (const key of insightsSearchKeys) {
+            if (!suggestedSearchesVisibility[key]) {
+                continue;
+            }
+
             insightsSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS],
+                ...suggestedSearches[key],
                 emptyState: {
                     title: 'search.searchResults.emptyResults.title',
                     subtitle: 'search.searchResults.emptyResults.subtitle',
@@ -3166,7 +3202,7 @@ function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurren
     );
 }
 
-function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList | undefined) {
     return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
         value: cardFeed.id,
