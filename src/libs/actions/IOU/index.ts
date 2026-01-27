@@ -6372,7 +6372,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     if (activeReportID && !isMoneyRequestReport) {
         Navigation.setNavigationActionToMicrotaskQueue(() =>
             setTimeout(() => {
-                notifyNewAction(activeReportID, payeeAccountID, reportPreviewAction);
+                notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
             }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
         );
     }
@@ -6487,7 +6487,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     dismissModalAndOpenReportInInboxTab(activeReportID);
 
     if (activeReportID) {
-        notifyNewAction(activeReportID, payeeAccountID);
+        notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
     }
 }
 
@@ -6830,7 +6830,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    notifyNewAction(activeReportID, payeeAccountID);
+    notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
@@ -7668,7 +7668,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     }
 
     if (!isMoneyRequestReport) {
-        notifyNewAction(activeReportID, userAccountID);
+        notifyNewAction(activeReportID, undefined, true);
     }
 }
 
@@ -9518,7 +9518,7 @@ function canSubmitReport(
 
     return (
         isOpenExpenseReport &&
-        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
+        (report?.ownerAccountID === userAccountID || report?.managerID === userAccountID || isAdmin) &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
@@ -10783,7 +10783,8 @@ function cancelPayment(
         },
         {optimisticData, successData, failureData},
     );
-    notifyNewAction(expenseReport.reportID, userAccountID);
+
+    notifyNewAction(expenseReport.reportID, undefined, true);
 }
 
 /**
@@ -10868,7 +10869,7 @@ function payMoneyRequest(
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
+    notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return params.optimisticHoldReportID;
 }
 
@@ -12454,7 +12455,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
     });
 
     const currentReportID = getDisplayedReportID(reportID);
-    notifyNewAction(currentReportID, userAccountID);
+    notifyNewAction(currentReportID, undefined, true);
 }
 
 function initSplitExpenseItemData(

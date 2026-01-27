@@ -792,7 +792,7 @@ function sendInvoice({
         Navigation.dismissModalWithReport({reportID: invoiceRoom.reportID});
     }
 
-    notifyNewAction(invoiceRoom.reportID, currentUserAccountID);
+    notifyNewAction(invoiceRoom.reportID, undefined, true);
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};

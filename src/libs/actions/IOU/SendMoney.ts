@@ -507,7 +507,7 @@ function sendMoneyElsewhere(
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
-    notifyNewAction(params.chatReportID, managerID);
+    notifyNewAction(params.chatReportID, undefined, true);
 }
 
 /**
@@ -543,7 +543,7 @@ function sendMoneyWithWallet(
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
-    notifyNewAction(params.chatReportID, managerID);
+    notifyNewAction(params.chatReportID, undefined, true);
 }
 
 export {sendMoneyElsewhere, sendMoneyWithWallet};
