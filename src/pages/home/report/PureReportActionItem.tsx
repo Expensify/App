@@ -1653,6 +1653,13 @@ function PureReportActionItem({
 
             const isConciergeOptions = isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action);
             const actionContainsFollowUps = containsActionableFollowUps(action);
+            let actionableButtonsNoLines = 1;
+            if (isConciergeOptions) {
+                actionableButtonsNoLines = 2;
+            }
+            if (actionContainsFollowUps) {
+                actionableButtonsNoLines = 0;
+            }
             children = (
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
@@ -1698,8 +1705,8 @@ function PureReportActionItem({
                                                     : 'horizontal'
                                             }
                                             shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
-                                            primaryTextNumberOfLines={isConciergeOptions ? 2 : 1}
-                                            textStyles={isConciergeOptions ? styles.textAlignLeft : undefined}
+                                            primaryTextNumberOfLines={actionableButtonsNoLines}
+                                            textStyles={isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined}
                                         />
                                     )}
                                 </View>
