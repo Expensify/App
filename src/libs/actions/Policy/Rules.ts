@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -9,6 +10,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type {CodingRule} from '@src/types/onyx/Policy';
+
+/**
+ * Converts a string boolean value ('true'/'false') to a boolean or undefined
+ */
+function parseStringBoolean(value: string | undefined): boolean | undefined {
+    if (value === 'true') {
+        return true;
+    }
+    if (value === 'false') {
+        return false;
+    }
+    return undefined;
+}
 
 /**
  * Fetches policy rules data when the rules page is opened.
@@ -49,12 +63,12 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         category: form.category || undefined,
         tag: form.tag || undefined,
         comment: form.comment || undefined,
-        reimbursable: form.reimbursable === 'true' ? true : form.reimbursable === 'false' ? false : undefined,
-        billable: form.billable === 'true' ? true : form.billable === 'false' ? false : undefined,
+        reimbursable: parseStringBoolean(form.reimbursable),
+        billable: parseStringBoolean(form.billable),
         created: new Date().toISOString(),
     };
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -71,7 +85,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         },
     ];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -86,7 +100,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -114,8 +128,8 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         tag: form.tag || undefined,
         tax: form.tax || undefined,
         comment: form.comment || undefined,
-        reimbursable: form.reimbursable === 'true' ? true : form.reimbursable === 'false' ? false : undefined,
-        billable: form.billable === 'true' ? true : form.billable === 'false' ? false : undefined,
+        reimbursable: parseStringBoolean(form.reimbursable),
+        billable: parseStringBoolean(form.billable),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_MERCHANT_RULE, parameters, {optimisticData, successData, failureData});
