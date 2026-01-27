@@ -798,6 +798,89 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when', () => {
+            it('returns the correct text message', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            category: 'Travel',
+                            merchant: "McDonald's",
+                            billable: true,
+                            reimbursable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the category to "Travel", merchant to "McDonald\'s", marked the expense as "billable", and marked the expense as "reimbursable" via <a href="'.URL_TO_NEW_DOT.'/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            category: 'Travel',
+                            merchant: "McDonald's",
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the category to "Travel", and merchant to "McDonald\'s" via <a href="'.URL_TO_NEW_DOT.'/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            billable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `marked the expense as "billable" via <a href="'.URL_TO_NEW_DOT.'/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            reimbursable: true,
+                            billable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `marked the expense as "reimbursable" and marked the expense as "billable" via <a href="'.URL_TO_NEW_DOT.'/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the category is changed without source (backward compatibility)', () => {
             const reportAction = {
                 ...createRandomReportAction(1),

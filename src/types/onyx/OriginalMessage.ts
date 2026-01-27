@@ -744,8 +744,8 @@ type PolicyRulesModifiedFields = {
     category?: string;
     tag?: string;
     description?: string;
-    billable?: string;
-    reimbursable?: string;
+    billable?: boolean;
+    reimbursable?: boolean;
     tax?: Record<string, TaxRate>;
 };
 
