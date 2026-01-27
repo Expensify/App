@@ -15,9 +15,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, DomainSecurityGroup} from '@src/types/onyx';
-import type {SecurityGroupsData} from '@src/types/onyx/Domain';
-import type {DomainSecurityGroup} from '@src/types/onyx/Domain';
+import type {Domain, DomainSecurityGroup, SecurityGroupsData} from '@src/types/onyx';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
@@ -894,7 +892,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
             value: {
                 memberErrors: {
                     [email]: {
-                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.errors.addMember'),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.addMember'),
                     },
                 },
             },

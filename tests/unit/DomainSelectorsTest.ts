@@ -4,6 +4,7 @@ import {
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSettingsPrimaryContactSelector,
+    isSecurityGroupEntry,
     memberAccountIDsSelector,
     selectSecurityGroupsForAccount,
     technicalContactSettingsSelector,
@@ -361,6 +362,33 @@ describe('domainSelectors', () => {
             expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]).toEqual(group1);
             expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]).toEqual(group2);
             expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]).toBeUndefined();
+        });
+    });
+
+    describe('isSecurityGroupEntry', () => {
+        it('should return true for a valid security group entry', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {shared: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(true);
+        });
+
+        it('should return false if the key does not start with the security group prefix', () => {
+            const entry: [string, unknown] = ['invalid_prefix_123', {shared: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value is not an object', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, 'not an object'];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value is null', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, null];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value does not have a "shared" property', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {other: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
         });
     });
 });

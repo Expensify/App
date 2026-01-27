@@ -155,4 +155,5 @@ export {
     defaultSecurityGroupIDSelector,
     selectSecurityGroupsForAccount,
     memberPendingActionSelector,
+    isSecurityGroupEntry,
 };
