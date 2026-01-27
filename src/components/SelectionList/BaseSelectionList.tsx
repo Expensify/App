@@ -3,7 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, TextInputKeyPressEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -284,124 +284,6 @@ function BaseSelectionList<TItem extends ListItem>({
             isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isDisabled,
         },
     );
-
-    const indexByKeyForList = useMemo(() => {
-        const map = new Map<string, number>();
-        for (const [index, item] of data.entries()) {
-            map.set(item.keyForList, index);
-        }
-        return map;
-    }, [data]);
-
-    const selectedItemIndex = useMemo(() => (initiallyFocusedItemKey ? data.findIndex(isItemSelected) : -1), [data, initiallyFocusedItemKey, isItemSelected]);
-
-    const getNextFocusableIndex = useCallback(
-        (currentIndex: number) => {
-            for (let nextIndex = currentIndex + 1; nextIndex < data.length; nextIndex++) {
-                const item = data.at(nextIndex);
-                if (!item) {
-                    continue;
-                }
-
-                const isItemDisabled = isDisabled || (!!item.isDisabled && !isItemSelected(item));
-                if (!isItemDisabled) {
-                    return nextIndex;
-                }
-            }
-            return -1;
-        },
-        [data, isDisabled, isItemSelected],
-    );
-
-    const focusItemByIndex = useCallback(
-        (index: number) => {
-            if (typeof document === 'undefined') {
-                return;
-            }
-
-            const item = data.at(index);
-            if (!item) {
-                return;
-            }
-
-            setHasKeyBeenPressed();
-            setFocusedIndex(index);
-            scrollToIndex(index);
-
-            // FlashList virtualization means the next item might not be in the DOM immediately.
-            // Delay focusing to give the list a chance to render/measure the row.
-            const MAX_FOCUS_RETRIES = 5;
-            const FOCUS_RETRY_DELAY_MS = 50;
-            let attempt = 0;
-            const tryFocus = () => {
-                const element = document.getElementById(item.keyForList);
-                if (element instanceof HTMLElement) {
-                    element.focus({preventScroll: true});
-                    return;
-                }
-
-                attempt++;
-                if (attempt <= MAX_FOCUS_RETRIES) {
-                    setTimeout(tryFocus, FOCUS_RETRY_DELAY_MS);
-                }
-            };
-
-            setTimeout(tryFocus, 0);
-        },
-        [data, scrollToIndex, setFocusedIndex, setHasKeyBeenPressed],
-    );
-
-    const handleTabKeyPress = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!(event instanceof KeyboardEvent) || event.shiftKey || typeof document === 'undefined') {
-                return;
-            }
-
-            const activeElement = document.activeElement;
-            const activeElementID = activeElement instanceof HTMLElement ? activeElement.id : '';
-
-            // If tabbing within the list, move focus to the next option in data order (not DOM order),
-            // to avoid unpredictable jumps caused by virtualization/recycling.
-            if (activeElementID && indexByKeyForList.has(activeElementID)) {
-                const currentIndex = indexByKeyForList.get(activeElementID) ?? -1;
-                const nextIndex = getNextFocusableIndex(currentIndex);
-                if (nextIndex === -1) {
-                    return;
-                }
-
-                event.preventDefault();
-                event.stopPropagation();
-                focusItemByIndex(nextIndex);
-                return;
-            }
-
-            // If tabbing into the list (e.g., from the header back button), move focus directly to
-            // the selected option when available.
-            if (!initiallyFocusedItemKey) {
-                return;
-            }
-
-            const targetIndex = selectedItemIndex !== -1 ? selectedItemIndex : initialFocusedIndex;
-            if (targetIndex < 0) {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-            focusItemByIndex(targetIndex);
-        },
-        [focusItemByIndex, getNextFocusableIndex, indexByKeyForList, initialFocusedIndex, initiallyFocusedItemKey, selectedItemIndex],
-    );
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.TAB, handleTabKeyPress, {
-        // Let TextInput handle Tab -> list focus itself.
-        captureOnInputs: false,
-        // We conditionally call preventDefault() only when we handle the event.
-        shouldPreventDefault: false,
-        // Avoid interfering with other Tab handlers higher up the stack.
-        shouldBubble: true,
-        isActive: isFocused && !disableKeyboardShortcuts,
-    });
     const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {

@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -995,125 +995,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             isActive: !disableKeyboardShortcuts && isFocused && !isConfirmButtonDisabled,
         },
     );
-
-    const indexByKeyForList = useMemo(() => {
-        const map = new Map<string, number>();
-        flattenedSections.allOptions.forEach((item, index) => {
-            if (!item.keyForList) {
-                return;
-            }
-            map.set(item.keyForList, index);
-        });
-        return map;
-    }, [flattenedSections.allOptions]);
-
-    const getNextFocusableIndex = useCallback(
-        (currentIndex: number) => {
-            for (let nextIndex = currentIndex + 1; nextIndex < flattenedSections.allOptions.length; nextIndex++) {
-                const item = flattenedSections.allOptions.at(nextIndex);
-                if (!item) {
-                    continue;
-                }
-
-                const isItemDisabled = !!item.isDisabled && !isItemSelected(item);
-                if (!isItemDisabled) {
-                    return nextIndex;
-                }
-            }
-            return -1;
-        },
-        [flattenedSections.allOptions, isItemSelected],
-    );
-
-    const focusItemByIndex = useCallback(
-        (index: number) => {
-            if (typeof document === 'undefined') {
-                return;
-            }
-
-            const item = flattenedSections.allOptions.at(index);
-            if (!item?.keyForList) {
-                return;
-            }
-
-            setHasKeyBeenPressed();
-            setFocusedIndex(index);
-            scrollToIndex(index, true);
-
-            // Virtualization/pagination means the next item might not be in the DOM immediately.
-            const MAX_FOCUS_RETRIES = 5;
-            const FOCUS_RETRY_DELAY_MS = 50;
-            let attempt = 0;
-            const tryFocus = () => {
-                const element = document.getElementById(item.keyForList ?? '');
-                if (element instanceof HTMLElement) {
-                    element.focus({preventScroll: true});
-                    return;
-                }
-
-                attempt++;
-                if (attempt <= MAX_FOCUS_RETRIES) {
-                    setTimeout(tryFocus, FOCUS_RETRY_DELAY_MS);
-                }
-            };
-
-            setTimeout(tryFocus, 0);
-        },
-        [flattenedSections.allOptions, scrollToIndex, setFocusedIndex, setHasKeyBeenPressed],
-    );
-
-    const handleTabKeyPress = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!(event instanceof KeyboardEvent) || event.shiftKey || typeof document === 'undefined') {
-                return;
-            }
-
-            const activeElement = document.activeElement;
-            const activeElementID = activeElement instanceof HTMLElement ? activeElement.id : '';
-
-            // If tabbing within the list, move focus to the next option in list order (not DOM order),
-            // to avoid unpredictable jumps caused by virtualization/recycling.
-            if (activeElementID && indexByKeyForList.has(activeElementID)) {
-                const currentIndex = indexByKeyForList.get(activeElementID) ?? -1;
-                const nextIndex = getNextFocusableIndex(currentIndex);
-                if (nextIndex === -1) {
-                    return;
-                }
-
-                event.preventDefault();
-                event.stopPropagation();
-                focusItemByIndex(nextIndex);
-                return;
-            }
-
-            // If tabbing into the list (e.g., from a header/back button), move focus directly to
-            // the selected option when available.
-            if (!initiallyFocusedOptionKey) {
-                return;
-            }
-
-            const initialFocusedIndex = flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey);
-            const targetIndex = selectedItemIndex !== -1 ? selectedItemIndex : initialFocusedIndex;
-            if (targetIndex < 0) {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-            focusItemByIndex(targetIndex);
-        },
-        [focusItemByIndex, flattenedSections.allOptions, getNextFocusableIndex, indexByKeyForList, initiallyFocusedOptionKey, selectedItemIndex],
-    );
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.TAB, handleTabKeyPress, {
-        // Let the TextInput's onKeyPress handle Tab -> list focus.
-        captureOnInputs: false,
-        // We conditionally call preventDefault() only when we handle the event.
-        shouldPreventDefault: false,
-        // Avoid interfering with other Tab handlers higher up the stack.
-        shouldBubble: true,
-        isActive: isFocused && !disableKeyboardShortcuts,
-    });
 
     const headerMessageContent = () =>
         (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
