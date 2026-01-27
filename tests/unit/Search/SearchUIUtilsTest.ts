@@ -2462,6 +2462,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionMonthGroupListItems);
         });
@@ -2494,6 +2495,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                allReportMetadata: {},
             }) as [TransactionMonthGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -2511,6 +2513,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                allReportMetadata: {},
             }) as [TransactionMonthGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
