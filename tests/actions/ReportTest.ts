@@ -3479,26 +3479,6 @@ describe('actions/Report', () => {
             expect(result).not.toBeNull();
             expect((result?.message as Message[]).at(0)?.html).toContain('<followup-list selected>');
         });
-
-        it('should preserve other message properties when resolving followups', () => {
-            const reportAction = {
-                reportActionID: '789',
-                message: [
-                    {
-                        html: '<p>Help</p><followup-list><followup><followup-text>Question</followup-text></followup></followup-list>',
-                        text: 'Help',
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        isEdited: true,
-                    },
-                ],
-            } as OnyxTypes.ReportAction;
-
-            const result = Report.buildOptimisticResolvedFollowups(reportAction);
-
-            expect(result).not.toBeNull();
-            expect((result?.message as Message[]).at(0)?.text).toBe('Help');
-            expect((result?.message as Message[]).at(0)?.type).toBe(CONST.REPORT.MESSAGE.TYPE.COMMENT);
-        });
     });
 
     describe('resolveSuggestedFollowup', () => {

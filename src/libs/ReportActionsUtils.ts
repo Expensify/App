@@ -1770,7 +1770,7 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         return null;
     }
 
-    // There is only one follow up list
+    // There will be only one follow up list
     const followupListHtml = followupListMatch[0];
     const hasSelectedAttribute = followUpSelectedListRegex.test(followupListHtml);
     if (hasSelectedAttribute) {

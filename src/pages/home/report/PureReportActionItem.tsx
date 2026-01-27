@@ -1558,6 +1558,7 @@ function PureReportActionItem({
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons
                             items={actionableItemButtons}
+                            shouldUseLocalization
                             layout="horizontal"
                         />
                     )}
@@ -1634,6 +1635,7 @@ function PureReportActionItem({
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons
                             items={actionableItemButtons}
+                            shouldUseLocalization
                             layout="vertical"
                         />
                     )}
@@ -1650,6 +1652,7 @@ function PureReportActionItem({
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
 
             const isConciergeOptions = isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action);
+            const actionContainsFollowUps = containsActionableFollowUps(action);
             children = (
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
@@ -1690,10 +1693,11 @@ function PureReportActionItem({
                                                 isConciergeCategoryOptions(action) ||
                                                 isConciergeDescriptionOptions(action) ||
                                                 isActionableMentionWhisper(action) ||
-                                                containsActionableFollowUps(action)
+                                                actionContainsFollowUps
                                                     ? 'vertical'
                                                     : 'horizontal'
                                             }
+                                            shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
                                             primaryTextNumberOfLines={isConciergeOptions ? 2 : 1}
                                             textStyles={isConciergeOptions ? styles.textAlignLeft : undefined}
                                         />

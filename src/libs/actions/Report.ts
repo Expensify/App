@@ -535,9 +535,8 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
 
 /**
  * Builds an optimistic report action with resolved followups (followup-list marked as selected).
- * Returns null if the action doesn't have unresolved followups.
  * @param reportAction - The report action to check and potentially resolve
- * @returns The updated report action with resolved followups, or null if no followups to resolve
+ * @returns Null if the action doesn't have unresolved followups or the updated report action with resolved followups.
  */
 function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>): ReportAction | null {
     if (!reportAction) {
@@ -545,10 +544,13 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
     }
 
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
+    if (!message) {
+        return null;
+    }
     const html = message?.html ?? '';
     const followups = ReportActionsUtils.parseFollowupsFromHtml(html);
 
-    if (!message || !followups || followups.length === 0) {
+    if (!followups || followups.length === 0) {
         return null;
     }
 
@@ -642,10 +644,12 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     // Check if the last visible action is from Concierge with unresolved followups
     // If so, optimistically resolve them by adding the updated action to optimisticReportActions
     const lastVisibleAction = getLastVisibleAction(reportID);
-    if (lastVisibleAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+    const lastActorAccountID = lastVisibleAction?.actorAccountID;
+    const lastActionReportActionID = lastVisibleAction?.reportActionID;
+    if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID) {
         const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
         if (resolvedAction) {
-            optimisticReportActions[lastVisibleAction.reportActionID] = resolvedAction;
+            optimisticReportActions[lastActionReportActionID] = resolvedAction;
         }
     }
 
@@ -706,7 +710,6 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText) {
         const lastVisibleActionCreated = lastVisibleAction?.created;
-        const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
             lastMessageText,
             lastVisibleActionCreated,
@@ -803,7 +806,6 @@ function addComment(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-
     addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel);
 }
 
@@ -6537,11 +6539,13 @@ function resolveSuggestedFollowup(
     timezoneParam: Timezone,
     ancestors: Ancestor[] = [],
 ) {
-    if (!report?.reportID || !reportAction?.reportActionID) {
+    const reportID = report?.reportID;
+    const reportActionID = reportAction?.reportActionID;
+
+    if (!reportID || !reportActionID) {
         return;
     }
 
-    const reportID = report.reportID;
     const resolvedAction = buildOptimisticResolvedFollowups(reportAction);
 
     if (!resolvedAction) {
@@ -6550,8 +6554,8 @@ function resolveSuggestedFollowup(
 
     // Optimistically update the HTML to mark followup-list as resolved
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportAction.reportActionID]: resolvedAction,
-    } as Partial<ReportActions>);
+        [reportActionID]: resolvedAction,
+    });
 
     // Post the selected followup question as a comment
     addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup, timezoneParam);
