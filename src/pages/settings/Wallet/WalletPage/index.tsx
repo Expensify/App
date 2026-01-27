@@ -481,14 +481,14 @@ function WalletPage() {
                             />
                         </Section>
 
-                        {hasAssignedCard ? (
-                            <Section
-                                subtitle={translate('walletPage.assignedCardsDescription')}
-                                title={translate('walletPage.assignedCards')}
-                                isCentralPane
-                                subtitleMuted
-                                titleStyles={styles.accountSettingsSectionTitle}
-                            >
+                        <Section
+                            subtitle={translate('walletPage.assignedCardsDescription')}
+                            title={translate('walletPage.assignedCards')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {hasAssignedCard && (
                                 <PaymentMethodList
                                     shouldShowAddBankAccount={false}
                                     shouldShowAssignedCards
@@ -497,18 +497,18 @@ function WalletPage() {
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
-                                <MenuItem
-                                    title={translate('workspace.companyCards.importTransactions.importButton')}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                    wrapperStyle={[
-                                        styles.mt3,
-                                        shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                        shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-                                    ]}
-                                />
-                            </Section>
-                        ) : null}
+                            )}
+                            <MenuItem
+                                title={translate('workspace.companyCards.importTransactions.importButton')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                wrapperStyle={[
+                                    hasAssignedCard ? styles.mt3 : styles.mt5,
+                                    shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
+                                    shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
+                                ]}
+                            />
+                        </Section>
 
                         {hasWallet && (
                             <Section

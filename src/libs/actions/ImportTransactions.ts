@@ -13,6 +13,7 @@ import type {ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadshee
 import type Transaction from '@src/types/onyx/Transaction';
 
 type TransactionFromCSV = {
+    transactionID: string;
     created: string;
     merchant: string;
     amount: number;
@@ -169,6 +170,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
         }
 
         const transaction: TransactionFromCSV = {
+            transactionID: rand64(),
             created: parsedDate,
             merchant: merchantValue ?? '',
             amount: parsedAmount,
@@ -186,25 +188,33 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
 
 /**
  * Creates an optimistic card object for the imported transactions
+ * Returns the card and the cardID as a string (to avoid JS number precision loss with 64-bit integers)
  */
-function buildOptimisticCard(cardDisplayName: string, currency: string): Card {
-    const cardID = Number(rand64());
+function buildOptimisticCard(cardDisplayName: string, currency: string): {card: Card; cardID: string} {
+    // cardIDs are random, positive, 64-bit numeric strings.
+    // Because JS can only handle 53-bit numbers, cardIDs are strings in the front-end (just like transactionID)
+    const cardID = rand64();
     return {
         cardID,
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: cardDisplayName,
-        domainName: '',
-        lastFourPAN: '',
-        availableSpend: 0,
-        scrapeMinDate: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
-        cardholderFirstName: '',
-        cardholderLastName: '',
-        isVirtual: false,
-        issuedAt: DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        nameValuePairs: {
-            cardTitle: cardDisplayName,
+        card: {
+            // Cast to number for the Card type, but the actual value is preserved as string in the API call
+            cardID: cardID as unknown as number,
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            // Use the CSV bank name constant so the card shows up in the Assigned Cards section
+            bank: CONST.PERSONAL_CARD.BANK_NAME.CSV,
+            domainName: '',
+            lastFourPAN: '',
+            availableSpend: 0,
+            scrapeMinDate: '',
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            cardholderFirstName: '',
+            cardholderLastName: '',
+            isVirtual: false,
+            issuedAt: DateUtils.getDBTime(),
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            nameValuePairs: {
+                cardTitle: cardDisplayName,
+            },
         },
     };
 }
@@ -212,25 +222,23 @@ function buildOptimisticCard(cardDisplayName: string, currency: string): Card {
 /**
  * Creates optimistic transaction objects from the CSV data
  */
-function buildOptimisticTransactions(transactionList: TransactionFromCSV[], cardID: number, currency: string, isReimbursable: boolean): Transaction[] {
-    return transactionList.map((csvTransaction) => {
-        const transactionID = rand64();
-        return {
-            transactionID,
-            cardID,
-            created: csvTransaction.created,
-            merchant: csvTransaction.merchant,
-            amount: csvTransaction.amount,
-            currency,
-            category: csvTransaction.category ?? '',
-            reimbursable: isReimbursable,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            comment: {
-                comment: '',
-            },
-            reportID: '0',
-        } as Transaction;
-    });
+function buildOptimisticTransactions(transactionList: TransactionFromCSV[], cardID: string, currency: string, isReimbursable: boolean): Transaction[] {
+    return transactionList.map((csvTransaction) => ({
+        transactionID: csvTransaction.transactionID,
+        // Cast to number for the Transaction type, but the actual value is preserved as string in the API call
+        cardID: cardID as unknown as number,
+        created: csvTransaction.created,
+        merchant: csvTransaction.merchant,
+        amount: csvTransaction.amount,
+        currency,
+        category: csvTransaction.category ?? '',
+        reimbursable: isReimbursable,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        comment: {
+            comment: '',
+        },
+        reportID: '0',
+    } as Transaction));
 }
 
 /**
@@ -256,8 +264,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
     }
 
     // Create optimistic card
-    const optimisticCard = buildOptimisticCard(cardDisplayName, currency);
-    const cardID = optimisticCard.cardID;
+    const {card: optimisticCard, cardID} = buildOptimisticCard(cardDisplayName, currency);
 
     // Create optimistic transactions
     const optimisticTransactions = buildOptimisticTransactions(transactionList, cardID, currency, isReimbursable);
@@ -269,7 +276,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
 
     const params: ImportCSVTransactionsParams = {
         transactionList: JSON.stringify(transactionList),
-        cardID: 0, // 0 for new card
+        cardID,
         cardName: cardDisplayName,
         currency,
         reimbursable: isReimbursable,

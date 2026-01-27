@@ -211,10 +211,12 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+                    // For CSV import cards, use the cardTitle from nameValuePairs; otherwise use masked card number
+                    const cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl,
-                        title: maskCardNumber(card.cardName, card.bank),
+                        title: cardTitle,
                         description: isCSVImportCard
                             ? translate('cardPage.csvCardDescription')
                             : lastFourPAN

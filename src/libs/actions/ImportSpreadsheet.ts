@@ -68,7 +68,14 @@ function setContainsHeader(containsHeader: boolean): Promise<void> {
 }
 
 function closeImportPage(): Promise<void> {
-    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {data: null, columns: null, shouldFinalModalBeOpened: false, importFinalModal: null});
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
+        data: null,
+        columns: null,
+        shouldFinalModalBeOpened: false,
+        importFinalModal: null,
+        // Clear the import settings so the next import starts fresh
+        importTransactionSettings: null,
+    });
 }
 
 export {setSpreadsheetData, setColumnName, closeImportPage, setContainsHeader};
