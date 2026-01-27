@@ -18,7 +18,7 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
-import {localeCompare} from '../../utils/TestHelper';
+import {localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -325,7 +325,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
         });
@@ -344,7 +355,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
         });
@@ -368,7 +390,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, policies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
         });
@@ -395,7 +428,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toContain('limit:25');
         });
@@ -407,7 +451,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).not.toContain('limit:');
         });
@@ -419,7 +474,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toContain('limit:50');
             expect(result).toContain('group-by:category');
@@ -792,6 +858,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('+15551234567');
@@ -816,6 +883,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('Jane Doe');
@@ -839,6 +907,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -856,6 +925,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('88888');
@@ -879,6 +949,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('Custom Name');
@@ -894,7 +965,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, '66666', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
+            const result = getFilterDisplayValue(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                '66666',
+                personalDetails,
+                mockReports,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
 
             expect(result).toBe('+15551112222');
             expect(result).not.toContain('@expensify.sms');
@@ -917,7 +998,7 @@ describe('SearchQueryUtils', () => {
             ];
 
             for (const filterKey of filterKeys) {
-                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
+                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID, translateLocal);
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');
