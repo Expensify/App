@@ -39,6 +39,13 @@ type SectionType = {
     items: Array<SectionItemType | undefined>;
 };
 
+const getBooleanTitle = (value: string | undefined, translate: LocalizedTranslate): string => {
+    if (!value) {
+        return '';
+    }
+    return translate(value === 'true' ? 'common.yes' : 'common.no');
+};
+
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
     const merchantToMatchField = CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH;
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== merchantToMatchField && !!value);
@@ -145,13 +152,13 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                     },
                     {
                         descriptionTranslationKey: 'common.reimbursable',
-                        title: form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : '',
+                        title: getBooleanTitle(form?.reimbursable, translate),
                         onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID)),
                     },
                     isBillableEnabled
                         ? {
                               descriptionTranslationKey: 'common.billable',
-                              title: form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : '',
+                              title: getBooleanTitle(form?.billable, translate),
                               onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID)),
                           }
                         : undefined,
