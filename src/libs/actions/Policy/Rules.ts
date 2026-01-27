@@ -6,7 +6,6 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import type {OnyxData} from '@src/Onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type {CodingRule} from '@src/types/onyx/Policy';
@@ -55,57 +54,57 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         created: new Date().toISOString(),
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        codingRules: {
-                            [tempRuleID]: optimisticRule,
-                        },
-                    },
-                    pendingFields: {
-                        codingRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rules: {
+                    codingRules: {
+                        [tempRuleID]: optimisticRule,
                     },
                 },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    pendingFields: {
-                        codingRules: null,
-                    },
-                    errorFields: {
-                        codingRules: null,
-                    },
+                pendingFields: {
+                    codingRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        codingRules: {
-                            [tempRuleID]: null,
-                        },
-                    },
-                    pendingFields: {
-                        codingRules: null,
-                    },
-                    errorFields: {
-                        codingRules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    codingRules: null,
+                },
+                errorFields: {
+                    codingRules: null,
                 },
             },
-        ],
-    };
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rules: {
+                    codingRules: {
+                        [tempRuleID]: null,
+                    },
+                },
+                pendingFields: {
+                    codingRules: null,
+                },
+                errorFields: {
+                    codingRules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
 
     const parameters: SetPolicyMerchantRuleParams = {
         policyID,
@@ -119,7 +118,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         billable: form.billable === 'true' ? true : form.billable === 'false' ? false : undefined,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_MERCHANT_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_MERCHANT_RULE, parameters, {optimisticData, successData, failureData});
 }
 
 export {openPolicyRulesPage, setPolicyMerchantRule};
