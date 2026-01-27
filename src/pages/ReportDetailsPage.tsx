@@ -999,8 +999,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToTargetUrl();
-        deleteTransaction();
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            navigateToTargetUrl();
+            deleteTransaction();
+        });
     }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
