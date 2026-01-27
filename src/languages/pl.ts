@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -1482,6 +1484,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'oznaczył wydatek jako „podlegający zwrotowi”' : 'oznaczył wydatek jako „niepodlegający zwrotowi”';
+                }
+                if (key === 'billable') {
+                    return value ? 'oznaczył wydatek jako „refakturowalny”' : 'oznaczył wydatek jako „niepodlegający refakturowaniu”';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `ustaw stawkę podatku na „${taxRateName}”`;
+                    }
+                    return `stawka podatku na „${taxRateName}”`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `ustaw ${translations.common[key].toLowerCase()} na „${updatedValue}”`;
+                }
+                return `${translations.common[key].toLowerCase()} na „${updatedValue}”`;
+            });
+            return `${formatList(fragments)} przez <a href="${policyRulesRoute}">zasady przestrzeni roboczej</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4879,10 +4907,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
             error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
+                workspaceFeedsCouldNotBeLoadedTitle: 'Nie można załadować kanałów kart',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',
-                feedCouldNotBeLoadedTitle: 'Nie można było wczytać tego kanału',
-                feedCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania tego kanału. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
+                feedCouldNotBeLoadedTitle: 'Nie udało się wczytać tego kanału',
+                feedCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania tego kanału. Spróbuj ponownie lub skontaktuj się z administratorem.',
                 tryAgain: 'Spróbuj ponownie',
             },
         },
