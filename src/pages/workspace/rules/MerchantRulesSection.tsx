@@ -90,7 +90,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             .map(([ruleID, rule]) => ({ruleID, ...rule}))
             .sort((a, b) => {
                 if (a.created && b.created) {
-                    return new Date(b.created).getTime() - new Date(a.created).getTime();
+                    return a.created < b.created ? 1 : -1;
                 }
                 return 0;
             });
