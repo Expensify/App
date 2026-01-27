@@ -796,7 +796,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Gehe zurück zum ursprünglichen Gerät und fordere einen neuen Code an',
         successfulNewCodeRequest: 'Code angefordert. Bitte überprüfe dein Gerät.',
         tfaRequiredTitle: dedent(`
-            Zwei-Faktor-Authentifizierung  
+            Zwei-Faktor-Authentifizierung
             erforderlich
         `),
         tfaRequiredDescription: dedent(`
@@ -6991,6 +6991,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Stichwort',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
             },
             feed: 'Feed',

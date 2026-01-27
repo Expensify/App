@@ -796,7 +796,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori  
+            Autenticazione a due fattori
             richiesta
         `),
         tfaRequiredDescription: dedent(`
@@ -6980,6 +6980,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
             },
             feed: 'Feed',

@@ -6962,6 +6962,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Label',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
             },
             feed: 'Feed',

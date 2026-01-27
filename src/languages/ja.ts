@@ -6916,10 +6916,11 @@ ${reportName}
             reimbursable: '精算対象',
             purchaseCurrency: '購入通貨',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
+                [CONST.SEARCH.GROUP_BY.FROM]: '送信者',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
             feed: 'フィード',

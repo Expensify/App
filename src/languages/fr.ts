@@ -799,7 +799,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Retournez sur l’appareil d’origine et demandez un nouveau code',
         successfulNewCodeRequest: 'Code demandé. Veuillez vérifier votre appareil.',
         tfaRequiredTitle: dedent(`
-            Authentification à deux facteurs  
+            Authentification à deux facteurs
             requise
         `),
         tfaRequiredDescription: dedent(`
@@ -4700,7 +4700,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Quel est l’ID du script ?',
-                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous : 
+                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous :
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Cliquez sur un segment personnalisé.
@@ -7002,6 +7002,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             },
             feed: 'Flux',
