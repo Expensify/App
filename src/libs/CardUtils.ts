@@ -563,7 +563,7 @@ function getCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number 
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
 
-function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber | undefined; domainID: number | undefined} | undefined {
+function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber; domainID: number | undefined} | undefined {
     if (!feedName) {
         return;
     }
@@ -860,17 +860,12 @@ function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExcl
 
 /** Extract feed from feed with domainID */
 function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CompanyCardFeedWithNumber {
-    const fallbackFeed = '' as CompanyCardFeedWithNumber;
     if (!feedWithDomainID) {
-        return fallbackFeed;
+        return '' as CompanyCardFeedWithNumber;
     }
 
-    const splitFeedName = splitCardFeedWithDomainID(feedWithDomainID);
-    if (!splitFeedName?.feedName) {
-        return fallbackFeed;
-    }
-
-    return (splitFeedName.feedName as CompanyCardFeedWithNumber) ?? fallbackFeed;
+    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+    return feed as CompanyCardFeedWithNumber;
 }
 
 /**

@@ -7,6 +7,8 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
+    filterAllInactiveCards,
+    filterCardsByNonExpensify,
     filterInactiveCards,
     flattenWorkspaceCardsList,
     formatCardExpiration,
@@ -1325,6 +1327,41 @@ describe('CardUtils', () => {
             expect(splitFeedName.feedName).toBe('vcf');
             expect(splitFeedName.domainID).toBe(11111111);
         });
+
+        it('should return undefined for a feed name without separator', () => {
+            const result = splitCardFeedWithDomainID('vcf');
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined for undefined input', () => {
+            const result = splitCardFeedWithDomainID(undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when domainID is not a number', () => {
+            const result = splitCardFeedWithDomainID('vcf#abc' as CardFeedWithDomainID);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when there are multiple separators', () => {
+            const result = splitCardFeedWithDomainID('vcf#123#456' as CardFeedWithDomainID);
+            expect(result).toBeUndefined();
+        });
+
+        it('should handle direct feed with domain ID', () => {
+            const result = splitCardFeedWithDomainID(`${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222` as CardFeedWithDomainID);
+            expect(result).toEqual({feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, domainID: 22222222});
+        });
+
+        it('should handle custom feed with number and domain ID', () => {
+            const result = splitCardFeedWithDomainID('vcf1#99999' as CardFeedWithDomainID);
+            expect(result).toEqual({feedName: 'vcf1', domainID: 99999});
+        });
+
+        it('should handle plaid feed with domain ID', () => {
+            const result = splitCardFeedWithDomainID('plaid.ins_129663#12345' as CardFeedWithDomainID);
+            expect(result).toEqual({feedName: 'plaid.ins_129663', domainID: 12345});
+        });
     });
 
     describe('getPlaidInstitutionId', () => {
@@ -1390,6 +1427,202 @@ describe('CardUtils', () => {
             const result = splitMaskedCardNumber('XXXX5678');
             expect(result.firstDigits).toBe('');
             expect(result.lastDigits).toBe('5678');
+        });
+    });
+
+    describe('filterCardsByNonExpensify', () => {
+        it('should filter out cards with Expensify bank key in their key', () => {
+            const cards: CardList = {
+                [`${CONST.EXPENSIFY_CARD.BANK}_card1`]: {
+                    cardID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: 'Expensify Card',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                visa_card2: {
+                    cardID: 2,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Visa Card',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '5678',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                chase_card3: {
+                    cardID: 3,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                    cardName: 'Chase Card',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '9012',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            } as unknown as CardList;
+
+            const result = filterCardsByNonExpensify(cards);
+            const keys = Object.keys(result);
+            expect(keys).toHaveLength(2);
+            expect(keys).toContain('visa_card2');
+            expect(keys).toContain('chase_card3');
+            expect(keys).not.toContain(`${CONST.EXPENSIFY_CARD.BANK}_card1`);
+        });
+
+        it('should return empty object when all cards are Expensify cards', () => {
+            const cards: CardList = {
+                [`${CONST.EXPENSIFY_CARD.BANK}_1`]: {
+                    cardID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: 'Expensify Card 1',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            } as unknown as CardList;
+
+            const result = filterCardsByNonExpensify(cards);
+            expect(Object.keys(result)).toHaveLength(0);
+        });
+
+        it('should return empty object when undefined is passed', () => {
+            const result = filterCardsByNonExpensify(undefined);
+            expect(result).toEqual({});
+        });
+
+        it('should return all cards when none are Expensify cards', () => {
+            const cards: CardList = {
+                visa_1: {
+                    cardID: 1,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Visa',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                chase_2: {
+                    cardID: 2,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                    cardName: 'Chase',
+                    domainName: 'test.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            } as unknown as CardList;
+
+            const result = filterCardsByNonExpensify(cards);
+            expect(Object.keys(result)).toHaveLength(2);
+        });
+    });
+
+    describe('filterAllInactiveCards', () => {
+        it('should filter out closed, deactivated and suspended cards', () => {
+            const cards: CardList = {
+                '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN, bank: 'vcf', cardName: 'a', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '2': {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED, bank: 'vcf', cardName: 'b', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '3': {
+                    cardID: 3,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'c',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+                '4': {
+                    cardID: 4,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                    bank: 'vcf',
+                    cardName: 'd',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+                '5': {
+                    cardID: 5,
+                    state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'e',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+            } as unknown as CardList;
+
+            const result = filterAllInactiveCards(cards);
+            const ids = Object.values(result).map((c) => c.cardID);
+            expect(ids).toContain(1);
+            expect(ids).toContain(5);
+            expect(ids).not.toContain(2);
+            expect(ids).not.toContain(3);
+            expect(ids).not.toContain(4);
+        });
+
+        it('should return empty object when undefined is passed', () => {
+            const result = filterAllInactiveCards(undefined);
+            expect(result).toEqual({});
+        });
+
+        it('should return all cards when none are inactive', () => {
+            const cards: CardList = {
+                '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN, bank: 'vcf', cardName: 'a', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '2': {
+                    cardID: 2,
+                    state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'b',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+            } as unknown as CardList;
+
+            const result = filterAllInactiveCards(cards);
+            expect(Object.keys(result)).toHaveLength(2);
+        });
+
+        it('should return empty object when all cards are inactive', () => {
+            const cards: CardList = {
+                '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.CLOSED, bank: 'vcf', cardName: 'a', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '2': {
+                    cardID: 2,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'b',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+            } as unknown as CardList;
+
+            const result = filterAllInactiveCards(cards);
+            expect(Object.keys(result)).toHaveLength(0);
         });
     });
 
