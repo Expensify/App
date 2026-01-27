@@ -1,13 +1,13 @@
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 import TextBase from './TextBase';
 
 type RuleTextBaseProps<TFormID extends OnyxFormKey> = {

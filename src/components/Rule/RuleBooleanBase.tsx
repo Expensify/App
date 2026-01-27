@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -13,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 
 type BooleanFilterItem = ListItem & {
     value: ValueOf<typeof CONST.SEARCH.BOOLEAN>;
