@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Wachtwoord',
         magicCode: 'Magische code',
+        digits: 'cijfers',
         twoFactorCode: 'Tweeledige code',
         workspaces: 'Werkruimtes',
         inbox: 'Inbox',
@@ -635,6 +636,8 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
         insights: 'Inzichten',
+        duplicateExpense: 'Dubbele uitgave',
+        newFeature: 'Nieuwe functie',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1196,7 +1199,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Weet je zeker dat je deze uitgaven wilt verwijderen?',
         }),
         deleteReport: 'Rapport verwijderen',
-        deleteReportConfirmation: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+        deleteReportConfirmation: 'Weet je zeker dat je dit rapport wilt verwijderen?',
         settledExpensify: 'Betaald',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
@@ -1472,6 +1475,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / uur`,
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
+        correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
     },
     transactionMerge: {
         listPage: {
@@ -2383,9 +2387,30 @@ ${amount} voor ${merchant} - ${date}`,
             comment: (value: string) => `Beschrijving wijzigen in "${value}"`,
             merchant: (value: string) => `Handelaar bijwerken naar "${value}"`,
             reimbursable: (value: boolean) => `Uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`,
-            report: (value: string) => `Een rapport met de naam "${value}" toevoegen`,
+            report: (value: string) => `Toevoegen aan een rapport met de naam "${value}"`,
             tag: (value: string) => `Tag bijwerken naar "${value}"`,
             tax: (value: string) => `Belastingtarief bijwerken naar ${value}`,
+        },
+        newRule: 'Nieuwe regel',
+        addRule: {
+            title: 'Regel toevoegen',
+            expenseContains: 'Als de uitgave bevat:',
+            applyUpdates: 'Breng vervolgens deze updates aan:',
+            merchantHint: 'Typ * om een regel te maken die voor alle leveranciers geldt',
+            addToReport: 'Toevoegen aan een rapport met de naam',
+            createReport: 'Maak rapport indien nodig',
+            applyToExistingExpenses: 'Toepassen op bestaande overeenkomende onkosten',
+            confirmError: 'Voer een leverancier in en pas ten minste één wijziging toe',
+            confirmErrorMerchant: 'Voer handelaar in',
+            confirmErrorUpdate: 'Breng ten minste één wijziging aan alstublieft',
+            saveRule: 'Regel opslaan',
+        },
+        editRule: {title: 'Regel bewerken'},
+        deleteRule: {
+            deleteSingle: 'Regel verwijderen',
+            deleteMultiple: 'Regels verwijderen',
+            deleteSinglePrompt: 'Weet je zeker dat je deze regel wilt verwijderen?',
+            deleteMultiplePrompt: 'Weet je zeker dat je deze regels wilt verwijderen?',
         },
     },
     preferencesPage: {
@@ -4848,6 +4873,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             assign: 'Toewijzen',
             assignCardFailedError: 'Toewijzing van kaart mislukt.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Kaartontkoppeling mislukt.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uw Expensify Cards uitgeven en beheren',
@@ -5086,8 +5112,6 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd. Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.`,
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Startdatum transactie',
-                changeTransactionStartDateWarning:
-                    'Als u de startdatum wijzigt, worden alle niet-gerapporteerde/conceptrapporttransacties verwijderd en worden alle transacties vanaf de nieuwe startdatum opnieuw geïmporteerd. Dit kan dubbele transacties veroorzaken.',
                 updateCard: 'Kaart bijwerken',
                 unassignCard: 'Kaart ontkoppelen',
                 unassign: 'Toewijzen verwijderen',
@@ -5187,6 +5211,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Regels',
                 subtitle: 'Vereis bonnetjes, markeer hoge uitgaven en meer.',
             },
+            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -5494,7 +5519,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 giveItNameInstruction: 'Maak het uniek genoeg om het te onderscheiden van andere kaarten. Specifieke use-cases zijn zelfs nog beter!',
                 cardName: 'Kaartnaam',
                 letsDoubleCheck: 'Laten we nog eens controleren of alles er goed uitziet.',
-                willBeReady: 'Deze kaart is direct klaar voor gebruik.',
+                willBeReadyToUse: 'Deze kaart is direct klaar voor gebruik.',
+                willBeReadyToShip: 'Deze kaart is direct klaar om te worden verzonden.',
                 cardholder: 'Kaarthouder',
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
@@ -6151,6 +6177,11 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     `<muted-text>Stel uitgavenlimieten en standaardwaarden in voor afzonderlijke uitgaven. Je kunt ook regels maken voor <a href="${categoriesPageLink}">categorieën</a> en <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Vereist bedrag voor bon',
                 receiptRequiredAmountDescription: 'Bonnen verplicht stellen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Bedrag kan niet hoger zijn dan het bedrag dat vereist is voor gespecificeerde bonnen (${amount})`,
+                itemizedReceiptRequiredAmount: 'Gespecificeerde bon vereist bedrag',
+                itemizedReceiptRequiredAmountDescription:
+                    'Vereis gespecificeerde bonnen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Bedrag kan niet lager zijn dan het bedrag dat vereist is voor reguliere bonnen (${amount})`,
                 maxExpenseAmount: 'Maximumbedrag uitgave',
                 maxExpenseAmountDescription: 'Markeer uitgaven die dit bedrag overschrijden, tenzij dit wordt overschreven door een categorielimiet.',
                 maxAge: 'Max. leeftijd',
@@ -6243,6 +6274,12 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     never: 'Nooit bonnetjes vereisen',
                     always: 'Altijd bonnetjes vereisen',
                 },
+                requireItemizedReceiptsOver: 'Vereis gespecificeerde bonnen boven',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standaard`,
+                    never: 'Nooit gespecificeerde bonnen vereisen',
+                    always: 'Altijd gespecificeerde bonnen vereisen',
+                },
                 defaultTaxRate: 'Standaardbelastingtarief',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `Ga naar [Meer functies](${moreFeaturesLink}) en schakel workflows in, voeg vervolgens goedkeuringen toe om deze functie te ontgrendelen.`,
@@ -6250,6 +6287,16 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             customRules: {
                 title: 'Onkostennota-beleid',
                 cardSubtitle: 'Hier staat het onkostebeleid van je team, zodat iedereen goed weet wat wel en niet wordt vergoed.',
+            },
+            merchantRules: {
+                title: 'Handelaar',
+                subtitle: 'Stel de merchantregels zo in dat onkosten met de juiste codering binnenkomen en er minder nabewerking nodig is.',
+                addRule: 'Merchantregel toevoegen',
+                ruleSummaryTitle: (merchantName: string) => `Als handelaar "${merchantName}" bevat`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Naam handelaar wijzigen in "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Werk ${fieldName} bij naar "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als  "${reimbursable ? 'Vergoedbaar' : 'niet-vergoedbaar'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Markeren als "${billable ? 'factureerbaar' : 'niet-factureerbaar'}"`,
             },
         },
         planTypePage: {
@@ -6394,6 +6441,12 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 return `heeft de categorie "${categoryName}" bijgewerkt door Bonnetjes te wijzigen in ${newValue}`;
             }
             return `heeft de categorie "${categoryName}" gewijzigd naar ${newValue} (voorheen ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `heeft de categorie "${categoryName}" bijgewerkt door Gedetailleerde bonnen te wijzigen naar ${newValue}`;
+            }
+            return `heeft de Gedetailleerde bonnen van categorie "${categoryName}" gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `de categorie "${oldName}" hernoemd naar "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6778,6 +6831,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
         searchName: 'Naam zoeken',
         savedSearchesMenuItemTitle: 'Opgeslagen',
+        topCategories: 'Topcategorieën',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
             approve: 'Goedkeuren',
@@ -6804,6 +6858,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             status: 'Status',
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
+            limit: 'Limiet',
             currency: 'Valuta',
             completed: 'Voltooid',
             amount: {
@@ -6837,6 +6892,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7274,6 +7330,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             }
             return 'Bon vereist';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Gespecificeerde bon vereist${formattedLimit ? ` boven ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Verboden uitgave:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7807,6 +7864,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedgekeurd moeten worden</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur dit bonnetje om\n<strong>de proefrit te voltooien!</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
@@ -7966,7 +8024,6 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
                 `<comment><muted-text-label>Indien ingeschakeld, betaalt de primaire contactpersoon voor alle werkruimten die eigendom zijn van leden van <strong>${domainName}</strong> en ontvangt hij/zij alle factuurbewijzen.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Geconsolideerde domeinfacturering kon niet worden gewijzigd. Probeer het later opnieuw.',
             addAdmin: 'Beheerder toevoegen',
-            invite: 'Uitnodigen',
             addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
             revokeAdminAccess: 'Beheerdersrechten intrekken',
             cantRevokeAdminAccess: 'Kan de beheerdersrechten niet intrekken van de technische contactpersoon',
@@ -7980,11 +8037,16 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             enterDomainName: 'Voer hier uw domeinnaam in',
             resetDomainInfo: `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <ul><li>Bedrijfskaartverbindingen en niet-ingediende uitgaven van die kaarten</li> <li>SAML- en groepsinstellingen</li> </ul> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/>Opmerking: je kunt dit domein uit je domeinenlijst verwijderen door het gekoppelde e-mailadres uit je <a href="#">contactmethoden</a> te verwijderen.`,
         },
-        members: {title: 'Leden', findMember: 'Lid zoeken'},
+        members: {
+            title: 'Leden',
+            findMember: 'Lid zoeken',
+            addMember: 'Lid toevoegen',
+            email: 'E-mailadres',
+            errors: {addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.'},
+        },
         domainAdmins: 'Domeinbeheerders',
     },
     gps: {
-        tooltip: 'GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.',
         disclaimer: 'Gebruik GPS om een uitgave van je reis te maken. Tik hieronder op Start om het volgen te beginnen.',
         error: {failedToStart: 'Locatiebijhouding starten is mislukt.', failedToGetPermissions: 'Verkrijgen van vereiste locatierechten mislukt.'},
         trackingDistance: 'Afstand bijhouden...',
@@ -8016,6 +8078,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
         notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
+        signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',
             confirm: 'Instellingen openen',

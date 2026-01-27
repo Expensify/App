@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
@@ -21,9 +22,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
@@ -88,7 +88,6 @@ function IOURequestStepAmount({
     const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
@@ -101,6 +100,7 @@ function IOURequestStepAmount({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
@@ -215,7 +215,9 @@ function IOURequestStepAmount({
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, reportAttributesDerived);
+                return participantAccountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, privateIsArchived, policy, currentUserAccountIDParam, personalDetails, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
@@ -251,7 +253,7 @@ function IOURequestStepAmount({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                        allBetas,
+                        isSelfTourViewed,
                     });
                     return;
                 }
@@ -276,7 +278,6 @@ function IOURequestStepAmount({
                         introSelected,
                         activePolicyID,
                         quickAction,
-                        allBetas,
                     });
                     return;
                 }
@@ -293,12 +294,7 @@ function IOURequestStepAmount({
 
         // Starting from global + menu means no participant context exists yet,
         // so we need to handle participant selection based on available workspace settings
-        if (
-            iouType === CONST.IOU.TYPE.CREATE &&
-            isPaidGroupPolicy(defaultExpensePolicy) &&
-            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-            !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
-        ) {
+        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
