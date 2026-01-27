@@ -77,6 +77,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
+import SearchChartView from './SearchChartView';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
@@ -204,7 +205,7 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -1142,6 +1143,26 @@ function Search({
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
+
+    const shouldShowChartView = view !== CONST.SEARCH.VIEW.TABLE && !!validGroupBy;
+
+    if (shouldShowChartView) {
+        return (
+            <SearchScopeProvider>
+                <Animated.View style={[styles.flex1, animatedStyle, styles.p4]}>
+                    <SearchChartView
+                        queryJSON={queryJSON}
+                        view={view}
+                        groupBy={validGroupBy}
+                        data={sortedData as TransactionGroupListItemType[]}
+                        handleSearch={handleSearch}
+                        searchKey={searchKey}
+                        isLoading={shouldShowLoadingState}
+                    />
+                </Animated.View>
+            </SearchScopeProvider>
+        );
+    }
 
     return (
         <SearchScopeProvider>
