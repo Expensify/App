@@ -24,7 +24,6 @@ function PopoverWithoutOverlay({
     onClose,
     onModalHide = () => {},
     children,
-    ref,
     shouldDisplayBelowModals = false,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
@@ -71,7 +70,7 @@ function PopoverWithoutOverlay({
             removeOnClose();
         };
         // We want this effect to run strictly ONLY when isVisible prop changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
     const modalPaddingStyles = useMemo(
@@ -105,7 +104,6 @@ function PopoverWithoutOverlay({
                     ...modalContainerStyle,
                     ...modalPaddingStyles,
                 }}
-                ref={ref}
             >
                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>

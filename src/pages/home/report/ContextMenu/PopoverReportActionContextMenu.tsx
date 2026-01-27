@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 /* eslint-disable no-restricted-imports */
@@ -86,6 +85,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -324,6 +324,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         canBeMissing: true,
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {currentSearchHash} = useSearchContext();
     const {deleteTransactions} = useDeleteTransactions({
         report,
@@ -336,7 +337,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
-    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
@@ -361,12 +362,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isSingleTransactionView: undefined,
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
+                    allTransactionViolationsParam: allTransactionViolations,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', reportTransactions, violations);
+            deleteAppReport(reportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -388,8 +390,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         currentSearchHash,
         email,
         reportTransactions,
-        violations,
         isOriginalReportArchived,
+        allTransactionViolations,
+        bankAccountList,
     ]);
 
     const hideDeleteModal = () => {

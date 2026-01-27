@@ -134,7 +134,7 @@ function AddressForm({
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
                     if (isRequiredFulfilled(values.zipPostCode?.trim())) {
-                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
+                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', countryZipFormat);
                     } else {
                         errors.zipPostCode = translate('common.error.fieldRequired');
                     }
