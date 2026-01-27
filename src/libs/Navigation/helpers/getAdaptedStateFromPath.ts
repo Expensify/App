@@ -12,6 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {getSearchParamFromPath} from '@src/libs/Url';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
@@ -92,11 +93,9 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         const copiedParams = paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : {};
         let queryParam: Record<string, string> = {};
         if (route.path) {
-            const decodedPath = decodeURIComponent(route.path);
-            // Extract the "q" query parameter (matches ?q=... or &q=...)
-            const searchMatch = decodedPath.match(/[?&]q=([^&/]+)/);
-            if (searchMatch?.[1]) {
-                queryParam = {q: decodeURIComponent(searchMatch[1])};
+            const query = getSearchParamFromPath(route.path, 'q');
+            if (query) {
+                queryParam = {q: query};
             }
         }
 
