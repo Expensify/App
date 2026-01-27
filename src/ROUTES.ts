@@ -2670,6 +2670,42 @@ const ROUTES = {
         route: 'workspaces/:policyID/overview/policy',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/policy` as const,
     },
+    RULES_MERCHANT_NEW: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
+    },
+    RULES_MERCHANT_MERCHANT_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/merchant-to-match',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/merchant-to-match` as const,
+    },
+    RULES_MERCHANT_MERCHANT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/merchant',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/merchant` as const,
+    },
+    RULES_MERCHANT_CATEGORY: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/category',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/category` as const,
+    },
+    RULES_MERCHANT_TAG: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/tag',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/tag` as const,
+    },
+    RULES_MERCHANT_TAX: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/tax',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/tax` as const,
+    },
+    RULES_MERCHANT_DESCRIPTION: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/description',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/description` as const,
+    },
+    RULES_MERCHANT_REIMBURSABLE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/reimbursable` as const,
+    },
+    RULES_MERCHANT_BILLABLE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/billable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/billable` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',
@@ -3744,6 +3780,8 @@ const ROUTES = {
     },
 
     MULTIFACTOR_AUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',
+
+    MULTIFACTOR_AUTHENTICATION_REVOKE: 'multifactor-authentication/revoke',
 } as const;
 
 /**

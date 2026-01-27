@@ -639,6 +639,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analyses',
         duplicateExpense: 'Note de frais en double',
         newFeature: 'Nouvelle fonctionnalité',
+        month: 'Mois',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -761,6 +762,18 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: 'Activez une vérification rapide et sécurisée avec votre visage ou votre empreinte digitale. Aucun mot de passe ou code requis.',
+        },
+        revoke: {
+            revoke: 'Révoquer',
+            title: 'Reconnaissance faciale/empreinte digitale et passkeys',
+            explanation:
+                'La vérification par reconnaissance faciale/empreinte digitale ou passkey est activée sur un ou plusieurs appareils. Révoquer l’accès nécessitera un code magique pour la prochaine vérification sur n’importe quel appareil',
+            confirmationPrompt: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil',
+            cta: 'Révoquer l’accès',
+            noDevices:
+                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale, empreinte digitale ou Passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
+            dismiss: 'Compris',
+            error: 'La demande a échoué. Veuillez réessayer plus tard.',
         },
     },
     validateCodeModal: {
@@ -885,6 +898,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Voulez-vous vraiment supprimer ce(tte) ${type} ?`;
         },
         onlyVisible: 'Visible uniquement pour',
+        explain: 'Expliquer',
+        explainMessage: "Veuillez m'expliquer cela.",
         replyInThread: 'Répondre dans le fil',
         joinThread: 'Rejoindre la discussion',
         leaveThread: 'Quitter la discussion',
@@ -1069,6 +1084,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il manque un commerçant, une date ou un montant.',
+        addAReceipt: {
+            phrase1: 'Ajouter un reçu',
+            phrase2: 'ou faites-le glisser et déposez-le ici',
+        },
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -1483,6 +1502,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le tarif.',
         },
         correctDistanceRateError: 'Corrigez l’erreur de taux de distance et réessayez.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2389,16 +2409,24 @@ ${amount} pour ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Règles de dépenses',
         subtitle: 'Ces règles s’appliqueront à vos notes de frais. Si vous soumettez à un espace de travail, alors les règles de l’espace de travail peuvent les remplacer.',
+        findRule: 'Trouver règle',
         emptyRules: {title: 'Vous n’avez créé aucune règle', subtitle: 'Ajouter une règle pour automatiser la préparation des notes de frais.'},
         changes: {
-            billable: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
-            category: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
-            comment: (value: string) => `Modifier la description en « ${value} »`,
-            merchant: (value: string) => `Mettre à jour le marchand en « ${value} »`,
-            reimbursable: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
-            report: (value: string) => `Ajouter à un rapport nommé « ${value} »`,
-            tag: (value: string) => `Mettre à jour le tag sur « ${value} »`,
-            tax: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+            billableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            categoryUpdate: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
+            commentUpdate: (value: string) => `Modifier la description en « ${value} »`,
+            merchantUpdate: (value: string) => `Mettre à jour le marchand en « ${value} »`,
+            reimbursableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tagUpdate: (value: string) => `Mettre à jour le tag sur « ${value} »`,
+            taxUpdate: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+            billable: (value: boolean) => `à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            category: (value: string) => `à jour la catégorie en « ${value} »`,
+            comment: (value: string) => `la description en « ${value} »`,
+            merchant: (value: string) => `à jour le marchand en « ${value} »`,
+            reimbursable: (value: boolean) => `à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tag: (value: string) => `à jour le tag sur « ${value} »`,
+            tax: (value: string) => `à jour le taux de taxe à ${value}`,
+            report: (value: string) => `ajouter à un rapport nommé « ${value} »`,
         },
         newRule: 'Nouvelle règle',
         addRule: {
@@ -2620,15 +2648,15 @@ ${amount} pour ${merchant} - ${date}`,
 
                         Voici comment faire :
 
-                        1. Allez dans *Espaces de travail*.
+                        1. Accédez à *Workspaces*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *Plus de fonctionnalités*.
+                        3. Cliquez sur *More features*.
                         4. Activez *Workflows*.
-                        5. Accédez à *Workflows* dans l’éditeur de l’espace de travail.
-                        6. Activez *Ajouter des validations*.
+                        5. Allez à *Workflows* dans l’éditeur d’espace de travail.
+                        6. Activez *Approvals*.
                         7. Vous serez défini comme valideur des dépenses. Vous pourrez changer cela pour n’importe quel administrateur une fois que vous aurez invité votre équipe.
 
-                        [Accéder aux fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).`),
+                        [Faites-moi découvrir plus de fonctionnalités](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créer](${workspaceConfirmationLink}) un espace de travail`,
@@ -6337,6 +6365,14 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} sur « ${fieldValue} »`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme « ${reimbursable ? 'remboursable' : 'non remboursable'} »`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Marquer comme « ${billable ? 'facturable' : 'non facturable'} »`,
+                addRuleTitle: 'Ajouter une règle',
+                expensesWith: 'Pour les dépenses avec :',
+                applyUpdates: 'Appliquer ces mises à jour :',
+                merchantHint: 'Faire correspondre un nom de commerçant avec une correspondance « contient » insensible à la casse',
+                saveRule: 'Enregistrer la règle',
+                confirmError: 'Saisissez un marchand et appliquez au moins une mise à jour',
+                confirmErrorMerchant: 'Veuillez saisir le commerçant',
+                confirmErrorUpdate: 'Veuillez appliquer au moins une mise à jour',
             },
         },
         planTypePage: {
@@ -6736,6 +6772,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `définir l’ancienneté maximale des dépenses à « ${newValue} » jours`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense modifié à « ${newValue} » jours (auparavant « ${oldValue} »)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense supprimé (auparavant « ${oldValue} » jours)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Activé' : 'Désactivé'} rapports avec paiement automatique approuvé`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `définir le seuil de paiement automatique des rapports approuvés sur « ${newLimit} »`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `a modifié le seuil des rapports approuvés en paiement automatique à « ${newLimit} » (auparavant « ${oldLimit} »)`,
+        removedAutoPayApprovedReportsLimit: 'supprimé le seuil des rapports approuvés pour le paiement automatique',
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -6889,8 +6930,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 on: (date?: string) => `Le ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
-                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci', //_/\__/_/  \_,_/\__/\__/\_,_/
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Année à ce jour',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
             },
@@ -6932,6 +6974,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             },
             feed: 'Flux',
             withdrawalType: {
@@ -8119,6 +8162,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             title: 'Suivez la distance sur votre téléphone',
             subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
             button: 'Télécharger l’application',
+        },
+        continueGpsTripModal: {
+            title: 'Continuer l’enregistrement du trajet GPS ?',
+            prompt: 'Il semble que l’application se soit fermée pendant votre dernier trajet GPS. Souhaitez-vous continuer l’enregistrement à partir de ce trajet ?',
+            confirm: 'Continuer le voyage',
+            cancel: 'Afficher le voyage',
         },
         signOutWarningTripInProgress: {title: 'Suivi GPS en cours', prompt: 'Voulez-vous vraiment abandonner le déplacement et vous déconnecter ?', confirm: 'Ignorer et se déconnecter'},
         notification: {title: 'Suivi GPS en cours', body: 'Aller dans l’application pour terminer'},

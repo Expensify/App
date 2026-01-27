@@ -629,6 +629,7 @@ const translations = {
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        month: 'Month',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -746,6 +747,16 @@ const translations = {
         },
         enableQuickVerification: {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+        },
+        revoke: {
+            revoke: 'Revoke',
+            title: 'Face/fingerprint & passkeys',
+            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device",
+            cta: 'Revoke access',
+            noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
+            dismiss: 'Got it',
+            error: 'Request failed. Try again later.',
         },
     },
     validateCodeModal: {
@@ -870,6 +881,8 @@ const translations = {
             return `Are you sure you want to delete this ${type}?`;
         },
         onlyVisible: 'Only visible to',
+        explain: 'Explain',
+        explainMessage: 'Please explain this to me.',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
@@ -1063,6 +1076,10 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
+        addAReceipt: {
+            phrase1: 'Add a receipt',
+            phrase2: 'or drag and drop one here',
+        },
     },
     quickAction: {
         scanReceipt: 'Scan receipt',
@@ -1464,6 +1481,7 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctDistanceRateError: 'Fix the distance rate error and try again.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2359,19 +2377,27 @@ const translations = {
     expenseRulesPage: {
         title: 'Expense rules',
         subtitle: 'These rules will apply to your expenses. If you submit to a workspace, then the workspace rules may override them.',
+        findRule: 'Find rule',
         emptyRules: {
             title: "You haven't created any rules",
             subtitle: 'Add a rule to automate expense reporting.',
         },
         changes: {
-            billable: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
-            category: (value: string) => `Update category to "${value}"`,
-            comment: (value: string) => `Change description to "${value}"`,
-            merchant: (value: string) => `Update merchant to "${value}"`,
-            reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
-            report: (value: string) => `Add to a report named "${value}"`,
-            tag: (value: string) => `Update tag to "${value}"`,
-            tax: (value: string) => `Update tax rate to "${value}"`,
+            billableUpdate: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
+            categoryUpdate: (value: string) => `Update category to "${value}"`,
+            commentUpdate: (value: string) => `Update description to "${value}"`,
+            merchantUpdate: (value: string) => `Update merchant to "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            tagUpdate: (value: string) => `Update tag to "${value}"`,
+            taxUpdate: (value: string) => `Update tax rate to "${value}"`,
+            billable: (value: boolean) => `expense ${value ? 'billable' : 'non-billable'}`,
+            category: (value: string) => `category to "${value}"`,
+            comment: (value: string) => `description to "${value}"`,
+            merchant: (value: string) => `merchant to "${value}"`,
+            reimbursable: (value: boolean) => `expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            tag: (value: string) => `tag to "${value}"`,
+            tax: (value: string) => `tax rate to "${value}"`,
+            report: (value: string) => `add to a report named "${value}"`,
         },
         newRule: 'New rule',
         addRule: {
@@ -2596,7 +2622,7 @@ const translations = {
                         3. Click *More features*.
                         4. Enable *Workflows*.
                         5. Navigate to *Workflows* in the workspace editor.
-                        6. Enable *Add approvals*.
+                        6. Enable *Approvals*.
                         7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
@@ -6164,6 +6190,14 @@ const translations = {
                 title: 'Merchant',
                 subtitle: 'Set the merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
+                addRuleTitle: 'Add rule',
+                expensesWith: 'For expenses with:',
+                applyUpdates: 'Apply these updates:',
+                merchantHint: 'Match a merchant name with case-insensitive "contains" matching',
+                saveRule: 'Save rule',
+                confirmError: 'Enter merchant and apply at least one update',
+                confirmErrorMerchant: 'Please enter merchant',
+                confirmErrorUpdate: 'Please apply at least one update',
                 ruleSummaryTitle: (merchantName: string) => `If merchant contains "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rename merchant to "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
@@ -6515,6 +6549,11 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} auto-pay approved reports`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the auto-pay approved reports threshold to "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `changed the auto-pay approved reports threshold to "${newLimit}" (previously "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'removed the auto-pay approved reports threshold',
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -6766,6 +6805,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
@@ -6807,6 +6847,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7193,6 +7234,12 @@ const translations = {
         notification: {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
+        },
+        continueGpsTripModal: {
+            title: 'Continue GPS trip recording?',
+            prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',
+            confirm: 'Continue trip',
+            cancel: 'View trip',
         },
         signOutWarningTripInProgress: {
             title: 'GPS tracking in progress',
