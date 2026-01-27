@@ -61,14 +61,14 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     return (
         <FreezeWrapper>
             <Split.Navigator
-                persistentScreens={[SCREENS.HOME]}
-                sidebarScreen={SCREENS.HOME}
+                persistentScreens={[SCREENS.INBOX]}
+                sidebarScreen={SCREENS.INBOX}
                 defaultCentralScreen={SCREENS.REPORT}
                 parentRoute={route}
                 screenOptions={splitNavigatorScreenOptions.centralScreen}
             >
                 <Split.Screen
-                    name={SCREENS.HOME}
+                    name={SCREENS.INBOX}
                     getComponent={loadSidebarScreen}
                     options={splitNavigatorScreenOptions.sidebarScreen}
                 />

@@ -4,6 +4,7 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -19,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
+import type ViolationFixParams from './types';
 
 /**
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
@@ -72,7 +74,7 @@ function getTagViolationsForSingleLevelTags(
     if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
-        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {tagName: tagNameToShow}});
     }
     return newTransactionViolations;
 }
@@ -233,6 +235,44 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
     }
 
     return Array.from(uniqueMessages);
+}
+
+/**
+ * Checks if a violation has been fixed by the user changing the underlying data.
+ * Returns true if the violation should be cleared, false if it should persist.
+ */
+function getIsViolationFixed(violationError: string, params: ViolationFixParams): boolean {
+    const {category, tag, taxCode, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled} = params;
+
+    const violationValidators: Record<string, () => boolean> = {
+        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY}`]: () => {
+            // Category is fixed if it exists and is enabled in policy
+            return !!(category && policyCategories?.[category]?.enabled);
+        },
+        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAG_OUT_OF_POLICY}`]: () => {
+            // Tag is fixed if it's empty or matches a valid tag in policy
+            if (!tag) {
+                return true;
+            }
+            if (!policyTagLists) {
+                return false;
+            }
+            const hasEnabledTags = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.enabled));
+            const hasMatchingTag = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.name === tag && t.enabled));
+            return hasEnabledTags && hasMatchingTag;
+        },
+        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAX_OUT_OF_POLICY}`]: () => {
+            // Tax is fixed if it's empty or exists in policy tax rates
+            return !taxCode || Object.keys(policyTaxRates ?? {}).some((key) => key === taxCode);
+        },
+        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => {
+            // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
+            return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled);
+        },
+    };
+
+    const validator = violationValidators[violationError];
+    return validator ? validator() : false;
 }
 
 const ViolationsUtils = {
@@ -557,7 +597,7 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
-        const shouldProcessMissingAttendees = !CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED;
+        const shouldProcessMissingAttendees = CONST.IS_ATTENDEES_REQUIRED_ENABLED;
 
         if (shouldProcessMissingAttendees) {
             if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
@@ -783,12 +823,14 @@ const ViolationsUtils = {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
                     shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction) &&
-                    (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES)
+                    (CONST.IS_ATTENDEES_REQUIRED_ENABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES)
                 );
             });
         });
     },
 };
 
+export {getIsViolationFixed};
+export type {ViolationFixParams};
 export default ViolationsUtils;
 export {filterReceiptViolations};
