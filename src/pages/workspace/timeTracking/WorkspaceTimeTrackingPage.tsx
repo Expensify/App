@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -19,12 +20,14 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Clock']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.TIME_TRACKING)}
         >
             <WorkspacePageWithSections
                 shouldUseScrollView
