@@ -66,9 +66,19 @@ function SelectBankStep() {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE, data: {selectedBank: null}});
     };
 
+    const getBankDisplayText = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
+        if (bank === CONST.COMPANY_CARDS.BANKS.OTHER) {
+            return translate('workspace.companyCards.addNewCard.other');
+        }
+        if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
+            return translate('workspace.companyCards.addNewCard.fileImport');
+        }
+        return bank;
+    };
+
     const data = Object.values(CONST.COMPANY_CARDS.BANKS).map((bank) => ({
         value: bank,
-        text: bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
+        text: getBankDisplayText(bank),
         keyForList: bank,
         isSelected: bankSelected === bank,
         leftElement: (
