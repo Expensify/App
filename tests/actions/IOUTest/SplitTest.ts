@@ -1649,7 +1649,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
-        const originalReportID = originalTransaction?.reportID ?? '';
+        const originalReportID = originalTransaction?.reportID;
 
         // Step 1: Split into 2 (creates child transactions via creation path)
         const splitTransactionID1 = rand64();
@@ -1685,7 +1685,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: originalReportID,
+                reportID: originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [
                     {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
@@ -1740,7 +1740,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: originalReportID,
+                reportID: originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [{transactionID: splitTransactionID1, amount, created: DateUtils.getDBTime(), reportID: differentReportID}],
             },
