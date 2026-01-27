@@ -1581,6 +1581,7 @@ function PureReportActionItem({
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons
                             items={actionableItemButtons}
+                            shouldUseLocalization
                             layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
                         />
                     )}
