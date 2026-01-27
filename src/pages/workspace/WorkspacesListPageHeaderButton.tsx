@@ -34,7 +34,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
                         value: 'workspace',
                         text: translate('workspace.new.newWorkspace'),
                         icon: icons.Building,
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
                     },
                     {
                         value: 'domain',
@@ -56,7 +56,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
-                onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
+                onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
                 icon={icons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
             />
