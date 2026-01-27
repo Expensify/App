@@ -398,7 +398,7 @@ function MoneyRequestConfirmationList({
     // to calculate the distance stored in transaction.comment.customUnit.quantity
     const gpsDistance = transaction?.comment?.customUnit?.quantity;
     const gpsDistanceWithCurrentDistanceUnit = calculateGPSDistance(distance, unit);
-    const shouldUpdateGpsDistance = gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
+    const shouldUpdateGpsDistance = isGPSDistanceRequest && gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
     useEffect(() => {
         if (!shouldUpdateGpsDistance || !transactionID || isReadOnly) {
             return;
