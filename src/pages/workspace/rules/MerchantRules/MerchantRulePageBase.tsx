@@ -151,10 +151,11 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     };
 
     const handleDelete = () => {
-        if (!ruleID) {
+        if (!ruleID || !policy) {
             return;
         }
-        deletePolicyCodingRule(policyID, ruleID);
+        deletePolicyCodingRule(policy, ruleID);
+
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };

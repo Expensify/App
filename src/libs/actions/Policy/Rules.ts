@@ -178,13 +178,14 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
  * @param policyID - The ID of the policy to delete the rule from
  * @param ruleID - The ID of the rule to delete
  */
-function deletePolicyCodingRule(policyID: string, ruleID: string) {
-    if (!policyID || !ruleID) {
-        Log.warn('Invalid params for deletePolicyCodingRule', {policyID, ruleID});
+function deletePolicyCodingRule(policy: Policy, ruleID: string) {
+    if (!policy.id || !ruleID) {
+        Log.warn('Invalid params for deletePolicyCodingRule');
         return;
     }
 
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+    const existingRule = policy.rules?.codingRules?.[ruleID];
 
     const onyxData = {
         optimisticData: [
@@ -222,6 +223,11 @@ function deletePolicyCodingRule(policyID: string, ruleID: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
+                    rules: {
+                        codingRules: {
+                            [ruleID]: existingRule,
+                        },
+                    },
                     pendingFields: {
                         rules: null,
                     },
@@ -234,7 +240,7 @@ function deletePolicyCodingRule(policyID: string, ruleID: string) {
     };
 
     const parameters: SetPolicyCodingRuleParams = {
-        policyID,
+        policyID: policy.id,
         ruleID,
         value: '',
         shouldUpdateMatchingTransactions: false,
