@@ -2,7 +2,7 @@
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
