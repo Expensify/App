@@ -34,7 +34,7 @@ function ReplaceDeviceVerifyNewPage() {
         if (!account || account.twoFactorAuthSecretKey) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.route);
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.route, { forceReplace: true });
     }, [account, account?.twoFactorAuthSecretKey]);
 
     const handleInputFocus = () => {
