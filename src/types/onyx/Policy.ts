@@ -1690,7 +1690,7 @@ type CodingRuleFilter = {
     /** The left side of the filter condition (e.g., 'merchant') */
     left: string;
 
-    /** The operator for the filter (e.g., 'eq', 'contains') */
+    /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
     operator: string;
 
     /** The right side of the filter condition (e.g., 'Snoop') */
@@ -1700,7 +1700,7 @@ type CodingRuleFilter = {
 /** Tax configuration for coding rule */
 type CodingRuleTax = {
     /** Object wrapping the tax field */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    // eslint-disable-next-line @typescript-eslint/naming-convention - field_id_TAX matches the backend API format and cannot be changed
     field_id_TAX: {
         /** The external ID of the tax rate */
         externalID: string;
@@ -1710,7 +1710,7 @@ type CodingRuleTax = {
     };
 };
 
-/** Coding rule data model for workspace merchant rules */
+/** Policy coding rule data model */
 type CodingRule = {
     /** Filter conditions for when this rule applies */
     filters: CodingRuleFilter;
