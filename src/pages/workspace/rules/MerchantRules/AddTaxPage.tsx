@@ -13,7 +13,7 @@ type AddTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, type
 
 function AddTaxPage({route}: AddTaxPageProps) {
     const {policyID, ruleID} = route.params;
-    const isEditing = ruleID !== 'new';
+    const isEditing = ruleID !== ROUTES.NEW;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
