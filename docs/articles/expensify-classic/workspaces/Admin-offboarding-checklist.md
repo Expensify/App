@@ -1,12 +1,13 @@
 ---
-title: Admin Offboarding Checklist
-description: Steps to follow when the main workspace admin leaves the business.
-keywords: [Expensify Classic, admin offboarding, switch admins]
+title: Admin Offboarding Checklist in Expensify
+description: Step-by-step instructions to transition billing, bank access, and admin roles when a Workspace Admin or Domain Admin leaves the company.
+keywords: [admin offboarding, transfer billing, remove admin, Expensify Card, change bank account, Workspace Admin, Domain Admin]
+internalScope: Audience is Workspace Admins and Domain Admins. Covers how to reassign responsibilities when an admin leaves the business. Does not cover individual member removal or account deletion outside admin offboarding.
 ---
 
 # Admin offboarding checklist for Expensify
 
-This checklist is for scenarios where a key Expensify admin is **leaving the company or changing roles**, and their responsibilities need to be reassigned. It’s especially important if they are the:
+If a key admin is leaving your company or changing roles, follow this checklist to prevent billing issues and maintain admin continuity. This is required if the person leaving is a:
 
 - **Billing Owner**
 - **Workspace Admin**
@@ -14,99 +15,118 @@ This checklist is for scenarios where a key Expensify admin is **leaving the com
 - **Technical Contact**
 - **Bank Account Owner**
 
-**Note:** If the issue is just billing access or payment management, you may only need to [take over billing and add a payment account](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account). This full checklist is not required in those cases.
+**Note:** If you're only taking over billing or payment management, follow [these steps to switch billing owners and add a payment account](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account). You don’t need the full checklist.
 
 ---
 
-# Checklist for the Current Admin
+# Checklist for the current admin
 
-## Assign a new admin
+## How to assign a new Workspace Admin and Domain Admin
 
-1. [Invite the new admin](https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles) to the workspace.
-2. [Assign the Workspace Admin role](https://help.expensify.com/articles/expensify-classic/workspaces/Change-member-workspace-roles) to the new admin.
-3. If your company uses **company card feeds, Expensify Cards, domain groups, or SAML**, add the new admin as a [Domain Admin](https://help.expensify.com/articles/expensify-classic/domains/Add-Domain-Members-and-Admins).
+1. [Invite the new admin to the workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles).
+2. [Assign them the Workspace Admin role](https://help.expensify.com/articles/expensify-classic/workspaces/Change-member-workspace-roles).
+3. If your company uses company card feeds, Expensify Cards, domain groups, or SAML, [add the new admin as a Domain Admin](https://help.expensify.com/articles/expensify-classic/domains/Add-Domain-Members-and-Admins).
 
-**Note:** The new admin must be added to all company workspaces to maintain a single consolidated Annual Subscription. If the previous admin retains ownership of any workspace, billing will be split across subscriptions.
+**Note:** The new admin must be added to **all** company workspaces to keep billing under a single Annual Subscription. If the old admin remains on any workspace, billing may split across separate subscriptions.
 
-## Share access to the company bank account
+## How to share a business bank account with a new admin
 
-If you hvaae access to the company bank account in Expensify, [share the bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-share-a-verified-bank-account) with the new admin or another **Workspace Admin**.
+If you have access to a verified business bank account in Expensify, [share the bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-share-a-verified-bank-account) with the new admin or another Workspace Admin.
 
 ---
 
 # Checklist for the new admin
 
-## Take over billing and add a payment account 
-[Take over billing and payment responsibilities](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account) to ensure subscription payments continue smoothly.
+## How to take over billing and payment responsibilities
 
-## Re-verify the company bank account
+1. [Follow the steps to become the Billing Owner and add a payment method](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account).
+2. Make sure your payment details are valid to prevent service interruption.
 
-After the bank account is shared:
+## How to verify a shared business bank account
 
-1. Wait 1–2 business days for three test transactions (two withdrawals and one deposit) to appear.
-2. Go to **Account > Settings > Payments**, or check your **Expensify Inbox**, to verify the transactions.
+1. Wait 1–2 business days for test transactions (two withdrawals and one deposit) to appear.
+2. On web: Go to **Settings > Account > Wallet**.
+   - On mobile: Tap the **Settings** tab on the bottom > **Account** > **Wallet**.
+3. Enter the test transaction amounts to complete verification.
 
+**Note:** Only the person who sees the test transactions in their bank can complete the verification.
 
-## Unshare the company bank account
+## How to revoke the previous admin’s access to a verified bank account
 
-Once verification is complete, [remove the previous admin’s access](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-remove-access-to-a-verified-bank-account).
+Once you verify the bank account, [revoke the previous admin’s access](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Share-Verified-Business-Bank-Account#revoke-access-to-a-verified-business-bank-account) to maintain secure control.
 
-## Update the Expensify Card settlement account
+## How to update the Expensify Card settlement account
 
 If your company uses Expensify Cards:
 
-1. Go to **Settings > Domains > [domain]**.
-3. Click on **Company Cards**. 
-4. Under **Imported Cards**, select your Expensify Card feed.
-5. Click the **Settings** tab.
-6. If the **settlement account** still lists the old admin, use the green chat icon to contact Concierge for or your Account Manager for reassignment.
+1. On web: Go to **Settings > Domains > [Domain Name] > Company Cards**.  
+   - On mobile: Tap the hamburger menu > **Domains > [Domain Name] > Company Cards**.
+2. Select **Expensify Card** under **Imported Cards**.
+3. Click the **Settings** tab.
+4. If the old admin is still listed as the **settlement account owner**, use the green chat bubble to contact Concierge or your Account Manager to update it.
 
-**Note:** The new settlement account owner must be a **Domain Admin**.
+**Note:** The new owner must be a **Domain Admin**.
 
-## Update the default reimburser on all workspaces
+## How to change the default reimburser on all workspaces
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Workflows > Make or track payments**.
-2. Confirm the correct bank account is set as the **reimbursement account**.
-3. If the previous admin is listed as the **Default Reimburser**, assign a new one.
+1. Go to **Settings > Workspaces > [Workspace Name] > Workflows > Payments**.
+2. Confirm that the correct bank account is selected as the **reimbursement account**.
+3. If **Direct** reimbursement is used and the old admin is listed as the **Reimburser**, assign a new Workspace Admin.
+
+ADD A SCREENSHOT HERE. Suggestion: Workspace > Workflows > Payments screen showing the Default Reimburser field.
 
 
-## Reconnect accounting integrations and set a new Technical Contact
+## How to reconnect accounting integrations and update the Technical Contact
 
-1. Go to `Settings > Workspaces > [Workspace Name] > Accounting`.
-2. If any integrations are linked to the previous admin’s credentials, reconnect them using your credentials for the integration account. 
+1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+2. Reconnect any integrations that were tied to the old admin’s login.
 3. [Update the Technical Contact](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-Technical-Contact) to yourself or another team member.
-   
-## Remove or downgrade the previous admin
+
+## How to remove or downgrade the previous admin
 
 - If they’re staying with the company:
   - [Change their role](https://help.expensify.com/articles/expensify-classic/workspaces/Change-member-workspace-roles) to **Employee**.
 - If they’re leaving:
   1. [Remove them from the workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Remove-Members).
-  2. To fully close their Expensify account:
-     1. Go to `Domains > [Your Domain] > Domain Members`.
-     2. Check the box next to their name.
-     3. Click **Close Accounts**, then **Confirm**.
+  2. Fully close their account:
+     - Go to **Settings > Domains > [Domain Name] > Domain Members**.
+     - Check the box next to their name.
+     - Click **Close Accounts**, then **Confirm**.
+
+ADD A SCREENSHOT HERE. Suggestion: Domain Members tab showing the “Close Accounts” button.
+
 
 ---
 
-By completing this checklist, you’ll avoid billing interruptions, protect sensitive financial access, and ensure company operations continue smoothly.
+By completing this checklist, you’ll ensure uninterrupted billing, secure financial access, and a smooth transition of admin duties.
 
-**ADD A SCREENSHOT HERE.** Suggestion: Domain Members tab showing the “Close Accounts” button.
-
-**ADD A SCREENSHOT HERE.** Suggestion: Expensify Card Settings screen showing who owns the settlement account.
-
-**ADD A SCREENSHOT HERE.** Suggestion: Workspace > Workflows > Make or track payments section showing the Default Reimburser field.
+---
 
 # FAQ
 
-## Do I need to complete this checklist if I just want to manage billing?
+## Do I need to complete this checklist if I only want to manage billing?
 
-No — if you only need to take over billing or payment management, follow the steps in Take over billing and add a payment account [link]. The full checklist is only needed when an admin is leaving the company.
+No. If you're only taking over billing and payment responsibilities, follow [these steps](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account) instead. The full checklist is only needed if an admin is leaving or changing roles.
 
-## Who can verify a shared bank account?
+## Who can verify a shared business bank account?
 
-Only the person who receives the test transactions can verify the bank account. After the bank is shared, the new admin must wait for the test deposits and verify them under **Account > Settings > Payments**.
+Only the person who sees the test transactions in their external bank account can complete verification. Once the account is shared, the new admin must wait for the transactions and verify them under **Account > Settings > Wallet**.
 
 ## Can I remove the previous admin before verifying the bank account?
 
 No. Keep the previous admin’s access until the new admin has verified the shared bank account and updated billing and reimbursement settings.
+
+## What happens if the admin leaves before this checklist is completed?
+
+If the departing admin is removed too early, you may lose access to:
+ - Workspace billing settings
+ - Expensify Card settlement settings
+ - Shared bank accounts
+ - Accounting integrations
+
+To recover access, another Domain Admin must step in or contact Concierge for help. We recommend completing this checklist before offboarding the admin.
+
+## Can multiple people share access to a business bank account?
+
+Yes. A verified business bank account can be shared with multiple Workspace Admins. This ensures more than one person can reimburse, pay bills, or act as reimburser.
+
