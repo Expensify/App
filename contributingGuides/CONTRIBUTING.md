@@ -132,9 +132,9 @@ Additionally, if you want to discuss an idea with the open source community with
 * You'll need a Mac to test the iOS and MacOS app.
 * In case you don't have one, here's a helpful [document](https://github.com/Expensify/App/blob/main/contributingGuides/TESTING_MACOS_AND_IOS.md) on how you might test all platforms on a Windows/Linux device.
 
-### Check GitHub for existing proposals from other users
+### Check GitHub for existing proposals
 
-1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
+1. Expensify reviews all solution proposals on a first come first serve basis. If you see proposals are already posted on an issue, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
 
 ### Make sure you can reproduce the problem
 2. Use your test account(s) to reproduce the problem by following the steps in the GitHub issue.

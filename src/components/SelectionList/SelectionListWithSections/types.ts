@@ -23,16 +23,22 @@ type Section<TItem extends ListItem> = {
  */
 type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     /** Reference to the SelectionList component */
-    ref?: React.Ref<SelectionWithSectionsListHandle>;
+    ref?: React.Ref<SelectionListWithSectionsHandle>;
 
     /** Array of sections to display in the list */
     sections: Array<Section<TItem>>;
 
     /** Custom content to display in the header */
     customHeaderContent?: ReactNode;
+
+    /** Whether to hide the keyboard when scrolling the list */
+    shouldHideKeyboardOnScroll?: boolean;
+
+    /** Callback to fire when the list is scrolled */
+    onScroll?: () => void;
 };
 
-type SelectionWithSectionsListHandle = {
+type SelectionListWithSectionsHandle = {
     focusTextInput: () => void;
 };
 
@@ -46,11 +52,10 @@ type SectionHeader = {
 type SectionListItem<TItem extends ListItem> = TItem & {
     flatIndex: number;
     type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW;
-
     /** Unique key for FlashList rendering, containing section info  */
     flatListKey: string;
 };
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
-export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionWithSectionsListHandle, SectionHeader, FlattenedItem};
+export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, SectionHeader, FlattenedItem};
