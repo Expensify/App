@@ -764,15 +764,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Révoquer',
-            title: 'Reconnaissance faciale/empreinte digitale et passkeys',
+            title: 'Reconnaissance faciale/empreinte digitale et clés d’accès',
             explanation:
-                'La vérification par reconnaissance faciale/empreinte digitale ou passkey est activée sur un ou plusieurs appareils. Révoquer l’accès nécessitera un code magique pour la prochaine vérification sur n’importe quel appareil',
-            confirmationPrompt: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil',
+                'La vérification par reconnaissance faciale/empreinte digitale ou par passkey est activée sur un ou plusieurs appareils. Révoquer l’accès nécessitera un code magique pour la prochaine vérification sur n’importe quel appareil',
+            confirmationPrompt: 'Êtes-vous sûr(e) ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil',
             cta: 'Révoquer l’accès',
             noDevices:
-                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale, empreinte digitale ou Passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
+                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou par passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
-            error: 'La demande a échoué. Veuillez réessayer plus tard.',
+            error: 'La requête a échoué. Réessayez plus tard.',
         },
     },
     validateCodeModal: {
@@ -898,7 +898,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         onlyVisible: 'Visible uniquement pour',
         explain: 'Expliquer',
-        explainMessage: "Veuillez m'expliquer cela.",
+        explainMessage: 'Veuillez m’expliquer ceci.',
         replyInThread: 'Répondre dans le fil',
         joinThread: 'Rejoindre la discussion',
         leaveThread: 'Quitter la discussion',
@@ -1083,10 +1083,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il manque un commerçant, une date ou un montant.',
-        addAReceipt: {
-            phrase1: 'Ajouter un reçu',
-            phrase2: 'ou faites-le glisser et déposez-le ici',
-        },
+        addAReceipt: {phrase1: 'Ajouter un reçu', phrase2: 'ou faites-en glisser un ici'},
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -1221,7 +1218,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Voulez-vous vraiment supprimer ces dépenses ?',
         }),
         deleteReport: 'Supprimer le rapport',
-        deleteReportConfirmation: 'Voulez-vous vraiment supprimer ce rapport ?',
+        deleteReportConfirmation: 'Êtes-vous sûr de vouloir supprimer ce rapport ?',
         settledExpensify: 'Payé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
@@ -2408,24 +2405,24 @@ ${amount} pour ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Règles de dépenses',
         subtitle: 'Ces règles s’appliqueront à vos notes de frais. Si vous soumettez à un espace de travail, alors les règles de l’espace de travail peuvent les remplacer.',
-        findRule: 'Trouver règle',
+        findRule: 'Rechercher une règle',
         emptyRules: {title: 'Vous n’avez créé aucune règle', subtitle: 'Ajouter une règle pour automatiser la préparation des notes de frais.'},
         changes: {
             billableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
-            categoryUpdate: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
-            commentUpdate: (value: string) => `Modifier la description en « ${value} »`,
-            merchantUpdate: (value: string) => `Mettre à jour le marchand en « ${value} »`,
+            categoryUpdate: (value: string) => `Mettre à jour la catégorie sur « ${value} »`,
+            commentUpdate: (value: string) => `Mettre à jour la description en « ${value} »`,
+            merchantUpdate: (value: string) => `Mettre à jour le marchand sur « ${value} »`,
             reimbursableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
-            tagUpdate: (value: string) => `Mettre à jour le tag sur « ${value} »`,
-            taxUpdate: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
-            billable: (value: boolean) => `à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
-            category: (value: string) => `à jour la catégorie en « ${value} »`,
-            comment: (value: string) => `la description en « ${value} »`,
-            merchant: (value: string) => `à jour le marchand en « ${value} »`,
-            reimbursable: (value: boolean) => `à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
-            tag: (value: string) => `à jour le tag sur « ${value} »`,
-            tax: (value: string) => `à jour le taux de taxe à ${value}`,
-            report: (value: string) => `ajouter à un rapport nommé « ${value} »`,
+            tagUpdate: (value: string) => `Mettre à jour le tag en « ${value} »`,
+            taxUpdate: (value: string) => `Mettre à jour le taux de taxe sur « ${value} »`,
+            billable: (value: boolean) => `dépense ${value ? 'facturable' : 'non facturable'}`,
+            category: (value: string) => `catégorie en « ${value} »`,
+            comment: (value: string) => `description vers « ${value} »`,
+            merchant: (value: string) => `commerçant vers « ${value} »`,
+            reimbursable: (value: boolean) => `dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tag: (value: string) => `balise vers « ${value} »`,
+            tax: (value: string) => `taux de taxe à « ${value} »`,
+            report: (value: string) => `ajouter à un rapport nommé « ${value} »`,
         },
         newRule: 'Nouvelle règle',
         addRule: {
@@ -2645,17 +2642,17 @@ ${amount} pour ${merchant} - ${date}`,
                     dedent(`
                         *Ajoutez des validations de dépenses* pour examiner les dépenses de votre équipe et les garder sous contrôle.
 
-                        Voici comment faire :
+                        Voici comment faire :
 
-                        1. Accédez à *Workspaces*.
+                        1. Allez dans *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *More features*.
-                        4. Activez *Workflows*.
-                        5. Allez à *Workflows* dans l’éditeur d’espace de travail.
-                        6. Activez *Approvals*.
+                        3. Cliquez sur *Plus de fonctionnalités*.
+                        4. Activez *Flux de travail*.
+                        5. Accédez à *Flux de travail* dans l’éditeur d’espace de travail.
+                        6. Activez *Validations*.
                         7. Vous serez défini comme valideur des dépenses. Vous pourrez changer cela pour n’importe quel administrateur une fois que vous aurez invité votre équipe.
 
-                        [Faites-moi découvrir plus de fonctionnalités](${workspaceMoreFeaturesLink}).`),
+                        [Accéder à plus de fonctionnalités](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créer](${workspaceConfirmationLink}) un espace de travail`,
@@ -6357,12 +6354,12 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             },
             merchantRules: {
                 title: 'Commerçant',
-                subtitle: 'Définissez les règles de marchand afin que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
+                subtitle: 'Définissez les règles de marchand afin que les dépenses arrivent avec les bons codes et nécessitent moins de nettoyage.',
                 addRule: 'Ajouter une règle de commerçant',
                 ruleSummaryTitle: (merchantName: string) => `Si le commerçant contient « ${merchantName} »`,
-                ruleSummarySubtitleMerchant: (merchantName: string) => `Renommer le marchand en « ${merchantName} »`,
-                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} sur « ${fieldValue} »`,
-                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme « ${reimbursable ? 'remboursable' : 'non remboursable'} »`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Renommer le commerçant en « ${merchantName} »`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} en « ${fieldValue} »`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme "${reimbursable ? 'remboursable' : 'non remboursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Marquer comme « ${billable ? 'facturable' : 'non facturable'} »`,
             },
         },
@@ -6763,11 +6760,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `définir l’ancienneté maximale des dépenses à « ${newValue} » jours`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense modifié à « ${newValue} » jours (auparavant « ${oldValue} »)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense supprimé (auparavant « ${oldValue} » jours)`,
-        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Activé' : 'Désactivé'} rapports avec paiement automatique approuvé`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Activé' : 'Désactivé'} rapports à paiement automatique approuvés`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `définir le seuil de paiement automatique des rapports approuvés sur « ${newLimit} »`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
-            `a modifié le seuil des rapports approuvés en paiement automatique à « ${newLimit} » (auparavant « ${oldLimit} »)`,
-        removedAutoPayApprovedReportsLimit: 'supprimé le seuil des rapports approuvés pour le paiement automatique',
+            `a modifié le seuil de paiement automatique des rapports approuvés en « ${newLimit} » (auparavant « ${oldLimit} »)`,
+        removedAutoPayApprovedReportsLimit: 'supprimé le seuil de rapports approuvés pour le paiement automatique',
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -8154,9 +8151,9 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         },
         continueGpsTripModal: {
             title: 'Continuer l’enregistrement du trajet GPS ?',
-            prompt: 'Il semble que l’application se soit fermée pendant votre dernier trajet GPS. Souhaitez-vous continuer l’enregistrement à partir de ce trajet ?',
-            confirm: 'Continuer le voyage',
-            cancel: 'Afficher le voyage',
+            prompt: 'Il semble que l’application se soit fermée pendant votre dernier trajet GPS. Voulez-vous continuer l’enregistrement à partir de ce trajet ?',
+            confirm: 'Poursuivre le voyage',
+            cancel: 'Voir le voyage',
         },
         signOutWarningTripInProgress: {title: 'Suivi GPS en cours', prompt: 'Voulez-vous vraiment abandonner le déplacement et vous déconnecter ?', confirm: 'Ignorer et se déconnecter'},
         notification: {title: 'Suivi GPS en cours', body: 'Aller dans l’application pour terminer'},

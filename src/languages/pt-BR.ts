@@ -763,12 +763,12 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Revogar',
             title: 'Reconhecimento facial/digital & chaves de acesso',
             explanation:
-                'Verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
-            confirmationPrompt: 'Tem certeza? Você precisará de um código mágico para a próxima verificação em qualquer dispositivo',
+                'A verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
+            confirmationPrompt: 'Você tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação com rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou por passkey. Se registrar algum, você poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
-            error: 'A solicitação falhou. Tente novamente mais tarde.',
+            error: 'Falha na solicitação. Tente novamente mais tarde.',
         },
     },
     validateCodeModal: {
@@ -894,7 +894,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         onlyVisible: 'Visível apenas para',
         explain: 'Explicar',
-        explainMessage: 'Por favor, explique isso para mim.',
+        explainMessage: 'Explique isso para mim, por favor.',
         replyInThread: 'Responder na conversa',
         joinThread: 'Participar da conversa',
         leaveThread: 'Sair da conversa',
@@ -1077,10 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
         scanFailed: 'O recibo não pôde ser escaneado, pois está faltando o comerciante, a data ou o valor.',
-        addAReceipt: {
-            phrase1: 'Adicionar um recibo',
-            phrase2: 'ou arraste e solte um aqui',
-        },
+        addAReceipt: {phrase1: 'Adicionar recibo', phrase2: 'ou arraste e solte um aqui'},
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
@@ -2394,20 +2391,20 @@ ${amount} para ${merchant} - ${date}`,
         findRule: 'Encontrar regra',
         emptyRules: {title: 'Você não criou nenhuma regra', subtitle: 'Adicione uma regra para automatizar o relatório de despesas.'},
         changes: {
-            billableUpdate: (value: boolean) => `Atualizar despesa ${value ? 'cobrável' : 'não faturável'}`,
+            billableUpdate: (value: boolean) => `Atualizar despesa ${value ? 'faturável' : 'não faturável'}`,
             categoryUpdate: (value: string) => `Atualizar categoria para "${value}"`,
-            commentUpdate: (value: string) => `Alterar descrição para "${value}"`,
+            commentUpdate: (value: string) => `Atualizar descrição para "${value}"`,
             merchantUpdate: (value: string) => `Atualizar comerciante para "${value}"`,
             reimbursableUpdate: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
             tagUpdate: (value: string) => `Atualizar etiqueta para "${value}"`,
-            taxUpdate: (value: string) => `Atualizar taxa de imposto para ${value}`,
-            billable: (value: boolean) => `despesa ${value ? 'cobrável' : 'não faturável'}`,
+            taxUpdate: (value: string) => `Atualizar taxa de imposto para "${value}"`,
+            billable: (value: boolean) => `despesa ${value ? 'faturável' : 'não faturável'}`,
             category: (value: string) => `categoria para "${value}"`,
             comment: (value: string) => `descrição para "${value}"`,
             merchant: (value: string) => `comerciante para "${value}"`,
             reimbursable: (value: boolean) => `despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
-            tag: (value: string) => `etiqueta para "${value}"`,
-            tax: (value: string) => `taxa de imposto para ${value}`,
+            tag: (value: string) => `marcar como "${value}"`,
+            tax: (value: string) => `taxa de imposto para "${value}"`,
             report: (value: string) => `adicionar a um relatório chamado "${value}"`,
         },
         newRule: 'Nova regra',
@@ -2632,10 +2629,10 @@ ${amount} para ${merchant} - ${date}`,
                         3. Clique em *Mais recursos*.
                         4. Ative *Workflows*.
                         5. Acesse *Workflows* no editor do espaço de trabalho.
-                        6. Ative *Approvals*.
-                        7. Você será definido como o aprovador de despesas. Você pode alterar isso para qualquer administrador depois de convidar sua equipe.
+                        6. Ative *Aprovações*.
+                        7. Você será definido como aprovador de despesas. Você pode alterar isso para qualquer administrador depois de convidar sua equipe.
 
-                        [Leve-me para mais recursos](${workspaceMoreFeaturesLink}).`),
+                        [Leve-me até mais recursos](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um workspace`,
@@ -6309,10 +6306,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 cardSubtitle: 'É aqui que fica a política de despesas da sua equipe, para que todos estejam alinhados sobre o que é coberto.',
             },
             merchantRules: {
-                title: 'Estabelecimento',
-                subtitle: 'Defina as regras de comerciante para que as despesas cheguem corretamente categorizadas e exijam menos retrabalho.',
-                addRule: 'Adicionar regra de estabelecimento',
-                ruleSummaryTitle: (merchantName: string) => `Se o comerciante contiver "${merchantName}"`,
+                title: 'Comerciante',
+                subtitle: 'Defina as regras de comerciante para que as despesas cheguem com a codificação correta e exijam menos retrabalho.',
+                addRule: 'Adicionar regra de comerciante',
+                ruleSummaryTitle: (merchantName: string) => `Se o estabelecimento contiver "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Renomear comerciante para "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Atualizar ${fieldName} para "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsável' : 'não reembolsável'}"`,
@@ -6714,9 +6711,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `alterou a idade máxima da despesa para "${newValue}" dias (antes "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removeu a idade máxima de despesa (anteriormente "${oldValue}" dias)`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} relatórios com pagamento automático aprovado`,
-        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `definir o limite de relatórios aprovados para pagamento automático como "${newLimit}"`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `definir o limite de pagamento automático de relatórios aprovados para "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
-            `alterou o limite de relatórios aprovados com pagamento automático para "${newLimit}" (anteriormente "${oldLimit}")`,
+            `alterou o limite de aprovação automática de relatórios para "${newLimit}" (anteriormente "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'removeu o limite de relatórios aprovados para pagamento automático',
     },
     roomMembersPage: {
@@ -8106,7 +8103,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         },
         continueGpsTripModal: {
             title: 'Continuar gravação da viagem por GPS?',
-            prompt: 'Parece que o app foi fechado durante sua última viagem com GPS. Você gostaria de continuar a gravação dessa viagem?',
+            prompt: 'Parece que o app foi fechado durante sua última viagem de GPS. Você gostaria de continuar registrando essa viagem?',
             confirm: 'Continuar viagem',
             cancel: 'Ver viagem',
         },
