@@ -267,6 +267,7 @@ function openReportFromDeepLink(
     onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
     isAuthenticated: boolean,
+    conciergeReportID: string | undefined,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -358,7 +359,7 @@ function openReportFromDeepLink(
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, false, () => true);
                                     return;
                                 }
 

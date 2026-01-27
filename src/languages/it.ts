@@ -637,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Importo originale',
         insights: 'Analisi',
         duplicateExpense: 'Spesa duplicata',
+        newFeature: 'Nuova funzionalità',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1199,7 +1200,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: 'Elimina resoconto',
+        deleteReport: 'Elimina report',
         deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
         settledExpensify: 'Pagato',
         done: 'Fatto',
@@ -4879,6 +4880,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             assign: 'Assegna',
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Rimozione della carta non riuscita.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -5223,6 +5225,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
+            timeTracking: {title: 'Ora', subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -6191,6 +6194,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     `<muted-text>Imposta controlli di spesa e valori predefiniti per le singole spese. Puoi anche creare regole per le <a href="${categoriesPageLink}">categorie</a> e per i <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 receiptRequiredAmount: 'Importo richiesto della ricevuta',
                 receiptRequiredAmountDescription: 'Richiedi ricevute quando la spesa supera questo importo, a meno che non venga sostituito da una regola della categoria.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `L'importo non può essere superiore all'importo richiesto per le ricevute dettagliate (${amount})`,
+                itemizedReceiptRequiredAmount: 'Importo richiesto per ricevuta dettagliata',
+                itemizedReceiptRequiredAmountDescription: 'Richiedi ricevute dettagliate quando la spesa supera questo importo, a meno che non sia derogato da una regola di categoria.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `L'importo non può essere inferiore all'importo richiesto per le ricevute normali (${amount})`,
                 maxExpenseAmount: 'Importo massimo spesa',
                 maxExpenseAmountDescription: 'Segnala le spese che superano questo importo, a meno che non siano sostituite da una regola di categoria.',
                 maxAge: 'Età massima',
@@ -6283,6 +6290,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     never: 'Non richiedere mai ricevute',
                     always: 'Richiedi sempre le ricevute',
                 },
+                requireItemizedReceiptsOver: 'Richiedi ricevute dettagliate superiori a',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predefinito`,
+                    never: 'Non richiedere mai ricevute dettagliate',
+                    always: 'Richiedi sempre ricevute dettagliate',
+                },
                 defaultTaxRate: 'Aliquota fiscale predefinita',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `Vai su [Altre funzionalità](${moreFeaturesLink}) e abilita i flussi di lavoro, quindi aggiungi le approvazioni per sbloccare questa funzionalità.`,
@@ -6290,6 +6303,16 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             customRules: {
                 title: 'Policy di spesa',
                 cardSubtitle: 'Qui è dove si trova la policy di spesa del tuo team, così tutti sono allineati su cosa è coperto.',
+            },
+            merchantRules: {
+                title: 'Esercente',
+                subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
+                addRule: 'Aggiungi regola esercente',
+                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Contrassegna come "${billable ? 'fatturabile' : 'non fatturabile'}"`,
             },
         },
         planTypePage: {
@@ -6436,6 +6459,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 return `ha aggiornato la categoria "${categoryName}" cambiando Ricevute in ${newValue}`;
             }
             return `ha modificato la categoria "${categoryName}" in ${newValue} (precedentemente ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `aggiornata la categoria "${categoryName}" cambiando Ricevute dettagliate in ${newValue}`;
+            }
+            return `ha cambiato le Ricevute dettagliate della categoria "${categoryName}" in ${newValue} (precedentemente ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `ha rinominato la categoria da "${oldName}" a "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6882,6 +6911,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7320,6 +7350,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
             return 'Ricevuta richiesta';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Ricevuta dettagliata richiesta${formattedLimit ? ` superiore a ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Spesa vietata:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7853,6 +7884,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         },
         outstandingFilter: '<tooltip>Filtra per le spese\nche <strong>necessitano di approvazione</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Invia questa ricevuta per\n<strong>completare la prova!</strong></tooltip>',
+        gpsTooltip: '<tooltip>Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Scartare le modifiche?',
@@ -8011,7 +8043,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 `<comment><muted-text-label>Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La fatturazione dominio consolidata non può essere modificata. Riprova più tardi.',
             addAdmin: 'Aggiungi amministratore',
-            invite: 'Invita',
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
             revokeAdminAccess: 'Revoca accesso amministratore',
             cantRevokeAdminAccess: 'Impossibile revocare i privilegi di amministratore dal referente tecnico',
@@ -8025,11 +8056,16 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             enterDomainName: 'Inserisci qui il tuo nome di dominio',
             resetDomainInfo: `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall'elenco dei tuoi domini eliminando l'email associata dalle tue <a href="#">modalità di contatto</a>.`,
         },
-        members: {title: 'Membri', findMember: 'Trova membro'},
+        members: {
+            title: 'Membri',
+            findMember: 'Trova membro',
+            addMember: 'Aggiungi membro',
+            email: 'Indirizzo email',
+            errors: {addMember: 'Impossibile aggiungere questo membro. Riprova.'},
+        },
         domainAdmins: 'Amministratori di dominio',
     },
     gps: {
-        tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
         disclaimer: 'Usa il GPS per creare una spesa dal tuo viaggio. Tocca Avvia qui sotto per iniziare il tracciamento.',
         error: {failedToStart: 'Impossibile avviare il tracciamento della posizione.', failedToGetPermissions: 'Impossibile ottenere le autorizzazioni di localizzazione richieste.'},
         trackingDistance: 'Tracciamento distanza...',
@@ -8068,6 +8104,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             button: 'Scarica l’app',
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
+        signOutWarningTripInProgress: {title: 'Tracciamento GPS in corso', prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?', confirm: 'Annulla e disconnettiti'},
         locationServicesRequiredModal: {
             title: 'È necessario l’accesso alla posizione',
             confirm: 'Apri impostazioni',
