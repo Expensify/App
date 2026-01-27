@@ -957,6 +957,16 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
+/**
+ * Returns a formatted date range.
+ */
+function getFormattedDateRangeForSearch(startDate: Date, endDate: Date): string {
+    if (isSameYear(startDate, endDate)) {
+        return `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
+    }
+    return `${format(startDate, 'MMM d, yyyy')} - ${format(endDate, 'MMM d, yyyy')}`;
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -1018,6 +1028,7 @@ const DateUtils = {
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,
+    getFormattedDateRangeForSearch,
 };
 
 export default DateUtils;

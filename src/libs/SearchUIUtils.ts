@@ -1,4 +1,4 @@
-import {endOfWeek, format} from 'date-fns';
+import {addDays, endOfWeek, format} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -2283,9 +2283,8 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
 
-            // Format week display: "Week of January 27, 2025"
             const weekStartDate = new Date(weekGroup.week);
-            const formattedWeek = `Week of ${format(weekStartDate, 'MMMM d, yyyy')}`;
+            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStartDate, addDays(weekStartDate, 6));
 
             weekSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
