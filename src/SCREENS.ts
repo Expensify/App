@@ -150,6 +150,26 @@ const SCREENS = {
 
         RULES: {
             ROOT: 'Settings_Rules',
+            ADD: 'Settings_Rules_Add',
+            ADD_MERCHANT: 'Settings_Rules_Add_Merchant',
+            ADD_RENAME_MERCHANT: 'Settings_Rules_Add_Rename_Merchant',
+            ADD_CATEGORY: 'Settings_Rules_Add_Category',
+            ADD_TAG: 'Settings_Rules_Add_Tag',
+            ADD_TAX: 'Settings_Rules_Add_Tax',
+            ADD_DESCRIPTION: 'Settings_Rules_Add_Description',
+            ADD_REIMBURSABLE: 'Settings_Rules_Add_Reimbursable',
+            ADD_BILLABLE: 'Settings_Rules_Add_Billable',
+            ADD_REPORT: 'Settings_Rules_Add_Report',
+            EDIT: 'Settings_Rules_Edit',
+            EDIT_MERCHANT: 'Settings_Rules_Edit_Merchant',
+            EDIT_RENAME_MERCHANT: 'Settings_Rules_Edit_Rename_Merchant',
+            EDIT_CATEGORY: 'Settings_Rules_Edit_Category',
+            EDIT_TAG: 'Settings_Rules_Edit_Tag',
+            EDIT_TAX: 'Settings_Rules_Edit_Tax',
+            EDIT_DESCRIPTION: 'Settings_Rules_Edit_Description',
+            EDIT_REIMBURSABLE: 'Settings_Rules_Edit_Reimbursable',
+            EDIT_BILLABLE: 'Settings_Rules_Edit_Billable',
+            EDIT_REPORT: 'Settings_Rules_Edit_Report',
         },
 
         WALLET: {
@@ -335,6 +355,7 @@ const SCREENS = {
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
         STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
         STEP_HOURS: 'Money_Request_Step_Hours',
+        STEP_HOURS_EDIT: 'Money_Request_Step_Hours_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -692,6 +713,7 @@ const SCREENS = {
         CATEGORY_DESCRIPTION_HINT: 'Category_Description_Hint',
         CATEGORY_APPROVER: 'Category_Approver',
         CATEGORY_REQUIRE_RECEIPTS_OVER: 'Category_Require_Receipts_Over',
+        CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: 'Category_Require_Itemized_Receipts_Over',
         CATEGORY_REQUIRED_FIELDS: 'Category_Required_Fields',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         CATEGORIES_IMPORT: 'Categories_Import',
@@ -727,6 +749,7 @@ const SCREENS = {
         RULES_RANDOM_REPORT_AUDIT: 'Rules_Random_Report_Audit',
         RULES_AUTO_PAY_REPORTS_UNDER: 'Rules_AutoPay_Reports_Under',
         RULES_RECEIPT_REQUIRED_AMOUNT: 'Rules_Receipt_Required_Amount',
+        RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT: 'Rules_Itemized_Receipt_Required_Amount',
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
@@ -840,7 +863,7 @@ const SCREENS = {
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
-    MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
     MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'MissingPersonalDetails_ConfirmMagicCode',
     ADD_UNREPORTED_EXPENSES_ROOT: 'AddUnreportedExpenses_Root',
     DEBUG: {
@@ -883,11 +906,12 @@ const SCREENS = {
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
         RESET_DOMAIN: 'Domain_Reset',
+        ADD_MEMBER: 'Domain_Add_Member',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
         BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
-        NOTIFICATION: 'Multifactor_Authentication_Notification',
+        OUTCOME: 'Multifactor_Authentication_Outcome',
         PROMPT: 'Multifactor_Authentication_Prompt',
         NOT_FOUND: 'Multifactor_Authentication_Not_Found',
     },

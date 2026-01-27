@@ -188,6 +188,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.SET_DEFAULT_WORKSPACE]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
     [SCREENS.MONEY_REQUEST.STEP_TIME_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTimeRate').default,
     [SCREENS.MONEY_REQUEST.STEP_HOURS]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepHours').default,
+    [SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepHours').default,
 });
 
 const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
@@ -404,6 +405,26 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/CountrySelectionVerifyAccountPage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
+    [SCREENS.SETTINGS.RULES.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/AddRulePage').default,
+    [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddMerchantPage').default,
+    [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddRenameMerchantPage').default,
+    [SCREENS.SETTINGS.RULES.ADD_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddCategoryPage').default,
+    [SCREENS.SETTINGS.RULES.ADD_TAG]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddTagPage').default,
+    [SCREENS.SETTINGS.RULES.ADD_TAX]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddTaxRatePage').default,
+    [SCREENS.SETTINGS.RULES.ADD_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddDescriptionPage').default,
+    [SCREENS.SETTINGS.RULES.ADD_REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddReimbursablePage').default,
+    [SCREENS.SETTINGS.RULES.ADD_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddBillablePage').default,
+    [SCREENS.SETTINGS.RULES.ADD_REPORT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddReportPage').default,
+    [SCREENS.SETTINGS.RULES.EDIT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/EditRulePage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddMerchantPage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_RENAME_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddRenameMerchantPage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddCategoryPage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_TAG]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddTagPage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_TAX]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddTaxRatePage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddDescriptionPage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddReimbursablePage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddBillablePage').default,
+    [SCREENS.SETTINGS.RULES.EDIT_REPORT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddReportPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/StatusPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/SetDatePage').default,
@@ -461,6 +482,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryFlagAmountsOverPage').default,
     [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryDescriptionHintPage').default,
     [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryRequireReceiptsOverPage').default,
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryRequireItemizedReceiptsOverPage').default,
     [SCREENS.WORKSPACE.CATEGORY_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryApproverPage').default,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/CreateDistanceRatePage').default,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/CreateDistanceRatePage').default,
@@ -792,6 +815,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesRandomReportAuditPage').default,
     [SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesAutoPayReportsUnderPage').default,
     [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesReceiptRequiredAmountPage').default,
+    [SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesItemizedReceiptRequiredAmountPage').default,
     [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesMaxExpenseAmountPage').default,
     [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesMaxExpenseAgePage').default,
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesBillableDefaultPage').default,
@@ -817,6 +841,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.ADD_ADMIN]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddAdminPage').default,
     [SCREENS.DOMAIN.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberDetailsPage').default,
     [SCREENS.DOMAIN.RESET_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/DomainResetPage').default,
+    [SCREENS.DOMAIN.ADD_MEMBER]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainAddMemberPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -952,7 +977,7 @@ const ShareModalStackNavigator = createModalStackNavigator<ShareNavigatorParamLi
 });
 
 const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<MissingPersonalDetailsParamList>({
-    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
+    [SCREENS.MISSING_PERSONAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
     [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails/MissingPersonalDetailsMagicCodePage').default,
 });
 
@@ -988,7 +1013,7 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
 const MultifactorAuthenticationStackNavigator = createModalStackNavigator<MultifactorAuthenticationParamList>({
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/ValidateCodePage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/BiometricsTestPage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/NotificationPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/OutcomePage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/PromptPage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: () => require<ReactComponentModule>('../../../../pages/ErrorPage/NotFoundPage').default,
 });
