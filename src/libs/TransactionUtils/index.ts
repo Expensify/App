@@ -1506,7 +1506,7 @@ function getTransactionViolations(
             (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
         ) ?? [];
 
-    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
         return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
     }
 
@@ -1947,7 +1947,7 @@ function hasViolation(
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
-            (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES),
+            (CONST.IS_ATTENDEES_REQUIRED_ENABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES),
     );
 }
 
