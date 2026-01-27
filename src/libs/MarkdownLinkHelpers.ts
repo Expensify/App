@@ -114,7 +114,7 @@ const normalizeMultilineMarkdownLinks = (text: string): string => {
     // Pattern: [ followed by text (possibly with newlines) followed by ]
     //          followed by optional whitespace/newlines, then ( followed by URL followed by )
     // We use a non-greedy match to handle multiple links in the same text
-    return text.replaceAll(/\[([^\]]*(?:\r?\n[^\]]*)*)\]\s*\(([^)]+)\)/g, (match, linkText, url) => {
+    return text.replaceAll(/\[([^\]]*(?:\r?\n[^\]]*)*)\]\s*\(([^)]+)\)/g, (_match: string, linkText: string, url: string) => {
         // Collapse newlines and whitespace in the link text
         const normalizedLinkText = linkText
             .replaceAll(/\r?\n+/g, ' ') // Replace newlines with spaces
