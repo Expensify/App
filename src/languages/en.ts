@@ -525,10 +525,6 @@ const translations = {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
-        downloadFailedEmptyReportDescription: () => ({
-            one: "You can't export an empty report.",
-            other: () => `You can't export empty reports.`,
-        }),
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
@@ -1199,14 +1195,8 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: () => ({
-            one: 'Delete report',
-            other: 'Delete reports',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Are you sure that you want to delete this report?',
-            other: 'Are you sure that you want to delete these reports?',
-        }),
+        deleteReport: 'Delete report',
+        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
