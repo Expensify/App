@@ -136,6 +136,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                     descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
                                     titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                     shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
                                 />
                             </View>
                         );

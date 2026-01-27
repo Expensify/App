@@ -1421,6 +1421,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
     };

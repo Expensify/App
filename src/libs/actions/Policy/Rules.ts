@@ -166,4 +166,74 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule};
+/**
+ * Deletes a coding rule from the given policy
+ * @param policyID - The ID of the policy to delete the rule from
+ * @param ruleID - The ID of the rule to delete
+ */
+function deletePolicyCodingRule(policyID: string, ruleID: string) {
+    if (!policyID || !ruleID) {
+        Log.warn('Invalid params for deletePolicyCodingRule', {policyID, ruleID});
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        codingRules: {
+                            [ruleID]: null,
+                        },
+                    },
+                    pendingFields: {
+                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {
+                        rules: null,
+                    },
+                    errorFields: {
+                        rules: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {
+                        rules: null,
+                    },
+                    errorFields: {
+                        rules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyCodingRuleParams = {
+        policyID,
+        ruleID,
+        value: '',
+        updateMatchingTransactions: false,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
+}
+
+export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule};
