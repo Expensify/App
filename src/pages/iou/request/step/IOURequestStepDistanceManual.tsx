@@ -235,7 +235,7 @@ function IOURequestStepDistanceManual({
             reportID,
             receiverPolicy,
             chatReceiverPolicy,
-            receiverPolicy,
+            currentUserPersonalDetails.accountID,
         ],
     );
 

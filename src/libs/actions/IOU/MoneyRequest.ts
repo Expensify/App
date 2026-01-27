@@ -56,6 +56,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    isSelfTourViewed: boolean;
 };
 
 type InitialTransactionParams = {
@@ -98,6 +99,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     shouldGenerateTransactionThreadReport: boolean;
     receiverPolicy: OnyxEntry<Policy>;
     chatReceiverPolicy: OnyxEntry<Policy>;
+    isSelfTourViewed: boolean;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -156,6 +158,7 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    isSelfTourViewed,
 }: CreateTransactionParams) {
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -218,6 +221,7 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                isSelfTourViewed,
             });
         }
     }
@@ -238,7 +242,7 @@ function getMoneyRequestParticipantOptions(
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, receiverPolicy, chatReceiverPolicy, personalDetails, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, receiverPolicy, chatReceiverPolicy, currentUserAccountID, personalDetails, reportAttributesDerived);
     });
 }
 
@@ -272,6 +276,7 @@ function handleMoneyRequestStepScanParticipants({
     locationPermissionGranted = false,
     receiverPolicy,
     chatReceiverPolicy,
+    isSelfTourViewed,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -279,7 +284,7 @@ function handleMoneyRequestStepScanParticipants({
     }
 
     if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID) ?? {};
         let reportIDParam = managerMcTestParticipant.reportID;
         if (!managerMcTestParticipant.reportID && report?.reportID) {
             reportIDParam = generateReportID();
@@ -374,6 +379,7 @@ function handleMoneyRequestStepScanParticipants({
                             policyParams,
                             billable: false,
                             reimbursable: true,
+                            isSelfTourViewed,
                         });
                     },
                     (errorData) => {
@@ -395,6 +401,7 @@ function handleMoneyRequestStepScanParticipants({
                             activePolicyID,
                             files,
                             participant,
+                            isSelfTourViewed,
                         });
                     },
                 );
@@ -416,6 +423,7 @@ function handleMoneyRequestStepScanParticipants({
                 activePolicyID,
                 files,
                 participant,
+                isSelfTourViewed,
             });
             return;
         }

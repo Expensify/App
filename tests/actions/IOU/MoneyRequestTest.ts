@@ -88,6 +88,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            isSelfTourViewed: false,
         };
 
         afterEach(() => {
@@ -293,6 +294,7 @@ describe('MoneyRequest', () => {
             shouldGenerateTransactionThreadReport: false,
             receiverPolicy: undefined,
             chatReceiverPolicy: undefined,
+            isSelfTourViewed: false,
         };
 
         beforeEach(async () => {

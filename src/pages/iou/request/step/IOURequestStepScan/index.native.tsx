@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import reportsSelector from '@selectors/Attributes';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
@@ -121,6 +122,7 @@ function IOURequestStepScan({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -299,6 +301,7 @@ function IOURequestStepScan({
                 locationPermissionGranted,
                 receiverPolicy,
                 chatReceiverPolicy,
+                isSelfTourViewed,
             });
         },
         [
@@ -333,6 +336,7 @@ function IOURequestStepScan({
             chatReceiverPolicy,
             introSelected,
             activePolicyID,
+            isSelfTourViewed,
         ],
     );
 

@@ -346,6 +346,7 @@ function IOURequestStepDistanceMap({
         reportID,
         receiverPolicy,
         chatReceiverPolicy,
+        currentUserPersonalDetails.accountID,
     ]);
 
     const getError = () => {
