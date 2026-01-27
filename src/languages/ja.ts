@@ -1474,6 +1474,12 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
+        markedAsReimbursable: '経費を「払い戻し対象」としてマークしました',
+        markedAsNonReimbursable: '経費を「非精算」にマークしました',
+        markedAsBillable: '経費を「請求可能」としてマークしました',
+        markedAsNonBillable: '経費を「請求対象外」に設定しました',
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? '設定する' : ''}${key} を「${value}」に`,
+        viaWorkspaceRules: ({route}: {route: string}) => `<a href="${route}">ワークスペースルール</a>経由`,
     },
     transactionMerge: {
         listPage: {
@@ -7960,7 +7966,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         domainAdmins: 'ドメイン管理者',
     },
     gps: {
-        tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
+        tooltip: 'GPS追跡を実行中です！完了したら、下で追跡を停止してください。',
         disclaimer: '移動中の経路から、GPS を使って経費を作成しましょう。下の「開始」をタップして追跡を始めてください。',
         error: {failedToStart: '位置情報の追跡を開始できませんでした。', failedToGetPermissions: '必要な位置情報の権限を取得できませんでした。'},
         trackingDistance: '距離を追跡中...',

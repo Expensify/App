@@ -1474,6 +1474,12 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Całkowita kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
         correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
+        markedAsReimbursable: 'oznaczył wydatek jako „podlegający zwrotowi”',
+        markedAsNonReimbursable: 'oznaczył(-a) wydatek jako „niepodlegający zwrotowi”',
+        markedAsBillable: 'oznaczył(a) wydatek jako „fakturowany”',
+        markedAsNonBillable: 'oznaczył(a) wydatek jako „niefakturowalny”',
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? 'ustaw the' : ''}${key} na "${value}"`,
+        viaWorkspaceRules: ({route}: {route: string}) => `przez <a href="${route}">zasady miejsca pracy</a>`,
     },
     transactionMerge: {
         listPage: {

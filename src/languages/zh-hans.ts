@@ -1451,6 +1451,12 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         correctDistanceRateError: '修复里程费率错误后请重试。',
+        markedAsReimbursable: '将该报销单标记为“可报销”',
+        markedAsNonReimbursable: '将此报销单标记为“不可报销”',
+        markedAsBillable: '将该报销标记为“可计费”',
+        markedAsNonBillable: '将此报销标记为“不可向客户计费”',
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `将 ${first ? '设置' : ''}${key} 设置为 "${value}"`,
+        viaWorkspaceRules: ({route}: {route: string}) => `通过<a href="${route}">工作区规则</a>`,
     },
     transactionMerge: {
         listPage: {
@@ -6699,8 +6705,8 @@ ${reportName}
             purchaseCurrency: '购买货币',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '从',
-                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
             },
             feed: '动态',
             withdrawalType: {

@@ -1197,7 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Tem certeza de que deseja excluir estas despesas?',
         }),
         deleteReport: 'Excluir relatório',
-        deleteReportConfirmation: 'Você tem certeza de que deseja excluir este relatório?',
+        deleteReportConfirmation: 'Tem certeza de que deseja excluir este relatório?',
         settledExpensify: 'Pago',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
@@ -1472,6 +1472,12 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Reduza as horas ou diminua a tarifa.',
         },
         correctDistanceRateError: 'Corrija o erro na taxa de distância e tente novamente.',
+        markedAsReimbursable: 'marcou a despesa como "reembolsável"',
+        markedAsNonReimbursable: 'marcou a despesa como “não reembolsável”',
+        markedAsBillable: 'marcou a despesa como "faturável"',
+        markedAsNonBillable: 'marcou a despesa como “não faturável”',
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? 'definir o' : ''}${key} para "${value}"`,
+        viaWorkspaceRules: ({route}: {route: string}) => `via <a href="${route}">regras do workspace</a>`,
     },
     transactionMerge: {
         listPage: {
@@ -6851,7 +6857,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7997,7 +8003,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         domainAdmins: 'Administradores de domínio',
     },
     gps: {
-        tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',
+        tooltip: 'Rastreamento de GPS em andamento! Quando terminar, pare o rastreamento abaixo.',
         disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar o rastreamento.',
         error: {failedToStart: 'Falha ao iniciar o rastreamento de localização.', failedToGetPermissions: 'Falha ao obter as permissões de localização necessárias.'},
         trackingDistance: 'Acompanhando a distância...',

@@ -1479,6 +1479,12 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
         correctDistanceRateError: 'Beheben Sie den Fehler beim Entfernungssatz und versuchen Sie es erneut.',
+        markedAsReimbursable: 'hat die Ausgabe als „erstattungsfähig“ markiert',
+        markedAsNonReimbursable: 'hat die Ausgabe als „nicht erstattungsfähig“ markiert',
+        markedAsBillable: 'hat die Ausgabe als „verrechenbar“ markiert',
+        markedAsNonBillable: 'hat die Ausgabe als „nicht abrechenbar“ markiert',
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? 'festlegen der' : ''}${key} zu "${value}"`,
+        viaWorkspaceRules: ({route}: {route: string}) => `über <a href="${route}">Workspace-Regeln</a>`,
     },
     transactionMerge: {
         listPage: {
@@ -8038,7 +8044,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         domainAdmins: 'Domain-Admins',
     },
     gps: {
-        tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
+        tooltip: 'GPS-Tracking läuft! Wenn du fertig bist, beende die Aufzeichnung unten.',
         disclaimer: 'Benutze GPS, um eine Ausgabe von deiner Reise zu erstellen. Tippe unten auf „Start“, um mit der Aufzeichnung zu beginnen.',
         error: {failedToStart: 'Standortverfolgung konnte nicht gestartet werden.', failedToGetPermissions: 'Die erforderlichen Standortberechtigungen konnten nicht abgerufen werden.'},
         trackingDistance: 'Strecke wird verfolgt...',

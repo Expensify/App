@@ -1197,7 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: 'Elimina resoconto',
+        deleteReport: 'Elimina report',
         deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
         settledExpensify: 'Pagato',
         done: 'Fatto',
@@ -1476,6 +1476,12 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'L’importo totale è troppo elevato. Riduci le ore o diminuisci la tariffa.',
         },
         correctDistanceRateError: "Correggi l'errore nella tariffa della distanza e riprova.",
+        markedAsReimbursable: 'ha contrassegnato la spesa come "rimborsabile"',
+        markedAsNonReimbursable: 'ha contrassegnato la spesa come "non rimborsabile"',
+        markedAsBillable: 'ha contrassegnato la spesa come "rifatturabile"',
+        markedAsNonBillable: 'ha contrassegnato la spesa come "non addebitabile"',
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? 'imposta il' : ''}${key} a "${value}"`,
+        viaWorkspaceRules: ({route}: {route: string}) => `tramite le <a href="${route}">regole dell’area di lavoro</a>`,
     },
     transactionMerge: {
         listPage: {
@@ -6878,7 +6884,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
             },
             feed: 'Feed',
             withdrawalType: {

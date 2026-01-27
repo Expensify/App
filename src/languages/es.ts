@@ -1208,6 +1208,12 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'El importe total es demasiado alto. Reduce las horas o disminuye la tasa.',
         },
         correctDistanceRateError: 'Corrige el error de la tasa de distancia y vuelve a intentarlo.',
+        markedAsReimbursable: 'marcó el gasto como "reembolsable"',
+        markedAsNonReimbursable: 'marcó el gasto como "no reembolsable"',
+        markedAsBillable: 'marcó el gasto como "facturable"',
+        markedAsNonBillable: 'marcó el gasto como "no facturable"',
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? 'estableció el ' : ''}${key} a "${value}"`,
+        viaWorkspaceRules: ({route}: {route: string}) => `a través de <a href="${route}">reglas del espacio de trabajo</a>`,
     },
     transactionMerge: {
         listPage: {
