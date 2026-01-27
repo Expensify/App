@@ -767,7 +767,7 @@ const translations: TranslationDeepObject<typeof en> = {
             请输入在最初请求该代码的设备上显示的代码
         `),
         doNotShare: dedent(`
-            不要与任何人分享你的验证码。  
+            不要与任何人分享你的验证码。
             Expensify 永远不会向你索要它！
         `),
         or: '，或',
@@ -776,7 +776,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: '返回原始设备并请求新验证码',
         successfulNewCodeRequest: '已请求验证码。请检查您的设备。',
         tfaRequiredTitle: dedent(`
-            双重身份验证  
+            双重身份验证
             必填
         `),
         tfaRequiredDescription: dedent(`
@@ -2569,17 +2569,17 @@ ${amount}，商户：${merchant} - ${date}`,
                 title: '添加报销审批',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *添加报销审批*，以便审核团队支出并保持支出可控。
+                        *添加报销审批*，以便审核团队支出并将其控制在合理范围内。
 
                         操作步骤如下：
 
-                        1. 进入 *工作区*。
+                        1. 进入 *Workspaces*。
                         2. 选择你的工作区。
-                        3. 点击 *更多功能*。
-                        4. 启用 *工作流*。
-                        5. 在工作区编辑器中前往 *工作流*。
-                        6. 启用 *添加审批*。
-                        7. 你将被设为报销审批人。邀请团队成员后，你可以将其更改为任何管理员。
+                        3. 点击 *More features*。
+                        4. 启用 *Workflows*。
+                        5. 在工作区编辑器中进入 *Workflows*。
+                        6. 启用 *Approvals*。
+                        7. 你将被设为报销审批人。邀请团队成员后，你可以将此角色更改为任何管理员。
 
                         [带我前往更多功能](${workspaceMoreFeaturesLink})。`),
             },
@@ -4785,6 +4785,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             assignCardFailedError: '卡片分配失败。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: '卡片取消分配失败。',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片信息流',
+                workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时出错。请重试或联系您的管理员。',
+                feedCouldNotBeLoadedTitle: '无法加载此订阅内容',
+                feedCouldNotBeLoadedMessage: '加载此信息流时出错。请重试或联系您的管理员。',
+                tryAgain: '重试',
+            },
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',

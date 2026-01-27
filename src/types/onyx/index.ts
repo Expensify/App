@@ -19,7 +19,18 @@ import type Card from './Card';
 import type {CardList, FailedCompanyCardAssignment, FailedCompanyCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
+import type {
+    AddNewCompanyCardFeed,
+    CardFeedsStatus,
+    CardFeedsStatusByDomainID,
+    CombinedCardFeed,
+    CombinedCardFeeds,
+    CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
+    DomainSettings,
+    FundID,
+    WorkspaceCardFeedsStatus,
+} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -286,6 +297,9 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     CardFeeds,
+    CardFeedsStatus,
+    CardFeedsStatusByDomainID,
+    WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
     RecentSearchItem,

@@ -782,7 +782,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori  
+            Autenticazione a due fattori
             richiesta
         `),
         tfaRequiredDescription: dedent(`
@@ -2618,17 +2618,17 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Aggiungi approvazioni delle spese',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Aggiungi approvazioni delle spese* per rivedere le spese del tuo team e tenerle sotto controllo.
+                        *Aggiungi le approvazioni delle spese* per rivedere le spese del tuo team e mantenerle sotto controllo.
 
-                        Procedi così:
+                        Ecco come fare:
 
-                        1. Vai su *Spazi di lavoro*.
+                        1. Vai a *Spazi di lavoro*.
                         2. Seleziona il tuo spazio di lavoro.
                         3. Fai clic su *Altre funzionalità*.
                         4. Abilita *Flussi di lavoro*.
                         5. Vai a *Flussi di lavoro* nell’editor dello spazio di lavoro.
-                        6. Abilita *Aggiungi approvazioni*.
-                        7. Verrai impostato come approvatore delle spese. Puoi modificarlo in qualsiasi amministratore dopo aver invitato il tuo team.
+                        6. Abilita *Approvazioni*.
+                        7. Verrai impostato come approvatore delle spese. Puoi cambiarlo in qualsiasi amministratore dopo aver invitato il tuo team.
 
                         [Portami alle altre funzionalità](${workspaceMoreFeaturesLink}).`),
             },
@@ -4891,6 +4891,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Si è verificato un errore durante il caricamento dei feed della scheda dell’area di lavoro. Riprova o contatta il tuo amministratore.',
+                feedCouldNotBeLoadedTitle: 'Impossibile caricare questo feed',
+                feedCouldNotBeLoadedMessage: 'Si è verificato un errore durante il caricamento di questo feed. Riprova o contatta il tuo amministratore.',
+                tryAgain: 'Riprova',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',

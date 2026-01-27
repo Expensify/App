@@ -781,7 +781,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Gehe zurück zum ursprünglichen Gerät und fordere einen neuen Code an',
         successfulNewCodeRequest: 'Code angefordert. Bitte überprüfe dein Gerät.',
         tfaRequiredTitle: dedent(`
-            Zwei-Faktor-Authentifizierung  
+            Zwei-Faktor-Authentifizierung
             erforderlich
         `),
         tfaRequiredDescription: dedent(`
@@ -2623,7 +2623,7 @@ ${amount} für ${merchant} – ${date}`,
                 title: 'Spesengenehmigungen hinzufügen',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Fügen Sie Ausgabengenehmigungen hinzu*, um die Ausgaben Ihres Teams zu prüfen und unter Kontrolle zu halten.
+                        *Fügen Sie Ausgabengenehmigungen hinzu*, um die Ausgaben Ihres Teams zu überprüfen und unter Kontrolle zu halten.
 
                         So geht's:
 
@@ -2631,9 +2631,9 @@ ${amount} für ${merchant} – ${date}`,
                         2. Wählen Sie Ihren Workspace aus.
                         3. Klicken Sie auf *More features*.
                         4. Aktivieren Sie *Workflows*.
-                        5. Navigieren Sie im Workspace-Editor zu *Workflows*.
-                        6. Aktivieren Sie *Add approvals*.
-                        7. Sie werden als Genehmiger für Ausgaben festgelegt. Sie können dies auf jeden Administrator ändern, sobald Sie Ihr Team eingeladen haben.
+                        5. Navigieren Sie zu *Workflows* im Workspace-Editor.
+                        6. Aktivieren Sie *Approvals*.
+                        7. Sie werden als Genehmiger für Ausgaben festgelegt. Sie können dies auf einen beliebigen Admin ändern, sobald Sie Ihr Team eingeladen haben.
 
                         [Zu More features wechseln](${workspaceMoreFeaturesLink}).`),
             },
@@ -4905,6 +4905,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Kartenfeeds konnten nicht geladen werden',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Beim Laden der Workspace-Kartenfeeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder wende dich an deine Administratorin bzw. deinen Administrator.',
+                feedCouldNotBeLoadedTitle: 'Dieser Feed konnte nicht geladen werden',
+                feedCouldNotBeLoadedMessage: 'Beim Laden dieses Feeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder kontaktiere deine Administratorin/deinen Administrator.',
+                tryAgain: 'Erneut versuchen',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',

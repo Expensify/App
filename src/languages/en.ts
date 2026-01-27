@@ -2608,7 +2608,7 @@ const translations = {
                         3. Click *More features*.
                         4. Enable *Workflows*.
                         5. Navigate to *Workflows* in the workspace editor.
-                        6. Enable *Add approvals*.
+                        6. Enable *Approvals*.
                         7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
@@ -4714,6 +4714,13 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
+                workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
+                feedCouldNotBeLoadedTitle: "Couldn't load this feed",
+                feedCouldNotBeLoadedMessage: 'An error occurred while loading this feed. Please try again or contact your administrator.',
+                tryAgain: 'Try again',
+            },
             addNewCard: {
                 other: 'Other',
                 fileImport: 'Import transactions from file',
