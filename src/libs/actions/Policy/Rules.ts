@@ -228,7 +228,7 @@ function deletePolicyCodingRule(policyID: string, ruleID: string) {
         policyID,
         ruleID,
         value: '',
-        updateMatchingTransactions: false,
+        shouldUpdateMatchingTransactions: false,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);

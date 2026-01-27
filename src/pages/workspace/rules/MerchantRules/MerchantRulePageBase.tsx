@@ -93,10 +93,10 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             merchant: existingRule.merchant,
             category: existingRule.category,
             tag: existingRule.tag,
-            tax: existingRule.tax?.externalID,
+            tax: existingRule.tax?.field_id_TAX?.externalID,
             comment: existingRule.comment,
-            reimbursable: existingRule.reimbursable !== undefined ? (String(existingRule.reimbursable) as 'true' | 'false') : undefined,
-            billable: existingRule.billable !== undefined ? (String(existingRule.billable) as 'true' | 'false') : undefined,
+            reimbursable: existingRule.reimbursable,
+            billable: existingRule.billable,
         });
     }, [isEditing, existingRule]);
 
