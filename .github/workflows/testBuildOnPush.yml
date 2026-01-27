@@ -434,10 +434,12 @@ jobs:
             
 
             const prUrl = '${{ needs.prep.outputs.PR_URL }}';
+
             if (prUrl) {
-              summary.addRaw(`\n**PR Number:** [${prNumber}](${prUrl})`);
+              summary.addRaw(`\n**PR Link:** ${prUrl}`);
             } else {
-              summary.addRaw(`\n**PR Number:** No PR associated with this commit.`);
+              summary.addRaw(`\n**PR Link:** No PR associated with this commit.`);
             }
+            
             
             summary.write();
