@@ -6676,6 +6676,7 @@ ${reportName}
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
         topCategories: '热门类别',
+        topMerchants: '热门商家',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
             approve: '批准',
@@ -6737,6 +6738,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: '商家',
             },
             feed: '动态',
             withdrawalType: {

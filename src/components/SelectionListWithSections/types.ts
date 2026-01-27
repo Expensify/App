@@ -28,7 +28,16 @@ import type CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchCardGroup, SearchCategoryGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import type {
+    SearchCardGroup,
+    SearchCategoryGroup,
+    SearchDataTypes,
+    SearchMemberGroup,
+    SearchMerchantGroup,
+    SearchTask,
+    SearchTransactionAction,
+    SearchWithdrawalIDGroup,
+} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -492,6 +501,11 @@ type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
         /** Final and formatted "category" value used for displaying and sorting */
         formattedCategory?: string;
+    };
+
+type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MERCHANT} & SearchMerchantGroup & {
+        /** Final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant?: string;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -1136,6 +1150,7 @@ export type {
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionMerchantGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

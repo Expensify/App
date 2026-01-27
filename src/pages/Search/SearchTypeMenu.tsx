@@ -69,6 +69,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'MoneyHourglass',
         'CreditCardHourglass',
         'Bank',
+        'User',
+        'Folder',
+        'Building',
     ] as const);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});

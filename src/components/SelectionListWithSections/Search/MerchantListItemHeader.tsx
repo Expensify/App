@@ -1,13 +1,12 @@
 import React from 'react';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem, TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
-import useLocalize from '@hooks/useLocalize';
+import type {ListItem, TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import BaseListItemHeader from './BaseListItemHeader';
 
-type CategoryListItemHeaderProps<TItem extends ListItem> = {
-    /** The category currently being looked at */
-    category: TransactionCategoryGroupListItemType;
+type MerchantListItemHeaderProps<TItem extends ListItem> = {
+    /** The merchant currently being looked at */
+    merchant: TransactionMerchantGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -34,8 +33,8 @@ type CategoryListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function CategoryListItemHeader<TItem extends ListItem>({
-    category: categoryItem,
+function MerchantListItemHeader<TItem extends ListItem>({
+    merchant: merchantItem,
     onCheckboxPress,
     isDisabled,
     canSelectMultiple,
@@ -44,19 +43,16 @@ function CategoryListItemHeader<TItem extends ListItem>({
     isExpanded,
     onDownArrowClick,
     columns,
-}: CategoryListItemHeaderProps<TItem>) {
-    const {translate} = useLocalize();
-
-    // formattedCategory is pre-decoded in SearchUIUtils, just translate empty values
-    const rawCategory = categoryItem.formattedCategory ?? categoryItem.category;
-    const categoryName = !rawCategory || rawCategory === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('reportLayout.uncategorized') : rawCategory;
+}: MerchantListItemHeaderProps<TItem>) {
+    const rawMerchant = merchantItem.formattedMerchant ?? merchantItem.merchant;
+    const merchantName = rawMerchant || CONST.TRANSACTION.UNKNOWN_MERCHANT;
 
     return (
         <BaseListItemHeader
-            item={categoryItem}
-            displayName={categoryName}
-            groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY}
-            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.CATEGORY}
+            item={merchantItem}
+            displayName={merchantName}
+            groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT}
+            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.MERCHANT}
             onCheckboxPress={onCheckboxPress}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}
@@ -69,4 +65,4 @@ function CategoryListItemHeader<TItem extends ListItem>({
     );
 }
 
-export default CategoryListItemHeader;
+export default MerchantListItemHeader;

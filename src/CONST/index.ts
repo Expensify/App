@@ -6842,6 +6842,7 @@ const CONST = {
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
             CATEGORY: 'category',
+            MERCHANT: 'merchant',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6923,6 +6924,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                MERCHANT: {
+                    MERCHANT: this.TABLE_COLUMNS.GROUP_MERCHANT,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -6965,6 +6971,7 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7061,6 +7068,7 @@ const CONST = {
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
             GROUP_CATEGORY: 'groupCategory',
+            GROUP_MERCHANT: 'groupMerchant',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7244,6 +7252,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
+                [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
             };
         },
         NOT_MODIFIER: 'Not',
@@ -7286,6 +7295,7 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
+            TOP_MERCHANTS: 'topMerchants',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {

@@ -12,6 +12,7 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
@@ -1721,6 +1722,85 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
     },
 ];
 
+// Merchant test data
+const merchantName1 = 'Starbucks';
+const merchantName2 = 'Whole Foods';
+
+const searchResultsGroupByMerchant: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}${merchantName1}` as const]: {
+            merchant: merchantName1,
+            count: 7,
+            currency: 'USD',
+            total: 350,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${merchantName2}` as const]: {
+            merchant: merchantName2,
+            count: 4,
+            currency: 'USD',
+            total: 120,
+        },
+    },
+    search: {
+        count: 11,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 470,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const transactionMerchantGroupListItems: TransactionMerchantGroupListItemType[] = [
+    {
+        merchant: merchantName1,
+        count: 7,
+        currency: 'USD',
+        total: 350,
+        groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+        formattedMerchant: merchantName1,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+    {
+        merchant: merchantName2,
+        count: 4,
+        currency: 'USD',
+        total: 120,
+        groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+        formattedMerchant: merchantName2,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+];
+
+const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemType[] = [
+    {
+        merchant: merchantName1,
+        count: 7,
+        currency: 'USD',
+        total: 350,
+        groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+        formattedMerchant: merchantName1,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+    {
+        merchant: merchantName2,
+        count: 4,
+        currency: 'USD',
+        total: 120,
+        groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+        formattedMerchant: merchantName2,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+];
+
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -2072,6 +2152,14 @@ describe('SearchUIUtils', () => {
 
         it('should return TransactionGroupListItem when type is INVOICE and groupBy is member', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
+        });
+
+        it('should return TransactionGroupListItem when type is EXPENSE and groupBy is category', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.CATEGORY)).toStrictEqual(TransactionGroupListItem);
+        });
+
+        it('should return TransactionGroupListItem when type is EXPENSE and groupBy is merchant', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MERCHANT)).toStrictEqual(TransactionGroupListItem);
         });
     });
 
@@ -2576,6 +2664,201 @@ describe('SearchUIUtils', () => {
             const quotesItem = result.find((item) => item.category === '&quot;Special&quot; Category');
             expect(quotesItem?.formattedCategory).toBe('"Special" Category');
         });
+
+        // Merchant groupBy tests
+        it('should return getMerchantSections result when type is EXPENSE and groupBy is merchant', () => {
+            expect(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByMerchant.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                })[0],
+            ).toStrictEqual(transactionMerchantGroupListItems);
+        });
+
+        it('should handle empty merchant values correctly', () => {
+            const dataWithEmptyMerchant: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
+                    merchant: '',
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}valid` as const]: {
+                    merchant: 'Starbucks',
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEmptyMerchant,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            }) as [TransactionMerchantGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.merchant === '')).toBe(true);
+            expect(result.some((item) => item.merchant === 'Starbucks')).toBe(true);
+        });
+
+        it('should return isTransactionMerchantGroupListItemType true for merchant group items', () => {
+            const merchantItem: TransactionMerchantGroupListItemType = {
+                merchant: 'Starbucks',
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                formattedMerchant: 'Starbucks',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionMerchantGroupListItemType(merchantItem)).toBe(true);
+        });
+
+        it('should return isTransactionMerchantGroupListItemType false for non-merchant group items', () => {
+            const categoryItem: TransactionCategoryGroupListItemType = {
+                category: 'Travel',
+                count: 3,
+                currency: 'USD',
+                total: 100,
+                groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                formattedCategory: 'Travel',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionMerchantGroupListItemType(categoryItem)).toBe(false);
+        });
+
+        it('should generate transactionsQueryJSON with valid hash for merchant sections', () => {
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByMerchant.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                queryJSON: {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    status: '',
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    hash: 12345,
+                    flatFilters: [],
+                    inputQuery: 'type:expense groupBy:merchant',
+                    recentSearchHash: 12345,
+                    similarSearchHash: 12345,
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                        right: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    },
+                },
+            }) as [TransactionMerchantGroupListItemType[], number];
+
+            // Each merchant section should have a transactionsQueryJSON with a hash
+            for (const item of result) {
+                expect(item.transactionsQueryJSON).toBeDefined();
+                expect(item.transactionsQueryJSON?.hash).toBeDefined();
+                expect(typeof item.transactionsQueryJSON?.hash).toBe('number');
+            }
+        });
+
+        it('should handle Unicode characters in merchant names', () => {
+            const dataWithUnicode: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}japanese` as const]: {
+                    merchant: 'カフェ東京',
+                    count: 3,
+                    currency: 'JPY',
+                    total: 50000,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}chinese` as const]: {
+                    merchant: '北京饭店',
+                    count: 2,
+                    currency: 'CNY',
+                    total: 1000,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}emoji` as const]: {
+                    merchant: 'Coffee ☕',
+                    count: 1,
+                    currency: 'USD',
+                    total: 500,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithUnicode,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            }) as [TransactionMerchantGroupListItemType[], number];
+
+            expect(result).toHaveLength(3);
+            expect(result.some((item) => item.merchant === 'カフェ東京')).toBe(true);
+            expect(result.some((item) => item.merchant === '北京饭店')).toBe(true);
+            expect(result.some((item) => item.merchant === 'Coffee ☕')).toBe(true);
+        });
+
+        it('should handle special characters in merchant names', () => {
+            const dataWithSpecialChars: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}ampersand` as const]: {
+                    merchant: "McDonald's & Co.",
+                    count: 5,
+                    currency: 'USD',
+                    total: 2500,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}parentheses` as const]: {
+                    merchant: 'Walmart (Express)',
+                    count: 2,
+                    currency: 'USD',
+                    total: 1000,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}quotes` as const]: {
+                    merchant: '"Best" Coffee',
+                    count: 1,
+                    currency: 'USD',
+                    total: 300,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithSpecialChars,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            }) as [TransactionMerchantGroupListItemType[], number];
+
+            expect(result).toHaveLength(3);
+            expect(result.some((item) => item.merchant === "McDonald's & Co.")).toBe(true);
+            expect(result.some((item) => item.merchant === 'Walmart (Express)')).toBe(true);
+            expect(result.some((item) => item.merchant === '"Best" Coffee')).toBe(true);
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -2753,6 +3036,109 @@ describe('SearchUIUtils', () => {
             // Travel (5 expenses) should come before Food & Drink (3 expenses) when sorted by count descending
             expect(result.at(0)?.count).toBe(5);
             expect(result.at(1)?.count).toBe(3);
+        });
+
+        // Merchant sorting tests
+        it('should return getSortedMerchantData result when type is EXPENSE and groupBy is merchant', () => {
+            expect(
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    '',
+                    transactionMerchantGroupListItems,
+                    localeCompare,
+                    translateLocal,
+                    CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    CONST.SEARCH.SORT_ORDER.ASC,
+                    CONST.SEARCH.GROUP_BY.MERCHANT,
+                ),
+            ).toStrictEqual(transactionMerchantGroupListItemsSorted);
+        });
+
+        it('should sort merchant data by merchant name in ascending order', () => {
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionMerchantGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                CONST.SEARCH.GROUP_BY.MERCHANT,
+            ) as TransactionMerchantGroupListItemType[];
+
+            // "Starbucks" should come before "Whole Foods" in ascending alphabetical order
+            expect(result.at(0)?.merchant).toBe(merchantName1); // Starbucks
+            expect(result.at(1)?.merchant).toBe(merchantName2); // Whole Foods
+        });
+
+        it('should sort merchant data by merchant name in descending order', () => {
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionMerchantGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                CONST.SEARCH.GROUP_BY.MERCHANT,
+            ) as TransactionMerchantGroupListItemType[];
+
+            // "Whole Foods" should come before "Starbucks" in descending alphabetical order
+            expect(result.at(0)?.merchant).toBe(merchantName2); // Whole Foods
+            expect(result.at(1)?.merchant).toBe(merchantName1); // Starbucks
+        });
+
+        it('should sort merchant data by total amount', () => {
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionMerchantGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                CONST.SEARCH.GROUP_BY.MERCHANT,
+            ) as TransactionMerchantGroupListItemType[];
+
+            // Starbucks (350) should come before Whole Foods (120) when sorted by total descending
+            expect(result.at(0)?.total).toBe(350);
+            expect(result.at(1)?.total).toBe(120);
+        });
+
+        it('should sort merchant data using non-group column name (parser default sortBy)', () => {
+            // The parser sets default sortBy to 'merchant' (not 'groupMerchant') when groupBy is merchant
+            // This test verifies that the sorting works with the parser's default value
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionMerchantGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT, // Parser default: 'merchant' not 'groupMerchant'
+                CONST.SEARCH.SORT_ORDER.ASC,
+                CONST.SEARCH.GROUP_BY.MERCHANT,
+            ) as TransactionMerchantGroupListItemType[];
+
+            // "Starbucks" should come before "Whole Foods" in ascending alphabetical order
+            expect(result.at(0)?.merchant).toBe(merchantName1); // Starbucks
+            expect(result.at(1)?.merchant).toBe(merchantName2); // Whole Foods
+        });
+
+        it('should sort merchant data by expenses count', () => {
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionMerchantGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                CONST.SEARCH.GROUP_BY.MERCHANT,
+            ) as TransactionMerchantGroupListItemType[];
+
+            // Starbucks (7 expenses) should come before Whole Foods (4 expenses) when sorted by count descending
+            expect(result.at(0)?.count).toBe(7);
+            expect(result.at(1)?.count).toBe(4);
         });
     });
 
@@ -3698,6 +4084,94 @@ describe('SearchUIUtils', () => {
 
             // Should not show tag column because it's the empty tag value
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+        });
+    });
+
+    describe('Test getCustomColumns', () => {
+        it('should return custom columns for EXPENSE type', () => {
+            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(columns).toEqual(Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE));
+        });
+
+        it('should return custom columns for CATEGORY groupBy', () => {
+            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.GROUP_BY.CATEGORY);
+            expect(columns).toEqual(Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY));
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+        });
+
+        it('should return custom columns for MERCHANT groupBy', () => {
+            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.GROUP_BY.MERCHANT);
+            expect(columns).toEqual(Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT));
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+        });
+
+        it('should return empty array for undefined value', () => {
+            const columns = SearchUIUtils.getCustomColumns(undefined);
+            expect(columns).toEqual([]);
+        });
+    });
+
+    describe('Test getCustomColumnDefault', () => {
+        it('should return default columns for EXPENSE type', () => {
+            const columns = SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(columns).toEqual(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+        });
+
+        it('should return default columns for CATEGORY groupBy', () => {
+            const columns = SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.GROUP_BY.CATEGORY);
+            expect(columns).toEqual(CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+        });
+
+        it('should return default columns for MERCHANT groupBy', () => {
+            const columns = SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.GROUP_BY.MERCHANT);
+            expect(columns).toEqual(CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MERCHANT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+        });
+
+        it('should return empty array for undefined value', () => {
+            const columns = SearchUIUtils.getCustomColumnDefault(undefined);
+            expect(columns).toEqual([]);
+        });
+    });
+
+    describe('Test getSearchColumnTranslationKey', () => {
+        it('should return correct translation key for GROUP_CATEGORY', () => {
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+            expect(translationKey).toBe('common.category');
+        });
+
+        it('should return correct translation key for GROUP_MERCHANT', () => {
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
+            expect(translationKey).toBe('common.merchant');
+        });
+
+        it('should return correct translation key for GROUP_EXPENSES', () => {
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(translationKey).toBe('common.expenses');
+        });
+
+        it('should return correct translation key for GROUP_TOTAL', () => {
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(translationKey).toBe('common.total');
+        });
+
+        it('should return correct translation key for MERCHANT column', () => {
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+            expect(translationKey).toBe('common.merchant');
+        });
+
+        it('should return correct translation key for CATEGORY column', () => {
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
+            expect(translationKey).toBe('common.category');
         });
     });
 

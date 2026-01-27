@@ -6795,6 +6795,7 @@ ${reportName}
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
         topCategories: 'トップカテゴリ',
+        topMerchants: 'トップマーチャント',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
             approve: '承認',
@@ -6856,6 +6857,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
             },
             feed: 'フィード',
             withdrawalType: {

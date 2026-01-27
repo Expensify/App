@@ -6827,6 +6827,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         searchName: 'Pesquisar nome',
         savedSearchesMenuItemTitle: 'Salvo',
         topCategories: 'Principais categorias',
+        topMerchants: 'Principais comerciantes',
         groupedExpenses: 'despesas agrupadas',
         bulkActions: {
             approve: 'Aprovar',
@@ -6888,6 +6889,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
             },
             feed: 'Feed',
             withdrawalType: {

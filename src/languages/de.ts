@@ -6864,6 +6864,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         searchName: 'Name suchen',
         savedSearchesMenuItemTitle: 'Gespeichert',
         topCategories: 'Top-Kategorien',
+        topMerchants: 'Top-Händler',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
             approve: 'Genehmigen',
@@ -6925,6 +6926,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
             },
             feed: 'Feed',
             withdrawalType: {

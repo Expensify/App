@@ -355,6 +355,24 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     isColumnSortable: true,
                 },
             ];
+        case CONST.SEARCH.GROUP_BY.MERCHANT:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+                    translationKey: 'common.merchant',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                    translationKey: 'common.expenses',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                    translationKey: 'common.total',
+                    isColumnSortable: true,
+                },
+            ];
         default:
             return [];
     }

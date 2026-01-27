@@ -61,6 +61,9 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'MoneyHourglass',
         'CreditCardHourglass',
         'Bank',
+        'User',
+        'Folder',
+        'Building',
     ] as const);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);

@@ -6825,6 +6825,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchName: 'Wyszukaj nazwę',
         savedSearchesMenuItemTitle: 'Zapisano',
         topCategories: 'Najlepsze kategorie',
+        topMerchants: 'Najlepsi sprzedawcy',
         groupedExpenses: 'pogrupowane wydatki',
         bulkActions: {
             approve: 'Zatwierdź',
@@ -6886,6 +6887,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawca',
             },
             feed: 'Kanał',
             withdrawalType: {
