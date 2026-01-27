@@ -1,4 +1,3 @@
-import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -10,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type {CodingRule} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
  * Converts a string boolean value ('true'/'false') to a boolean or undefined
@@ -68,57 +68,57 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         created: new Date().toISOString(),
     };
 
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                rules: {
-                    codingRules: {
-                        [tempRuleID]: optimisticRule,
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        codingRules: {
+                            [tempRuleID]: optimisticRule,
+                        },
+                    },
+                    pendingFields: {
+                        codingRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
-                pendingFields: {
-                    codingRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
             },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    codingRules: null,
-                },
-                errorFields: {
-                    codingRules: null,
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                rules: {
-                    codingRules: {
-                        [tempRuleID]: null,
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        codingRules: null,
+                    },
+                    errorFields: {
+                        codingRules: null,
                     },
                 },
-                pendingFields: {
-                    codingRules: null,
-                },
-                errorFields: {
-                    codingRules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        codingRules: {
+                            [tempRuleID]: null,
+                        },
+                    },
+                    pendingFields: {
+                        codingRules: null,
+                    },
+                    errorFields: {
+                        codingRules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
                 },
             },
-        },
-    ];
+        ],
+    };
 
     const parameters: SetPolicyMerchantRuleParams = {
         policyID,
@@ -132,7 +132,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         billable: parseStringBoolean(form.billable),
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_MERCHANT_RULE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SET_POLICY_MERCHANT_RULE, parameters, onyxData);
 }
 
 export {openPolicyRulesPage, setPolicyMerchantRule};
