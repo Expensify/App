@@ -2,7 +2,7 @@ import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/
 import {filterPersonalCards} from '@selectors/Card';
 import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -189,7 +189,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
     const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
 
-    const showSignOutModal = useCallback(() => {
+    const showSignOutModal = () => {
         return showConfirmModal({
             title: confirmModalTitle,
             prompt: confirmModalPrompt,
@@ -198,7 +198,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             shouldShowCancelButton: true,
             danger: true,
         });
-    }, [showConfirmModal, translate, confirmModalTitle, confirmModalPrompt, confirmModalConfirmText]);
+    };
 
     const signOut = async (shouldForceSignout = false) => {
         if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {
