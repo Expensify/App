@@ -18,7 +18,7 @@ function AddReimbursablePage({route}: AddReimbursablePageProps) {
         Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
-    const onSelect = (fieldID: string, value: boolean | undefined) => {
+    const onSelect = (fieldID: string, value: boolean | 'true' | 'false' | null) => {
         updateDraftMerchantRule({[fieldID]: value});
         goBack();
     };
