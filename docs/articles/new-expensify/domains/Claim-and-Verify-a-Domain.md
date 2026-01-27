@@ -47,7 +47,7 @@ Depending on your email setup:
 
 After the domain is successfully claimed, the domain will appear under **Workspaces > Domains** in the **Not verified** state.
 
-# Step 2: Verify Your Domain
+## How to verify a domain
 
 To unlock advanced security settings and enable SAML, the domain must be verified through a DNS record.
 
