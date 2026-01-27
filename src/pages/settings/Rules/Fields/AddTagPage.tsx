@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +23,7 @@ function AddTagPage({route}: AddTagPageProps) {
 
     const selectedTagItem = form?.tag ? {name: getCleanedTagName(form.tag), value: form.tag} : undefined;
 
-    const tagItems = useMemo(() => {
+    const tagItems = () => {
         const uniqueTagNames = new Set<string>();
 
         const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
@@ -32,7 +32,7 @@ function AddTagPage({route}: AddTagPageProps) {
         }
 
         return Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName}));
-    }, [allPolicyTagLists]);
+    };
 
     const hash = route.params?.hash;
     const backToRoute = hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
@@ -46,7 +46,7 @@ function AddTagPage({route}: AddTagPageProps) {
             titleKey="common.tag"
             testID="AddTagPage"
             selectedItem={selectedTagItem}
-            items={tagItems}
+            items={tagItems()}
             onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
             backToRoute={backToRoute}

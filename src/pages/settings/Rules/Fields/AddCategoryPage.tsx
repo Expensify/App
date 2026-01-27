@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
@@ -18,10 +18,8 @@ type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList,
 function AddCategoryPage({route}: AddCategoryPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
-    const availableNonPersonalPolicyCategoriesSelector = useCallback(
-        (allPolicyCategories: OnyxCollection<PolicyCategories>) => getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID),
-        [personalPolicyID],
-    );
+    const availableNonPersonalPolicyCategoriesSelector = (allPolicyCategories: OnyxCollection<PolicyCategories>) =>
+        getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: true,
         selector: availableNonPersonalPolicyCategoriesSelector,
@@ -29,7 +27,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
 
     const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
 
-    const categoryItems = useMemo(() => {
+    const categoryItems = () => {
         const uniqueCategoryNames = new Set<string>();
 
         const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
@@ -43,7 +41,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
                 const decodedCategoryName = getDecodedCategoryName(categoryName);
                 return {name: decodedCategoryName, value: categoryName};
             });
-    }, [allPolicyCategories]);
+    };
 
     const hash = route.params?.hash;
     const backToRoute = hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
@@ -57,7 +55,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
             titleKey="common.category"
             testID="AddCategoryPage"
             selectedItem={selectedCategoryItem}
-            items={categoryItems}
+            items={categoryItems()}
             onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
             backToRoute={backToRoute}

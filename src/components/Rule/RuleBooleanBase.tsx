@@ -47,12 +47,9 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash}: Ru
 
     const formValue = (form as Record<string, unknown>)?.[fieldID];
 
-    const yesValue = CONST.SEARCH.BOOLEAN.YES;
-    const noValue = CONST.SEARCH.BOOLEAN.NO;
-
     let selectedItem = null;
     if (formValue) {
-        const booleanValue = formValue === 'true' ? yesValue : noValue;
+        const booleanValue = formValue === 'true' ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
         selectedItem = booleanValues.find((value) => booleanValue === value) ?? null;
     }
 

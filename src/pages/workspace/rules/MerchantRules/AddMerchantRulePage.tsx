@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -80,13 +80,13 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     // Get display names for category, tag, and tax
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const tagDisplayName = form?.tag ? getCleanedTagName(form.tag) : undefined;
-    const taxDisplayName = useMemo(() => {
+    const taxDisplayName = () => {
         if (!form?.tax || !policy?.taxRates?.taxes) {
             return undefined;
         }
         const tax = policy.taxRates.taxes[form.tax];
         return tax ? `${tax.name} (${tax.value})` : undefined;
-    }, [form?.tax, policy?.taxRates?.taxes]);
+    };
 
     const errorMessage = getErrorMessage(translate, form);
 
@@ -103,85 +103,67 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
         Navigation.goBack();
     };
 
-    const sections: SectionType[] = useMemo(
-        () => [
-            {
-                titleTranslationKey: 'workspace.rules.merchantRules.expensesWith',
-                items: [
-                    {
-                        descriptionTranslationKey: 'common.merchant',
-                        required: true,
-                        title: form?.merchantToMatch,
-                        onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID)),
-                    },
-                ],
-            },
-            {
-                titleTranslationKey: 'workspace.rules.merchantRules.applyUpdates',
-                items: [
-                    {
-                        descriptionTranslationKey: 'common.merchant',
-                        title: form?.merchant,
-                        onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID)),
-                    },
-                    areCategoriesEnabled
-                        ? {
-                              descriptionTranslationKey: 'common.category',
-                              title: categoryDisplayName,
-                              onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID)),
-                          }
-                        : undefined,
-                    areTagsEnabled
-                        ? {
-                              descriptionTranslationKey: 'common.tag',
-                              title: tagDisplayName,
-                              onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID)),
-                          }
-                        : undefined,
-                    isTaxTrackingEnabled
-                        ? {
-                              descriptionTranslationKey: 'common.tax',
-                              title: taxDisplayName,
-                              onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID)),
-                          }
-                        : undefined,
-                    {
-                        descriptionTranslationKey: 'common.description',
-                        title: form?.comment,
-                        onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID)),
-                    },
-                    {
-                        descriptionTranslationKey: 'common.reimbursable',
-                        title: getBooleanTitle(form?.reimbursable, translate),
-                        onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID)),
-                    },
-                    isBillableEnabled
-                        ? {
-                              descriptionTranslationKey: 'common.billable',
-                              title: getBooleanTitle(form?.billable, translate),
-                              onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID)),
-                          }
-                        : undefined,
-                ],
-            },
-        ],
-        [
-            areCategoriesEnabled,
-            areTagsEnabled,
-            isTaxTrackingEnabled,
-            isBillableEnabled,
-            form?.merchantToMatch,
-            form?.merchant,
-            categoryDisplayName,
-            tagDisplayName,
-            taxDisplayName,
-            form?.comment,
-            form?.reimbursable,
-            form?.billable,
-            policyID,
-            translate,
-        ],
-    );
+    const sections: SectionType[] = [
+        {
+            titleTranslationKey: 'workspace.rules.merchantRules.expensesWith',
+            items: [
+                {
+                    descriptionTranslationKey: 'common.merchant',
+                    required: true,
+                    title: form?.merchantToMatch,
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID)),
+                },
+            ],
+        },
+        {
+            titleTranslationKey: 'workspace.rules.merchantRules.applyUpdates',
+            items: [
+                {
+                    descriptionTranslationKey: 'common.merchant',
+                    title: form?.merchant,
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID)),
+                },
+                areCategoriesEnabled
+                    ? {
+                          descriptionTranslationKey: 'common.category',
+                          title: categoryDisplayName,
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID)),
+                      }
+                    : undefined,
+                areTagsEnabled
+                    ? {
+                          descriptionTranslationKey: 'common.tag',
+                          title: tagDisplayName,
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID)),
+                      }
+                    : undefined,
+                isTaxTrackingEnabled
+                    ? {
+                          descriptionTranslationKey: 'common.tax',
+                          title: taxDisplayName(),
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID)),
+                      }
+                    : undefined,
+                {
+                    descriptionTranslationKey: 'common.description',
+                    title: form?.comment,
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID)),
+                },
+                {
+                    descriptionTranslationKey: 'common.reimbursable',
+                    title: getBooleanTitle(form?.reimbursable, translate),
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID)),
+                },
+                isBillableEnabled
+                    ? {
+                          descriptionTranslationKey: 'common.billable',
+                          title: getBooleanTitle(form?.billable, translate),
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID)),
+                      }
+                    : undefined,
+            ],
+        },
+    ];
 
     return (
         <AccessOrNotFoundWrapper

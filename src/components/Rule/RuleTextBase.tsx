@@ -52,7 +52,7 @@ function RuleTextBase<TFormID extends OnyxFormKey>({
     titleKey,
     labelKey,
     testID,
-    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
+    characterLimit,
     formID,
     onSave,
     onBack,
