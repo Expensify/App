@@ -194,12 +194,10 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                         sectionItems.push({
+                            badgeText: item.badgeText,
                             text: translate(item.translationPath),
                             isSelected,
                             icon,
-                            ...(isSelected ? {iconFill: theme.iconSuccessFill} : {}),
-                            iconRight: expensifyIcons.Checkmark,
-                            shouldShowRightIcon: isSelected,
                             success: isSelected,
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
                             shouldCallAfterModalHide: true,
@@ -214,7 +212,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.iconSuccessFill, theme.border, expensifyIcons, singleExecution]);
+    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.border, expensifyIcons, singleExecution]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

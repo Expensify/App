@@ -3,12 +3,15 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {AdditionalCardProps} from '@components/SelectionListWithSections/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
+import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
     getCardFeedIcon,
+    getCompanyCardFeedWithDomainID,
     getCustomOrFormattedFeedName,
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
@@ -130,7 +133,7 @@ function buildCardsData(
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
-            return Object.values(cardFeed as Record<string, Card>)
+            return Object.values(cardFeed as CardList)
                 .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
                 .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
         });
@@ -508,6 +511,47 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
     return cardFeedsForDisplayPerPolicy;
 }
 
+function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | undefined, includeFeedPredicate?: (feed: CombinedCardFeed) => boolean): CombinedCardFeeds {
+    return Object.entries(allFeeds ?? {}).reduce<CombinedCardFeeds>((acc, [onyxKey, feeds]) => {
+        const domainID = Number(onyxKey.split('_').at(-1));
+
+        const workspaceFeedsSettings = feeds?.settings;
+        const companyCards = workspaceFeedsSettings?.companyCards;
+
+        if (!companyCards) {
+            return acc;
+        }
+
+        for (const feedName of Object.keys(companyCards) as CompanyCardFeed[]) {
+            const feedSettings = companyCards?.[feedName];
+            const oAuthAccountDetails = workspaceFeedsSettings?.oAuthAccountDetails?.[feedName];
+            const customFeedName = workspaceFeedsSettings?.companyCardNicknames?.[feedName];
+
+            if (!domainID) {
+                continue;
+            }
+
+            const combinedCardFeed = {
+                ...feedSettings,
+                ...oAuthAccountDetails,
+                customFeedName,
+                domainID,
+                feed: feedName,
+            };
+
+            if (includeFeedPredicate && !includeFeedPredicate(combinedCardFeed)) {
+                continue;
+            }
+
+            const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
+
+            acc[combinedFeedKey] = combinedCardFeed;
+        }
+
+        return acc;
+    }, {});
+}
+
 export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
 export {
     buildCardsData,
@@ -522,4 +566,5 @@ export {
     getDomainFeedData,
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
+    getCombinedCardFeedsFromAllFeeds,
 };
