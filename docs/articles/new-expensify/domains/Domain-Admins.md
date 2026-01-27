@@ -36,3 +36,16 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 ## Do I need to verify my domain to add Domain Admins?
 
 No. You can add Domain Admins after you claim the domain. Verification is required to enable advanced features like SAML and to manage domain members.
+
+## Can I have multiple Domain Admins?
+
+Yes. There’s no limit to the number of Domain Admins you can assign. We recommend giving access to multiple people in case someone becomes unavailable.
+
+## Can I add a Domain Admin who doesn’t have a company email?
+
+Yes. Domain Admins do not need to use your company’s email domain. You can add personal emails, contractors, or partners as Domain Admins if needed.
+
+## How do I revoke Domain Admin access?
+
+Go to **Workspaces > Domains**, open your domain, and select **Domain Admins**. From there, click **Remove** next to the person you want to revoke access for.
+
