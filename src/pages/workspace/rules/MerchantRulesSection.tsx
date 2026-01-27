@@ -18,26 +18,33 @@ type MerchantRulesSectionProps = {
     policyID: string;
 };
 
+type FieldLabels = {
+    category: string;
+    tag: string;
+    description: string;
+    tax: string;
+};
+
 /**
  * Generates a human-readable description of what a coding rule does
  */
-function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate']): string {
+function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate'], labels: FieldLabels): string {
     const actions: string[] = [];
 
     if (rule.merchant) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', rule.merchant));
     }
     if (rule.category) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.category').toLowerCase(), rule.category));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.category, rule.category));
     }
     if (rule.tag) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.tag').toLowerCase(), rule.tag));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, rule.tag));
     }
     if (rule.comment) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.description').toLowerCase(), rule.comment));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, rule.comment));
     }
     if (rule.tax?.field_id_TAX?.value) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.tax').toLowerCase(), rule.tax.field_id_TAX.value));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, rule.tax.field_id_TAX.value));
     }
     if (rule.reimbursable !== undefined) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
@@ -57,6 +64,17 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {isDevelopment} = useEnvironment();
+
+    // Hoist iterator-independent translations to avoid redundant calls in the loop
+    const fieldLabels: FieldLabels = useMemo(
+        () => ({
+            category: translate('common.category').toLowerCase(),
+            tag: translate('common.tag').toLowerCase(),
+            description: translate('common.description').toLowerCase(),
+            tax: translate('common.tax').toLowerCase(),
+        }),
+        [translate],
+    );
 
     const codingRules = policy?.rules?.codingRules;
     const hasRules = !isEmptyObject(codingRules);
@@ -103,7 +121,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                     {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
                         const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName);
-                        const ruleDescription = getRuleDescription(rule, translate);
+                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
 
                         return (
                             <View key={rule.ruleID}>
