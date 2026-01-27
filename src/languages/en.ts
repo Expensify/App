@@ -2162,7 +2162,7 @@ const translations = {
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
         cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
-        csvCardDescription: "CSV Import",
+        csvCardDescription: 'CSV Import',
         cardDetails: {
             cardNumber: 'Virtual card number',
             expiration: 'Expiration',

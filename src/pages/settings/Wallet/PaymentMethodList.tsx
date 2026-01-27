@@ -228,8 +228,8 @@ function PaymentMethodList({
                         description: isCSVImportCard
                             ? translate('cardPage.csvCardDescription')
                             : lastFourPAN
-                                ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                                : getDescriptionForPolicyDomainCard(card.domainName),
+                              ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
+                              : getDescriptionForPolicyDomainCard(card.domainName),
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
