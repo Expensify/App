@@ -154,7 +154,6 @@ import {
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
-    getPolicyEmployeeListByIdWithoutCurrentUser,
     getPolicyNameByID,
     getPolicyRole,
     getRuleApprovers,
