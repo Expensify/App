@@ -735,7 +735,7 @@ type OriginalMessageModifiedExpense = {
     /** The policy ID that the expense was modified in */
     policyID?: string;
 
-    /** The fields that were modified by poliy rules*/
+    /** The fields that were modified by policy rules*/
     policyRulesModifiedFields?: PolicyRulesModifiedFields;
 };
 
