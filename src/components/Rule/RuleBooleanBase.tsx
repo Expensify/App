@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -46,14 +46,16 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, ContentWr
 
     const formValue = (form as Record<string, unknown>)?.[fieldID];
 
-    const selectedItem =
-        booleanValues.find((value) => {
-            if (!formValue) {
-                return false;
-            }
-            const booleanValue = formValue === 'true' ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
-            return booleanValue === value;
-        }) ?? null;
+    const selectedItem = useMemo(() => {
+        if (!formValue) {
+            return null;
+        }
+        const yesValue = CONST.SEARCH.BOOLEAN.YES;
+        const noValue = CONST.SEARCH.BOOLEAN.NO;
+        const booleanValue = formValue === 'true' ? yesValue : noValue;
+
+        return booleanValues.find((value) => booleanValue === value) ?? null;
+    }, [formValue]);
 
     const items = booleanValues.map((value) => ({
         value,
