@@ -723,55 +723,56 @@ function SearchAutocompleteList({
         }
     }, [autocompleteQueryValue, searchOptions]);
 
-    const debounceHandleSearch = useDebounce(
-        useCallback(() => {
-            const actionId = `debounce_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-            const startTime = Date.now();
-
-            Performance.markStart(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
-            Log.info('[CMD_K_DEBUG] Debounced search started', false, {
+    const handleDebouncedSearch = (actionId: string, startTime: number) => {
+        if (!handleSearch || !autocompleteQueryWithoutFilters) {
+            Log.info('[CMD_K_DEBUG] Debounced search skipped - missing dependencies', false, {
                 actionId,
-                queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
                 hasHandleSearch: !!handleSearch,
-                timestamp: startTime,
+                hasQuery: !!autocompleteQueryWithoutFilters,
+                timestamp: Date.now(),
             });
+            return;
+        }
 
-            try {
-                if (!handleSearch || !autocompleteQueryWithoutFilters) {
-                    Log.info('[CMD_K_DEBUG] Debounced search skipped - missing dependencies', false, {
-                        actionId,
-                        hasHandleSearch: !!handleSearch,
-                        hasQuery: !!autocompleteQueryWithoutFilters,
-                        timestamp: Date.now(),
-                    });
-                    return;
-                }
+        handleSearch(autocompleteQueryWithoutFilters);
 
-                handleSearch(autocompleteQueryWithoutFilters);
+        const endTime = Date.now();
+        Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+        Log.info('[CMD_K_DEBUG] Debounced search completed', false, {
+            actionId,
+            duration: endTime - startTime,
+            queryLength: autocompleteQueryWithoutFilters.length,
+            timestamp: endTime,
+        });
+    };
 
-                const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
-                Log.info('[CMD_K_DEBUG] Debounced search completed', false, {
-                    actionId,
-                    duration: endTime - startTime,
-                    queryLength: autocompleteQueryWithoutFilters.length,
-                    timestamp: endTime,
-                });
-            } catch (error) {
-                const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
-                Log.alert('[CMD_K_FREEZE] Debounced search failed', {
-                    actionId,
-                    error: String(error),
-                    duration: endTime - startTime,
-                    queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
-                    timestamp: endTime,
-                });
-                throw error;
-            }
-        }, [handleSearch, autocompleteQueryWithoutFilters]),
-        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
-    );
+    const debounceHandleSearch = useDebounce(() => {
+        const actionId = `debounce_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const startTime = Date.now();
+
+        Performance.markStart(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+        Log.info('[CMD_K_DEBUG] Debounced search started', false, {
+            actionId,
+            queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
+            hasHandleSearch: !!handleSearch,
+            timestamp: startTime,
+        });
+
+        try {
+            handleDebouncedSearch(actionId, startTime);
+        } catch (error) {
+            const endTime = Date.now();
+            Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+            Log.alert('[CMD_K_FREEZE] Debounced search failed', {
+                actionId,
+                error: String(error),
+                duration: endTime - startTime,
+                queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
+                timestamp: endTime,
+            });
+            throw error;
+        }
+    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     useEffect(() => {
         debounceHandleSearch();
