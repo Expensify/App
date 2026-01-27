@@ -51,7 +51,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getPolicyByCustomUnitID, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     doesReportReceiverMatchParticipant,
     findSelfDMReportID,
@@ -161,6 +161,9 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
+
     const transactionsCategories = useDeepCompareRef(
         transactions.map(({transactionID, category}) => ({
             transactionID,
@@ -219,8 +222,6 @@ function IOURequestStepConfirmation({
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
-
-    const [personalPolicyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${personalPolicy?.id}`, {canBeMissing: true});
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -700,7 +701,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.TRACK && selfDMReport) {
                 submitPerDiemExpenseForSelfDM({
                     selfDMReport,
-                    policy,
+                    policy: customUnitPolicy,
                     transactionParams: {
                         currency: transaction.currency,
                         created: transaction.created,
@@ -1134,7 +1135,7 @@ function IOURequestStepConfirmation({
             }
 
             if (isPerDiemRequest) {
-                submitPerDiemExpense(selectedParticipants, trimmedComment, isCreatingTrackExpense ? personalPolicyRecentlyUsedCategories : policyRecentlyUsedCategories);
+                submitPerDiemExpense(selectedParticipants, trimmedComment, policyRecentlyUsedCategories);
                 return;
             }
 
