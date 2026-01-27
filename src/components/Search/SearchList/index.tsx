@@ -44,6 +44,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import DateUtils from '@libs/DateUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -161,8 +162,7 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
         const monthGroup = groupItem as TransactionMonthGroupListItemType;
-        const monthStart = new Date(monthGroup.year, monthGroup.month - 1, 1);
-        const monthEnd = new Date(monthGroup.year, monthGroup.month, 0);
+        const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month);
         return isWithinInterval(new Date(transaction.modifiedCreated ?? transaction.created), {start: monthStart, end: monthEnd});
     }
     return false;

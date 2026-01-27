@@ -2205,9 +2205,7 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
             let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON && monthGroup.year && monthGroup.month) {
                 // Create date range for the month (first day to last day of the month)
-                const monthStart = new Date(monthGroup.year, monthGroup.month - 1, 1);
-                const monthEnd = new Date(monthGroup.year, monthGroup.month, 0);
-
+                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month);
                 const startDateStr = format(monthStart, 'yyyy-MM-dd');
                 const endDateStr = format(monthEnd, 'yyyy-MM-dd');
 

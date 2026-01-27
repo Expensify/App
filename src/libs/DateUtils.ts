@@ -916,6 +916,16 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
     }
 };
 
+/**
+ * Returns the start and end dates of a month. January is 1, December is 12.
+ */
+function getMonthDateRange(year: number, month: number): {start: Date; end: Date} {
+    return {
+        start: new Date(year, month - 1, 1),
+        end: new Date(year, month, 0),
+    };
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -974,6 +984,7 @@ const DateUtils = {
     getFormattedSplitDateRange,
     isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
+    getMonthDateRange,
 };
 
 export default DateUtils;
