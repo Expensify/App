@@ -1,4 +1,3 @@
-import {filterPersonalCards} from '@selectors/Card';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
