@@ -92,15 +92,15 @@ function useChartLabelLayout({data, font, chartWidth, containerHeight}: LabelLay
             // labelWidth <= availableForRotation / sin(45°)
             maxAllowedLabelWidth = availableForRotation / SIN_45_DEGREES;
         } else {
-            // At 90°: labelWidth <= availableForRotation
-            maxAllowedLabelWidth = availableForRotation;
+            // At 90°: no truncation, container expands to accommodate labels
+            maxAllowedLabelWidth = Infinity;
         }
 
         // Generate truncated labels
         const finalLabels = data.map((p, i) => truncateToWidth(p.label, labelWidths.at(i) ?? 0, maxAllowedLabelWidth));
 
         // === CALCULATE SKIP INTERVAL ===
-        let skipInterval = 1;
+        // Calculate effective width based on rotation angle
         const finalMaxWidth = Math.max(...finalLabels.map((l) => measureTextWidth(l, font)));
         let effectiveWidth: number;
         if (rotation === 0) {
@@ -111,8 +111,13 @@ function useChartLabelLayout({data, font, chartWidth, containerHeight}: LabelLay
             effectiveWidth = lineHeight; // At 90°, width is the line height
         }
 
-        if (effectiveWidth > availableWidthPerBar) {
-            skipInterval = Math.ceil(effectiveWidth / availableWidthPerBar);
+        // Calculate skip interval using spec formula:
+        // maxVisibleLabels = floor(chartWidth / (effectiveWidth + MIN_LABEL_GAP))
+        // skipInterval = ceil(barCount / maxVisibleLabels)
+        let skipInterval = 1;
+        const maxVisibleLabels = Math.floor(chartWidth / (effectiveWidth + LABEL_PADDING));
+        if (maxVisibleLabels > 0 && maxVisibleLabels < data.length) {
+            skipInterval = Math.ceil(data.length / maxVisibleLabels);
         }
 
         // Convert rotation to negative degrees for Victory chart
