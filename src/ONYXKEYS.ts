@@ -989,6 +989,7 @@ const ONYXKEYS = {
         REPORT_ATTRIBUTES: 'reportAttributes',
         REPORT_TRANSACTIONS_AND_VIOLATIONS: 'reportTransactionsAndViolations',
         OUTSTANDING_REPORTS_BY_POLICY_ID: 'outstandingReportsByPolicyID',
+        NON_PERSONAL_AND_WORKSPACE_CARD_LIST: 'nonPersonalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
     },
 
@@ -1400,6 +1401,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: OnyxTypes.ReportAttributesDerivedValue;
     [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
     [ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID]: OnyxTypes.OutstandingReportsByPolicyIDDerivedValue;
+    [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.NonPersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
 };
 
