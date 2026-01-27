@@ -61,6 +61,7 @@ function SearchColumnsPage() {
         CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
     ]);
 
     const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
