@@ -11,10 +11,10 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getCleanedTagName} from '@libs/PolicyUtils';
+import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
