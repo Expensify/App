@@ -9,10 +9,10 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
@@ -20,7 +20,6 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as expensifyIcons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,8 +70,8 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
 function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const policy = usePolicy(policyID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isEditing = !!ruleID;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
@@ -96,8 +95,8 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             tag: existingRule.tag,
             tax: existingRule.tax?.externalID,
             comment: existingRule.comment,
-            reimbursable: existingRule.reimbursable !== undefined ? String(existingRule.reimbursable) : undefined,
-            billable: existingRule.billable !== undefined ? String(existingRule.billable) : undefined,
+            reimbursable: existingRule.reimbursable !== undefined ? (String(existingRule.reimbursable) as 'true' | 'false') : undefined,
+            billable: existingRule.billable !== undefined ? (String(existingRule.billable) as 'true' | 'false') : undefined,
         });
     }, [isEditing, existingRule]);
 
