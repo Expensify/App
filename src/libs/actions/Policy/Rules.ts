@@ -13,19 +13,6 @@ import type Policy from '@src/types/onyx/Policy';
 import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
 
 /**
- * Converts a string boolean value ('true'/'false') to a boolean or undefined
- */
-function parseStringBoolean(value: string | undefined): boolean | undefined {
-    if (value === 'true') {
-        return true;
-    }
-    if (value === 'false') {
-        return false;
-    }
-    return undefined;
-}
-
-/**
  * Builds the tax object from a tax key and policy
  */
 function buildTaxObject(taxKey: string | undefined, policy: Policy | undefined): CodingRuleTax | undefined {
@@ -55,8 +42,8 @@ function mapFormFieldsToRule(form: MerchantRuleForm, policy: Policy | undefined)
         tag: form.tag || undefined,
         tax: buildTaxObject(form.tax, policy),
         comment: form.comment || undefined,
-        reimbursable: parseStringBoolean(form.reimbursable),
-        billable: parseStringBoolean(form.billable),
+        reimbursable: form.reimbursable,
+        billable: form.billable,
     };
 }
 
@@ -80,9 +67,9 @@ function openPolicyRulesPage(policyID: string | undefined) {
  * @param form - The form data for the merchant rule
  * @param policy - The policy object (needed to build tax data)
  * @param ruleID - Optional existing rule ID for updates
- * @param updateMatchingTransactions - Whether to update transactions that match the rule
+ * @param shouldUpdateMatchingTransactions - Whether to update transactions that match the rule
  */
-function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: Policy | undefined, ruleID?: string, updateMatchingTransactions = false) {
+function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: Policy | undefined, ruleID?: string, shouldUpdateMatchingTransactions = false) {
     if (!policyID || !form.merchantToMatch) {
         Log.warn('Invalid params for setPolicyCodingRule', {policyID, merchantToMatch: form.merchantToMatch});
         return;
@@ -99,7 +86,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
         ruleID: optimisticRuleID,
         filters: {
             left: 'merchant',
-            operator: 'contains',
+            operator: 'eq',
             right: form.merchantToMatch,
         },
         ...ruleFields,
@@ -168,7 +155,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
         policyID,
         ruleID: optimisticRuleID,
         value: JSON.stringify(optimisticRule),
-        updateMatchingTransactions,
+        shouldUpdateMatchingTransactions,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);

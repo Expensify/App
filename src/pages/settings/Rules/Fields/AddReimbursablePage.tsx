@@ -18,7 +18,7 @@ function AddReimbursablePage({route}: AddReimbursablePageProps) {
         Navigation.goBack(hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute());
     };
 
-    const onSelect = (fieldID: string, value: string) => {
+    const onSelect = (fieldID: string, value: boolean | undefined) => {
         updateDraftRule({[fieldID]: value});
         goBack();
     };

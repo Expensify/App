@@ -9,13 +9,13 @@ type InputID = ValueOf<typeof INPUT_IDS>;
 type ExpenseRuleForm = Form<
     InputID,
     {
-        [INPUT_IDS.BILLABLE]: 'true' | 'false';
+        [INPUT_IDS.BILLABLE]: boolean;
         [INPUT_IDS.CATEGORY]: string;
         [INPUT_IDS.DESCRIPTION]: string;
         [INPUT_IDS.CREATE_REPORT]: boolean;
         [INPUT_IDS.RENAME_MERCHANT]: string;
         [INPUT_IDS.MERCHANT]: string;
-        [INPUT_IDS.REIMBURSABLE]: 'true' | 'false';
+        [INPUT_IDS.REIMBURSABLE]: boolean;
         [INPUT_IDS.REPORT]: string;
         [INPUT_IDS.TAG]: string;
         [INPUT_IDS.TAX]: string;

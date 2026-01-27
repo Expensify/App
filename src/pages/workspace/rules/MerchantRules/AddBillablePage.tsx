@@ -18,7 +18,7 @@ function AddBillablePage({route}: AddBillablePageProps) {
         Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
-    const onSelect = (fieldID: string, value: string) => {
+    const onSelect = (fieldID: string, value: boolean | undefined) => {
         updateDraftMerchantRule({[fieldID]: value});
         goBack();
     };

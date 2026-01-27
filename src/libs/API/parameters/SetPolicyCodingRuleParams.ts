@@ -9,7 +9,7 @@ type SetPolicyCodingRuleParams = {
     value: string;
 
     /** Whether to update the transactions that match the rule */
-    updateMatchingTransactions: boolean;
+    shouldUpdateMatchingTransactions: boolean;
 };
 
 export default SetPolicyCodingRuleParams;
