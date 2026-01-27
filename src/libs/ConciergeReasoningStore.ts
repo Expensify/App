@@ -38,7 +38,15 @@ function notifyListeners(reportID: string) {
 function addReasoning(reportID: string, data: ReasoningEventData): void {
     const {reasoning, agentZeroRequestID, loopCount} = data;
 
+    console.log('[REASONING_DEBUG] ConciergeReasoningStore addReasoning called', {
+        reportID,
+        agentZeroRequestID,
+        loopCount,
+        reasoningPreview: reasoning?.substring(0, 100),
+    });
+
     if (!reasoning) {
+        console.log('[REASONING_DEBUG] ConciergeReasoningStore skipping - reasoning is empty');
         return;
     }
 
@@ -46,6 +54,11 @@ function addReasoning(reportID: string, data: ReasoningEventData): void {
 
     // If this is a new request, reset the state
     if (!existing || existing.agentZeroRequestID !== agentZeroRequestID) {
+        console.log('[REASONING_DEBUG] ConciergeReasoningStore new request - resetting state', {
+            hadExisting: !!existing,
+            oldRequestID: existing?.agentZeroRequestID,
+            newRequestID: agentZeroRequestID,
+        });
         reasoningByReport.set(reportID, {
             agentZeroRequestID,
             entries: [{reasoning, loopCount, timestamp: Date.now()}],
@@ -57,10 +70,17 @@ function addReasoning(reportID: string, data: ReasoningEventData): void {
     // Check if we already have a reasoning for this loop count or higher
     const lastEntry = existing.entries.at(-1);
     if (lastEntry && loopCount <= lastEntry.loopCount) {
+        console.log('[REASONING_DEBUG] ConciergeReasoningStore skipping - loopCount not newer', {
+            lastLoopCount: lastEntry.loopCount,
+            newLoopCount: loopCount,
+        });
         return;
     }
 
     // Append the new reasoning
+    console.log('[REASONING_DEBUG] ConciergeReasoningStore appending new reasoning', {
+        totalEntries: existing.entries.length + 1,
+    });
     existing.entries.push({reasoning, loopCount, timestamp: Date.now()});
     notifyListeners(reportID);
 }

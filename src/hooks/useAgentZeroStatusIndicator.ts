@@ -27,32 +27,36 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     const isProcessing = isConciergeChat && (!!serverLabel || isOptimisticallyProcessing);
 
     useEffect(() => {
+        console.log('[REASONING_DEBUG] useAgentZeroStatusIndicator useEffect', {reportID, isConciergeChat});
+
         if (!isConciergeChat || !reportID) {
+            console.log('[REASONING_DEBUG] useAgentZeroStatusIndicator skipping subscription - not a Concierge chat or no reportID');
             return;
         }
 
+        console.log('[REASONING_DEBUG] useAgentZeroStatusIndicator calling subscribeToReportReasoningEvents');
         subscribeToReportReasoningEvents(reportID);
 
         const unsubscribeFromStore = ConciergeReasoningStore.subscribe((changedReportID, state) => {
             if (changedReportID !== reportID) {
                 return;
             }
+            console.log('[REASONING_DEBUG] useAgentZeroStatusIndicator store updated', {
+                reportID: changedReportID,
+                entriesCount: state?.entries.length ?? 0,
+            });
             setReasoningHistory(state ? state.entries.map((entry) => entry.reasoning) : []);
         });
 
         setReasoningHistory(ConciergeReasoningStore.getReasoningHistory(reportID));
 
         return () => {
+            console.log('[REASONING_DEBUG] useAgentZeroStatusIndicator cleanup', {reportID});
             unsubscribeFromStore();
             unsubscribeFromReportReasoningChannel(reportID);
         };
     }, [reportID, isConciergeChat]);
 
-    useEffect(() => {
-        if (!serverLabel && reasoningHistory.length > 0) {
-            ConciergeReasoningStore.clearReasoning(reportID);
-        }
-    }, [serverLabel, reasoningHistory.length, reportID]);
 
     useEffect(() => {
         setServerLabelVersion((version) => version + 1);

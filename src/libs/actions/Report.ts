@@ -486,18 +486,30 @@ function subscribeToReportLeavingEvents(reportID: string | undefined, currentUse
 
 /** Initialize our pusher subscriptions to listen for Concierge reasoning events. */
 function subscribeToReportReasoningEvents(reportID: string) {
+    console.log('[REASONING_DEBUG] Report.ts subscribeToReportReasoningEvents called', {reportID});
+
     if (!reportID) {
+        console.log('[REASONING_DEBUG] Report.ts skipping - no reportID');
         return;
     }
 
     if (reasoningSubscriptionReportIdentifiers.has(reportID)) {
+        console.log('[REASONING_DEBUG] Report.ts already subscribed to reportID', {reportID});
         return;
     }
 
     reasoningSubscriptionReportIdentifiers.add(reportID);
 
     const pusherChannelName = getReportChannelName(reportID);
+    console.log('[REASONING_DEBUG] Report.ts subscribing to Pusher channel', {pusherChannelName, eventType: Pusher.TYPE.CONCIERGE_REASONING});
+
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: ConciergeReasoningEvent) => {
+        console.log('[REASONING_DEBUG] Report.ts RECEIVED Pusher event!', {
+            reportID,
+            reasoning: data.reasoning?.substring(0, 100),
+            agentZeroRequestID: data.agentZeroRequestID,
+            loopCount: data.loopCount,
+        });
         const reasoningData: ReasoningEventData = {
             reasoning: data.reasoning,
             agentZeroRequestID: data.agentZeroRequestID,
@@ -505,9 +517,12 @@ function subscribeToReportReasoningEvents(reportID: string) {
         };
         ConciergeReasoningStore.addReasoning(reportID, reasoningData);
     }).catch((error: ReportError) => {
+        console.log('[REASONING_DEBUG] Report.ts subscription FAILED', {errorType: error.type, pusherChannelName});
         reasoningSubscriptionReportIdentifiers.delete(reportID);
         Log.hmmm('[Report] Failed to subscribe to Concierge reasoning events', {errorType: error.type, pusherChannelName});
     });
+
+    console.log('[REASONING_DEBUG] Report.ts subscription initiated');
 }
 
 /** Remove our pusher subscriptions to listen for Concierge reasoning events. */
