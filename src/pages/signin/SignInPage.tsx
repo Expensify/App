@@ -102,7 +102,7 @@ function getRenderOptions({
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
     const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
-    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
+    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode && !hasValidateCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
@@ -314,8 +314,7 @@ function SignInPage({ref}: SignInPageProps) {
                     <LoginForm
                         ref={loginFormRef}
                         isVisible={shouldShowLoginForm}
-                        blurOnSubmit={isAccountValidated === false}
-                        // eslint-disable-next-line react-compiler/react-compiler
+                        submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
                         scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                     />
                     {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}

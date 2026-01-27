@@ -6,12 +6,10 @@ import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,6 +34,7 @@ function HeaderWithBackButton({
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
+    onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
@@ -46,6 +45,8 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     isDownloading = false,
+    shouldShowRotateButton = false,
+    isRotating = false,
     shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
@@ -75,7 +76,7 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -189,9 +190,6 @@ function HeaderWithBackButton({
 
     return (
         <View
-            // Hover on some part of close icons will not work on Electron if dragArea is true
-            // https://github.com/Expensify/App/issues/29598
-            dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
@@ -226,7 +224,7 @@ function HeaderWithBackButton({
                             sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
                             <Icon
-                                src={Expensicons.BackArrow}
+                                src={icons.BackArrow}
                                 fill={iconFill ?? theme.icon}
                             />
                         </PressableWithoutFeedback>
@@ -284,6 +282,24 @@ function HeaderWithBackButton({
                             ) : (
                                 <ActivityIndicator style={[styles.touchableButtonImage]} />
                             ))}
+                        {shouldShowRotateButton &&
+                            (!isRotating ? (
+                                <Tooltip text={translate('common.rotate')}>
+                                    <PressableWithoutFeedback
+                                        onPress={onRotateButtonPress}
+                                        style={[styles.touchableButtonImage]}
+                                        role="button"
+                                        accessibilityLabel={translate('common.rotate')}
+                                    >
+                                        <Icon
+                                            src={icons.Rotate}
+                                            fill={iconFill ?? theme.icon}
+                                        />
+                                    </PressableWithoutFeedback>
+                                </Tooltip>
+                            ) : (
+                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                            ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
                     {ThreeDotMenuButton}
@@ -297,14 +313,14 @@ function HeaderWithBackButton({
                                 sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
                             >
                                 <Icon
-                                    src={Expensicons.Close}
+                                    src={icons.Close}
                                     fill={iconFill ?? theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
                 </View>
-                {shouldDisplayHelpButton && <HelpButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
             </View>
         </View>

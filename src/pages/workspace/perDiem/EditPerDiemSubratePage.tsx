@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -39,33 +39,27 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
 
-            const subrateTrimmed = values.subrate.trim();
+        const subrateTrimmed = values.subrate.trim();
 
-            if (!subrateTrimmed) {
-                errors.subrate = translate('common.error.fieldRequired');
-            } else if (subrateTrimmed.length > CONST.MAX_LENGTH_256) {
-                errors.subrate = translate('common.error.characterLimitExceedCounter', {length: subrateTrimmed.length, limit: CONST.MAX_LENGTH_256});
-            }
+        if (!subrateTrimmed) {
+            errors.subrate = translate('common.error.fieldRequired');
+        } else if (subrateTrimmed.length > CONST.MAX_LENGTH_256) {
+            errors.subrate = translate('common.error.characterLimitExceedCounter', subrateTrimmed.length, CONST.MAX_LENGTH_256);
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const editSubrate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-            const newSubrate = values.subrate.trim();
-            if (newSubrate !== selectedSubrate?.name) {
-                editPerDiemRateSubrate(policyID, rateID, subRateID, customUnit, newSubrate);
-            }
-            Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
-        },
-        [selectedSubrate?.name, policyID, rateID, subRateID, customUnit],
-    );
+    const editSubrate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
+        const newSubrate = values.subrate.trim();
+        if (newSubrate !== selectedSubrate?.name) {
+            editPerDiemRateSubrate(policyID, rateID, subRateID, customUnit, newSubrate);
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
+    };
 
     return (
         <AccessOrNotFoundWrapper

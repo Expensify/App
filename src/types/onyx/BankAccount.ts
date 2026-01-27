@@ -54,6 +54,9 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Determines if the bank account is a savings account */
     isSavings?: boolean;
 
+    /** Determines if the bank account is an Expensify Card settlement account */
+    isExpensifyCardSettlementAccount?: boolean;
+
     /** Date when the 3 micro amounts for validation were supposed to reach the bank account */
     validateCodeExpectedDate?: string;
 

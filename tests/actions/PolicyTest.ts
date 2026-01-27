@@ -74,6 +74,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -290,6 +293,7 @@ describe('actions/Policy', () => {
                     invoices: true,
                     exportLayouts: true,
                 },
+                localCurrency: 'USD',
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -463,6 +467,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -489,6 +496,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -519,6 +529,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -545,6 +558,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -568,6 +584,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: undefined,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -592,6 +611,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -614,6 +636,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -636,6 +661,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -658,6 +686,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -680,6 +711,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -714,6 +748,9 @@ describe('actions/Policy', () => {
                         enabled: true,
                     },
                 ],
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -780,7 +817,7 @@ describe('actions/Policy', () => {
             expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.USD);
             expect(draft?.employeeList?.[ESH_EMAIL]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
-            expect(draft?.chatReportIDAdmins).toBe(Number(params.adminsChatReportID));
+            expect(draft?.chatReportIDAdmins).toBe(params.adminsChatReportID);
 
             // Report draft should be set for the expense chat
             const expenseReportDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${params.expenseChatReportID}`);
@@ -1060,6 +1097,7 @@ describe('actions/Policy', () => {
             mockFetch?.fail?.();
             Policy.deleteWorkspace({
                 policyID: fakePolicy.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1151,6 +1189,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: 'test',
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1207,6 +1246,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: randomGroupPolicy.id,
+                personalPolicyID: personalPolicy.id,
                 activePolicyID: randomGroupPolicy.id,
                 policyName: randomGroupPolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1243,6 +1283,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
@@ -1281,6 +1322,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
@@ -1511,6 +1553,77 @@ describe('actions/Policy', () => {
             expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
 
             mockFetch.succeed?.();
+        });
+    });
+
+    describe('setPolicyMaxExpenseAmountNoItemizedReceipt', () => {
+        it('should set itemized receipt required amount', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const testAmount = '50.00';
+            const expectedBackendAmount = 5000; // $50.00 in cents
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.setPolicyMaxExpenseAmountNoItemizedReceipt(fakePolicy.id, testAmount);
+            await waitForBatchedUpdates();
+
+            // Check optimistic data
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(expectedBackendAmount);
+                        expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        resolve();
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Check success data
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
+                        expect(policy?.errorFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should disable itemized receipt requirement when empty string is passed', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.maxExpenseAmountNoItemizedReceipt = 7500;
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.setPolicyMaxExpenseAmountNoItemizedReceipt(fakePolicy.id, '');
+            await waitForBatchedUpdates();
+
+            // Check optimistic data - should set to DISABLED_MAX_EXPENSE_VALUE
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+                        expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        resolve();
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
         });
     });
 });

@@ -47,9 +47,11 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
+    const policyID = route.params.policyID;
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {canBeMissing: true});
 
     const createTravelEnablementIssue = useCallback(() => {
         if (!conciergeReportID) {
@@ -58,9 +60,9 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
-        addComment(conciergeReportID, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE);
+        addComment(conciergeReport, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
-    }, [translate, account?.primaryLogin, conciergeReportID]);
+    }, [translate, account?.primaryLogin, conciergeReportID, conciergeReport]);
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
@@ -132,7 +134,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                 }
 
                                 asyncOpenURL(
-                                    acceptSpotnanaTerms(domain).then((response) => {
+                                    acceptSpotnanaTerms(domain, policyID).then((response) => {
                                         if (response?.jsonCode !== 200) {
                                             return Promise.reject();
                                         }

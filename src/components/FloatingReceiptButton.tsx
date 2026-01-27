@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View as ViewType} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +10,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Icon from './Icon';
-import {ReceiptPlus} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
@@ -29,6 +29,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const {translate} = useLocalize();
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -63,7 +64,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
                     >
                         <Icon
                             fill={textLight}
-                            src={ReceiptPlus}
+                            src={icons.ReceiptPlus}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                         />

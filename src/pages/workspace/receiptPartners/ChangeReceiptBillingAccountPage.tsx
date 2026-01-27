@@ -1,11 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -36,6 +36,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOption, setSelectedOption] = useState<string>('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const policyID = route.params?.policyID;
     const integration = route.params?.integration;
@@ -45,12 +46,8 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
 
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
-    const workspaceMembers = useMemo(() => {
-        let membersList: MemberForList[] = [];
-        if (!policy?.employeeList) {
-            return membersList;
-        }
-
+    let workspaceMembers: MemberForList[] = [];
+    if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList)) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 continue;
@@ -65,7 +62,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     accountID: personalDetail?.accountID,
                     icons: [
                         {
-                            source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                            source: personalDetail?.avatar ?? icons.FallbackAvatar,
                             name: formatPhoneNumber(email),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: personalDetail?.accountID,
@@ -76,30 +73,20 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     isSelected: email === selectedOption || personalDetail?.login === selectedOption,
                 });
 
-                membersList.push(memberForList);
+                workspaceMembers.push(memberForList);
             }
         }
 
-        membersList = sortAlphabetically(membersList, 'text', localeCompare);
+        workspaceMembers = sortAlphabetically(workspaceMembers, 'text', localeCompare);
+    }
 
-        return membersList;
-    }, [isOffline, policy?.employeeList, localeCompare, selectedOption]);
-
-    const data = useMemo(() => {
-        if (workspaceMembers.length === 0) {
-            return [];
-        }
-
-        let membersToDisplay = workspaceMembers;
-
-        // Apply search filter if there's a search term
-        if (debouncedSearchTerm) {
-            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-            membersToDisplay = tokenizedSearch(workspaceMembers, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
-        }
-
-        return membersToDisplay;
-    }, [workspaceMembers, countryCode, debouncedSearchTerm]);
+    let data = workspaceMembers;
+    if (debouncedSearchTerm && workspaceMembers.length > 0) {
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
+        data = tokenizedSearch(workspaceMembers, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+    } else if (workspaceMembers.length === 0) {
+        data = [];
+    }
 
     useEffect(() => {
         if (!centralBillingAccountEmail) {
@@ -108,34 +95,25 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
         setSelectedOption(centralBillingAccountEmail);
     }, [centralBillingAccountEmail]);
 
-    const toggleOption = useCallback(
-        (option: MemberForList) => {
-            if (!centralBillingAccountEmail) {
-                return;
-            }
-            setSelectedOption(option.login);
+    const toggleOption = (option: MemberForList) => {
+        if (!centralBillingAccountEmail) {
+            return;
+        }
+        setSelectedOption(option.login);
 
-            changePolicyUberBillingAccount(policyID, option.login, centralBillingAccountEmail);
-            Navigation.goBack();
-        },
-        [policyID, centralBillingAccountEmail],
-    );
+        changePolicyUberBillingAccount(policyID, option.login, centralBillingAccountEmail);
+        Navigation.goBack();
+    };
 
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage = getHeaderMessage(data.length !== 0, false, searchValue, countryCode);
 
-        return getHeaderMessage(data.length !== 0, false, searchValue, countryCode);
-    }, [debouncedSearchTerm, data.length, countryCode]);
-
-    const textInputOptions = useMemo(
-        () => ({
-            label: textInputLabel,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage,
-        }),
-        [headerMessage, searchTerm, setSearchTerm, textInputLabel],
-    );
+    const textInputOptions = {
+        label: textInputLabel,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
 
     return (
         <AccessOrNotFoundWrapper

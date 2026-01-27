@@ -51,6 +51,7 @@ import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import * as HybridAppActions from '@userActions/HybridApp';
 import type HybridAppSettings from '@userActions/HybridApp/types';
+import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
@@ -63,6 +64,7 @@ import ROUTES from '@src/ROUTES';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -148,7 +150,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
 }
 
 function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.HYBRID_APP>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -170,7 +172,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
     ];
 
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -189,7 +191,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
         },
     ];
 
-    const failureData: OnyxUpdate[] = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP>> = [];
 
     if (CONFIG.IS_HYBRID_APP && isSAML) {
         optimisticData.push({
@@ -425,7 +427,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => {
-            signOutAndRedirectToSignIn();
+            close(() => {
+                signOutAndRedirectToSignIn();
+            });
         };
     }
     return callback;
@@ -435,7 +439,7 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
  * Request a new validate / magic code for user to sign in via passwordless flow
  */
 function resendValidateCode(login = credentials.login) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -445,7 +449,7 @@ function resendValidateCode(login = credentials.login) {
             },
         },
     ];
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -460,16 +464,10 @@ function resendValidateCode(login = credentials.login) {
     API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
 }
 
-type OnyxData = {
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
-};
-
 /**
  * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
  */
-function signInAttemptState(): OnyxData {
+function signInAttemptState(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS> {
     return {
         optimisticData: [
             {
@@ -528,15 +526,15 @@ function beginSignIn(email: string) {
 /**
  * Create Onyx update to clean up anonymous user data
  */
-function buildOnyxDataToCleanUpAnonymousUser() {
+function buildOnyxDataToCleanUpAnonymousUser(): OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
     const data: Record<string, null> = {};
     if (session.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && session.accountID) {
         data[session.accountID] = null;
     }
     return {
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         value: data,
-        onyxMethod: Onyx.METHOD.MERGE,
     };
 }
 
@@ -545,7 +543,7 @@ function buildOnyxDataToCleanUpAnonymousUser() {
  *
  */
 function signUpUser(preferredLocale: Locale | undefined) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -558,7 +556,7 @@ function signUpUser(preferredLocale: Locale | undefined) {
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -569,7 +567,7 @@ function signUpUser(preferredLocale: Locale | undefined) {
         onyxOperationToCleanUpAnonymousUser,
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -653,14 +651,16 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                     }),
             );
         })
-        .then(() =>
-            HybridAppActions.prepareHybridAppAfterTransitionToNewDot({
-                ...hybridApp,
-                closingReactNativeApp: false,
-            }),
-        )
         .then(resetDidUserLoginDuringSessionIfNeeded)
-        .then(() => Promise.all(Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {}))))
+        .then(() =>
+            Promise.all([
+                HybridAppActions.prepareHybridAppAfterTransitionToNewDot({
+                    ...hybridApp,
+                    closingReactNativeApp: false,
+                }),
+                ...Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {})),
+            ]),
+        )
         .then(() => {
             Log.info('[HybridApp] Setup after transition from OldDot finished');
             isHybridAppSetupFinished = true;
@@ -713,7 +713,7 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
  * @param validateCode - 6 digit code required for login
  */
 function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode?: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -727,7 +727,7 @@ function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFa
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -746,7 +746,7 @@ function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFa
         onyxOperationToCleanUpAnonymousUser,
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -780,7 +780,7 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -797,7 +797,7 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -822,7 +822,7 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
         onyxOperationToCleanUpAnonymousUser,
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1059,7 +1059,7 @@ function requestUnlinkValidationLink() {
 }
 
 function unlinkLogin(accountID: number, validateCode: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1069,7 +1069,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1086,7 +1086,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1112,7 +1112,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
  * Toggles two-factor authentication based on the `enable` parameter
  */
 function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1122,7 +1122,7 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1132,7 +1132,7 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1293,7 +1293,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
 };
 
 function AddWorkEmail(workEmail: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1304,7 +1304,7 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1314,7 +1314,7 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.NVP_ONBOARDING>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1343,7 +1343,7 @@ function AddWorkEmail(workEmail: string) {
 }
 
 function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
@@ -1359,7 +1359,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
@@ -1382,7 +1382,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1432,7 +1432,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
 function resetSMSDeliveryFailureStatus(login: string) {
     const params: ResetSMSDeliveryFailureStatusParams = {login};
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1444,7 +1444,7 @@ function resetSMSDeliveryFailureStatus(login: string) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1455,7 +1455,7 @@ function resetSMSDeliveryFailureStatus(login: string) {
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,

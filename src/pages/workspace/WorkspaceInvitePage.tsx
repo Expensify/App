@@ -3,6 +3,7 @@ import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
@@ -60,7 +61,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     useEffect(() => {
         clearErrors(route.params.policyID);
         openWorkspaceInvitePage();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
     }, []);
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
@@ -94,16 +95,26 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         });
     }, [invitedEmailsToAccountIDsDraft, personalDetails]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached, searchOptions} =
-        useSearchSelector({
-            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-            includeUserToInvite: true,
-            excludeLogins: excludedUsers,
-            includeRecentReports: false,
-            shouldInitialize: didScreenTransitionEnd,
-            initialSelected: initiallySelectedOptions,
-        });
+    const {
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        availableOptions,
+        selectedOptions,
+        selectedOptionsForDisplay,
+        toggleSelection,
+        areOptionsInitialized,
+        onListEndReached,
+        searchOptions,
+    } = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+        includeUserToInvite: true,
+        excludeLogins: excludedUsers,
+        includeRecentReports: false,
+        shouldInitialize: didScreenTransitionEnd,
+        initialSelected: initiallySelectedOptions,
+    });
 
     const sections: Sections[] = useMemo(() => {
         const sectionsArr: Sections[] = [];
@@ -179,7 +190,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
@@ -191,7 +202,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
         return getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
     }, [
-        searchTerm,
+        debouncedSearchTerm,
         availableOptions.userToInvite,
         excludedUsers,
         countryCode,
@@ -218,8 +229,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <AccessOrNotFoundWrapper

@@ -1,8 +1,8 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import RenderHTML from '@components/RenderHTML';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -24,7 +24,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {getExportMenuItem} from './utils';
 
 type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EXPORT>;
@@ -34,59 +33,52 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const {policyID, cardID, backTo} = route.params;
-    const bank = decodeURIComponent(route.params.bank) as CompanyCardFeedWithDomainID;
+    const feed = route.params.feed;
     const policy = usePolicy(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [searchText, setSearchText] = useState('');
 
-    const [allBankCards] = useCardsList(bank);
+    const [allBankCards] = useCardsList(feed);
     const card = allBankCards?.[cardID];
     const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
     // We need to have an unchanged active route for getExportMenuItem so the export page link is not updated incorrectly when user is in other pages
     // See https://github.com/Expensify/App/issues/72352 for more details.
-    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
+    const activeRoute = Navigation.getActiveRoute();
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, activeRoute);
     const currentConnectionName = getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
+    const defaultVendor = translate('workspace.accounting.defaultVendor');
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank]);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
 
-    const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
-    }, [exportMenuItem?.data, searchText]);
+    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.moreFeatures.companyCards.noAccountsFound')}
-                subtitle={currentConnectionName ? translate('workspace.moreFeatures.companyCards.noAccountsFoundDescription', currentConnectionName) : undefined}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, currentConnectionName, styles, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.moreFeatures.companyCards.noAccountsFound')}
+            subtitle={currentConnectionName ? translate('workspace.moreFeatures.companyCards.noAccountsFoundDescription', currentConnectionName) : undefined}
+            containerStyle={styles.pb10}
+        />
     );
 
-    const updateExportAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (!exportMenuItem?.exportType) {
-                return;
-            }
-            const isDefaultCardSelected = value === defaultCard;
-            const exportValue = isDefaultCardSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
-            setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(bank));
+    const updateExportAccount = ({value}: SelectorType) => {
+        if (!exportMenuItem?.exportType) {
+            return;
+        }
+        const isDefaultSelected = value === defaultCard || value === defaultVendor;
+        const exportValue = isDefaultSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
+        setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
 
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank));
-        },
-        [exportMenuItem?.exportType, domainOrWorkspaceAccountID, cardID, policyID, bank, defaultCard],
-    );
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo));
+    };
 
     return (
         <SelectionScreen
@@ -111,14 +103,16 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             }
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
             displayName="WorkspaceCompanyCardAccountSelectCardPage"
-            sections={[{data: searchedListOptions ?? []}]}
+            data={searchedListOptions ?? []}
             listItem={RadioListItem}
-            textInputLabel={translate('common.search')}
-            textInputValue={searchText}
-            onChangeText={setSearchText}
+            textInputOptions={{
+                label: translate('common.search'),
+                value: searchText,
+                onChangeText: setSearchText,
+            }}
             onSelectRow={updateExportAccount}
             initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank, backTo), {compareParams: false})}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo))}
             headerTitleAlreadyTranslated={exportMenuItem?.description}
             listEmptyContent={listEmptyContent}
             connectionName={connectedIntegration}

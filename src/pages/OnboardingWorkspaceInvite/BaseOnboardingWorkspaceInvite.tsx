@@ -1,10 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {SectionListData} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
@@ -56,47 +57,35 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
 
-    const excludedUsers = useMemo(() => {
-        const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvitees.reduce(
-            (acc, login) => {
-                acc[login] = true;
-                return acc;
-            },
-            {} as Record<string, boolean>,
-        );
-    }, [policy?.employeeList]);
+    const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
+    const excludedUsers: Record<string, boolean> = {};
+    for (const login of ineligibleInvitees) {
+        excludedUsers[login] = true;
+    }
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, searchOptions} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-        includeUserToInvite: true,
-        excludeLogins: excludedUsers,
-        includeRecentReports: false,
-        shouldInitialize: didScreenTransitionEnd,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, searchOptions} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+            includeUserToInvite: true,
+            excludeLogins: excludedUsers,
+            includeRecentReports: false,
+            shouldInitialize: didScreenTransitionEnd,
+        });
 
-    const welcomeNoteSubject = useMemo(
-        () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
-        [policy?.name, currentUserPersonalDetails?.displayName],
-    );
+    const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
 
-    const welcomeNote = useMemo(() => translate('workspace.common.welcomeNote'), [translate]);
+    const welcomeNote = translate('workspace.common.welcomeNote');
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
-    const sections: Sections[] = useMemo(() => {
-        const sectionsArr: Sections[] = [];
-
-        if (!areOptionsInitialized) {
-            return [];
-        }
-
+    const sections: Sections[] = [];
+    if (areOptionsInitialized) {
         // Selected options section
         if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
+            sections.push({
                 title: undefined,
                 data: selectedOptionsForDisplay,
             });
@@ -104,7 +93,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
         // Contacts section
         if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
+            sections.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
             });
@@ -112,62 +101,41 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
         // User to invite section
         if (availableOptions.userToInvite) {
-            sectionsArr.push({
+            sections.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
             });
         }
-        return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    }
 
-    const handleToggleSelection = useCallback(
-        (option: OptionData) => {
-            toggleSelection(option);
-        },
-        [toggleSelection],
-    );
-
-    const completeOnboarding = useCallback(
-        (isInvitedAccountant: boolean) => {
-            completeOnboardingReport({
-                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
-                firstName: currentUserPersonalDetails.firstName,
-                lastName: currentUserPersonalDetails.lastName,
-                adminsChatReportID: onboardingAdminsChatReportID,
-                onboardingPolicyID,
-                shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
-                isInvitedAccountant,
-                onboardingPurposeSelected,
-            });
-
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
-
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                onboardingPolicyID,
-                onboardingAdminsChatReportID,
-                // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-                // See https://github.com/Expensify/App/issues/57167 for more details
-                (session?.email ?? '').includes('+'),
-            );
-        },
-        [
-            currentUserPersonalDetails.firstName,
-            onboardingMessages,
-            currentUserPersonalDetails.lastName,
-            onboardingAdminsChatReportID,
+    const completeOnboarding = (isInvitedAccountant: boolean) => {
+        completeOnboardingReport({
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
+            firstName: currentUserPersonalDetails.firstName,
+            lastName: currentUserPersonalDetails.lastName,
+            adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
+            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
+            isInvitedAccountant,
             onboardingPurposeSelected,
-            isSmallScreenWidth,
-            isBetaEnabled,
-            session?.email,
-        ],
-    );
+        });
 
-    const inviteUser = useCallback(() => {
+        setOnboardingAdminsChatReportID();
+        setOnboardingPolicyID();
+
+        navigateAfterOnboardingWithMicrotaskQueue(
+            isSmallScreenWidth,
+            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            onboardingPolicyID,
+            onboardingAdminsChatReportID,
+            // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
+            // See https://github.com/Expensify/App/issues/57167 for more details
+            (session?.email ?? '').includes('+'),
+        );
+    };
+
+    const inviteUser = () => {
         let isValid = true;
         if (selectedOptions.length <= 0) {
             isValid = false;
@@ -190,54 +158,38 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, onboardingPolicyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber);
         completeOnboarding(true);
-    }, [completeOnboarding, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject, formatPhoneNumber]);
+    };
 
-    const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
-        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
-            return translate('messages.errorMessageInvalidEmail');
-        }
-        if (
-            !availableOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
-        ) {
-            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
-        }
-        return getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
-    }, [
-        searchTerm,
-        availableOptions.userToInvite,
-        excludedUsers,
-        countryCode,
-        searchOptions.personalDetails.length,
-        searchOptions.userToInvite,
-        selectedOptions.length,
-        translate,
-        policy?.name,
-    ]);
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    let headerMessage = getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
+    if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+        headerMessage = translate('messages.errorMessageInvalidEmail');
+    } else if (
+        !availableOptions.userToInvite &&
+        excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
+    ) {
+        headerMessage = translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
+    }
 
-    const footerContent = useMemo(
-        () => (
-            <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh3 : undefined]}>
-                <View style={styles.mb2}>
-                    <Button
-                        large
-                        text={translate('common.skip')}
-                        onPress={() => completeOnboarding(false)}
-                    />
-                </View>
-                <View>
-                    <Button
-                        success
-                        large
-                        text={translate('common.continue')}
-                        onPress={() => inviteUser()}
-                        isDisabled={selectedOptions.length <= 0}
-                    />
-                </View>
+    const footerContent = (
+        <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh3 : undefined]}>
+            <View style={styles.mb2}>
+                <Button
+                    large
+                    text={translate('common.skip')}
+                    onPress={() => completeOnboarding(false)}
+                />
             </View>
-        ),
-        [completeOnboarding, inviteUser, onboardingIsMediumOrLargerScreenWidth, selectedOptions.length, styles.mb2, styles.mh3, translate],
+            <View>
+                <Button
+                    success
+                    large
+                    text={translate('common.continue')}
+                    onPress={() => inviteUser()}
+                    isDisabled={selectedOptions.length <= 0}
+                />
+            </View>
+        </View>
     );
 
     return (
@@ -252,6 +204,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             <HeaderWithBackButton
                 progressBarPercentage={100}
                 shouldShowBackButton={false}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
                 <Text style={styles.textHeadlineH1}>{translate('onboarding.inviteMembers.title')}</Text>
@@ -273,7 +226,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                     setSearchTerm(value);
                 }}
                 headerMessage={headerMessage}
-                onSelectRow={handleToggleSelection}
+                onSelectRow={toggleSelection}
                 onConfirm={inviteUser}
                 showScrollIndicator
                 showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}

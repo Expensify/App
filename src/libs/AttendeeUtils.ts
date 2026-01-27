@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -8,7 +9,8 @@ function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], p
     const enabledFields: string[] = [];
 
     // Attendees field should show first when both are selected and attendee tracking is enabled
-    if (isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
+    // Respect feature flag - don't show attendees in title when feature is disabled
+    if (CONST.IS_ATTENDEES_REQUIRED_ENABLED && isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
         enabledFields.push(translate('iou.attendees'));
     }
 
@@ -34,6 +36,11 @@ function getIsMissingAttendeesViolation(
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled = false,
 ) {
+    // Feature flag to quickly disable the attendees required feature
+    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
+        return false;
+    }
+
     const areAttendeesRequired = !!policyCategories?.[category ?? '']?.areAttendeesRequired;
     // If attendee tracking is disabled at the policy level, don't enforce attendee requirement
     if (!isAttendeeTrackingEnabled || !areAttendeesRequired) {
@@ -41,8 +48,13 @@ function getIsMissingAttendeesViolation(
     }
 
     const creatorLogin = userPersonalDetails.login ?? '';
+    const creatorEmail = userPersonalDetails.email ?? '';
     const attendees = Array.isArray(iouAttendees) ? iouAttendees : [];
-    const attendeesMinusCreatorCount = attendees.filter((a) => a?.login !== creatorLogin).length;
+    // Check both login and email since attendee objects may have identifier in either property
+    const attendeesMinusCreatorCount = attendees.filter((a) => {
+        const attendeeIdentifier = a?.login ?? a?.email;
+        return attendeeIdentifier !== creatorLogin && attendeeIdentifier !== creatorEmail;
+    }).length;
 
     if (attendees.length === 0 || attendeesMinusCreatorCount === 0) {
         return true;
@@ -51,4 +63,49 @@ function getIsMissingAttendeesViolation(
     return false;
 }
 
-export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation};
+/**
+ * Syncs the missingAttendees violation with current policy settings.
+ * - Adds the violation when it should show but isn't present from BE
+ * - Removes stale BE violation when policy settings changed (e.g., category no longer requires attendees)
+ */
+function syncMissingAttendeesViolation<T extends {name: string}>(
+    violations: T[],
+    policyCategories: PolicyCategories | undefined,
+    category: string,
+    attendees: Attendee[] | undefined,
+    userPersonalDetails: CurrentUserPersonalDetails,
+    isAttendeeTrackingEnabled: boolean,
+    isControlPolicy: boolean,
+    isInvoice = false,
+): T[] {
+    // Feature flag to quickly disable the attendees required feature
+    // When disabled, remove any existing missingAttendees violations and don't add new ones
+    // Never add missingAttendees violation for invoices
+    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED || isInvoice) {
+        return violations.filter((v) => v.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
+    }
+
+    const hasMissingAttendeesViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
+    const shouldShowMissingAttendees =
+        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled);
+
+    if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
+        // Add violation when it should show but isn't present from BE
+        return [
+            ...violations,
+            {
+                name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            } as unknown as T,
+        ];
+    }
+    if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
+        // Remove stale BE violation when policy settings changed
+        return violations.filter((v) => v.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
+    }
+
+    return violations;
+}
+
+export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation, syncMissingAttendeesViolation};

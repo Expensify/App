@@ -32,8 +32,14 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
         case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
             Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER:
+            Navigation.goBack(ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            break;
         case CONST.IOU.REQUEST_TYPE.SCAN:
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
+            break;
+        case CONST.IOU.REQUEST_TYPE.TIME:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
         default:
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
@@ -91,6 +97,81 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
         finalAmount = totalInCurrencySubunit !== sumAmount ? amountPerPerson + difference : amountPerPerson;
     }
     return Math.round((finalAmount * 100) / currencyUnit);
+}
+
+/**
+ * Calculate a split amount in backend cents from a percentage of the original amount.
+ * - Clamps percentage to [0, 100]
+ * - Preserves decimal precision in percentage (supports 0.1 precision)
+ * - Preserves the sign of the original amount (negative amounts stay negative)
+ */
+function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
+    const totalAbs = Math.abs(totalInCents);
+    // Clamp percentage to [0, 100] without rounding to preserve decimal precision
+    const clamped = Math.min(100, Math.max(0, percentage));
+    const amount = Math.round((totalAbs * clamped) / 100);
+    // Return 0 for zero amounts to avoid -0
+    if (amount === 0) {
+        return 0;
+    }
+    return totalInCents < 0 ? -amount : amount;
+}
+
+/**
+ * Given a list of split amounts (in backend cents) and the original total amount, calculate display percentages
+ * for each split so that:
+ * - Each row is a percentage of the original total with one decimal place (0.1 precision)
+ * - Equal amounts ALWAYS have equal percentages
+ * - The remainder needed to reach 100% goes to the last item (which should be the largest)
+ * - When the sum of split amounts does not match the original total (over/under splits), percentages still reflect
+ *   each amount as a percentage of the original total and may sum to something other than 100
+ */
+function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
+    const totalAbs = Math.abs(totalInCents);
+
+    if (totalAbs <= 0 || amountsInCents.length === 0) {
+        return amountsInCents.map(() => 0);
+    }
+
+    const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
+
+    // Helper functions for decimal precision
+    const roundToOneDecimal = (value: number): number => Math.round(value * 10) / 10;
+    const floorToOneDecimal = (value: number): number => Math.floor(value * 10) / 10;
+
+    // ALWAYS use floored percentages to guarantee equal amounts get equal percentages
+    const flooredPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? floorToOneDecimal((amount / totalAbs) * 100) : 0));
+
+    const amountsTotal = amountsAbs.reduce((sum, curr) => sum + curr, 0);
+
+    // If the split amounts don't add up to the original total, return floored percentages as-is
+    // (the sum may not be 100, but that's expected when there's a validation error)
+    if (amountsTotal !== totalAbs) {
+        return flooredPercentages;
+    }
+
+    // Calculate remainder and add it to the LAST item (which should be the largest in even splits)
+    const sumOfFlooredPercentages = roundToOneDecimal(flooredPercentages.reduce((sum, current) => sum + current, 0));
+    const remainder = roundToOneDecimal(100 - sumOfFlooredPercentages);
+
+    if (remainder <= 0) {
+        return flooredPercentages;
+    }
+
+    // Add remainder to the last item with the MAXIMUM amount (not just the last item since that can be a new split with 0 amount)
+    // This ensures 0-amount splits stay at 0%
+    const maxAmount = Math.max(...amountsAbs);
+    let lastMaxIndex = amountsAbs.length - 1; // fallback to last
+    for (let i = 0; i < amountsAbs.length; i += 1) {
+        if (amountsAbs.at(i) === maxAmount) {
+            lastMaxIndex = i;
+        }
+    }
+
+    const adjustedPercentages = [...flooredPercentages];
+    adjustedPercentages[lastMaxIndex] = roundToOneDecimal((adjustedPercentages.at(lastMaxIndex) ?? 0) + remainder);
+
+    return adjustedPercentages;
 }
 
 /**
@@ -242,8 +323,44 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
+function navigateToConfirmationPage(
+    iouType: IOUType,
+    transactionID: string,
+    reportID: string,
+    backToReport: string | undefined,
+    shouldNavigateToSubmit = false,
+    reportIDParam: string | undefined = undefined,
+    fromManualDistanceRequest = false,
+) {
+    switch (iouType) {
+        case CONST.IOU.TYPE.REQUEST:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
+            break;
+        case CONST.IOU.TYPE.SEND:
+            if (fromManualDistanceRequest) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+            }
+            break;
+        default:
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
+                    transactionID,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    reportIDParam || reportID,
+                    backToReport,
+                ),
+            );
+    }
+}
+
 export {
     calculateAmount,
+    calculateSplitAmountFromPercentage,
+    calculateSplitPercentagesFromAmounts,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
@@ -254,4 +371,5 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    navigateToConfirmationPage,
 };

@@ -1,12 +1,11 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import type {SearchColumnType} from '@components/Search/types';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
+import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ListItem, TransactionGroupListExpandedProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -38,7 +37,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     accountID,
     isOffline,
     violations,
-    areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
     transactions,
     transactionsVisibleLimit,
     setTransactionsVisibleLimit,
@@ -58,45 +56,22 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
 
-    const transactionsSnapshotMetadata = useMemo(() => {
-        return transactionsSnapshot?.search;
-    }, [transactionsSnapshot?.search]);
+    const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
-    const visibleTransactions = useMemo(() => {
-        if (isExpenseReportType) {
-            return transactions.slice(0, transactionsVisibleLimit);
-        }
-        return transactions;
-    }, [transactions, transactionsVisibleLimit, isExpenseReportType]);
+    const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
-    const isLastTransaction = useCallback(
-        (index: number) => {
-            return index === visibleTransactions.length - 1;
-        },
-        [visibleTransactions.length],
-    );
+    const isLastTransaction = (index: number) => {
+        return index === visibleTransactions.length - 1;
+    };
 
-    const currentColumns = useMemo(() => {
-        if (isExpenseReportType) {
-            return columns ?? [];
-        }
+    let currentColumns = columns ?? [];
+    if (!isExpenseReportType) {
         if (!transactionsSnapshot?.data) {
-            return [];
+            currentColumns = [];
+        } else {
+            currentColumns = getColumnsToShow(accountID, transactionsSnapshot?.data, visibleColumns, false, transactionsSnapshot?.search.type);
         }
-        const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, visibleColumns, false, transactionsSnapshot?.search.type);
-
-        return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
-    }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type, visibleColumns]);
-
-    const areAllOptionalColumnsHidden = useMemo(() => {
-        if (isExpenseReportType) {
-            return areAllOptionalColumnsHiddenProp ?? false;
-        }
-        const canBeMissingColumns = getExpenseHeaders(groupBy)
-            .filter((header) => header.canBeMissing)
-            .map((header) => header.columnName);
-        return canBeMissingColumns.every((column) => !currentColumns.includes(column));
-    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, isExpenseReportType]);
+    }
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
@@ -105,16 +80,12 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-        const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
-        const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
-        const shouldShowYearForSomeTransaction = transactions.some((transaction) => transaction.shouldShowYear);
-        return {
-            amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        };
-    }, [transactions]);
+    const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
+    const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
+    const shouldShowYearForSomeTransaction = transactions.some((transaction) => transaction.shouldShowYear);
+    const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
@@ -148,13 +119,13 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         });
     };
 
-    const onShowMoreButtonPress = useCallback(() => {
+    const onShowMoreButtonPress = () => {
         if (isExpenseReportType) {
             setTransactionsVisibleLimit((currentPageSize) => currentPageSize + CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         } else if (!isOffline && transactionsQueryJSON) {
             searchTransactions(CONST.SEARCH.RESULTS_PAGE_SIZE);
         }
-    }, [isExpenseReportType, isOffline, transactionsQueryJSON, setTransactionsVisibleLimit, searchTransactions]);
+    };
 
     if (shouldDisplayEmptyView) {
         return (
@@ -177,7 +148,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         openReportInRHP(transaction);
     };
 
-    const minTableWidth = getTableMinWidth(columns ?? []);
+    const minTableWidth = getTableMinWidth(currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? []);
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
     const content = (
@@ -195,13 +166,15 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                         shouldShowSorting={false}
                         columns={currentColumns}
-                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
                         groupBy={groupBy}
+                        isExpenseReportView
                     />
                 </View>
             )}
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
+                const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
+
                 const transactionRow = (
                     <TransactionItemRow
                         report={transaction.report}
@@ -222,10 +195,10 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1Half], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
-                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                         shouldShowBottomBorder={shouldShowBottomBorder}
                         onArrowRightPress={() => openReportInRHP(transaction)}
                         shouldShowArrowRightOnNarrowLayout
+                        reportActions={exportedReportActions}
                     />
                 );
                 return (

@@ -50,6 +50,42 @@ const triggerReconnectionCallbacks = throttle(
     {trailing: false},
 );
 
+// Only allow one NetInfo.refresh at a time, and respect the interval
+// Exported state object to allow unit tests to inspect and control internal state
+const recheckNetworkState = {
+    isCheckPending: false,
+    lastCheckTimestamp: 0,
+};
+
+/**
+ * Refresh NetInfo state.
+ */
+function recheckNetworkConnection() {
+    const now = Date.now();
+
+    if (recheckNetworkState.isCheckPending) {
+        Log.info('[NetworkConnection] NetInfo.refresh already in progress, skipping new check.');
+        return;
+    }
+
+    if (now - recheckNetworkState.lastCheckTimestamp < CONST.NETWORK.MAX_PENDING_TIME_MS) {
+        Log.info('[NetworkConnection] NetInfo.refresh called too soon, skipping to respect interval.');
+        return;
+    }
+
+    recheckNetworkState.isCheckPending = true;
+    recheckNetworkState.lastCheckTimestamp = now;
+    Log.info('[NetworkConnection] refresh NetInfo.');
+    Promise.resolve(NetInfo.refresh())
+        .catch((err: unknown) => {
+            Log.info('[NetworkConnection] NetInfo.refresh failed.', false, String(err));
+        })
+        .finally(() => {
+            recheckNetworkState.isCheckPending = false;
+            Log.info('[NetworkConnection] NetInfo.refresh finished.');
+        });
+}
+
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
@@ -211,7 +247,7 @@ function subscribeToNetInfo(accountID: number | undefined): () => void {
         // Calling NetInfo.configure (re)checks current state. We use it to force a recheck whenever we (re)subscribe
         NetInfo.configure({
             // By default, NetInfo uses `/` for `reachabilityUrl`
-            // When App is served locally (or from Electron) this address is always reachable - even offline
+            // When App is served locally this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
             reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
             reachabilityMethod: 'GET',
@@ -311,14 +347,6 @@ function clearReconnectionCallbacks() {
     }
 }
 
-/**
- * Refresh NetInfo state.
- */
-function recheckNetworkConnection() {
-    Log.info('[NetworkConnection] recheck NetInfo');
-    NetInfo.refresh();
-}
-
 export default {
     clearReconnectionCallbacks,
     setOfflineStatus,
@@ -328,5 +356,6 @@ export default {
     recheckNetworkConnection,
     subscribeToNetInfo,
     getDBTimeWithSkew,
+    recheckNetworkState,
 };
 export type {NetworkStatus};

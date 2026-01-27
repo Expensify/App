@@ -80,6 +80,7 @@ export type {RulesAutoApproveReportsUnderModalForm} from './RulesAutoApproveRepo
 export type {RulesRandomReportAuditModalForm} from './RulesRandomReportAuditModalForm';
 export type {RulesAutoPayReportsUnderModalForm} from './RulesAutoPayReportsUnderModalForm';
 export type {RulesRequiredReceiptAmountForm} from './RulesRequiredReceiptAmountForm';
+export type {RulesRequiredItemizedReceiptAmountForm} from './RulesRequiredItemizedReceiptAmountForm';
 export type {RulesMaxExpenseAmountForm} from './RulesMaxExpenseAmountForm';
 export type {RulesMaxExpenseAgeForm} from './RulesMaxExpenseAgeForm';
 export type {RulesCustomForm} from './RulesCustomForm';
@@ -100,3 +101,7 @@ export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm'
 export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsForm';
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
 export type {CreateDomainForm} from './CreateDomainForm';
+export type {SplitExpenseEditDateForm} from './SplitExpenseEditDateForm';
+export type {ResetDomainForm} from './ResetDomainForm';
+export type {ExpenseRuleForm} from './ExpenseRuleForm';
+export type {AddDomainMemberForm} from './AddDomainMemberForm';

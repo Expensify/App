@@ -1,7 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, InteractionManager, Modal, View} from 'react-native';
+import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -81,14 +81,14 @@ function ReanimatedModal({
     );
 
     useEffect(() => {
-        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
+        if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
             backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
-            if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
+            if (getPlatform() === CONST.PLATFORM.WEB) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
                 backHandlerListener.current?.remove();
@@ -106,7 +106,7 @@ function ReanimatedModal({
             setIsVisibleState(false);
             setIsContainerOpen(false);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -127,7 +127,7 @@ function ReanimatedModal({
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
 
     const backdropStyle: ViewStyle = useMemo(() => {
@@ -159,6 +159,10 @@ function ReanimatedModal({
             onModalHide();
         }
     }, [onModalHide]);
+
+    const modalStyle = useMemo(() => {
+        return {zIndex: StyleSheet.flatten(style)?.zIndex};
+    }, [style]);
 
     const containerView = (
         <Container
@@ -221,6 +225,7 @@ function ReanimatedModal({
                         onModalHide();
                     }
                 }}
+                style={modalStyle}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >

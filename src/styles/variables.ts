@@ -102,6 +102,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
     superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
@@ -109,6 +110,7 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
+    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
@@ -223,6 +225,10 @@ export default {
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     popoverZIndex: 10000,
+    modalBaseZIndex: 9999,
+    sidePanelZIndex: 9998,
+    modalRightDockedZIndex: 9997,
+    modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
@@ -386,4 +392,17 @@ export default {
 
     // Report search header max width
     reportSearchHeaderMaxWidth: 700,
+
+    // Split expense tabs
+    splitExpenseAmountMobileWidth: 82,
+    splitExpensePercentageWidth: 42,
+    splitExpensePercentageMobileWidth: 62,
+
+    // Multifactor Authentication illustrations size
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
 } as const;

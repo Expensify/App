@@ -18,7 +18,7 @@ type SingleSelectItem<T> = {
 
 type SingleSelectPopupProps<T> = {
     /** The label to show when in an overlay on mobile */
-    label: string;
+    label?: string;
 
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
@@ -37,9 +37,12 @@ type SingleSelectPopupProps<T> = {
 
     /** Search input place holder */
     searchPlaceholder?: string;
+
+    /** The default value to set when reset is clicked */
+    defaultValue?: string;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -93,9 +96,9 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     }, [closeOverlay, onChange, selectedItem]);
 
     const resetChanges = useCallback(() => {
-        onChange(null);
+        onChange(defaultValue ? (items.find((item) => item.value === defaultValue) ?? null) : null);
         closeOverlay();
-    }, [closeOverlay, onChange]);
+    }, [closeOverlay, onChange, defaultValue, items]);
 
     const textInputOptions = useMemo(
         () => ({
@@ -107,9 +110,11 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
         [searchTerm, isSearchable, searchPlaceholder, translate, setSearchTerm, noResultsFound],
     );
 
+    const shouldShowLabel = isSmallScreenWidth && !!label;
+
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+            {shouldShowLabel && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
             <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false)]}>
                 <SelectionList

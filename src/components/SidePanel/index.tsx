@@ -1,10 +1,12 @@
 import React from 'react';
 import useSidePanel from '@hooks/useSidePanel';
-import Help from './HelpModal';
+import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import SidePanelModal from './SidePanelModal';
+import SidePanelReport from './SidePanelReport';
 import useSyncSidePanelWithHistory from './useSyncSidePanelWithHistory';
 
-function SidePanel() {
-    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, closeSidePanel} = useSidePanel();
+function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
+    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, closeSidePanel, reportID} = useSidePanel();
 
     // Hide side panel once animation ends
     // This hook synchronizes the side panel visibility with the browser history when it is displayed as RHP.
@@ -13,7 +15,7 @@ function SidePanel() {
     useSyncSidePanelWithHistory();
 
     // Side panel can't be displayed if NVP is undefined
-    if (!sidePanelNVP) {
+    if (!sidePanelNVP || !reportID) {
         return null;
     }
 
@@ -22,12 +24,17 @@ function SidePanel() {
     }
 
     return (
-        <Help
+        <SidePanelModal
             shouldHideSidePanel={shouldHideSidePanel}
             sidePanelTranslateX={sidePanelTranslateX}
             closeSidePanel={closeSidePanel}
             shouldHideSidePanelBackdrop={shouldHideSidePanelBackdrop}
-        />
+        >
+            <SidePanelReport
+                navigation={navigation}
+                reportID={reportID}
+            />
+        </SidePanelModal>
     );
 }
 

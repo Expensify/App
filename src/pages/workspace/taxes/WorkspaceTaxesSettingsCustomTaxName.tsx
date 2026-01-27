@@ -45,10 +45,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
             if (!isRequiredFulfilled(customTaxName)) {
                 errors.name = translate('workspace.taxes.error.customNameRequired');
             } else if (customTaxName.length > CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH) {
-                errors.name = translate('common.error.characterLimitExceedCounter', {
-                    length: customTaxName.length,
-                    limit: CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH,
-                });
+                errors.name = translate('common.error.characterLimitExceedCounter', customTaxName.length, CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH);
             }
 
             return errors;

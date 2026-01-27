@@ -53,7 +53,7 @@ The [`deploy` workflow](https://github.com/Expensify/App/blob/main/.github/workf
 - If `production` was updated, it creates a GitHub Release for the new version.
 
 ### platformDeploy
-The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS Desktop). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
+The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all three platforms (iOS, Android, Web). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
 
 ### lockDeploys
 The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/lockDeploys.yml) executes when the `StagingDeployCash` is locked, and it waits for any currently running staging deploys to finish, then gives Applause the :green_circle: to begin QA by commenting in the `StagingDeployCash` checklist.
@@ -62,7 +62,7 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
 ### testBuild
-The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (hybrid iOS, hybrid Android, web, and desktop) from pull requests submitted to the App and Mobile-Expensify repositories. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. This workflow accepts up to two inputs:
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (hybrid iOS, hybrid Android, and web) from pull requests submitted to the App and Mobile-Expensify repositories. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. This workflow accepts up to two inputs:
 - A PR number from the App repository for testing New Dot (ND) changes.
 - A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
 
@@ -74,26 +74,6 @@ Sometimes it might be beneficial to generate a local production version instead 
 
 ### - Web app local production builds SHOULD use `npm run build`
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
-
-### - MacOS desktop app local production builds SHOULD disable publishing for local testing
-The commands used to compile a production or staging desktop build are `npm run desktop-build` and `npm run desktop-build-staging`, respectively. These will produce an app in the `dist/Mac` folder named NewExpensify.dmg that you can install like a normal app.
-
-HOWEVER, by default those commands will try to notarize the build (signing it as Expensify) and publish it to the S3 bucket where it's hosted for users. In most cases you won't actually need or want to do that for your local testing. To get around that and disable those behaviors for your local build, apply the following diff:
-
-```diff
-diff --git a/scripts/build-desktop.sh b/scripts/build-desktop.sh
-index 791f59d733..526306eec1 100755
---- a/scripts/build-desktop.sh
-+++ b/scripts/build-desktop.sh
-@@ -35,4 +35,4 @@ npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
- title "Building Desktop App Archive Using Electron"
- info ""
- shift 1
--npx electron-builder --config config/electronBuilder.config.js --publish always "$@"
-+npx electron-builder --config config/electronBuilder.config.js --publish never "$@"
-```
-
-There may be some cases where you need to test a signed and published build, such as when testing the update flows. Instructions on setting that up can be found in [Testing Electron Auto-Update](https://github.com/Expensify/App/blob/main/desktop/README.md#testing-electron-auto-update). Good luck 🙃
 
 ### - iOS app local production builds SHOULD use `npm run ios-build`
 In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.

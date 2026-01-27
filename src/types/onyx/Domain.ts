@@ -1,10 +1,7 @@
-import type ONYXKEYS from '@src/ONYXKEYS';
+import type CONST from '@src/CONST';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type * as OnyxCommon from './OnyxCommon';
-
-/**
- * A utility type that creates a record where all keys are strings that start with a specified prefix.
- */
-type PrefixedRecord<Prefix extends string, ValueType> = Record<`${Prefix}${string}`, ValueType>;
+import type SecurityGroup from './SecurityGroup';
 
 /** Model of domain data */
 type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -18,7 +15,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     email: string;
 
     /** Validation code for the domain */
-    validateCode: string;
+    validateCode?: string;
 
     /** Whether domain validation is pending */
     isValidationPending?: boolean;
@@ -46,8 +43,13 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether setting SAML required setting has failed and why */
     samlRequiredError?: OnyxCommon.Errors;
+
+    /** ID of the default security group for the domain */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    domain_defaultSecurityGroupID: string;
 }> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>;
+    PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
+    PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>;
 
 /** Model of SAML metadata */
 type SamlMetadata = {
@@ -94,6 +96,15 @@ type SamlMetadata = {
     samlMetadataError: OnyxCommon.Errors;
 };
 
-export {type SamlMetadata};
+/** Model of Security Group data */
+type DomainSecurityGroup = SecurityGroup & {
+    /**
+     * A map of member account IDs
+     * Key: The accountID of the member
+     */
+    shared: Record<string, 'read' | null>;
+};
+
+export {type SamlMetadata, type DomainSecurityGroup};
 
 export default Domain;

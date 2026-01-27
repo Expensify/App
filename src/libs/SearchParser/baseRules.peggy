@@ -12,6 +12,7 @@
 { 
   let nameOperator = false;
   let expectingNestedQuote = false;
+  let isColumnsContext = false;
 }
 
 // rules to match re-defined search syntax keys.
@@ -68,6 +69,7 @@ exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
 withdrawn = "withdrawn"i { return "withdrawn"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
+limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
@@ -78,15 +80,64 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
-columns = "columns"i {return "columns"}
+columns = "columns"i { 
+  isColumnsContext = true;
+  return "columns";
+}
 
 // Value transformation rules
 values
-  = perDiem
+  = &{ return isColumnsContext; } columnsValues
+  / perDiem
   / draft
 
-perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
-draft = "drafts"i / "draft"i {return "drafts"; }
+columnsValues
+  = originalAmount
+  / taxRateValue
+  / taxAmount
+  / policyName
+  / withdrawalId
+  / bankAccount
+  / reportId
+  / base62ReportId
+  / exportedTo
+  / exchangeRate
+  / reimbursableTotal
+  / nonReimbursableTotal
+  / groupFrom
+  / groupExpenses
+  / groupTotal
+  / groupCard
+  / groupFeed
+  / groupBankAccount
+  / groupWithdrawn
+  / groupWithdrawalId
+  / groupCategory
+
+perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
+draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
+originalAmount          = "original-amount"i &wordBoundary          { return "originalamount"; }
+taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
+taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
+policyName              = "policy-name"i &wordBoundary              { return "policyname"; }
+withdrawalId            = "withdrawal-id"i &wordBoundary            { return "withdrawalID"; }
+bankAccount             = "bank-account"i &wordBoundary             { return "bankAccount"; }
+reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
+base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
+exportedTo              = "exported-to"i &wordBoundary              { return "exportedto"; }
+exchangeRate            = "exchange-rate"i &wordBoundary            { return "exchangeRate"; }
+reimbursableTotal       = "reimbursable-total"i &wordBoundary       { return "reimbursableTotal"; }
+nonReimbursableTotal    = "non-reimbursable-total"i &wordBoundary   { return "nonReimbursableTotal"; }
+groupFrom               = "group-from"i &wordBoundary               { return "groupFrom"; }
+groupExpenses           = "group-expenses"i &wordBoundary           { return "groupExpenses"; }
+groupTotal              = "group-total"i &wordBoundary              { return "groupTotal"; }
+groupCard               = "group-card"i &wordBoundary               { return "groupCard"; }
+groupFeed               = "group-feed"i &wordBoundary               { return "groupFeed"; }
+groupBankAccount        = "group-bank-account"i &wordBoundary       { return "groupBankAccount"; }
+groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
+groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
+groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
+
 
 operator "operator"
   = (":" / "=") { return "eq"; }
@@ -101,12 +152,16 @@ filterOperator
       if (nameOperator) {
         expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
       }
+      isColumnsContext = false;
       return o;
   }
 
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
-logicalAnd = _ { return "and"; }
+logicalAnd = _ { 
+  isColumnsContext = false;
+  return "and";
+}
 
 _ "whitespace" = [ \t\r\n\xA0]* //handle no-breaking space
 
@@ -137,3 +192,7 @@ validClosingCondition
   = [ \t\n\r\xA0a-zA-Z0-9]* [a-zA-Z0-9]* [ \t\n\r\xA0]* operator  // Case 1: Followed by WORD + OPERATOR (new key-value pair)
   / [ \t\n\r\xA0a-zA-Z]* !operator !.  // Case 2: Followed by any number of spaces, or words, with no operator, and then an END OF INPUT.
   / [,] // Case 3: Followed by a comma
+
+wordBoundary
+  = [ \t\n\r\xA0,]  // whitespace or comma
+  / !.              // or end of input

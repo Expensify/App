@@ -8,9 +8,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import useCardFeeds from '@hooks/useCardFeeds';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useCompanyCards from '@hooks/useCompanyCards';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,16 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
-    getCardFeedIcon,
-    getCompanyFeeds,
-    getCustomOrFormattedFeedName,
-    getDomainOrWorkspaceAccountID,
-    getPlaidInstitutionIconUrl,
-    getSelectedFeed,
-} from '@libs/CardUtils';
+import {getCardFeedIcon, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
@@ -54,41 +46,36 @@ type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<Settin
 function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedSelectorPageProps) {
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {translate} = useLocalize();
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const [cardFeeds] = useCardFeeds(policyID);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
     const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const feeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([key, feedSettings]) => {
-        const filteredFeedCards = filterInactiveCards(
-            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feedSettings.feed}`],
-        );
-        const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
+    const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
+    const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
+
+    const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
         const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
         const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
 
+        const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
+
         return {
-            value: key,
-            feed: feedSettings.feed,
+            value: feedName,
+            feed: feedSettings.feed as CompanyCardFeed,
             alternateText: domainName ?? policy?.name,
-            text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
-            keyForList: key,
-            isSelected: key === selectedFeed,
+            text: getCustomOrFormattedFeedName(translate, feedSettings.feed as CompanyCardFeed, feedSettings.customFeedName),
+            keyForList: feedName,
+            isSelected: feedName === selectedFeedName,
             isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             pendingAction: feedSettings.pendingAction,
-            brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            canShowSeveralIndicators: isFeedConnectionBroken,
+            brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            canShowSeveralIndicators: shouldShowRBR,
             leftElement: plaidUrl ? (
                 <PlaidCardFeedIcon
                     plaidUrl={plaidUrl}
@@ -96,7 +83,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
             ) : (
                 <Icon
-                    src={getCardFeedIcon(feedSettings.feed, illustrations, companyCardFeedIcons)}
+                    src={getCardFeedIcon(feedSettings.feed as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -143,7 +130,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     onSelectRow={selectFeed}
                     data={feeds}
                     alternateNumberOfSupportedLines={2}
-                    initiallyFocusedItemKey={selectedFeed}
+                    initiallyFocusedItemKey={selectedFeedName}
                     addBottomSafeAreaPadding
                     listFooterContent={
                         <MenuItem

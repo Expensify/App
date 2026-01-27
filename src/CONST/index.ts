@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,6 +25,7 @@ const EMPTY_OBJECT = Object.freeze({});
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
 
 const DEFAULT_NUMBER_ID = 0;
+const DEFAULT_MISSING_ID = -1;
 const DEFAULT_COUNTRY_CODE = 1;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -32,6 +34,8 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const XERO_PARTNER_LINK = 'https://xero5440.partnerlinks.io/uzfjy4uegog2-v0pj1v';
+const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
@@ -211,6 +215,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
+    SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATED_PROGRESS_BAR_DELAY: 300,
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
@@ -222,6 +227,7 @@ const CONST = {
         OUT: 'out',
     },
     ELEMENT_NAME: {
+        DIV: 'DIV',
         INPUT: 'INPUT',
         TEXTAREA: 'TEXTAREA',
     },
@@ -389,6 +395,18 @@ const CONST = {
         MAX_LENGTH: 83,
     },
 
+    EXPORT_LABELS: {
+        NETSUITE: 'NetSuite',
+        QBO: 'QuickBooks Online',
+        QBD: 'QuickBooks Desktop',
+        XERO: 'Xero',
+        INTACCT: 'Intacct',
+        SAGE_INTACCT: 'Sage Intacct',
+        CERTINIA: 'FinancialForce',
+        BILLCOM: 'Bill.com',
+        ZENEFITS: 'Zenefits',
+    },
+
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
     HIDDEN_MESSAGE_ATTRIBUTE: 'is-hidden-message',
 
@@ -405,6 +423,8 @@ const CONST = {
         MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
+
+    MULTIFACTOR_AUTHENTICATION: MULTIFACTOR_AUTHENTICATION_VALUES,
 
     DESKTOP_SHORTCUT_ACCELERATOR: {
         PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
@@ -432,10 +452,11 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    XERO_PARTNER_LINK,
+    UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
-        DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
@@ -670,6 +691,15 @@ const CONST = {
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
+        STATE: {
+            VERIFYING: 'VERIFYING',
+            VALIDATING: 'VALIDATING',
+            SETUP: 'SETUP',
+            PENDING: 'PENDING',
+            OPEN: 'OPEN',
+            DELETED: 'DELETED',
+            LOCKED: 'LOCKED',
+        },
     },
     ENABLE_GLOBAL_REIMBURSEMENTS: {
         STEP_NAMES: ['1', '2', '3'],
@@ -695,24 +725,24 @@ const CONST = {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
-        P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        SPOTNANA_TRAVEL: 'spotnanaTravel',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        NEWDOT_REJECT: 'newDotReject',
         CUSTOM_RULES: 'customRules',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        PLAID_COMPANY_CARDS: 'plaidCompanyCards',
+        TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        ZERO_EXPENSES: 'zeroExpenses',
+        NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
+        NEW_DOT_HOME: 'newDotHome',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -754,7 +784,6 @@ const CONST = {
         IOS: 'ios',
         ANDROID: 'android',
         WEB: 'web',
-        DESKTOP: 'desktop',
         MOBILE_WEB: 'mobileweb',
     },
     PLATFORM_SPECIFIC_KEYS: {
@@ -950,6 +979,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
     FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
@@ -1078,8 +1108,6 @@ const CONST = {
     SIGN_IN_FORM_WIDTH: 300,
 
     REQUEST_CODE_DELAY: 30,
-
-    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
 
     SIGN_IN_METHOD: {
         APPLE: 'Apple',
@@ -1210,14 +1238,17 @@ const CONST = {
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
+                CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS: 'CREATEDREPORTFORUNAPPROVEDTRANSACTIONS',
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
+                DEW_SUBMIT_FAILED: 'DEWSUBMITFAILED',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                DYNAMIC_EXTERNAL_WORKFLOW_ROUTED: 'DYNAMICEXTERNALWORKFLOWROUTED',
                 EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
@@ -1227,6 +1258,7 @@ const CONST = {
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
+                COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -1294,6 +1326,7 @@ const CONST = {
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
                     DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
+                    DELETE_CATEGORIES: 'POLICYCHANGELOG_DELETE_CATEGORIES',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
                     DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
@@ -1333,18 +1366,23 @@ const CONST = {
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
                     UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_ADDRESS: 'POLICYCHANGELOG_UPDATE_ADDRESS',
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
+                    UPDATE_INVOICE_COMPANY_NAME: 'POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_NAME',
+                    UPDATE_INVOICE_COMPANY_WEBSITE: 'POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_WEBSITE',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
+                    UPDATE_MAX_EXPENSE_AGE: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AGE',
                     UPDATE_MULTIPLE_TAGS_APPROVER_RULES: 'POLICYCHANGELOG_UPDATE_MULTIPLE_TAGS_APPROVER_RULES',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
+                    UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
@@ -1532,6 +1570,7 @@ const CONST = {
     NEXT_STEP: {
         MESSAGE_KEY: {
             WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
+            WAITING_TO_SUBMIT: 'waitingToSubmit',
             NO_FURTHER_ACTION: 'noFurtherAction',
             WAITING_FOR_SUBMITTER_ACCOUNT: 'waitingForSubmitterAccount',
             WAITING_FOR_AUTOMATIC_SUBMIT: 'waitingForAutomaticSubmit',
@@ -1541,11 +1580,13 @@ const CONST = {
             WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_TO_EXPORT: 'waitingToExport',
+            SUBMITTING_TO_SELF: 'submittingToSelf',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
+            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
@@ -1636,8 +1677,6 @@ const CONST = {
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
-        COMPUTE_REPORT_NAME: 'compute_report_name',
-        COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -1670,10 +1709,14 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
+        TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
+        TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
+        TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
+        SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER: 'ManualNavigateToReportsTabRender',
         SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
@@ -1691,6 +1734,10 @@ const CONST = {
         },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
+        ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
+        ATTRIBUTE_IS_TRANSACTION_THREAD: 'is_transaction_thread',
+        ATTRIBUTE_REPORT_TYPE: 'report_type',
+        ATTRIBUTE_CHAT_TYPE: 'chat_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
@@ -1747,6 +1794,7 @@ const CONST = {
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
+            TIME: 'time',
         },
         STATUS: {
             PENDING: 'Pending',
@@ -1762,7 +1810,11 @@ const CONST = {
             ALLOW: 'personal',
         },
     },
-
+    TIME_TRACKING: {
+        UNIT: {
+            HOUR: 'h',
+        },
+    },
     MCC_GROUPS: {
         AIRLINES: 'Airlines',
         COMMUTER: 'Commuter',
@@ -1822,6 +1874,7 @@ const CONST = {
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
+
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
     },
     ERROR_TYPE: {
@@ -2125,7 +2178,6 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    DESKTOP_HEADER_PADDING: 12,
     SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
@@ -2400,7 +2452,7 @@ const CONST = {
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
         APPROVAL_ACCOUNT: 'approvalAccount',
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
-        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
+        TOKEN_INPUT_STEP_NAMES: ['1', '2', '3', '4', '5'],
         TOKEN_INPUT_STEP_KEYS: {
             0: 'installBundle',
             1: 'enableTokenAuthentication',
@@ -2638,6 +2690,16 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    MISSING_PERSONAL_DETAILS: {
+        STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+            CONFIRM: 'confirm',
+        },
+    },
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
@@ -2717,10 +2779,10 @@ const CONST = {
             KBA_NEEDED: 'KBA needed',
             NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
             INVALID_WALLET: '405 Invalid wallet account',
-            NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
-            INVALID_BANK_ACCOUNT: '405 Attempting to link an invalid bank account to a wallet',
-            NOT_OWNER_OF_FUND: '401 Wallet owner does not own linked fund',
-            INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
+            NOT_OWNER_OF_BANK_ACCOUNT: '401 User does not own bank account',
+            INVALID_BANK_ACCOUNT: '405 Bank account is not eligible for wallet transfers',
+            NOT_OWNER_OF_FUND: '401 User does not own fund',
+            INVALID_FUND: '405 Fund is not eligible for wallet transfers',
         },
         STEP: {
             // In the order they appear in the Wallet flow
@@ -2854,6 +2916,8 @@ const CONST = {
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
+        // Maximum number of splits allowed for expenses
+        SPLITS_LIMIT: 30,
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
@@ -2886,6 +2950,8 @@ const CONST = {
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
+            DISTANCE_ODOMETER: 'distance-odometer',
+            TIME: 'time',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2897,7 +2963,10 @@ const CONST = {
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
+            DISTANCE_ODOMETER: 'distance-odometer',
+            TIME: 'time',
         },
+
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
@@ -3104,7 +3173,9 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
+            IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
+            IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3293,8 +3364,10 @@ const CONST = {
             CONTROL: 'control',
         },
         DEFAULT_MAX_EXPENSE_AGE: 90,
+        DISABLED_MAX_EXPENSE_AGE: 10000000000,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
+        DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',
@@ -3405,6 +3478,7 @@ const CONST = {
             CSV: 'ccupload',
         },
         FEED_KEY_SEPARATOR: '#',
+        CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
@@ -3451,8 +3525,8 @@ const CONST = {
             FIXED: 'fixed',
         },
         LIMIT_VALUE: 21474836,
-        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
-        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4', '5'],
+        STEP_NAMES: ['1', '2', '3', '4', '5'],
+        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
@@ -3541,6 +3615,9 @@ const CONST = {
         },
         CARD_NAME: {
             CASH: '__CASH__',
+        },
+        BANK_NAME: {
+            UPLOAD: 'upload',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -3646,6 +3723,24 @@ const CONST = {
             INVOICING: 'invoicing2018',
         },
     },
+    EXPENSE_RULES: {
+        FIELDS: {
+            BILLABLE: 'billable',
+            CATEGORY: 'category',
+            DESCRIPTION: 'comment',
+            CREATE_REPORT: 'createReport',
+            MERCHANT: 'merchantToMatch',
+            RENAME_MERCHANT: 'merchant',
+            REIMBURSABLE: 'reimbursable',
+            REPORT: 'report',
+            TAG: 'tag',
+            TAX: 'tax',
+        },
+        BULK_ACTION_TYPES: {
+            EDIT: 'edit',
+            DELETE: 'delete',
+        },
+    },
 
     get SUBSCRIPTION_PRICES() {
         return {
@@ -3748,6 +3843,9 @@ const CONST = {
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
 
         ONLY_PRIVATE_USER_AREA: /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u,
+
+        // Regex pattern to match a digit followed by an emoji (used for Safari ZWNJ insertion)
+        DIGIT_FOLLOWED_BY_EMOJI: /(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
@@ -3941,6 +4039,10 @@ const CONST = {
         ADD: 'add',
         DELETE: 'delete',
         UPDATE: 'update',
+    },
+    EXPENSE_PENDING_ACTION: {
+        SUBMIT: 'SUBMIT',
+        APPROVE: 'APPROVE',
     },
     BRICK_ROAD_INDICATOR_STATUS: {
         ERROR: 'error',
@@ -5403,6 +5505,10 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE: {
+        SUCCESS: 'success',
+        FAILURE: 'failure',
+    },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
         ERR_2FA: 'err_2fa',
@@ -5440,6 +5546,12 @@ const CONST = {
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
+        SPLIT: {
+            AMOUNT: 'amount',
+            PERCENTAGE: 'percentage',
+            DATE: 'date',
+        },
         SHARE: {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
@@ -5460,6 +5572,8 @@ const CONST = {
         DISTANCE_MAP: 'distance-map',
         DISTANCE_MANUAL: 'distance-manual',
         DISTANCE_GPS: 'distance-gps',
+        DISTANCE_ODOMETER: 'distance-odometer',
+        TIME: 'time',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
@@ -5658,6 +5772,19 @@ const CONST = {
     },
 
     /**
+     * Feature flag to enable the missingAttendees violation feature.
+     * Currently enabled only on staging for testing.
+     * When true:
+     * - Enables new missingAttendees violations to be created
+     * - Shows existing missingAttendees violations in transaction lists
+     * - Shows "Require attendees" toggle in category settings
+     * Note: Config?.ENVIRONMENT is undefined in local dev when .env doesn't set it, so we treat undefined as dev
+     */
+    // We can't use nullish coalescing for boolean comparison
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    IS_ATTENDEES_REQUIRED_ENABLED: !Config?.ENVIRONMENT || Config?.ENVIRONMENT === 'staging' || Config?.ENVIRONMENT === 'development',
+
+    /**
      * Constants for types of violation.
      */
     VIOLATION_TYPES: {
@@ -5665,6 +5792,11 @@ const CONST = {
         NOTICE: 'notice',
         WARNING: 'warning',
     },
+
+    /**
+     * Constant for prefix of violations.
+     */
+    VIOLATIONS_PREFIX: 'violations.',
 
     /**
      * Constants with different types for the modifiedAmount violation
@@ -5707,6 +5839,7 @@ const CONST = {
         PER_DAY_LIMIT: 'perDayLimit',
         RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
         RECEIPT_REQUIRED: 'receiptRequired',
+        ITEMIZED_RECEIPT_REQUIRED: 'itemizedReceiptRequired',
         CUSTOM_RULES: 'customRules',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
@@ -5719,8 +5852,9 @@ const CONST = {
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
-        MISSING_ATTENDEES: 'missingAttendees',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
+        NO_ROUTE: 'noRoute',
+        MISSING_ATTENDEES: 'missingAttendees',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -5809,6 +5943,11 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
+    ONBOARDING_RHP_VARIANT: {
+        RHP_CONCIERGE_DM: 'rhpConciergeDm',
+        RHP_ADMINS_ROOM: 'rhpAdminsRoom',
+        CONTROL: 'control',
+    },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
 
@@ -5878,31 +6017,31 @@ const CONST = {
     /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
         "AED": {
-            "rate": 414,
+            "rate": 428.5,
             "unit": "km"
         },
         "AFN": {
-            "rate": 8851,
+            "rate": 7703.93,
             "unit": "km"
         },
         "ALL": {
-            "rate": 10783,
+            "rate": 9633.54,
             "unit": "km"
         },
         "AMD": {
-            "rate": 45116,
+            "rate": 44504.28,
             "unit": "km"
         },
         "ANG": {
-            "rate": 203,
+            "rate": 208.86,
             "unit": "km"
         },
         "AOA": {
-            "rate": 102929,
+            "rate": 106762.22,
             "unit": "km"
         },
         "ARS": {
-            "rate": 118428,
+            "rate": 171174.53,
             "unit": "km"
         },
         "AUD": {
@@ -5910,75 +6049,75 @@ const CONST = {
             "unit": "km"
         },
         "AWG": {
-            "rate": 203,
+            "rate": 210.31,
             "unit": "km"
         },
         "AZN": {
-            "rate": 192,
+            "rate": 198.35,
             "unit": "km"
         },
         "BAM": {
-            "rate": 212,
+            "rate": 194.86,
             "unit": "km"
         },
         "BBD": {
-            "rate": 225,
+            "rate": 233.35,
             "unit": "km"
         },
         "BDT": {
-            "rate": 13697,
+            "rate": 14251.98,
             "unit": "km"
         },
         "BGN": {
-            "rate": 211,
+            "rate": 195.25,
             "unit": "km"
         },
         "BHD": {
-            "rate": 42,
+            "rate": 43.98,
             "unit": "km"
         },
         "BIF": {
-            "rate": 331847,
+            "rate": 345436.14,
             "unit": "km"
         },
         "BMD": {
-            "rate": 113,
+            "rate": 116.68,
             "unit": "km"
         },
         "BND": {
-            "rate": 153,
+            "rate": 149.25,
             "unit": "km"
         },
         "BOB": {
-            "rate": 779,
+            "rate": 807.7,
             "unit": "km"
         },
         "BRL": {
-            "rate": 660,
+            "rate": 626.95,
             "unit": "km"
         },
         "BSD": {
-            "rate": 113,
+            "rate": 116.68,
             "unit": "km"
         },
         "BTN": {
-            "rate": 9761,
+            "rate": 10516.86,
             "unit": "km"
         },
         "BWP": {
-            "rate": 1569,
+            "rate": 1619.97,
             "unit": "km"
         },
         "BYN": {
-            "rate": 369,
+            "rate": 342.9,
             "unit": "km"
         },
         "BYR": {
-            "rate": 2255979,
+            "rate": 2336612.1,
             "unit": "km"
         },
         "BZD": {
-            "rate": 227,
+            "rate": 234.56,
             "unit": "km"
         },
         "CAD": {
@@ -5986,7 +6125,7 @@ const CONST = {
             "unit": "km"
         },
         "CDF": {
-            "rate": 321167,
+            "rate": 264869.39,
             "unit": "km"
         },
         "CHF": {
@@ -5994,67 +6133,67 @@ const CONST = {
             "unit": "km"
         },
         "CLP": {
-            "rate": 111689,
+            "rate": 104301.62,
             "unit": "km"
         },
         "CNY": {
-            "rate": 808,
+            "rate": 814.84,
             "unit": "km"
         },
         "COP": {
-            "rate": 473791,
+            "rate": 439901.44,
             "unit": "km"
         },
         "CRC": {
-            "rate": 57190,
+            "rate": 57973.09,
             "unit": "km"
         },
         "CUC": {
-            "rate": 113,
+            "rate": 116.68,
             "unit": "km"
         },
         "CUP": {
-            "rate": 2902,
+            "rate": 3004.45,
             "unit": "km"
         },
         "CVE": {
-            "rate": 11961,
+            "rate": 11004.01,
             "unit": "km"
         },
         "CZK": {
-            "rate": 2715,
+            "rate": 2413.34,
             "unit": "km"
         },
         "DJF": {
-            "rate": 19956,
+            "rate": 20752.5,
             "unit": "km"
         },
         "DKK": {
-            "rate": 381,
+            "rate": 394,
             "unit": "km"
         },
         "DOP": {
-            "rate": 6948,
+            "rate": 7398.54,
             "unit": "km"
         },
         "DZD": {
-            "rate": 15226,
+            "rate": 15153.28,
             "unit": "km"
         },
         "EEK": {
-            "rate": 1646,
+            "rate": 1704.36,
             "unit": "km"
         },
         "EGP": {
-            "rate": 5657,
+            "rate": 5512.97,
             "unit": "km"
         },
         "ERN": {
-            "rate": 1690,
+            "rate": 1750.16,
             "unit": "km"
         },
         "ETB": {
-            "rate": 14326,
+            "rate": 18077.09,
             "unit": "km"
         },
         "EUR": {
@@ -6062,11 +6201,11 @@ const CONST = {
             "unit": "km"
         },
         "FJD": {
-            "rate": 264,
+            "rate": 265.25,
             "unit": "km"
         },
         "FKP": {
-            "rate": 90,
+            "rate": 86.44,
             "unit": "km"
         },
         "GBP": {
@@ -6074,55 +6213,55 @@ const CONST = {
             "unit": "mi"
         },
         "GEL": {
-            "rate": 323,
+            "rate": 313.87,
             "unit": "km"
         },
         "GHS": {
-            "rate": 1724,
+            "rate": 1246.23,
             "unit": "km"
         },
         "GIP": {
-            "rate": 90,
+            "rate": 86.44,
             "unit": "km"
         },
         "GMD": {
-            "rate": 8111,
+            "rate": 8575.79,
             "unit": "km"
         },
         "GNF": {
-            "rate": 974619,
+            "rate": 1019841.61,
             "unit": "km"
         },
         "GTQ": {
-            "rate": 872,
+            "rate": 893.94,
             "unit": "km"
         },
         "GYD": {
-            "rate": 23585,
+            "rate": 24400.12,
             "unit": "km"
         },
         "HKD": {
-            "rate": 877,
+            "rate": 908.6,
             "unit": "km"
         },
         "HNL": {
-            "rate": 2881,
+            "rate": 3080.03,
             "unit": "km"
         },
         "HRK": {
-            "rate": 814,
+            "rate": 752.16,
             "unit": "km"
         },
         "HTG": {
-            "rate": 14734,
+            "rate": 15266.76,
             "unit": "km"
         },
         "HUF": {
-            "rate": 44127,
+            "rate": 38407.92,
             "unit": "km"
         },
         "IDR": {
-            "rate": 1830066,
+            "rate": 1954232.16,
             "unit": "km"
         },
         "ILS": {
@@ -6130,147 +6269,147 @@ const CONST = {
             "unit": "km"
         },
         "INR": {
-            "rate": 9761,
+            "rate": 10518.19,
             "unit": "km"
         },
         "IQD": {
-            "rate": 147577,
+            "rate": 152781.51,
             "unit": "km"
         },
         "IRR": {
-            "rate": 4741290,
+            "rate": 4910488.26,
             "unit": "km"
         },
         "ISK": {
-            "rate": 15772,
+            "rate": 14694.92,
             "unit": "km"
         },
         "JMD": {
-            "rate": 17738,
+            "rate": 18515.8,
             "unit": "km"
         },
         "JOD": {
-            "rate": 80,
+            "rate": 82.72,
             "unit": "km"
         },
         "JPY": {
-            "rate": 17542,
+            "rate": 18278.93,
             "unit": "km"
         },
         "KES": {
-            "rate": 14589,
+            "rate": 15058.57,
             "unit": "km"
         },
         "KGS": {
-            "rate": 9852,
+            "rate": 10202.68,
             "unit": "km"
         },
         "KHR": {
-            "rate": 453066,
+            "rate": 468558.4,
             "unit": "km"
         },
         "KMF": {
-            "rate": 53269,
+            "rate": 49237.89,
             "unit": "km"
         },
         "KPW": {
-            "rate": 101389,
+            "rate": 105009.73,
             "unit": "km"
         },
         "KRW": {
-            "rate": 162705,
+            "rate": 168722.07,
             "unit": "km"
         },
         "KWD": {
-            "rate": 35,
+            "rate": 35.82,
             "unit": "km"
         },
         "KYD": {
-            "rate": 93,
+            "rate": 97.19,
             "unit": "km"
         },
         "KZT": {
-            "rate": 58319,
+            "rate": 59441.07,
             "unit": "km"
         },
         "LAK": {
-            "rate": 2452802,
+            "rate": 2520371.89,
             "unit": "km"
         },
         "LBP": {
-            "rate": 10093809,
+            "rate": 10444573.37,
             "unit": "km"
         },
         "LKR": {
-            "rate": 33423,
+            "rate": 36161.18,
             "unit": "km"
         },
         "LRD": {
-            "rate": 22185,
+            "rate": 20916.15,
             "unit": "km"
         },
         "LSL": {
-            "rate": 2099,
+            "rate": 1909.99,
             "unit": "km"
         },
         "LTL": {
-            "rate": 364,
+            "rate": 376.1,
             "unit": "km"
         },
         "LVL": {
-            "rate": 74,
+            "rate": 76.56,
             "unit": "km"
         },
         "LYD": {
-            "rate": 554,
+            "rate": 631.41,
             "unit": "km"
         },
         "MAD": {
-            "rate": 1127,
+            "rate": 1070.73,
             "unit": "km"
         },
         "MDL": {
-            "rate": 2084,
+            "rate": 1950.82,
             "unit": "km"
         },
         "MGA": {
-            "rate": 529635,
+            "rate": 537347.25,
             "unit": "km"
         },
         "MKD": {
-            "rate": 6650,
+            "rate": 6144.12,
             "unit": "km"
         },
         "MMK": {
-            "rate": 236413,
+            "rate": 245011.43,
             "unit": "km"
         },
         "MNT": {
-            "rate": 382799,
+            "rate": 415371.81,
             "unit": "km"
         },
         "MOP": {
-            "rate": 904,
+            "rate": 935.53,
             "unit": "km"
         },
         "MRO": {
-            "rate": 40234,
+            "rate": 41653.05,
             "unit": "km"
         },
         "MRU": {
-            "rate": 4506,
+            "rate": 4631.69,
             "unit": "km"
         },
         "MUR": {
-            "rate": 5226,
+            "rate": 5402.17,
             "unit": "km"
         },
         "MVR": {
-            "rate": 1735,
+            "rate": 1803.83,
             "unit": "km"
         },
         "MWK": {
-            "rate": 195485,
+            "rate": 202409.9,
             "unit": "km"
         },
         "MXN": {
@@ -6278,23 +6417,23 @@ const CONST = {
             "unit": "km"
         },
         "MYR": {
-            "rate": 494,
+            "rate": 472.6,
             "unit": "km"
         },
         "MZN": {
-            "rate": 7199,
+            "rate": 7456.85,
             "unit": "km"
         },
         "NAD": {
-            "rate": 2099,
+            "rate": 1910.94,
             "unit": "km"
         },
         "NGN": {
-            "rate": 174979,
+            "rate": 166247.91,
             "unit": "km"
         },
         "NIO": {
-            "rate": 4147,
+            "rate": 4291.54,
             "unit": "km"
         },
         "NOK": {
@@ -6302,35 +6441,35 @@ const CONST = {
             "unit": "km"
         },
         "NPR": {
-            "rate": 15617,
+            "rate": 16827.52,
             "unit": "km"
         },
         "NZD": {
-            "rate": 104,
+            "rate": 117,
             "unit": "km"
         },
         "OMR": {
-            "rate": 43,
+            "rate": 44.87,
             "unit": "km"
         },
         "PAB": {
-            "rate": 113,
+            "rate": 116.68,
             "unit": "km"
         },
         "PEN": {
-            "rate": 420,
+            "rate": 392.29,
             "unit": "km"
         },
         "PGK": {
-            "rate": 455,
+            "rate": 501.36,
             "unit": "km"
         },
         "PHP": {
-            "rate": 6582,
+            "rate": 6917.8,
             "unit": "km"
         },
         "PKR": {
-            "rate": 31411,
+            "rate": 32652.84,
             "unit": "km"
         },
         "PLN": {
@@ -6338,43 +6477,43 @@ const CONST = {
             "unit": "km"
         },
         "PYG": {
-            "rate": 890772,
+            "rate": 787561.7,
             "unit": "km"
         },
         "QAR": {
-            "rate": 410,
+            "rate": 424.92,
             "unit": "km"
         },
         "RON": {
-            "rate": 538,
+            "rate": 508.07,
             "unit": "km"
         },
         "RSD": {
-            "rate": 12656,
+            "rate": 11713.4,
             "unit": "km"
         },
         "RUB": {
-            "rate": 11182,
+            "rate": 9392.54,
             "unit": "km"
         },
         "RWF": {
-            "rate": 156589,
+            "rate": 169805.16,
             "unit": "km"
         },
         "SAR": {
-            "rate": 423,
+            "rate": 437.58,
             "unit": "km"
         },
         "SBD": {
-            "rate": 951,
+            "rate": 948.61,
             "unit": "km"
         },
         "SCR": {
-            "rate": 1611,
+            "rate": 1615.27,
             "unit": "km"
         },
         "SDG": {
-            "rate": 67705,
+            "rate": 70123.16,
             "unit": "km"
         },
         "SEK": {
@@ -6382,159 +6521,167 @@ const CONST = {
             "unit": "km"
         },
         "SGD": {
-            "rate": 151,
+            "rate": 149.43,
             "unit": "km"
         },
         "SHP": {
-            "rate": 90,
+            "rate": 86.44,
             "unit": "km"
         },
         "SLL": {
-            "rate": 2362357,
+            "rate": 2446668.74,
             "unit": "km"
         },
         "SLE": {
-            "rate": 2363,
+            "rate": 2800.26,
             "unit": "km"
         },
         "SOS": {
-            "rate": 64374,
+            "rate": 66591.46,
             "unit": "km"
         },
         "SRD": {
-            "rate": 3954,
+            "rate": 4468.75,
             "unit": "km"
         },
         "STD": {
-            "rate": 2510095,
+            "rate": 2599784.99,
             "unit": "km"
         },
         "STN": {
-            "rate": 2683,
+            "rate": 2440.86,
             "unit": "km"
         },
         "SVC": {
-            "rate": 987,
+            "rate": 1020.49,
             "unit": "km"
         },
         "SYP": {
-            "rate": 1464664,
+            "rate": 1517040.54,
             "unit": "km"
         },
         "SZL": {
-            "rate": 2099,
+            "rate": 1910.2,
             "unit": "km"
         },
         "THB": {
-            "rate": 3801,
+            "rate": 3641.51,
             "unit": "km"
         },
         "TJS": {
-            "rate": 1228,
+            "rate": 1077.65,
             "unit": "km"
         },
         "TMT": {
-            "rate": 394,
+            "rate": 408.37,
             "unit": "km"
         },
         "TND": {
-            "rate": 360,
+            "rate": 336.58,
             "unit": "km"
         },
         "TOP": {
-            "rate": 274,
+            "rate": 280.93,
             "unit": "km"
         },
         "TRY": {
-            "rate": 4035,
+            "rate": 5022.36,
             "unit": "km"
         },
         "TTD": {
-            "rate": 763,
+            "rate": 791.64,
             "unit": "km"
         },
         "TWD": {
-            "rate": 3703,
+            "rate": 3676.16,
             "unit": "km"
         },
         "TZS": {
-            "rate": 286235,
+            "rate": 288716.35,
             "unit": "km"
         },
         "UAH": {
-            "rate": 4725,
+            "rate": 4966.74,
             "unit": "km"
         },
         "UGX": {
-            "rate": 416016,
+            "rate": 422422.35,
             "unit": "km"
         },
         "USD": {
-            "rate": 70,
+            "rate": 72.5,
             "unit": "mi"
         },
         "UYU": {
-            "rate": 4888,
+            "rate": 4544.27,
             "unit": "km"
         },
         "UZS": {
-            "rate": 1462038,
+            "rate": 1395513.79,
             "unit": "km"
         },
         "VEB": {
-            "rate": 709737,
+            "rate": 735113.61,
             "unit": "km"
         },
         "VEF": {
-            "rate": 27993155,
+            "rate": 28992910.93,
             "unit": "km"
         },
         "VES": {
-            "rate": 6457,
+            "rate": 35909.77,
             "unit": "km"
         },
         "VND": {
-            "rate": 2825526,
+            "rate": 3065619.41,
             "unit": "km"
         },
         "VUV": {
-            "rate": 13358,
+            "rate": 14152.58,
             "unit": "km"
         },
         "WST": {
-            "rate": 315,
+            "rate": 322.95,
             "unit": "km"
         },
         "XAF": {
-            "rate": 70811,
+            "rate": 65490.66,
             "unit": "km"
         },
         "XCD": {
-            "rate": 304,
+            "rate": 315.32,
+            "unit": "km"
+        },
+        "XCG": {
+            "rate": 210.2,
             "unit": "km"
         },
         "XOF": {
-            "rate": 70811,
+            "rate": 65490.66,
             "unit": "km"
         },
         "XPF": {
-            "rate": 12875,
+            "rate": 11913.98,
             "unit": "km"
         },
         "YER": {
-            "rate": 28003,
+            "rate": 27815.91,
             "unit": "km"
         },
         "ZAR": {
-            "rate": 484,
+            "rate": 476,
             "unit": "km"
         },
         "ZMK": {
-            "rate": 591756,
+            "rate": 612915.63,
             "unit": "km"
         },
         "ZMW": {
-            "rate": 3148,
+            "rate": 2440.41,
+            "unit": "km"
+        },
+        "ZWG": {
+            "rate": 3023.59,
             "unit": "km"
         }
     }`) as Record<string, MileageRate>,
@@ -6573,6 +6720,8 @@ const CONST = {
 
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
 
+    FLIGHT_SEAT_TEST_ID: 'FlightSeat',
+
     CANCELLATION_POLICY: {
         UNKNOWN: 'UNKNOWN',
         NON_REFUNDABLE: 'NON_REFUNDABLE',
@@ -6604,6 +6753,7 @@ const CONST = {
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
     MIN_TAX_RATE_DECIMAL_PLACES: 2,
     DISTANCE_DECIMAL_PLACES: 2,
+    HOURS_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
@@ -6655,6 +6805,7 @@ const CONST = {
             PAY: 'pay',
             SUBMIT: 'submit',
             HOLD: 'hold',
+            MERGE: 'merge',
             UNHOLD: 'unhold',
             DELETE: 'delete',
             REJECT: 'reject',
@@ -6666,6 +6817,7 @@ const CONST = {
             CARD: 'card',
             DISTANCE: 'distance',
             PER_DIEM: 'perDiem',
+            TIME: 'time',
         },
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
@@ -6689,8 +6841,9 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+            CATEGORY: 'category',
         },
-        get CUSTOM_COLUMNS() {
+        get TYPE_CUSTOM_COLUMNS() {
             return {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
@@ -6707,6 +6860,7 @@ const CONST = {
                     CARD: this.TABLE_COLUMNS.CARD,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
+                    EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
                     ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
@@ -6716,6 +6870,8 @@ const CONST = {
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
+                    AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                    EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
@@ -6732,6 +6888,8 @@ const CONST = {
                     NON_REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
+                    AMOUNT: this.TABLE_COLUMNS.TOTAL,
+                    EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 INVOICE: {},
@@ -6740,7 +6898,34 @@ const CONST = {
                 CHAT: {},
             };
         },
-        get DEFAULT_COLUMNS() {
+        get GROUP_CUSTOM_COLUMNS() {
+            return {
+                FROM: {
+                    FROM: this.TABLE_COLUMNS.GROUP_FROM,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                CARD: {
+                    CARD: this.TABLE_COLUMNS.GROUP_CARD,
+                    FEED: this.TABLE_COLUMNS.GROUP_FEED,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                WITHDRAWAL_ID: {
+                    BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+                    WITHDRAWN: this.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                    WITHDRAWAL_ID: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                CATEGORY: {
+                    CATEGORY: this.TABLE_COLUMNS.GROUP_CATEGORY,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+            };
+        },
+        get TYPE_DEFAULT_COLUMNS() {
             return {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
@@ -6750,13 +6935,36 @@ const CONST = {
                     this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.CATEGORY,
                     this.TABLE_COLUMNS.TAG,
+                    this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     this.TABLE_COLUMNS.ACTION,
                 ],
-                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.ACTION],
+                EXPENSE_REPORT: [
+                    this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.STATUS,
+                    this.TABLE_COLUMNS.TITLE,
+                    this.TABLE_COLUMNS.FROM,
+                    this.TABLE_COLUMNS.TO,
+                    this.TABLE_COLUMNS.TOTAL,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
                 INVOICE: [],
                 TASK: [],
                 TRIP: [],
                 CHAT: [],
+            };
+        },
+        get GROUP_DEFAULT_COLUMNS() {
+            return {
+                FROM: [this.TABLE_COLUMNS.GROUP_FROM, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                CARD: [this.TABLE_COLUMNS.GROUP_CARD, this.TABLE_COLUMNS.GROUP_FEED, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WITHDRAWAL_ID: [
+                    this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+                    this.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                    this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+                    this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    this.TABLE_COLUMNS.GROUP_TOTAL,
+                ],
+                CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -6802,6 +7010,7 @@ const CONST = {
                 COMPLETED: 'completed',
             },
         },
+        GROUP_COLUMN_PREFIX: 'group',
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -6833,11 +7042,25 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',
+            EXPENSES: 'expenses',
+            FEED: 'feed',
+            WITHDRAWN: 'withdrawn',
+            BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
-            TAX: 'tax',
+            EXPORTED_TO: 'exportedto',
+            EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
             NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
+            GROUP_FROM: 'groupFrom',
+            GROUP_EXPENSES: 'groupExpenses',
+            GROUP_TOTAL: 'groupTotal',
+            GROUP_CARD: 'groupCard',
+            GROUP_FEED: 'groupFeed',
+            GROUP_BANK_ACCOUNT: 'groupBankAccount',
+            GROUP_WITHDRAWN: 'groupWithdrawn',
+            GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
+            GROUP_CATEGORY: 'groupCategory',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6856,6 +7079,7 @@ const CONST = {
             SORT_ORDER: 'sortOrder',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LIMIT: 'limit',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -6965,11 +7189,61 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             COLUMNS: 'columns',
+            LIMIT: 'limit',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
+                [this.TABLE_COLUMNS.RECEIPT]: 'receipt',
+                [this.TABLE_COLUMNS.DATE]: 'date',
+                [this.TABLE_COLUMNS.SUBMITTED]: 'submitted',
+                [this.TABLE_COLUMNS.APPROVED]: 'approved',
+                [this.TABLE_COLUMNS.POSTED]: 'posted',
+                [this.TABLE_COLUMNS.EXPORTED]: 'exported',
+                [this.TABLE_COLUMNS.MERCHANT]: 'merchant',
+                [this.TABLE_COLUMNS.DESCRIPTION]: 'description',
+                [this.TABLE_COLUMNS.FROM]: 'from',
+                [this.TABLE_COLUMNS.TO]: 'to',
+                [this.TABLE_COLUMNS.CATEGORY]: 'category',
+                [this.TABLE_COLUMNS.TAG]: 'tag',
+                [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'original-amount',
+                [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
+                [this.TABLE_COLUMNS.BILLABLE]: 'billable',
+                [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
+                [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
+                [this.TABLE_COLUMNS.TOTAL]: 'total',
+                [this.TABLE_COLUMNS.TYPE]: 'type',
+                [this.TABLE_COLUMNS.ACTION]: 'action',
+                [this.TABLE_COLUMNS.TAX_AMOUNT]: 'tax',
+                [this.TABLE_COLUMNS.TITLE]: 'title',
+                [this.TABLE_COLUMNS.ASSIGNEE]: 'assignee',
+                [this.TABLE_COLUMNS.IN]: 'in',
+                [this.TABLE_COLUMNS.COMMENTS]: 'comments',
+                [this.TABLE_COLUMNS.CARD]: 'card',
+                [this.TABLE_COLUMNS.POLICY_NAME]: 'policy-name',
+                [this.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawal-id',
+                [this.TABLE_COLUMNS.AVATAR]: 'avatar',
+                [this.TABLE_COLUMNS.STATUS]: 'status',
+                [this.TABLE_COLUMNS.EXPENSES]: 'expenses',
+                [this.TABLE_COLUMNS.FEED]: 'feed',
+                [this.TABLE_COLUMNS.WITHDRAWN]: 'withdrawn',
+                [this.TABLE_COLUMNS.BANK_ACCOUNT]: 'bank-account',
+                [this.TABLE_COLUMNS.REPORT_ID]: 'long-report-id',
+                [this.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'report-id',
+                [this.TABLE_COLUMNS.EXPORTED_TO]: 'exported-to',
+                [this.TABLE_COLUMNS.EXCHANGE_RATE]: 'exchange-rate',
+                [this.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: 'reimbursable-total',
+                [this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: 'non-reimbursable-total',
+                [this.TABLE_COLUMNS.GROUP_FROM]: 'group-from',
+                [this.TABLE_COLUMNS.GROUP_EXPENSES]: 'group-expenses',
+                [this.TABLE_COLUMNS.GROUP_TOTAL]: 'group-total',
+                [this.TABLE_COLUMNS.GROUP_CARD]: 'group-card',
+                [this.TABLE_COLUMNS.GROUP_FEED]: 'group-feed',
+                [this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'group-bank-account',
+                [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
+                [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
+                [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
             };
         },
         NOT_MODIFIER: 'Not',
@@ -7010,11 +7284,15 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
             RECONCILIATION: 'reconciliation',
+            TOP_SPENDERS: 'topSpenders',
+            TOP_CATEGORIES: 'topCategories',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 200,
         },
+        TODO_BADGE_MAX_COUNT: 50,
+        TOP_SEARCH_LIMIT: 10,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -7361,10 +7639,11 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
-        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
+        HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
+        HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
     },
 
     DEBUG: {
@@ -7484,6 +7763,7 @@ const CONST = {
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
+        GPS_TOOLTIP: 'gpsTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -7505,6 +7785,11 @@ const CONST = {
 
     TRAVEL: {
         DEFAULT_DOMAIN: 'domain',
+        STEPS: {
+            GET_STARTED_TRAVEL: 'GetStartedTravel',
+            BOOK_OR_MANAGE_YOUR_TRIP: 'BookOrManageYourTrip',
+            REVIEWING_REQUEST: 'ReviewingRequest',
+        },
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
@@ -7531,6 +7816,11 @@ const CONST = {
             REFUND: 'REFUND',
             EXCHANGE: 'EXCHANGE',
         },
+        /**
+         * The Travel Invoicing feed type constant.
+         * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
+         */
+        PROGRAM_TRAVEL_US: 'TRAVEL_US',
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -7595,6 +7885,15 @@ const CONST = {
     LIST_BEHAVIOR: {
         REGULAR: 'regular',
         INVERTED: 'inverted',
+    },
+
+    VIOLATION_DISMISSAL: {
+        rter: {
+            manual: 'marked this receipt as cash',
+        },
+        duplicatedTransaction: {
+            manual: 'resolved the duplicate',
+        },
     },
 
     SENTRY_LABEL: {
@@ -7785,6 +8084,18 @@ const CONST = {
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
+    },
+
+    DOMAIN: {
+        /** Onyx prefix for domain admin account IDs */
+        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
+        /** Onyx prefix for domain security groups */
+        DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+    },
+
+    SECTION_LIST_ITEM_TYPE: {
+        HEADER: 'header',
+        ROW: 'row',
     },
 } as const;
 

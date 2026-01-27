@@ -65,6 +65,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
                     return;
                 }
 
+                Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from test drive modal');
                 startOnboardingFlow({
                     onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
                     isUserFromPublicDomain: false,
@@ -161,7 +162,7 @@ function completeHybridAppOnboarding() {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRY_NEW_DOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_TRY_NEW_DOT,
@@ -233,7 +234,7 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_ONBOARDING>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
