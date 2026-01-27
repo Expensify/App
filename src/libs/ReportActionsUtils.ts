@@ -285,11 +285,8 @@ function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEn
 
 function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
     const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
-
-    // Find the most recent DEW_SUBMIT_FAILED and SUBMITTED actions
     let mostRecentDewSubmitFailedAction: ReportAction | undefined;
     let mostRecentSubmittedAction: ReportAction | undefined;
-
     for (const action of actionsArray) {
         if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
             if (!mostRecentDewSubmitFailedAction || (action.created && mostRecentDewSubmitFailedAction.created && action.created > mostRecentDewSubmitFailedAction.created)) {
@@ -301,47 +298,33 @@ function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<Repor
             }
         }
     }
-
     if (!mostRecentDewSubmitFailedAction) {
         return undefined;
     }
-
-    // Return the DEW action if there's no SUBMITTED action, or if DEW_SUBMIT_FAILED is more recent
     if (!mostRecentSubmittedAction || mostRecentDewSubmitFailedAction.created > mostRecentSubmittedAction.created) {
         return mostRecentDewSubmitFailedAction;
     }
-
     return undefined;
 }
 
-/**
- * Checks if there's a pending DEW submission in progress.
- * Uses reportMetadata.pendingExpenseAction which is set during submit and cleared on success/failure.
- */
+/** Checks if there's a pending DEW submission in progress. */
 function hasPendingDEWSubmit(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPolicy: boolean): boolean {
-    if (!isDEWPolicy) {
-        return false;
-    }
-    return reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
+    return isDEWPolicy && reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
 }
 
 function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
 }
 
-/**
- * Actions that clear a DEW_APPROVE_FAILED error (approval succeeded or report was retracted/reopened).
- */
+/** Actions that clear a DEW_APPROVE_FAILED error (approval succeeded or report was retracted/reopened). */
 function isActionThatSupersedesDEWApproveFailure(action: ReportAction): boolean {
     return isApprovedAction(action) || isForwardedAction(action) || isRetractedAction(action) || isReopenedAction(action);
 }
 
 function getMostRecentActiveDEWApproveFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> | undefined {
     const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
-
     let mostRecentDewApproveFailedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> | undefined;
     let mostRecentSupersedingAction: ReportAction | undefined;
-
     for (const action of actionsArray) {
         if (isDynamicExternalWorkflowApproveFailedAction(action)) {
             if (!mostRecentDewApproveFailedAction || (action.created && mostRecentDewApproveFailedAction.created && action.created > mostRecentDewApproveFailedAction.created)) {
@@ -353,24 +336,17 @@ function getMostRecentActiveDEWApproveFailedAction(reportActions: OnyxEntry<Repo
             }
         }
     }
-
     if (!mostRecentDewApproveFailedAction) {
         return undefined;
     }
-
-    // Return the DEW action if there's no superseding action, or if DEW_APPROVE_FAILED is more recent
     if (!mostRecentSupersedingAction || mostRecentDewApproveFailedAction.created > mostRecentSupersedingAction.created) {
         return mostRecentDewApproveFailedAction;
     }
-
     return undefined;
 }
 
 function hasPendingDEWApprove(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPolicy: boolean): boolean {
-    if (!isDEWPolicy) {
-        return false;
-    }
-    return reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.APPROVE;
+    return isDEWPolicy && reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.APPROVE;
 }
 
 function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
