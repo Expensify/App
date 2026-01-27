@@ -1,11 +1,6 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
-import useLocalize from '@hooks/useLocalize';
+import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -17,8 +12,6 @@ import type SCREENS from '@src/SCREENS';
 type AddTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAX>;
 
 function AddTaxPage({route}: AddTaxPageProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const policyID = route.params.policyID;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
@@ -43,26 +36,15 @@ function AddTaxPage({route}: AddTaxPageProps) {
     };
 
     return (
-        <ScreenWrapper
+        <RuleSelectionBase
+            titleKey="common.tax"
             testID="AddTaxPage"
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate('common.tax')}
-                onBackButtonPress={() => Navigation.goBack(backToRoute)}
-            />
-            <View style={[styles.flex1]}>
-                <SearchSingleSelectionPicker
-                    backToRoute={backToRoute}
-                    initiallySelectedItem={selectedTaxItem}
-                    items={taxItems}
-                    onSaveSelection={onSave}
-                    shouldAutoSave
-                />
-            </View>
-        </ScreenWrapper>
+            selectedItem={selectedTaxItem}
+            items={taxItems}
+            onSave={onSave}
+            onBack={() => Navigation.goBack(backToRoute)}
+            backToRoute={backToRoute}
+        />
     );
 }
 

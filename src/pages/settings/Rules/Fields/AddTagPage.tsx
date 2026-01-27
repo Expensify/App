@@ -1,13 +1,8 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
-import useLocalize from '@hooks/useLocalize';
+import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,9 +17,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_TAG>;
 
 function AddTagPage({route}: AddTagPageProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
         canBeMissing: true,
@@ -51,28 +43,16 @@ function AddTagPage({route}: AddTagPageProps) {
     };
 
     return (
-        <RuleNotFoundPageWrapper hash={hash}>
-            <ScreenWrapper
-                testID="AddTagPage"
-                shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
-                shouldEnableMaxHeight
-            >
-                <HeaderWithBackButton
-                    title={translate('common.tag')}
-                    onBackButtonPress={() => Navigation.goBack(backToRoute)}
-                />
-                <View style={[styles.flex1]}>
-                    <SearchSingleSelectionPicker
-                        backToRoute={backToRoute}
-                        initiallySelectedItem={selectedTagItem}
-                        items={tagItems}
-                        onSaveSelection={onSave}
-                        shouldAutoSave
-                    />
-                </View>
-            </ScreenWrapper>
-        </RuleNotFoundPageWrapper>
+        <RuleSelectionBase
+            titleKey="common.tag"
+            testID="AddTagPage"
+            selectedItem={selectedTagItem}
+            items={tagItems}
+            onSave={onSave}
+            onBack={() => Navigation.goBack(backToRoute)}
+            backToRoute={backToRoute}
+            ContentWrapper={({children}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>}
+        />
     );
 }
 

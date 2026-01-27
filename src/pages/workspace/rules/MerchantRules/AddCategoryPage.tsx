@@ -1,11 +1,6 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
-import useLocalize from '@hooks/useLocalize';
+import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,8 +13,6 @@ import type SCREENS from '@src/SCREENS';
 type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY>;
 
 function AddCategoryPage({route}: AddCategoryPageProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const policyID = route.params.policyID;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
@@ -43,26 +36,15 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
     };
 
     return (
-        <ScreenWrapper
+        <RuleSelectionBase
+            titleKey="common.category"
             testID="AddCategoryPage"
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate('common.category')}
-                onBackButtonPress={() => Navigation.goBack(backToRoute)}
-            />
-            <View style={[styles.flex1]}>
-                <SearchSingleSelectionPicker
-                    backToRoute={backToRoute}
-                    initiallySelectedItem={selectedCategoryItem}
-                    items={categoryItems}
-                    onSaveSelection={onSave}
-                    shouldAutoSave
-                />
-            </View>
-        </ScreenWrapper>
+            selectedItem={selectedCategoryItem}
+            items={categoryItems}
+            onSave={onSave}
+            onBack={() => Navigation.goBack(backToRoute)}
+            backToRoute={backToRoute}
+        />
     );
 }
 

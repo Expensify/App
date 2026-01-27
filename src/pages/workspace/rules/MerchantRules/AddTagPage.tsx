@@ -1,11 +1,6 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
-import useLocalize from '@hooks/useLocalize';
+import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,8 +13,6 @@ import type SCREENS from '@src/SCREENS';
 type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAG>;
 
 function AddTagPage({route}: AddTagPageProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const policyID = route.params.policyID;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
@@ -49,26 +42,15 @@ function AddTagPage({route}: AddTagPageProps) {
     };
 
     return (
-        <ScreenWrapper
+        <RuleSelectionBase
+            titleKey="common.tag"
             testID="AddTagPage"
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate('common.tag')}
-                onBackButtonPress={() => Navigation.goBack(backToRoute)}
-            />
-            <View style={[styles.flex1]}>
-                <SearchSingleSelectionPicker
-                    backToRoute={backToRoute}
-                    initiallySelectedItem={selectedTagItem}
-                    items={tagItems}
-                    onSaveSelection={onSave}
-                    shouldAutoSave
-                />
-            </View>
-        </ScreenWrapper>
+            selectedItem={selectedTagItem}
+            items={tagItems}
+            onSave={onSave}
+            onBack={() => Navigation.goBack(backToRoute)}
+            backToRoute={backToRoute}
+        />
     );
 }
 

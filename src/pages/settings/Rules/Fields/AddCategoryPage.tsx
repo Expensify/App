@@ -1,13 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
-import useLocalize from '@hooks/useLocalize';
+import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftRule} from '@libs/actions/User';
 import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,9 +17,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_CATEGORY>;
 
 function AddCategoryPage({route}: AddCategoryPageProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const availableNonPersonalPolicyCategoriesSelector = useCallback(
@@ -62,28 +54,16 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
     };
 
     return (
-        <RuleNotFoundPageWrapper hash={hash}>
-            <ScreenWrapper
-                testID="AddCategoryPage"
-                shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
-                shouldEnableMaxHeight
-            >
-                <HeaderWithBackButton
-                    title={translate('common.category')}
-                    onBackButtonPress={() => Navigation.goBack(backToRoute)}
-                />
-                <View style={[styles.flex1]}>
-                    <SearchSingleSelectionPicker
-                        backToRoute={backToRoute}
-                        initiallySelectedItem={selectedCategoryItem}
-                        items={categoryItems}
-                        onSaveSelection={onSave}
-                        shouldAutoSave
-                    />
-                </View>
-            </ScreenWrapper>
-        </RuleNotFoundPageWrapper>
+        <RuleSelectionBase
+            titleKey="common.category"
+            testID="AddCategoryPage"
+            selectedItem={selectedCategoryItem}
+            items={categoryItems}
+            onSave={onSave}
+            onBack={() => Navigation.goBack(backToRoute)}
+            backToRoute={backToRoute}
+            ContentWrapper={({children}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>}
+        />
     );
 }
 
