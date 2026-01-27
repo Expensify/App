@@ -115,8 +115,29 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                 readWorkbook()
                     .then((workbook) => {
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
-                        const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
+                        // Use defval: '' to ensure empty cells get a value, preventing sparse arrays
+                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, defval: ''}) as string[][] | unknown[][];
+
+                        // Check if we have any data
+                        if (!data || data.length === 0) {
+                            setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
+                            return;
+                        }
+
+                        // Find the maximum row length to normalize all rows
+                        const maxColumns = Math.max(...data.map((row) => (Array.isArray(row) ? row.length : 0)));
+
+                        // Normalize rows: ensure all rows are arrays with the same length
+                        const formattedSpreadsheetData = data.map((row) => {
+                            const rowArray = Array.isArray(row) ? row : [];
+                            // Pad shorter rows with empty strings and convert all cells to strings
+                            const normalizedRow = [];
+                            for (let i = 0; i < maxColumns; i++) {
+                                normalizedRow.push(rowArray[i] !== undefined && rowArray[i] !== null ? String(rowArray[i]) : '');
+                            }
+                            return normalizedRow;
+                        });
+
                         setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
                             .then(() => {
                                 Navigation.navigate(goTo);

@@ -276,6 +276,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_CARD_NAME]: {
+                            path: ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_CURRENCY]: {
+                            path: ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: {
                             path: ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.route,
                             exact: true,

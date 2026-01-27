@@ -392,6 +392,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransferBalancePage').default,
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ImportTransactionsPage').default,
+    [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ImportTransactionsCardNamePage').default,
+    [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ImportTransactionsCurrencyPage').default,
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ImportTransactionsSpreadsheetPage').default,
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransactionsImportedPage').default,

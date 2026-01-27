@@ -380,6 +380,8 @@ const ROUTES = {
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
     SETTINGS_WALLET_IMPORT_TRANSACTIONS: 'settings/wallet/import-transactions',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME: 'settings/wallet/import-transactions/card-name',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY: 'settings/wallet/import-transactions/currency',
     SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET: {
         route: 'settings/wallet/import-transactions-spreadsheet/:cardID?',
         getRoute: (cardID?: number) => (cardID ? `settings/wallet/import-transactions-spreadsheet/${cardID}` : 'settings/wallet/import-transactions-spreadsheet') as const,

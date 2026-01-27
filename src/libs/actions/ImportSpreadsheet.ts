@@ -1,19 +1,62 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
+
+let importedSpreadsheetData: OnyxEntry<ImportedSpreadsheet>;
+Onyx.connect({
+    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+    callback: (value) => {
+        importedSpreadsheetData = value;
+    },
+});
 
 function setSpreadsheetData(data: string[][], fileURI: string, fileType: string, fileName: string, isImportingMultiLevelTags: boolean): Promise<void | void[]> {
-    if (!Array.isArray(data) || !Array.isArray(data.at(0))) {
-        return Promise.reject(new Error('Invalid data format'));
+    // Validate that data is a non-empty array
+    if (!Array.isArray(data) || data.length === 0) {
+        return Promise.reject(new Error('Invalid data format: data is empty or not an array'));
     }
 
-    const transposedData = data.at(0)?.map((_, colIndex) => data.map((row) => row.at(colIndex) ?? ''));
-    const columnNames: Record<number, string> =
-        data.at(0)?.reduce((acc: Record<number, string>, _, colIndex) => {
-            acc[colIndex] = CONST.CSV_IMPORT_COLUMNS.IGNORE;
-            return acc;
-        }, {}) ?? {};
-    return Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, {data: transposedData, columns: columnNames, fileURI, fileType, fileName, isImportingMultiLevelTags});
+    // Validate that we have at least one row with data
+    const firstRow = data[0];
+    if (!Array.isArray(firstRow) || firstRow.length === 0) {
+        return Promise.reject(new Error('Invalid data format: first row is empty or not an array'));
+    }
+
+    // Require at least 2 rows (header + data) for most imports
+    if (data.length < 2) {
+        return Promise.reject(new Error('Invalid data format: file must contain at least 2 rows'));
+    }
+
+    const numColumns = firstRow.length;
+
+    // Transpose data from row-major to column-major format
+    const transposedData = firstRow.map((_, colIndex) => data.map((row) => (row[colIndex] !== undefined ? row[colIndex] : '')));
+
+    const columnNames: Record<number, string> = {};
+    for (let colIndex = 0; colIndex < numColumns; colIndex++) {
+        columnNames[colIndex] = CONST.CSV_IMPORT_COLUMNS.IGNORE;
+    }
+
+    // Preserve importTransactionSettings from the previous state (set in ImportTransactionsPage)
+    // Use Onyx.set to replace the entire object (avoiding stale column data from previous files)
+    // but include the preserved settings
+    return Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, {
+        data: transposedData,
+        columns: columnNames,
+        fileURI,
+        fileType,
+        fileName,
+        isImportingMultiLevelTags,
+        // Preserve transaction import settings that were configured before file upload
+        importTransactionSettings: importedSpreadsheetData?.importTransactionSettings,
+        // Reset modal state for new import
+        shouldFinalModalBeOpened: false,
+        importFinalModal: undefined,
+        containsHeader: true,
+        isImportingIndependentMultiLevelTags: false,
+        isGLAdjacent: false,
+    });
 }
 
 function setColumnName(columnIndex: number, columnName: string): Promise<void> {

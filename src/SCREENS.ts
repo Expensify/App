@@ -162,6 +162,8 @@ const SCREENS = {
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             IMPORT_TRANSACTIONS: 'Settings_Wallet_Import_Transactions',
+            IMPORT_TRANSACTIONS_CARD_NAME: 'Settings_Wallet_Import_Transactions_Card_Name',
+            IMPORT_TRANSACTIONS_CURRENCY: 'Settings_Wallet_Import_Transactions_Currency',
             IMPORT_TRANSACTIONS_SPREADSHEET: 'Settings_Wallet_Import_Transactions_Spreadsheet',
             TRANSACTIONS_IMPORTED: 'Settings_Wallet_Transactions_Imported',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
