@@ -249,7 +249,8 @@ export type {
     SearchCardGroup,
    
     SearchWithdrawalIDGroup,
+    
     SearchCategoryGroup,
-,
+
     SearchMonthGroup,
 };
