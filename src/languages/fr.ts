@@ -784,7 +784,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Retournez sur l’appareil d’origine et demandez un nouveau code',
         successfulNewCodeRequest: 'Code demandé. Veuillez vérifier votre appareil.',
         tfaRequiredTitle: dedent(`
-            Authentification à deux facteurs  
+            Authentification à deux facteurs
             requise
         `),
         tfaRequiredDescription: dedent(`
@@ -1069,6 +1069,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il manque un commerçant, une date ou un montant.',
+        addAReceipt: {
+            phrase1: 'Ajouter un reçu',
+            phrase2: 'ou faites-le glisser et déposez-le ici',
+        },
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -2389,16 +2393,24 @@ ${amount} pour ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Règles de dépenses',
         subtitle: 'Ces règles s’appliqueront à vos notes de frais. Si vous soumettez à un espace de travail, alors les règles de l’espace de travail peuvent les remplacer.',
+        findRule: 'Trouver règle',
         emptyRules: {title: 'Vous n’avez créé aucune règle', subtitle: 'Ajouter une règle pour automatiser la préparation des notes de frais.'},
         changes: {
-            billable: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
-            category: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
-            comment: (value: string) => `Modifier la description en « ${value} »`,
-            merchant: (value: string) => `Mettre à jour le marchand en « ${value} »`,
-            reimbursable: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
-            report: (value: string) => `Ajouter à un rapport nommé « ${value} »`,
-            tag: (value: string) => `Mettre à jour le tag sur « ${value} »`,
-            tax: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+            billableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            categoryUpdate: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
+            commentUpdate: (value: string) => `Modifier la description en « ${value} »`,
+            merchantUpdate: (value: string) => `Mettre à jour le marchand en « ${value} »`,
+            reimbursableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tagUpdate: (value: string) => `Mettre à jour le tag sur « ${value} »`,
+            taxUpdate: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+            billable: (value: boolean) => `à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            category: (value: string) => `à jour la catégorie en « ${value} »`,
+            comment: (value: string) => `la description en « ${value} »`,
+            merchant: (value: string) => `à jour le marchand en « ${value} »`,
+            reimbursable: (value: boolean) => `à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tag: (value: string) => `à jour le tag sur « ${value} »`,
+            tax: (value: string) => `à jour le taux de taxe à ${value}`,
+            report: (value: string) => `ajouter à un rapport nommé « ${value} »`,
         },
         newRule: 'Nouvelle règle',
         addRule: {
@@ -2620,15 +2632,15 @@ ${amount} pour ${merchant} - ${date}`,
 
                         Voici comment faire :
 
-                        1. Allez dans *Espaces de travail*.
+                        1. Accédez à *Workspaces*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *Plus de fonctionnalités*.
+                        3. Cliquez sur *More features*.
                         4. Activez *Workflows*.
-                        5. Accédez à *Workflows* dans l’éditeur de l’espace de travail.
-                        6. Activez *Ajouter des validations*.
+                        5. Allez à *Workflows* dans l’éditeur d’espace de travail.
+                        6. Activez *Approvals*.
                         7. Vous serez défini comme valideur des dépenses. Vous pourrez changer cela pour n’importe quel administrateur une fois que vous aurez invité votre équipe.
 
-                        [Accéder aux fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).`),
+                        [Faites-moi découvrir plus de fonctionnalités](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créer](${workspaceConfirmationLink}) un espace de travail`,
@@ -4644,7 +4656,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Quel est l’ID du script ?',
-                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous : 
+                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous :
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Cliquez sur un segment personnalisé.
@@ -4898,6 +4910,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             assignCardFailedError: 'L’attribution de la carte a échoué.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
+                feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
+                feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
+                tryAgain: 'Réessayer',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -6878,6 +6898,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
+        topCategories: 'Catégories principales',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             approve: 'Approuver',
@@ -6904,6 +6925,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             status: 'Statut',
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
+            limit: 'Limite',
             currency: 'Devise',
             completed: 'Terminé',
             amount: {

@@ -1063,6 +1063,10 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
+        addAReceipt: {
+            phrase1: 'Add a receipt',
+            phrase2: 'or drag and drop one here',
+        },
     },
     quickAction: {
         scanReceipt: 'Scan receipt',
@@ -2359,19 +2363,27 @@ const translations = {
     expenseRulesPage: {
         title: 'Expense rules',
         subtitle: 'These rules will apply to your expenses. If you submit to a workspace, then the workspace rules may override them.',
+        findRule: 'Find rule',
         emptyRules: {
             title: "You haven't created any rules",
             subtitle: 'Add a rule to automate expense reporting.',
         },
         changes: {
-            billable: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
-            category: (value: string) => `Update category to "${value}"`,
-            comment: (value: string) => `Change description to "${value}"`,
-            merchant: (value: string) => `Update merchant to "${value}"`,
-            reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
-            report: (value: string) => `Add to a report named "${value}"`,
-            tag: (value: string) => `Update tag to "${value}"`,
-            tax: (value: string) => `Update tax rate to "${value}"`,
+            billableUpdate: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
+            categoryUpdate: (value: string) => `Update category to "${value}"`,
+            commentUpdate: (value: string) => `Update description to "${value}"`,
+            merchantUpdate: (value: string) => `Update merchant to "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            tagUpdate: (value: string) => `Update tag to "${value}"`,
+            taxUpdate: (value: string) => `Update tax rate to "${value}"`,
+            billable: (value: boolean) => `expense ${value ? 'billable' : 'non-billable'}`,
+            category: (value: string) => `category to "${value}"`,
+            comment: (value: string) => `description to "${value}"`,
+            merchant: (value: string) => `merchant to "${value}"`,
+            reimbursable: (value: boolean) => `expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            tag: (value: string) => `tag to "${value}"`,
+            tax: (value: string) => `tax rate to "${value}"`,
+            report: (value: string) => `add to a report named "${value}"`,
         },
         newRule: 'New rule',
         addRule: {
@@ -2596,7 +2608,7 @@ const translations = {
                         3. Click *More features*.
                         4. Enable *Workflows*.
                         5. Navigate to *Workflows* in the workspace editor.
-                        6. Enable *Add approvals*.
+                        6. Enable *Approvals*.
                         7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
@@ -4702,6 +4714,13 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
+                workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
+                feedCouldNotBeLoadedTitle: "Couldn't load this feed",
+                feedCouldNotBeLoadedMessage: 'An error occurred while loading this feed. Please try again or contact your administrator.',
+                tryAgain: 'Try again',
+            },
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
@@ -6753,6 +6772,7 @@ const translations = {
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
+        topCategories: 'Top categories',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
@@ -6779,6 +6799,7 @@ const translations = {
             status: 'Status',
             keyword: 'Keyword',
             keywords: 'Keywords',
+            limit: 'Limit',
             currency: 'Currency',
             completed: 'Completed',
             amount: {

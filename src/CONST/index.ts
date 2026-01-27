@@ -3554,6 +3554,8 @@ const CONST = {
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
         CONNECTION_ERROR: 'connectionError',
+        WORKSPACE_FEEDS_LOAD_ERROR: 'workspaceFeedsLoadError',
+        FEED_LOAD_ERROR: 'feedLoadError',
         STEP: {
             SELECT_BANK: 'SelectBank',
             SELECT_FEED_TYPE: 'SelectFeedType',
@@ -7091,6 +7093,7 @@ const CONST = {
             SORT_ORDER: 'sortOrder',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LIMIT: 'limit',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7200,6 +7203,7 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             COLUMNS: 'columns',
+            LIMIT: 'limit',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -7295,12 +7299,14 @@ const CONST = {
             UNAPPROVED_CARD: 'unapprovedCard',
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
+            TOP_CATEGORIES: 'topCategories',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 200,
         },
         TODO_BADGE_MAX_COUNT: 50,
+        TOP_SEARCH_LIMIT: 10,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
