@@ -1467,7 +1467,7 @@ const translations = {
         markedAsNonReimbursable: 'marked the expense as "non-reimbursable"',
         markedAsBillable: 'marked the expense as "billable"',
         markedAsNonBillable: 'marked the expense as "non-billable"',
-        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? 'set the' : ''} ${key} to "${value}"`,
+        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `${first ? 'set the ' : ''}${key} to "${value}"`,
         viaWorkspaceRules: ({route}: {route: string}) => `via <a href="${route}">workspace rules</a>`,
     },
     transactionMerge: {

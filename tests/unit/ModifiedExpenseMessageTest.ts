@@ -799,13 +799,13 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
-        describe('when', () => {
+        describe('when policy rules modify an expense', () => {
             let environmentURL: string;
             beforeAll(async () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            it('returns the correct text message', () => {
+            it('returns the correct text message with multiple overrides', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -827,7 +827,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('returns the correct text message', () => {
+            it('returns the correct text message with two overrides', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -847,7 +847,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('returns the correct text message', () => {
+            it('returns the correct text message with a single override', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -866,7 +866,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('returns the correct text message', () => {
+            it('returns the correct text message with boolean overrides', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
