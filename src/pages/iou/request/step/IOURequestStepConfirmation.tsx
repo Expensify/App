@@ -15,7 +15,6 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -146,12 +145,12 @@ function IOURequestStepConfirmation({
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
     );
-    const transactionsCategories = useDeepCompareRef(
-        transactions.map(({transactionID, category}) => ({
+    const transactionsCategories = useMemo(() => {
+        return transactions.map(({transactionID, category}) => ({
             transactionID,
             category,
-        })),
-    );
+        }));
+    }, [transactions]);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
