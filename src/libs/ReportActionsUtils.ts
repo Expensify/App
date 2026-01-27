@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -64,6 +63,14 @@ type MemberChangeMessageRoomReferenceElement = {
 } & MessageElementBase;
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
+
+function isPolicyExpenseChat(report: OnyxInputOrEntry<Report>): boolean {
+    return report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || !!(report && typeof report === 'object' && 'isPolicyExpenseChat' in report && report.isPolicyExpenseChat);
+}
+
+function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): boolean {
+    return !!originalID && origin === 'harvest';
+}
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -2659,6 +2666,26 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
                 newValue: getTranslation(newValue),
             });
         }
+
+        if (updatedField === 'maxAmountNoItemizedReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
+            const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoItemizedReceipt;
+
+            const formatAmount = () => convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+            const getTranslation = (value?: number | string) => {
+                if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                    return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never');
+                }
+                if (value === 0) {
+                    return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.always');
+                }
+                return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.default', formatAmount());
+            };
+            return translate('workspaceActions.updateCategoryMaxAmountNoItemizedReceipt', {
+                categoryName: decodedOptionName,
+                oldValue: getTranslation(oldValue),
+                newValue: getTranslation(newValue),
+            });
+        }
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
@@ -3054,6 +3081,32 @@ function getWorkspaceAttendeeTrackingUpdateMessage(translate: LocalizedTranslate
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED>) ?? {};
 
     return translate('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
+}
+
+function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED>) ?? {};
+
+    return translate('workspaceActions.updatedAutoPayApprovedReports', {enabled: !!enabled});
+}
+
+function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {oldLimit, newLimit, currency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT>) ?? {};
+
+    if ((oldLimit === undefined || oldLimit === null || oldLimit === 0) && typeof newLimit === 'number' && newLimit !== 0) {
+        const newLimitFormatted = convertToDisplayString(newLimit, currency);
+        return translate('workspaceActions.setAutoPayApprovedReportsLimit', {newLimit: newLimitFormatted});
+    }
+
+    if (newLimit === 0) {
+        return translate('workspaceActions.removedAutoPayApprovedReportsLimit');
+    }
+
+    if (typeof oldLimit === 'number' && typeof newLimit === 'number') {
+        const oldLimitFormatted = convertToDisplayString(oldLimit, currency);
+        const newLimitFormatted = convertToDisplayString(newLimit, currency);
+        return translate('workspaceActions.updatedAutoPayApprovedReportsLimit', {oldLimit: oldLimitFormatted, newLimit: newLimitFormatted});
+    }
+    return getReportActionText(action);
 }
 
 type DefaultApproverOriginalMessage = {
@@ -3746,6 +3799,14 @@ function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONS
     return mentionedUsers?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
 }
 
+/**
+ * Checks if an action has reasoning.
+ */
+function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(action);
+    return !!originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && !!originalMessage.reasoning;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3790,6 +3851,7 @@ export {
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
     getWhisperedTo,
+    hasReasoning,
     hasRequestFromCurrentAccount,
     isActionOfType,
     isActionableWhisper,
@@ -3902,6 +3964,8 @@ export {
     getWorkspaceUpdateFieldMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCompanyAddressUpdateMessage,
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,

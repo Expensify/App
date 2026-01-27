@@ -636,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Ursprünglicher Betrag',
         insights: 'Einblicke',
         duplicateExpense: 'Doppelte Ausgabe',
+        newFeature: 'Neue Funktion',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -882,6 +883,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?`;
         },
         onlyVisible: 'Nur sichtbar für',
+        explain: 'Erklären',
+        explainMessage: 'Bitte erkläre mir das.',
         replyInThread: 'Im Thread antworten',
         joinThread: 'Thread beitreten',
         leaveThread: 'Thread verlassen',
@@ -1067,6 +1070,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
         addReceipt: 'Beleg hinzufügen',
         scanFailed: 'Die Quittung konnte nicht gescannt werden, da der Händler, das Datum oder der Betrag fehlt.',
+        addAReceipt: {
+            phrase1: 'Beleg hinzufügen',
+            phrase2: 'oder hierher ziehen und ablegen',
+        },
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -1201,7 +1208,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Sind Sie sicher, dass Sie diese Ausgaben löschen möchten?',
         }),
         deleteReport: 'Bericht löschen',
-        deleteReportConfirmation: 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?',
+        deleteReportConfirmation: 'Möchten Sie diesen Bericht wirklich löschen?',
         settledExpensify: 'Bezahlt',
         done: 'Fertig',
         settledElsewhere: 'Anderswo bezahlt',
@@ -1480,6 +1487,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
         correctDistanceRateError: 'Beheben Sie den Fehler beim Entfernungssatz und versuchen Sie es erneut.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2385,16 +2393,24 @@ ${amount} für ${merchant} – ${date}`,
     expenseRulesPage: {
         title: 'Ausgabenregeln',
         subtitle: 'Diese Regeln gelten für deine Ausgaben. Wenn du in einen Workspace einreichst, können die Workspace-Regeln diese gegebenenfalls außer Kraft setzen.',
+        findRule: 'Regel finden',
         emptyRules: {title: 'Du hast noch keine Regeln erstellt', subtitle: 'Füge eine Regel hinzu, um Spesenberichte zu automatisieren.'},
         changes: {
-            billable: (value: boolean) => `Ausgabe ${value ? 'verrechenbar' : 'nicht abrechenbar'} aktualisieren`,
-            category: (value: string) => `Kategorie auf „${value}“ aktualisieren`,
-            comment: (value: string) => `Beschreibung in „${value}“ ändern`,
-            merchant: (value: string) => `Händler aktualisieren auf „${value}“`,
-            reimbursable: (value: boolean) => `Ausgabe ${value ? 'erstattungsfähig' : 'nicht erstattungsfähig'} aktualisieren`,
-            report: (value: string) => `Zu einem Bericht mit dem Namen „${value}“ hinzufügen`,
-            tag: (value: string) => `Tag auf „${value}“ aktualisieren`,
-            tax: (value: string) => `Steuersatz auf ${value} aktualisieren`,
+            billableUpdate: (value: boolean) => `Ausgabe ${value ? 'verrechenbar' : 'nicht abrechenbar'} aktualisieren`,
+            categoryUpdate: (value: string) => `Kategorie auf „${value}“ aktualisieren`,
+            commentUpdate: (value: string) => `Beschreibung in „${value}“ ändern`,
+            merchantUpdate: (value: string) => `Händler aktualisieren auf „${value}“`,
+            reimbursableUpdate: (value: boolean) => `Ausgabe ${value ? 'erstattungsfähig' : 'nicht erstattungsfähig'} aktualisieren`,
+            tagUpdate: (value: string) => `Tag auf „${value}“ aktualisieren`,
+            taxUpdate: (value: string) => `Steuersatz auf ${value} aktualisieren`,
+            billable: (value: boolean) => `ausgabe ${value ? 'verrechenbar' : 'nicht abrechenbar'}`,
+            category: (value: string) => `kategorie auf „${value}“`,
+            comment: (value: string) => `beschreibung in „${value}“ ändern`,
+            merchant: (value: string) => `händler auf „${value}“`,
+            reimbursable: (value: boolean) => `ausgabe ${value ? 'erstattungsfähig' : 'nicht erstattungsfähig'}`,
+            tag: (value: string) => `tag auf „${value}“`,
+            tax: (value: string) => `steuersatz auf ${value}`,
+            report: (value: string) => `zu einem Bericht mit dem Namen „${value}“ hinzufügen`,
         },
         newRule: 'Neue Regel',
         addRule: {
@@ -2611,7 +2627,7 @@ ${amount} für ${merchant} – ${date}`,
                 title: 'Spesengenehmigungen hinzufügen',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Fügen Sie Ausgabengenehmigungen hinzu*, um die Ausgaben Ihres Teams zu prüfen und unter Kontrolle zu halten.
+                        *Fügen Sie Ausgabengenehmigungen hinzu*, um die Ausgaben Ihres Teams zu überprüfen und unter Kontrolle zu halten.
 
                         So geht's:
 
@@ -2619,9 +2635,9 @@ ${amount} für ${merchant} – ${date}`,
                         2. Wählen Sie Ihren Workspace aus.
                         3. Klicken Sie auf *More features*.
                         4. Aktivieren Sie *Workflows*.
-                        5. Navigieren Sie im Workspace-Editor zu *Workflows*.
-                        6. Aktivieren Sie *Add approvals*.
-                        7. Sie werden als Genehmiger für Ausgaben festgelegt. Sie können dies auf jeden Administrator ändern, sobald Sie Ihr Team eingeladen haben.
+                        5. Navigieren Sie zu *Workflows* im Workspace-Editor.
+                        6. Aktivieren Sie *Approvals*.
+                        7. Sie werden als Genehmiger für Ausgaben festgelegt. Sie können dies auf einen beliebigen Admin ändern, sobald Sie Ihr Team eingeladen haben.
 
                         [Zu More features wechseln](${workspaceMoreFeaturesLink}).`),
             },
@@ -4891,6 +4907,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             assign: 'Zuweisen',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',
@@ -6206,6 +6223,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                     `<muted-text>Legen Sie Ausgabenkontrollen und Standardwerte für einzelne Ausgaben fest. Sie können auch Regeln für <a href="${categoriesPageLink}">Kategorien</a> und <a href="${tagsPageLink}">Tags</a> erstellen.</muted-text>`,
                 receiptRequiredAmount: 'Erforderlicher Belegbetrag',
                 receiptRequiredAmountDescription: 'Belege verlangen, wenn die Ausgaben diesen Betrag überschreiten, sofern dies nicht durch eine Kategorienregel außer Kraft gesetzt wird.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Der Betrag darf nicht höher sein als der für detaillierte Belege erforderliche Betrag (${amount})`,
+                itemizedReceiptRequiredAmount: 'Detaillierter Beleg erforderlicher Betrag',
+                itemizedReceiptRequiredAmountDescription:
+                    'Detaillierte Belege anfordern, wenn die Ausgaben diesen Betrag überschreiten, es sei denn, eine Kategorievorschrift hebt dies auf.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Der Betrag darf nicht niedriger sein als der für reguläre Belege erforderliche Betrag (${amount})`,
                 maxExpenseAmount: 'Maximaler Spesenbetrag',
                 maxExpenseAmountDescription: 'Ausgaben kennzeichnen, die diesen Betrag überschreiten, sofern sie nicht durch eine Kategorienregel außer Kraft gesetzt werden.',
                 maxAge: 'Maximales Alter',
@@ -6298,6 +6320,12 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                     never: 'Belege nie erforderlich',
                     always: 'Quittungen immer erforderlich',
                 },
+                requireItemizedReceiptsOver: 'Detaillierte Belege über erforderlich',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standard`,
+                    never: 'Detaillierte Belege niemals verlangen',
+                    always: 'Immer detaillierte Belege anfordern',
+                },
                 defaultTaxRate: 'Standardsteuersatz',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `Gehe zu [Weitere Funktionen](${moreFeaturesLink}) und aktiviere Workflows. Füge dann Genehmigungen hinzu, um diese Funktion freizuschalten.`,
@@ -6305,6 +6333,16 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             customRules: {
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier befindet sich die Spesenrichtlinie eures Teams, damit alle genau wissen, was abgedeckt ist.',
+            },
+            merchantRules: {
+                title: 'Händler',
+                subtitle: 'Legen Sie Händlerregeln fest, damit Ausgaben korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
+                addRule: 'Händlerregel hinzufügen',
+                ruleSummaryTitle: (merchantName: string) => `Wenn Händler „${merchantName}“ enthält`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Händler in „${merchantName}“ umbenennen`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Als „${billable ? 'Abrechenbar' : 'nicht abrechenbar'}“ markieren`,
             },
         },
         planTypePage: {
@@ -6450,7 +6488,13 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
             return `Kategorie „${categoryName}“ zu ${newValue} geändert (zuvor ${oldValue})`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `hat die Kategorie „${oldName}“ in „${newName}“ umbenannt`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `hat die Kategorie "${categoryName}" aktualisiert, indem Detaillierte Belege in ${newValue} geändert wurden`;
+            }
+            return `hat die Detaillierte Belege der Kategorie "${categoryName}" auf ${newValue} geändert (vorher ${oldValue})`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `hat die Kategorie „${oldName}" in „${newName}" umbenannt`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `den Beschreibungshinweis „${oldValue}“ aus der Kategorie „${categoryName}“ entfernt`;
@@ -6696,6 +6740,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage festlegen`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter entfernt (zuvor „${oldValue}“ Tage)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'Deaktiviert'} automatisch bezahlte genehmigte Berichte`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `Stelle den Schwellenwert für die automatische Zahlung genehmigter Berichte auf „${newLimit}“ ein`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `den Schwellenwert für die automatische Bezahlung genehmigter Berichte auf „${newLimit}“ geändert (zuvor „${oldLimit}“)`,
+        removedAutoPayApprovedReportsLimit: 'den Grenzwert für automatisch bezahlte genehmigte Reports entfernt',
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -6831,6 +6880,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         deleteSavedSearchConfirm: 'Möchten Sie diese Suche wirklich löschen?',
         searchName: 'Name suchen',
         savedSearchesMenuItemTitle: 'Gespeichert',
+        topCategories: 'Top-Kategorien',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
             approve: 'Genehmigen',
@@ -6857,6 +6907,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             status: 'Status',
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
+            limit: 'Limit',
             currency: 'Währung',
             completed: 'Abgeschlossen',
             amount: {
@@ -6890,6 +6941,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7327,6 +7379,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
             return 'Beleg erforderlich';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Detaillierter Beleg erforderlich${formattedLimit ? ` über ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Unzulässige Ausgabe:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7863,6 +7916,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         outstandingFilter: '<tooltip>Nach Ausgaben filtern,\ndie <strong>genehmigt werden müssen</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Quittung senden, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',
@@ -8023,7 +8077,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 `<comment><muted-text-label>Wenn diese Option aktiviert ist, bezahlt der Hauptansprechpartner für alle Workspaces, die Mitgliedern von <strong>${domainName}</strong> gehören, und erhält alle Rechnungsbelege.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Die konsolidierte Domain-Abrechnung konnte nicht geändert werden. Bitte versuche es später erneut.',
             addAdmin: 'Admin hinzufügen',
-            invite: 'Einladen',
             addAdminError: 'Dieser Benutzer kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
             revokeAdminAccess: 'Administratorzugriff widerrufen',
             cantRevokeAdminAccess: 'Adminzugriff kann dem technischen Ansprechpartner nicht entzogen werden',
@@ -8037,11 +8090,16 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             enterDomainName: 'Geben Sie hier Ihren Domänennamen ein',
             resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <ul><li>Firmenkarten-Verbindungen und alle nicht eingereichten Ausgaben von diesen Karten</li> <li>SAML- und Gruppeneinstellungen</li> </ul> Alle Konten, Workspaces, Berichte, Ausgaben und anderen Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> löschen.`,
         },
-        members: {title: 'Mitglieder', findMember: 'Mitglied suchen'},
+        members: {
+            title: 'Mitglieder',
+            findMember: 'Mitglied suchen',
+            addMember: 'Mitglied hinzufügen',
+            email: 'E-Mail-Adresse',
+            errors: {addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.'},
+        },
         domainAdmins: 'Domain-Admins',
     },
     gps: {
-        tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
         disclaimer: 'Benutze GPS, um eine Ausgabe von deiner Reise zu erstellen. Tippe unten auf „Start“, um mit der Aufzeichnung zu beginnen.',
         error: {failedToStart: 'Standortverfolgung konnte nicht gestartet werden.', failedToGetPermissions: 'Die erforderlichen Standortberechtigungen konnten nicht abgerufen werden.'},
         trackingDistance: 'Strecke wird verfolgt...',
@@ -8078,6 +8136,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             title: 'Entfernung auf deinem Handy verfolgen',
             subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
             button: 'App herunterladen',
+        },
+        continueGpsTripModal: {
+            title: 'GPS-Aufzeichnung der Fahrt fortsetzen?',
+            prompt: 'Es sieht so aus, als ob die App während deiner letzten GPS-Fahrt geschlossen wurde. Möchtest du die Aufzeichnung dieser Fahrt fortsetzen?',
+            confirm: 'Reise fortsetzen',
+            cancel: 'Reise anzeigen',
         },
         notification: {title: 'GPS-Tracking läuft', body: 'Zur App gehen, um abzuschließen'},
         signOutWarningTripInProgress: {title: 'GPS-Tracking läuft', prompt: 'Sind Sie sicher, dass Sie die Reise verwerfen und sich abmelden möchten?', confirm: 'Verwerfen und abmelden'},
