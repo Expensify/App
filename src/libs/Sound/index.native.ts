@@ -3,6 +3,7 @@ import type {AudioSource} from 'expo-audio';
 import type {ValueOf} from 'type-fest';
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 
+// Sound assets must be required at compile time
 const SOUND_ASSETS: Record<ValueOf<typeof SOUNDS>, AudioSource> = {
     [SOUNDS.DONE]: require('@assets/sounds/done.mp3') as AudioSource,
     [SOUNDS.SUCCESS]: require('@assets/sounds/success.mp3') as AudioSource,
@@ -10,10 +11,7 @@ const SOUND_ASSETS: Record<ValueOf<typeof SOUNDS>, AudioSource> = {
     [SOUNDS.RECEIVE]: require('@assets/sounds/receive.mp3') as AudioSource,
 };
 
-// Single player instance
-let player: ReturnType<typeof createAudioPlayer> | null = null;
-
-function playSound(soundFile: ValueOf<typeof SOUNDS>) {
+const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
     if (getIsMuted()) {
         return;
     }
@@ -23,14 +21,20 @@ function playSound(soundFile: ValueOf<typeof SOUNDS>) {
         return;
     }
 
-    if (!player) {
-        player = createAudioPlayer(source);
-    } else {
-        player.replace(source);
-    }
+    const player = createAudioPlayer(source);
+
+    // Listen for playback completion to release resources
+    const subscription = player.addListener('playbackStatusUpdate', (status) => {
+        if (!status.didJustFinish) {
+            return;
+        }
+
+        subscription.remove();
+        player.remove();
+    });
 
     player.play();
-}
+};
 
 function clearSoundAssetsCache() {}
 
