@@ -637,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Einblicke',
         duplicateExpense: 'Doppelte Ausgabe',
         newFeature: 'Neue Funktion',
+        month: 'Monat',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -758,6 +759,18 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: 'Schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck aktivieren. Keine Passwörter oder Codes erforderlich.',
+        },
+        revoke: {
+            revoke: 'Widerrufen',
+            title: 'Gesichts-/Fingerabdruck & Passkeys',
+            explanation:
+                'Die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert beim nächsten Verifizierungsvorgang auf jedem Gerät einen Magic Code',
+            confirmationPrompt: 'Bist du sicher? Du benötigst einen magischen Code für die nächste Verifizierung auf jedem Gerät',
+            cta: 'Zugriff widerrufen',
+            noDevices:
+                'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier wieder entziehen.',
+            dismiss: 'Verstanden',
+            error: 'Anfrage fehlgeschlagen. Versuchen Sie es später erneut.',
         },
     },
     validateCodeModal: {
@@ -6900,7 +6913,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nie',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
-                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Diesen Monat',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Dieser Monat',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Laufendes Jahr',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzter Kontoauszug',
                 },
             },
@@ -6942,6 +6956,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
             },
             feed: 'Feed',
             withdrawalType: {

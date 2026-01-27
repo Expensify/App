@@ -34,7 +34,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
-const XERO_PARTNER_LINK = 'https://xero5440.partnerlinks.io/uzfjy4uegog2-v0pj1v';
+const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
@@ -1709,7 +1709,12 @@ const CONST = {
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
+        CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
+        // Breadcrumb names
+        BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
+        BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
+        BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
@@ -1766,6 +1771,11 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         CONFIG: {
             SKELETON_MIN_DURATION: 10_000,
+            MEMORY_THRESHOLD_CRITICAL_PERCENTAGE: 90,
+            MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
+            // Memory Thresholds (in MB)
+            MEMORY_THRESHOLD_WARNING: 120,
+            MEMORY_THRESHOLD_CRITICAL: 50,
         },
     },
     PRIORITY_MODE: {
@@ -6860,6 +6870,7 @@ const CONST = {
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
             CATEGORY: 'category',
+            MONTH: 'month',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6941,6 +6952,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                MONTH: {
+                    MONTH: this.TABLE_COLUMNS.GROUP_MONTH,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -6983,6 +6999,7 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7079,6 +7096,7 @@ const CONST = {
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
             GROUP_CATEGORY: 'groupCategory',
+            GROUP_MONTH: 'groupmonth',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7095,9 +7113,14 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
+            VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+        },
+        VIEW: {
+            TABLE: 'table',
+            BAR: 'bar',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7279,6 +7302,7 @@ const CONST = {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
             THIS_MONTH: 'this-month',
+            YEAR_TO_DATE: 'year-to-date',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [

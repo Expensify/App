@@ -637,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Insights',
         duplicateExpense: 'Despesa duplicada',
         newFeature: 'Novo recurso',
+        month: 'Mês',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -758,6 +759,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: 'Habilite a verificação rápida e segura usando seu rosto ou impressão digital. Sem senhas ou códigos necessários.',
+        },
+        revoke: {
+            revoke: 'Revogar',
+            title: 'Rosto/digital & chaves de acesso',
+            explanation:
+                'Verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
+            confirmationPrompt: 'Tem certeza? Você precisará de um código mágico para a próxima verificação em qualquer dispositivo',
+            cta: 'Revogar acesso',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação com rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            dismiss: 'Entendi',
+            error: 'A solicitação falhou. Tente novamente mais tarde.',
         },
     },
     validateCodeModal: {
@@ -6864,6 +6876,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mês passado',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mês',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Ano até a data',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extrato',
                 },
             },
@@ -6903,8 +6916,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
             },
             feed: 'Feed',
             withdrawalType: {

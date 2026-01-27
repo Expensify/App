@@ -7,7 +7,7 @@ import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -83,8 +83,8 @@ function SuggestionMention({
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar']);
 
-    const currentReportID = useCurrentReportID();
-    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
+    const {currentReportID} = useCurrentReportIDState();
+    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
     // Smaller weight means higher order in suggestion list
     const getPersonalDetailsWeight = useCallback(
         (detail: PersonalDetails, policyEmployeeAccountIDs: number[]): number => {

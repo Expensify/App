@@ -629,6 +629,7 @@ const translations = {
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        month: 'Month',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -746,6 +747,16 @@ const translations = {
         },
         enableQuickVerification: {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+        },
+        revoke: {
+            revoke: 'Revoke',
+            title: 'Face/fingerprint & passkeys',
+            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device",
+            cta: 'Revoke access',
+            noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
+            dismiss: 'Got it',
+            error: 'Request failed. Try again later.',
         },
     },
     validateCodeModal: {
@@ -6787,6 +6798,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
@@ -6828,6 +6840,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
             },
             feed: 'Feed',
             withdrawalType: {
