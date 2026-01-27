@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import RuleBooleanBase from '@components/Rule/RuleBooleanBase';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import {updateDraftRule} from '@libs/actions/User';
@@ -24,11 +24,11 @@ function AddBillablePage({route}: AddBillablePageProps) {
         goBack();
     };
 
-    const ContentWrapper = useMemo(() => {
-        return function Wrapper({children}: {children: React.ReactNode}) {
-            return <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>;
-        };
-    }, [hash]);
+    const ContentWrapper = useMemo(
+        () =>
+            ({children}: {children: React.ReactNode}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>,
+        [hash],
+    );
 
     return (
         <RuleBooleanBase

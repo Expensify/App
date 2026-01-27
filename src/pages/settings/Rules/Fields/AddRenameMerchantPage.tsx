@@ -25,11 +25,11 @@ function AddRenameMerchantPage({route}: AddRenameMerchantPageProps) {
         goBack();
     };
 
-    const ContentWrapper = useMemo(() => {
-        return function Wrapper({children}: {children: React.ReactNode}) {
-            return <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>;
-        };
-    }, [hash]);
+    const ContentWrapper = useMemo(
+        () =>
+            ({children}: {children: React.ReactNode}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>,
+        [hash],
+    );
 
     return (
         <RuleTextBase
