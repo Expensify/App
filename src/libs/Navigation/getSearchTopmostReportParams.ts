@@ -12,7 +12,9 @@ function getReportRHPParams(state: State): RightModalNavigatorParamList[typeof S
     if (!lastRoute || lastRoute.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
     }
-    const topmostRHPReport = lastRoute.state?.routes?.findLast((route) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT);
+    const topmostRHPReport = lastRoute.state?.routes?.findLast(
+        (route) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+    );
     if (!topmostRHPReport) {
         return;
     }
