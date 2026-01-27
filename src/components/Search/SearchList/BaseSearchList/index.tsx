@@ -54,6 +54,7 @@ function BaseSearchList({
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
+        captureOnInputs: false,
     });
 
     const renderItemWithKeyboardFocus = useCallback(
