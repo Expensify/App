@@ -9,7 +9,7 @@ import {isChatRoom} from './ReportUtils';
 
 const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').replace('#', '');
 
-const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEntry<Report>, reports: OnyxCollection<Report>, tnode: TText | TPhrasing) => {
+const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEntry<Report>, reports: OnyxCollection<Report>, tnode: TText | TPhrasing, policyID?: string) => {
     let reportID: string | undefined;
     let mentionDisplayText: string;
 
@@ -23,7 +23,7 @@ const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: O
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
 
         for (const report of Object.values(reports ?? {})) {
-            if (report?.policyID !== currentReport?.policyID || !isChatRoom(report) || removeLeadingLTRAndHash(report?.reportName ?? '') !== mentionDisplayText) {
+            if (report?.policyID !== (currentReport?.policyID ?? policyID) || !isChatRoom(report) || removeLeadingLTRAndHash(report?.reportName ?? '') !== mentionDisplayText) {
                 continue;
             }
             reportID = report?.reportID;
