@@ -3541,6 +3541,19 @@ function updateQueryStringOnSearchTypeChange(type: SearchDataTypes, searchAdvanc
 
     // If the type has changed, reset the columns
     if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
+        const newStatus = [];
+        const currentStatus = typeof updatedFilterFormValues.status === 'string' ? updatedFilterFormValues.status.split(',') : (updatedFilterFormValues.status ?? []);
+
+        for (const status of currentStatus) {
+            if (
+                (type === CONST.SEARCH.DATA_TYPES.EXPENSE && Object.values(CONST.SEARCH.STATUS.EXPENSE).includes(status)) ||
+                (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && Object.values(CONST.SEARCH.STATUS.EXPENSE_REPORT).includes(status))
+            ) {
+                newStatus.push(status);
+            }
+        }
+
+        updatedFilterFormValues.status = newStatus.length === 0 ? CONST.SEARCH.STATUS.EXPENSE.ALL : newStatus;
         updatedFilterFormValues.columns = [];
     }
 
