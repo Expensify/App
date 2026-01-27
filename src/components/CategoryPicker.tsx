@@ -79,7 +79,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             sections={sections}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            shouldShowTextInput={categoriesCount < CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
