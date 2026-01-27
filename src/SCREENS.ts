@@ -6,6 +6,7 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
     HOME: 'Home',
+    INBOX: 'Inbox',
     CONCIERGE: 'Concierge',
     REPORT_ATTACHMENTS: 'ReportAttachments',
     REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',

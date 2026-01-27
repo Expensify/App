@@ -640,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: '重複した経費',
         newFeature: '新機能',
         month: '月',
+        home: 'ホーム',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',

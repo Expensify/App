@@ -159,7 +159,7 @@ describe('Navigate', () => {
                                     index: 0,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
