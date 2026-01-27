@@ -1,5 +1,5 @@
-import 'react-native-url-polyfill/auto';
 import escapeRegExp from 'lodash/escapeRegExp';
+import 'react-native-url-polyfill/auto';
 import CONST from '@src/CONST';
 
 function addLeadingForwardSlash(url: string): string {
