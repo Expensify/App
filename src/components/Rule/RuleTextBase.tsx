@@ -45,19 +45,7 @@ type RuleTextBaseProps<TFormID extends OnyxFormKey> = {
     hash?: string;
 };
 
-function RuleTextBase<TFormID extends OnyxFormKey>({
-    fieldID,
-    hintKey,
-    isRequired,
-    titleKey,
-    labelKey,
-    testID,
-    characterLimit,
-    formID,
-    onSave,
-    onBack,
-    hash,
-}: RuleTextBaseProps<TFormID>) {
+function RuleTextBase<TFormID extends OnyxFormKey>({fieldID, hintKey, isRequired, titleKey, labelKey, testID, characterLimit, formID, onSave, onBack, hash}: RuleTextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

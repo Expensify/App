@@ -17,7 +17,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,16 +68,36 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [shouldShowError, setShouldShowError] = useState(false);
 
     useEffect(() => () => clearDraftMerchantRule(), []);
 
-    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
-    const areTagsEnabled = !!policy?.areTagsEnabled;
-    const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
+    const hasCategories = () => {
+        if (!policy?.areCategoriesEnabled) {
+            return false;
+        }
+        return Object.keys(policyCategories ?? {}).length > 0;
+    };
+
+    const hasTags = () => {
+        if (!policy?.areTagsEnabled) {
+            return false;
+        }
+        const tagNames = getTagNamesFromTagsLists(policyTags ?? {});
+        return tagNames.length > 0;
+    };
+
+    const hasTaxes = () => {
+        if (!policy?.tax?.trackingEnabled) {
+            return false;
+        }
+        return Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
+    };
+
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
-    // Get display names for category, tag, and tax
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const tagDisplayName = form?.tag ? getCleanedTagName(form.tag) : undefined;
     const taxDisplayName = () => {
@@ -123,21 +143,21 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                     title: form?.merchant,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID)),
                 },
-                areCategoriesEnabled
+                hasCategories()
                     ? {
                           descriptionTranslationKey: 'common.category',
                           title: categoryDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID)),
                       }
                     : undefined,
-                areTagsEnabled
+                hasTags()
                     ? {
                           descriptionTranslationKey: 'common.tag',
                           title: tagDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID)),
                       }
                     : undefined,
-                isTaxTrackingEnabled
+                hasTaxes()
                     ? {
                           descriptionTranslationKey: 'common.tax',
                           title: taxDisplayName(),
