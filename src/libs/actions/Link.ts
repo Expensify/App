@@ -198,9 +198,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen) {
-        const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
-        const currentRoute = Navigation.getActiveRoute();
-        shouldCloseRHP = !willOpenInRHP;
+        shouldCloseRHP = !willRouteNavigateToRHP(internalNewExpensifyPath as Route);
     }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
