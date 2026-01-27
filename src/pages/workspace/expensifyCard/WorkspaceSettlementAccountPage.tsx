@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -95,7 +95,7 @@ function WorkspaceSettlementAccountPage({route, isTravelInvoicing = false}: Work
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
     // For Travel Invoicing, always use the standard eligible accounts; for Expensify Card, check UK/EU support
-    const eligibleBankAccounts = useMemo(() => {
+    const getEligibleBankAccounts = () => {
         if (isTravelInvoicing) {
             return getEligibleBankAccountsForCard(bankAccountsList);
         }
@@ -103,7 +103,8 @@ function WorkspaceSettlementAccountPage({route, isTravelInvoicing = false}: Work
             return getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency);
         }
         return getEligibleBankAccountsForCard(bankAccountsList);
-    }, [isUkEuCurrencySupported, bankAccountsList, policy?.outputCurrency, isTravelInvoicing]);
+    };
+    const eligibleBankAccounts = getEligibleBankAccounts();
 
     const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
 
@@ -149,7 +150,16 @@ function WorkspaceSettlementAccountPage({route, isTravelInvoicing = false}: Work
     };
 
     // For Travel Invoicing, don't show fallback if no eligible accounts
-    const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : isTravelInvoicing ? [] : [fallbackBankAccountOption];
+    const getListOptions = (): BankAccountListItem[] => {
+        if (eligibleBankAccountsOptions.length > 0) {
+            return eligibleBankAccountsOptions;
+        }
+        if (isTravelInvoicing) {
+            return [];
+        }
+        return [fallbackBankAccountOption];
+    };
+    const listOptions = getListOptions();
 
     const handleSelectAccount = (value: number) => {
         if (isTravelInvoicing) {
@@ -165,7 +175,7 @@ function WorkspaceSettlementAccountPage({route, isTravelInvoicing = false}: Work
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)));
     };
 
-    const customListHeaderContent = React.useMemo(() => {
+    const getCustomListHeaderContent = () => {
         // For Travel Invoicing, use a simpler header
         if (isTravelInvoicing) {
             return <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>;
@@ -189,7 +199,8 @@ function WorkspaceSettlementAccountPage({route, isTravelInvoicing = false}: Work
                 )}
             </>
         );
-    }, [continuousReconciliation?.value, reconciliationConnection, environmentURL, paymentBankAccountNumber, translate, hasActiveAccountingConnection, policyID, styles, isTravelInvoicing]);
+    };
+    const customListHeaderContent = getCustomListHeaderContent();
 
     const featureName = isTravelInvoicing ? CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED;
 

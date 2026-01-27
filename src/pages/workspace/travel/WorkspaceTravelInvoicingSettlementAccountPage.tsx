@@ -13,6 +13,7 @@ type WorkspaceTravelInvoicingSettlementAccountPageProps = PlatformStackScreenPro
 function WorkspaceTravelInvoicingSettlementAccountPage(props: WorkspaceTravelInvoicingSettlementAccountPageProps) {
     return (
         <WorkspaceSettlementAccountPage
+            // eslint-disable-next-line react/jsx-props-no-spreading -- Wrapper component forwarding navigation props unchanged
             {...props}
             isTravelInvoicing
         />
