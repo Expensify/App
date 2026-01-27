@@ -42,7 +42,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Card, PrivatePersonalDetails} from '@src/types/onyx';
-import useExpensifyCardContext from './useExpensifyCardContext';
+import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>
@@ -127,7 +127,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         return virtualCards?.at(0);
     }, [virtualCards]);
 
-    const {cardsDetails, setCardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardContext();
+    const {cardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardState();
+    const {setCardsDetails} = useExpensifyCardActions();
 
     // Resets card details when navigating away from the page.
     useFocusEffect(
