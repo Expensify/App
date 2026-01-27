@@ -800,7 +800,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport({translate, report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived, reportAttributesDerived});
+        lastMessageTextFromReport = getLastMessageTextForReport({translate, report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived, currentUserAccountID, reportAttributesDerived});
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.

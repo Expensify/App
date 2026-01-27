@@ -241,6 +241,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 policyForMovingExpensesID,
                 reportMetadata: itemReportMetadata,
                 reportAttributesDerived: reportAttributes,
+                currentUserAccountID,
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
