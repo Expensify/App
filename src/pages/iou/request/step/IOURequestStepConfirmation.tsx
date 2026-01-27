@@ -54,6 +54,7 @@ import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     doesReportReceiverMatchParticipant,
+    findSelfDMReportID,
     generateReportID,
     getReportOrDraftReport,
     hasViolations as hasViolationsReportUtils,
@@ -86,6 +87,7 @@ import {
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     startMoneyRequest,
+    submitPerDiemExpenseForSelfDM,
     submitPerDiemExpense as submitPerDiemExpenseIOUActions,
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
@@ -215,9 +217,10 @@ function IOURequestStepConfirmation({
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
+    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
+
     const [personalPolicyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${personalPolicy?.id}`, {canBeMissing: true});
-    const [personalPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicy?.id}`, {canBeMissing: true});
-    const [personalPolicyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${personalPolicy?.id}`, {canBeMissing: true});
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -694,48 +697,70 @@ function IOURequestStepConfirmation({
             if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
                 return;
             }
-            submitPerDiemExpenseIOUActions({
-                report,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant,
-                },
-                policyParams: {
+            if (iouType === CONST.IOU.TYPE.TRACK && selfDMReport) {
+                submitPerDiemExpenseForSelfDM({
+                    selfDMReport,
                     policy,
-                    policyTagList: policyTags,
-                    policyRecentlyUsedTags,
-                    policyCategories,
-                    policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
-                },
-                recentlyUsedParams: {
-                    destinations: recentlyUsedDestinations,
-                },
-                transactionParams: {
-                    currency: transaction.currency,
-                    created: transaction.created,
-                    comment: trimmedComment,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    customUnit: transaction.comment?.customUnit,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    attendees: transaction.comment?.attendees,
-                },
-                isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                hasViolations,
-                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                quickAction,
-            });
+                    transactionParams: {
+                        currency: transaction.currency,
+                        created: transaction.created,
+                        comment: trimmedComment,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        customUnit: transaction.comment?.customUnit,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        attendees: transaction.comment?.attendees,
+                    },
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                });
+            } else {
+                submitPerDiemExpenseIOUActions({
+                    report,
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    policyParams: {
+                        policy,
+                        policyTagList: policyTags,
+                        policyRecentlyUsedTags,
+                        policyCategories,
+                        policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
+                    },
+                    recentlyUsedParams: {
+                        destinations: recentlyUsedDestinations,
+                    },
+                    transactionParams: {
+                        currency: transaction.currency,
+                        created: transaction.created,
+                        comment: trimmedComment,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        customUnit: transaction.comment?.customUnit,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        attendees: transaction.comment?.attendees,
+                    },
+                    isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    hasViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
+                });
+            }
         },
         [
             transaction,
-            report,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
+            iouType,
+            selfDMReport,
             policy,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.login,
+            report,
             policyTags,
             policyRecentlyUsedTags,
             policyCategories,

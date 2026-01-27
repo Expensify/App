@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -7,10 +8,9 @@ import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit}
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from '@hooks/useOnyx';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
 
 type IOURequestStepPerDiemWorkspaceProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
