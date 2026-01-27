@@ -5248,7 +5248,7 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false, '');
+            const result = findLastAccessedReport(false);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -5291,7 +5291,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false, '');
+            const result = findLastAccessedReport(false);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
