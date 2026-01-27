@@ -633,6 +633,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: '原始金额',
         insights: '洞察',
         duplicateExpense: '重复报销',
+        newFeature: '新功能',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1049,6 +1050,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: '您确定要删除此收据吗？',
         addReceipt: '添加收据',
         scanFailed: '无法扫描该收据，因为缺少商家、日期或金额。',
+        addAReceipt: {
+            phrase1: '添加收据',
+            phrase2: '或者拖拽到这里',
+        },
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -2338,16 +2343,24 @@ ${amount}，商户：${merchant} - ${date}`,
     expenseRulesPage: {
         title: '报销规则',
         subtitle: '这些规则将适用于你的报销。如果你提交到工作区，则该工作区的规则可能会覆盖这些规则。',
+        findRule: '查找规则',
         emptyRules: {title: '你还没有创建任何规则', subtitle: '添加一条规则以自动化报销报告。'},
         changes: {
-            billable: (value: boolean) => `更新报销 ${value ? '可计费' : '不可计费'}`,
-            category: (value: string) => `将类别更新为“${value}”`,
-            comment: (value: string) => `将描述更改为 “${value}”`,
-            merchant: (value: string) => `将商户更新为“${value}”`,
-            reimbursable: (value: boolean) => `更新报销 ${value ? '可报销' : '不予报销'}`,
+            billableUpdate: (value: boolean) => `更新报销 ${value ? '可计费' : '不可计费'}`,
+            categoryUpdate: (value: string) => `将类别更新为“${value}”`,
+            commentUpdate: (value: string) => `将描述更改为 “${value}”`,
+            merchantUpdate: (value: string) => `将商户更新为“${value}”`,
+            reimbursableUpdate: (value: boolean) => `更新报销 ${value ? '可报销' : '不予报销'}`,
+            tagUpdate: (value: string) => `将标签更新为“${value}”`,
+            taxUpdate: (value: string) => `将税率更新为 ${value}`,
+            billable: (value: boolean) => `报销 ${value ? '可计费' : '不可计费'}`,
+            category: (value: string) => `将类别为“${value}”`,
+            comment: (value: string) => `将描述为 “${value}”`,
+            merchant: (value: string) => `将商户为“${value}”`,
+            reimbursable: (value: boolean) => `报销 ${value ? '可报销' : '不予报销'}`,
+            tag: (value: string) => `将标签为“${value}”`,
+            tax: (value: string) => `将税率为 ${value}`,
             report: (value: string) => `添加到名为“${value}”的报表`,
-            tag: (value: string) => `将标签更新为“${value}”`,
-            tax: (value: string) => `将税率更新为 ${value}`,
         },
         newRule: '新规则',
         addRule: {
@@ -6147,6 +6160,16 @@ ${reportName}
                 title: '报销政策',
                 cardSubtitle: '这里是你们团队报销政策所在的位置，让所有人都能清楚了解哪些费用包含在内。',
             },
+            merchantRules: {
+                title: '商家',
+                subtitle: '设置商家规则，让报销费用自动按正确科目归类，减少后期清理工作。',
+                addRule: '添加商家规则',
+                ruleSummaryTitle: (merchantName: string) => `如果商户包含“${merchantName}”`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `将商家重命名为 “${merchantName}”`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `将 ${fieldName} 更新为“${fieldValue}”`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `标记为“${reimbursable ? '可报销' : '不予报销'}”`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `标记为“${billable ? '可计费' : '不可计费'}”`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6660,6 +6683,7 @@ ${reportName}
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
+        topCategories: '热门类别',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
             approve: '批准',
@@ -6686,6 +6710,7 @@ ${reportName}
             status: '状态',
             keyword: '关键字',
             keywords: '关键词',
+            limit: '限制',
             currency: '货币',
             completed: '已完成',
             amount: {

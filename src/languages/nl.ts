@@ -637,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Oorspronkelijk bedrag',
         insights: 'Inzichten',
         duplicateExpense: 'Dubbele uitgave',
+        newFeature: 'Nieuwe functie',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1064,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
         scanFailed: 'De bon kon niet worden gescand, omdat er een handelaar, datum of bedrag ontbreekt.',
+        addAReceipt: {
+            phrase1: 'Bon toevoegen',
+            phrase2: 'of sleep hem hierheen',
+        },
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -2379,16 +2384,24 @@ ${amount} voor ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Kostenregels',
         subtitle: 'Deze regels zijn van toepassing op je uitgaven. Als je ze indient bij een werkruimte, kunnen de regels van de werkruimte deze overschrijven.', //_/\__/_/  \_,_/\__/\__/\_,_/
+        findRule: 'Regel zoeken',
         emptyRules: {title: 'Je hebt nog geen regels aangemaakt', subtitle: 'Voeg een regel toe om onkostendeclaraties te automatiseren.'},
         changes: {
-            billable: (value: boolean) => `Uitgave ${value ? 'factureerbaar' : 'niet-declarabel'} bijwerken`,
-            category: (value: string) => `Categorie bijwerken naar "${value}"`,
-            comment: (value: string) => `Beschrijving wijzigen in "${value}"`,
-            merchant: (value: string) => `Handelaar bijwerken naar "${value}"`,
-            reimbursable: (value: boolean) => `Uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`,
-            report: (value: string) => `Toevoegen aan een rapport met de naam "${value}"`,
-            tag: (value: string) => `Tag bijwerken naar "${value}"`,
-            tax: (value: string) => `Belastingtarief bijwerken naar ${value}`,
+            billableUpdate: (value: boolean) => `Uitgave ${value ? 'factureerbaar' : 'niet-declarabel'} bijwerken`,
+            categoryUpdate: (value: string) => `Categorie bijwerken naar "${value}"`,
+            commentUpdate: (value: string) => `Beschrijving wijzigen in "${value}"`,
+            merchantUpdate: (value: string) => `Handelaar bijwerken naar "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`,
+            tagUpdate: (value: string) => `Tag bijwerken naar "${value}"`,
+            taxUpdate: (value: string) => `Belastingtarief bijwerken naar ${value}`,
+            billable: (value: boolean) => `uitgave ${value ? 'factureerbaar' : 'niet-declarabel'}`,
+            category: (value: string) => `categorie naar "${value}"`,
+            comment: (value: string) => `beschrijving wijzigen in "${value}"`,
+            merchant: (value: string) => `handelaar naar "${value}"`,
+            reimbursable: (value: boolean) => `uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'}`,
+            tag: (value: string) => `tag naar "${value}"`,
+            tax: (value: string) => `belastingtarief naar ${value}`,
+            report: (value: string) => `toevoegen aan een rapport met de naam "${value}"`,
         },
         newRule: 'Nieuwe regel',
         addRule: {
@@ -6287,6 +6300,16 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 title: 'Onkostennota-beleid',
                 cardSubtitle: 'Hier staat het onkostebeleid van je team, zodat iedereen goed weet wat wel en niet wordt vergoed.',
             },
+            merchantRules: {
+                title: 'Handelaar',
+                subtitle: 'Stel de merchantregels zo in dat onkosten met de juiste codering binnenkomen en er minder nabewerking nodig is.',
+                addRule: 'Merchantregel toevoegen',
+                ruleSummaryTitle: (merchantName: string) => `Als handelaar "${merchantName}" bevat`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Naam handelaar wijzigen in "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Werk ${fieldName} bij naar "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als  "${reimbursable ? 'Vergoedbaar' : 'niet-vergoedbaar'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Markeren als "${billable ? 'factureerbaar' : 'niet-factureerbaar'}"`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6820,6 +6843,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
         searchName: 'Naam zoeken',
         savedSearchesMenuItemTitle: 'Opgeslagen',
+        topCategories: 'Topcategorieën',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
             approve: 'Goedkeuren',
@@ -6846,6 +6870,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             status: 'Status',
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
+            limit: 'Limiet',
             currency: 'Valuta',
             completed: 'Voltooid',
             amount: {
