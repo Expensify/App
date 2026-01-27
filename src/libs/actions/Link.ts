@@ -248,7 +248,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean) {
+function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined) {
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -339,7 +339,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, false, () => true);
                                     return;
                                 }
 
