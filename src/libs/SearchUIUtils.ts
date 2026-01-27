@@ -881,6 +881,13 @@ function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is Tra
 }
 
 /**
+ * Type guard that checks if something is a TransactionMonthGroupListItemType
+ */
+function isTransactionMonthGroupListItemType(item: ListItem): item is TransactionMonthGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH;
+}
+
+/**
  * Type guard that checks if something is a TransactionListItemType
  */
 function isTransactionListItemType(item: SearchListItem): item is TransactionListItemType {
@@ -3604,6 +3611,7 @@ export {
     isTransactionMemberGroupListItemType,
     isTransactionCardGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
+    isTransactionMonthGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

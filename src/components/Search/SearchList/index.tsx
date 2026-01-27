@@ -3,6 +3,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
+import {isWithinInterval} from 'date-fns';
 import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -28,6 +29,7 @@ import type {
     TransactionCardGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
+    TransactionMonthGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -154,7 +156,10 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
         return !!transaction.transactionID;
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
-        return true;
+        const monthGroup = groupItem as TransactionMonthGroupListItemType;
+        const monthStart = new Date(monthGroup.year, monthGroup.month - 1, 1);
+        const monthEnd = new Date(monthGroup.year, monthGroup.month, 0);
+        return isWithinInterval(new Date(transaction.modifiedCreated ?? transaction.created), {start: monthStart, end: monthEnd});
     }
     return false;
 }

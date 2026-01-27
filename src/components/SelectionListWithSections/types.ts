@@ -478,7 +478,7 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
 type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
         /** Final and formatted "month" value used for displaying */
         formattedMonth: string;
-        
+
         /** Key used for sorting */
         sortKey: number;
     };
