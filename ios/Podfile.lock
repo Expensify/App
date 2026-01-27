@@ -173,9 +173,7 @@ PODS:
     - Yoga
   - ExpoSecureStore (14.2.4):
     - ExpoModulesCore
-  - ExpoVideo (3.0.12):
-    - ExpoModulesCore
-  - ExpoStoreReview (9.0.8):
+  - ExpoStoreReview (9.0.9):
     - ExpoModulesCore
   - EXTaskManager (14.0.9):
     - ExpoModulesCore
@@ -3526,7 +3524,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.320):
+  - RNLiveMarkdown (0.1.317):
     - boost
     - DoubleConversion
     - fast_float
@@ -4127,7 +4125,6 @@ DEPENDENCIES:
   - ExpoLocation (from `../node_modules/expo-location/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
-  - ExpoVideo (from `../node_modules/expo-video/ios`)
   - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -4339,8 +4336,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSecureStore:
     :path: "../node_modules/expo-secure-store/ios"
-  ExpoVideo:
-    :path: "../node_modules/expo-video/ios"
   ExpoStoreReview:
     :path: "../node_modules/expo-store-review/ios"
   EXTaskManager:
@@ -4620,8 +4615,8 @@ SPEC CHECKSUMS:
   ExpoLocation: 93d7faa0c2adbd5a04686af0c1a61bc6ed3ee2f7
   ExpoModulesCore: e1b5401a7af4c7dbf4fe26b535918a72c6ed8a7b
   ExpoSecureStore: 3f1b632d6d40bcc62b4983ef9199cd079592a50a
-  ExpoVideo: 6907c4872886dce2720d3af20782eb6ee7734110
-  ExpoStoreReview: 15f19e0d6cb6e00330ba1b356485bf47ef19c39a
+  ExpoStoreReview: 32bb43b6fae9c8db3e33cad69996dff3785eef5f
+  EXTaskManager: 6f1a66e4c8cc6df6e24c3d90928704bc3013eae5
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 941bef1c8eeabd9fe1f501e30a5220beee913886
   Firebase: 3435bc66b4d494c2f22c79fd3aae4c1db6662327
@@ -4763,7 +4758,7 @@ SPEC CHECKSUMS:
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: b8d2e75c2e88fc2a1f6be3b3beeeed80b88fa37d
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
-  RNLiveMarkdown: 2ace9680b2062b1c5968725aa566c025558f3d9b
+  RNLiveMarkdown: 9d595fa8323d282e7d2a7f06051fd5d7fb3f7f9e
   RNLocalize: 05e367a873223683f0e268d0af9a8a8e6aed3b26
   rnmapbox-maps: 392ac61c42a9ff01a51d4c2f6775d9131b5951fb
   RNNitroSQLite: fb251387cfbee73b100cd484a3c886fda681b3b5
