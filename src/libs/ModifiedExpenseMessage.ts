@@ -225,8 +225,8 @@ function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, poli
         index++;
     }
 
-    const policyRulesHref = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}/rules`;
-    return `${fragments.join(', ')} via <a href="${policyRulesHref}">workspace rules</a>`;
+    const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}/rules`;
+    return `${fragments.join(', ')} ${translate('iou.viaWorkspaceRules', {route: policyRulesRoute})}`;
 }
 
 /**
