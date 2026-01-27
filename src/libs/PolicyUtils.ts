@@ -107,6 +107,10 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: 
     });
 }
 
+function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -862,6 +866,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED) {
+        return isTimeTrackingEnabled(policy);
     }
 
     return !!policy?.[featureName];
@@ -1896,6 +1903,7 @@ export {
     isDefaultTagName,
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
+    getActivePoliciesWithExpenseChatAndTimeEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
