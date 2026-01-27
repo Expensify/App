@@ -99,6 +99,7 @@ function TroubleshootPage() {
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
         const platform = getPlatform();
         const isMobileApp = [CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(platform as 'ios' | 'android');
+        
         if (tryNewDot?.classicRedirect?.isLockedToNewApp && isMobileApp) {
             return null;
         }
