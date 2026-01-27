@@ -85,7 +85,7 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
