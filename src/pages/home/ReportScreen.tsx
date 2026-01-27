@@ -185,6 +185,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -523,11 +524,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo((): boolean => {
-        const isLoading = isLoadingApp !== false || !!isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
-        const reportExists = !!reportID || !!isOptimisticDelete || !!userLeavingStatus;
         const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
+        const isLoading = isLoadingApp !== false || isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
+        const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
 
         if (shouldShowNotFoundLinkedAction) {
+            return true;
+        }
+
+        if (isInvalidReportPath) {
             return true;
         }
 
@@ -539,11 +544,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             return false;
         }
 
-        if (!reportExists) {
-            return true;
-        }
-
-        return isInvalidReportPath;
+        return !reportExists;
     }, [
         shouldShowNotFoundLinkedAction,
         isLoadingApp,
@@ -802,7 +803,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat();
+                navigateToConciergeChat(conciergeReportID, false);
             });
             return;
         }
@@ -854,9 +855,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat();
+            navigateToConciergeChat(conciergeReportID);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {
