@@ -1585,17 +1585,15 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
 /**
  * This will navigate to an existing thread, or create a new one if necessary
  *
- * @param childReportID The reportID we are trying to open
+ * @param childReport The report we are trying to open
  * @param parentReportAction the parent comment of a thread
- * @param parentReportID The reportID of the parent
+ * @param parentReport The parent report
  */
-function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
-    const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
+function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>) {
     if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
     } else {
         const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
         const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
         const newChat = buildOptimisticChatReport({
@@ -1607,10 +1605,11 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             oldPolicyName: parentReport?.policyName ?? '',
             notificationPreference: getChildReportNotificationPreference(parentReportAction),
             parentReportActionID: parentReportAction.reportActionID,
-            parentReportID,
-            optimisticReportID: childReportID,
+            parentReportID: parentReport?.reportID,
+            optimisticReportID: parentReportAction.childReportID,
         });
 
+        const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
             openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
@@ -4984,21 +4983,10 @@ function deleteAppReport(
     reportTransactions: Record<string, Transaction>,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
-    hash?: number,
 ) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
-    }
-
-    // Update search results to mark report as deleted when called from search
-    if (hash) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            data: {
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            },
-        });
     }
     const optimisticData: Array<
         OnyxUpdate<

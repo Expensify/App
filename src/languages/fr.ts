@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valeur',
         downloadFailedTitle: 'Échec du téléchargement',
         downloadFailedDescription: 'Votre téléchargement n’a pas pu être terminé. Veuillez réessayer plus tard.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Vous ne pouvez pas exporter un rapport vide.',
-            other: () => 'Vous ne pouvez pas exporter des rapports vides.',
-        }),
         filterLogs: 'Filtrer les journaux',
         network: 'Réseau',
         reportID: 'ID du rapport',
@@ -642,6 +638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Montant d’origine',
         insights: 'Analyses',
         duplicateExpense: 'Note de frais en double',
+        newFeature: 'Nouvelle fonctionnalité',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1072,6 +1069,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il manque un commerçant, une date ou un montant.',
+        addAReceipt: {
+            phrase1: 'Ajouter un reçu',
+            phrase2: 'ou faites-le glisser et déposez-le ici',
+        },
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -1205,14 +1206,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Êtes-vous sûr de vouloir supprimer cette dépense ?',
             other: 'Voulez-vous vraiment supprimer ces dépenses ?',
         }),
-        deleteReport: () => ({
-            one: 'Supprimer le rapport',
-            other: 'Supprimer les rapports',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Êtes-vous sûr de vouloir supprimer ce rapport ?',
-            other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
-        }),
+        deleteReport: 'Supprimer le rapport',
+        deleteReportConfirmation: 'Voulez-vous vraiment supprimer ce rapport ?',
         settledExpensify: 'Payé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
@@ -2398,16 +2393,24 @@ ${amount} pour ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Règles de dépenses',
         subtitle: 'Ces règles s’appliqueront à vos notes de frais. Si vous soumettez à un espace de travail, alors les règles de l’espace de travail peuvent les remplacer.',
+        findRule: 'Trouver règle',
         emptyRules: {title: 'Vous n’avez créé aucune règle', subtitle: 'Ajouter une règle pour automatiser la préparation des notes de frais.'},
         changes: {
-            billable: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
-            category: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
-            comment: (value: string) => `Modifier la description en « ${value} »`,
-            merchant: (value: string) => `Mettre à jour le marchand en « ${value} »`,
-            reimbursable: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
-            report: (value: string) => `Ajouter à un rapport nommé « ${value} »`,
-            tag: (value: string) => `Mettre à jour le tag sur « ${value} »`,
-            tax: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+            billableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            categoryUpdate: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
+            commentUpdate: (value: string) => `Modifier la description en « ${value} »`,
+            merchantUpdate: (value: string) => `Mettre à jour le marchand en « ${value} »`,
+            reimbursableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tagUpdate: (value: string) => `Mettre à jour le tag sur « ${value} »`,
+            taxUpdate: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+            billable: (value: boolean) => `à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            category: (value: string) => `à jour la catégorie en « ${value} »`,
+            comment: (value: string) => `la description en « ${value} »`,
+            merchant: (value: string) => `à jour le marchand en « ${value} »`,
+            reimbursable: (value: boolean) => `à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tag: (value: string) => `à jour le tag sur « ${value} »`,
+            tax: (value: string) => `à jour le taux de taxe à ${value}`,
+            report: (value: string) => `ajouter à un rapport nommé « ${value} »`,
         },
         newRule: 'Nouvelle règle',
         addRule: {
@@ -4906,6 +4909,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             assign: 'Assigner',
             assignCardFailedError: 'L’attribution de la carte a échoué.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Échec de la désaffectation de la carte.',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -6224,7 +6228,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>Définissez des contrôles de dépenses et des valeurs par défaut pour les dépenses individuelles. Vous pouvez également créer des règles pour les <a href="${categoriesPageLink}">catégories</a> et les <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Montant nécessitant un reçu',
-                receiptRequiredAmountDescription: 'Exiger des reçus lorsque la dépense dépasse ce montant, sauf si une règle de catégorie l’outrepasse.',
+                receiptRequiredAmountDescription: "Exiger des reçus lorsque la dépense dépasse ce montant, sauf si une règle de catégorie l'outrepasse.",
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Le montant ne peut pas être supérieur au montant requis pour les reçus détaillés (${amount})`,
+                itemizedReceiptRequiredAmount: 'Montant requis pour le reçu détaillé',
+                itemizedReceiptRequiredAmountDescription: 'Exiger des reçus détaillés lorsque les dépenses dépassent ce montant, sauf si une règle de catégorie le remplace.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Le montant ne peut pas être inférieur au montant requis pour les reçus réguliers (${amount})`,
                 maxExpenseAmount: 'Montant maximal de la dépense',
                 maxExpenseAmountDescription: 'Signaler les dépenses qui dépassent ce montant, sauf si une règle de catégorie les remplace.',
                 maxAge: 'Âge maximal',
@@ -6318,6 +6326,12 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                     never: 'Ne jamais exiger de reçus',
                     always: 'Toujours exiger les reçus',
                 },
+                requireItemizedReceiptsOver: 'Exiger des reçus détaillés au-dessus de',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Par défaut`,
+                    never: 'Ne jamais exiger de reçus détaillés',
+                    always: 'Toujours exiger des reçus détaillés',
+                },
                 defaultTaxRate: 'Taux de taxe par défaut',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `Accédez à [Plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez des validations pour déverrouiller cette fonctionnalité.`,
@@ -6325,6 +6339,16 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             customRules: {
                 title: 'Politique de dépenses',
                 cardSubtitle: 'Voici l’endroit où se trouve la politique de dépenses de votre équipe, afin que tout le monde soit sur la même longueur d’onde concernant ce qui est couvert.',
+            },
+            merchantRules: {
+                title: 'Commerçant',
+                subtitle: 'Définissez les règles de marchand afin que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
+                addRule: 'Ajouter une règle de commerçant',
+                ruleSummaryTitle: (merchantName: string) => `Si le commerçant contient « ${merchantName} »`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Renommer le marchand en « ${merchantName} »`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} sur « ${fieldValue} »`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme « ${reimbursable ? 'remboursable' : 'non remboursable'} »`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Marquer comme « ${billable ? 'facturable' : 'non facturable'} »`,
             },
         },
         planTypePage: {
@@ -6469,6 +6493,12 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 return `a mis à jour la catégorie « ${categoryName} » en modifiant Reçus en ${newValue}`;
             }
             return `a modifié la catégorie « ${categoryName} » en ${newValue} (auparavant ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `mis à jour la catégorie "${categoryName}" en changeant Reçus détaillés en ${newValue}`;
+            }
+            return `a changé les Reçus détaillés de la catégorie "${categoryName}" en ${newValue} (précédemment ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `a renommé la catégorie « ${oldName} » en « ${newName} »`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6852,6 +6882,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
+        topCategories: 'Catégories principales',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             approve: 'Approuver',
@@ -6878,6 +6909,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             status: 'Statut',
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
+            limit: 'Limite',
             currency: 'Devise',
             completed: 'Terminé',
             amount: {
@@ -6911,6 +6943,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
             },
             feed: 'Flux',
             withdrawalType: {
@@ -7348,6 +7381,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             }
             return 'Reçu requis';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Reçu détaillé requis${formattedLimit ? ` au-dessus de ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Dépense interdite :';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7881,6 +7915,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
+        gpsTooltip: '<tooltip>Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Annuler les modifications ?',
@@ -8037,7 +8072,6 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
                 `<comment><muted-text-label>Lorsque cette option est activée, le contact principal paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La facturation de domaine consolidée n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             addAdmin: 'Ajouter un administrateur',
-            invite: 'Inviter',
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
             revokeAdminAccess: 'Révoquer l’accès administrateur',
             cantRevokeAdminAccess: 'Impossible de révoquer l’accès administrateur au contact technique',
@@ -8051,11 +8085,16 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             enterDomainName: 'Saisissez votre nom de domaine ici',
             resetDomainInfo: `Cette action est <strong>définitive</strong> et les données suivantes seront supprimées : <br/> <ul><li>Connexions aux cartes d'entreprise et toutes les dépenses non déclarées de ces cartes</li> <li>Paramètres SAML et de groupe</li> </ul> Tous les comptes, espaces de travail, rapports, dépenses et autres données seront conservés. <br/><br/>Remarque : Vous pouvez supprimer ce domaine de votre liste de domaines en retirant l'adresse e-mail associée de vos <a href="#">méthodes de contact</a>.`,
         },
-        members: {title: 'Membres', findMember: 'Rechercher un membre'},
+        members: {
+            title: 'Membres',
+            findMember: 'Rechercher un membre',
+            addMember: 'Ajouter un membre',
+            email: 'Adresse e-mail',
+            errors: {addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.'},
+        },
         domainAdmins: 'Administrateurs de domaine',
     },
     gps: {
-        tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',
         disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Touchez Démarrer ci-dessous pour commencer le suivi.',
         error: {failedToStart: 'Impossible de démarrer le suivi de la localisation.', failedToGetPermissions: 'Échec de l’obtention des autorisations de localisation requises.'},
         trackingDistance: 'Suivi de la distance...',
