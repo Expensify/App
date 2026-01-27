@@ -274,7 +274,7 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                     <View style={styles.flex1}>
                         <PressableWithFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel="Home"
+                            accessibilityLabel={translate('common.home')}
                             accessible
                             testID="ExpensifyLogoButton"
                             onPress={navigateToChats}
@@ -313,7 +313,7 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                                             styles.navigationTabBarLabel,
                                         ]}
                                     >
-                                        Home
+                                        {translate('common.home')}
                                     </Text>
                                 </>
                             )}
@@ -464,7 +464,7 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                 <PressableWithFeedback
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}
-                    accessibilityLabel="Home"
+                    accessibilityLabel={translate('common.home')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
@@ -489,7 +489,7 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                                     styles.navigationTabBarLabel,
                                 ]}
                             >
-                                Home
+                                {translate('common.home')}
                             </Text>
                         </>
                     )}
