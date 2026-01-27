@@ -4790,6 +4790,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             selectCards: 'Sélectionner des cartes',
             addNewCard: {
                 other: 'Autre',
+                fileImport: 'Importer des transactions depuis un fichier',
                 cardProviders: {
                     gl1025: 'Cartes d’entreprise American Express',
                     cdf: 'Cartes commerciales Mastercard',

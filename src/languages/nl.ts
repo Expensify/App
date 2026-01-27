@@ -4769,6 +4769,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             selectCards: 'Kaarten selecteren',
             addNewCard: {
                 other: 'Overig',
+                fileImport: 'Transacties uit een bestand importeren',
                 cardProviders: {
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Zakelijke Kaarten',

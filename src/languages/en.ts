@@ -4716,6 +4716,7 @@ const translations = {
             selectCards: 'Select cards',
             addNewCard: {
                 other: 'Other',
+                fileImport: 'Import transactions from file',
                 cardProviders: {
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Commercial Cards',

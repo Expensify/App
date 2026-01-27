@@ -4461,6 +4461,7 @@ ${amount} para ${merchant} - ${date}`,
             selectCards: 'Seleccionar tarjetas',
             addNewCard: {
                 other: 'Otros',
+                fileImport: 'Importar transacciones desde un archivo',
                 cardProviders: {
                     gl1025: 'Tarjetas de empresa American Express',
                     cdf: 'Tarjetas comerciales Mastercard',

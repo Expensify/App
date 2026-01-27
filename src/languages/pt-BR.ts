@@ -4758,6 +4758,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             selectCards: 'Selecionar cartões',
             addNewCard: {
                 other: 'Outro',
+                fileImport: 'Importar transações de um arquivo',
                 cardProviders: {
                     gl1025: 'Cartões Corporativos American Express',
                     cdf: 'Cartões Comerciais Mastercard',

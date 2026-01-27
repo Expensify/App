@@ -4784,6 +4784,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             selectCards: 'Karten auswählen',
             addNewCard: {
                 other: 'Sonstiges',
+                fileImport: 'Transaktionen aus einer Datei importieren',
                 cardProviders: {
                     gl1025: 'American Express Firmenkarten',
                     cdf: 'Mastercard Firmenkarten',

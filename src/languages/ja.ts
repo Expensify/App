@@ -4746,6 +4746,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             selectCards: 'カードを選択',
             addNewCard: {
                 other: 'その他',
+                fileImport: 'ファイルから取引をインポート',
                 cardProviders: {
                     gl1025: 'American Express コーポレートカード',
                     cdf: 'Mastercard 商用カード',

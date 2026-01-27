@@ -4773,6 +4773,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             selectCards: 'Seleziona carte',
             addNewCard: {
                 other: 'Altro',
+                fileImport: 'Importa transazioni da file',
                 cardProviders: {
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Carte Commerciali Mastercard',

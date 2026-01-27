@@ -4669,6 +4669,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             selectCards: '选择卡片',
             addNewCard: {
                 other: '其他',
+                fileImport: '从文件导入交易',
                 cardProviders: {
                     gl1025: 'American Express 公司卡',
                     cdf: 'Mastercard 商务卡',

@@ -4759,6 +4759,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             selectCards: 'Wybierz karty',
             addNewCard: {
                 other: 'Inne',
+                fileImport: 'Importuj transakcje z pliku',
                 cardProviders: {
                     gl1025: 'Firmowe karty American Express',
                     cdf: 'Karty Komercyjne Mastercard',
