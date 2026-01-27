@@ -28,28 +28,33 @@ type RuleBooleanBaseProps = {
     /** The form ID to read from Onyx */
     formID: OnyxFormKey;
 
-    /** Callback when a value is selected */
-    onSelect: (fieldID: string, value: boolean | undefined) => void;
+    /** Callback when a value is selected - receives boolean for merchant rules, string for personal rules */
+    onSelect: (fieldID: string, value: boolean | 'true' | 'false' | null) => void;
 
     /** Callback to go back */
     onBack: () => void;
 
     /** Optional hash for rule not found validation */
     hash?: string;
+
+    /** Whether to use string values ('true'/'false') instead of boolean values (for ExpenseRuleForm compatibility) */
+    useStringValues?: boolean;
 };
 
 const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
 
-function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash}: RuleBooleanBaseProps) {
+function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, useStringValues = false}: RuleBooleanBaseProps) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
 
-    const formValue = (form as Record<string, boolean | undefined>)?.[fieldID];
+    const formValue = (form as Record<string, boolean | string | undefined>)?.[fieldID];
 
     let selectedItem = null;
     if (formValue !== undefined) {
-        const booleanValue = formValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+        // Handle both string ('true'/'false') and boolean (true/false) values
+        const isTruthy = useStringValues ? formValue === 'true' : formValue === true;
+        const booleanValue = isTruthy ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
         selectedItem = booleanValues.find((value) => booleanValue === value) ?? null;
     }
 
@@ -61,12 +66,17 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash}: Ru
     }));
 
     const onSelectItem = (selectedValue: BooleanFilterItem) => {
-        const newValue = selectedValue.isSelected ? undefined : selectedValue.value;
-        let value: boolean | undefined;
-        if (newValue === CONST.SEARCH.BOOLEAN.YES) {
-            value = true;
-        } else if (newValue === CONST.SEARCH.BOOLEAN.NO) {
-            value = false;
+        // If clicking on already-selected item, unselect it (set to undefined)
+        if (selectedValue.isSelected) {
+            onSelect(fieldID, null);
+            return;
+        }
+        const isYes = selectedValue.value === CONST.SEARCH.BOOLEAN.YES;
+        let value: boolean | 'true' | 'false';
+        if (useStringValues) {
+            value = isYes ? 'true' : 'false';
+        } else {
+            value = isYes;
         }
         onSelect(fieldID, value);
     };

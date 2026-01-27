@@ -18,7 +18,7 @@ function AddBillablePage({route}: AddBillablePageProps) {
         Navigation.goBack(hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute());
     };
 
-    const onSelect = (fieldID: string, value: boolean | undefined) => {
+    const onSelect = (fieldID: string, value: boolean | 'true' | 'false' | null) => {
         updateDraftRule({[fieldID]: value});
         goBack();
     };
@@ -31,6 +31,7 @@ function AddBillablePage({route}: AddBillablePageProps) {
             onSelect={onSelect}
             onBack={goBack}
             hash={hash}
+            useStringValues
         />
     );
 }
