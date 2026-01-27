@@ -397,6 +397,7 @@ function createTopSearchMenuItem(
     translationPath: TranslationPaths,
     icon: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank'>,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
+    limit?: number,
 ): SearchTypeMenuItem {
     const searchQuery = buildQueryStringFromFilterFormValues(
         {
@@ -407,6 +408,7 @@ function createTopSearchMenuItem(
         {
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            ...(limit && {limit}),
         },
     );
 
@@ -668,6 +670,7 @@ function getSuggestedSearches(
             'search.topCategories',
             Expensicons.Folder,
             CONST.SEARCH.GROUP_BY.CATEGORY,
+            CONST.SEARCH.TOP_SEARCH_LIMIT,
         ),
     };
 }

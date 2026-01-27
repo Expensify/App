@@ -7292,6 +7292,7 @@ const CONST = {
             FADE_DURATION: 200,
         },
         TODO_BADGE_MAX_COUNT: 50,
+        TOP_SEARCH_LIMIT: 10,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
