@@ -39,11 +39,11 @@ type SectionType = {
     items: Array<SectionItemType | undefined>;
 };
 
-const getBooleanTitle = (value: string | undefined, translate: LocalizedTranslate): string => {
-    if (!value) {
+const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
+    if (value === undefined) {
         return '';
     }
-    return translate(value === 'true' ? 'common.yes' : 'common.no');
+    return translate(value ? 'common.yes' : 'common.no');
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
