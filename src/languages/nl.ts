@@ -634,6 +634,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Wisselkoers',
         reimbursableTotal: 'Totaal te vergoeden',
         nonReimbursableTotal: 'Niet-vergoedbaar totaal',
+        opensInNewTab: 'Opent in een nieuw tabblad',
         originalAmount: 'Oorspronkelijk bedrag',
         insights: 'Inzichten',
         duplicateExpense: 'Dubbele uitgave',
