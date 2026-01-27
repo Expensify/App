@@ -29,8 +29,17 @@ import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, isSearchDatePreset, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
-import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
+import {
+    buildCannedSearchQuery,
+    buildQueryStringFromFilterFormValues,
+    buildSearchQueryJSON,
+    getCurrentSearchQueryJSON,
+    isCannedSearchQuery,
+    isSearchDatePreset,
+    sortOptionsWithEmptyValue,
+} from '@libs/SearchQueryUtils';
+import {getStatusOptions} from '@libs/SearchUIUtils';
+import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -182,6 +191,11 @@ const baseFilterConfig = {
         description: 'search.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
     },
+    limit: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.limit' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT),
+    },
     is: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.is' as const,
@@ -276,7 +290,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 
     const cardNames = Object.values(cards)
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
-        .map((card) => getCardDescription(card));
+        .map((card) => getCardDescription(card, translate));
 
     const feedNames = Object.keys(cardFeedNamesWithType)
         .filter((workspaceCardFeedKey) => {
@@ -562,7 +576,14 @@ function AdvancedSearchFilters() {
 
     const {currentType, typeFiltersKeys} = useAdvancedSearchFilters();
 
-    const queryString = useMemo(() => buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const queryString = useMemo(() => {
+        const currentQueryJSON = getCurrentSearchQueryJSON();
+        return buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
+            sortBy: currentQueryJSON?.sortBy,
+            sortOrder: currentQueryJSON?.sortOrder,
+            limit: currentQueryJSON?.limit,
+        });
+    }, [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
@@ -586,7 +607,7 @@ function AdvancedSearchFilters() {
             queryJSON,
         });
 
-        applyFiltersAndNavigate();
+        Navigation.setNavigationActionToMicrotaskQueue(() => applyFiltersAndNavigate());
     };
 
     const filters = typeFiltersKeys.map((section) => {

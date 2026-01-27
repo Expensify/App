@@ -1043,6 +1043,12 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeNewFeature: {
+            minHeight: 20,
+            height: 20,
+            paddingHorizontal: 8,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -1638,6 +1644,15 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        floatingSecondaryActionButton: {
+            backgroundColor: theme.buttonDefaultBG,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
+            borderRadius: 999,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -1646,6 +1661,15 @@ const staticStyles = (theme: ThemeColors) =>
         floatingCameraButton: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButton: {
+            position: 'absolute',
+            // floatingCameraButton top property value (componentSizeLarge + 16) +
+            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
             right: 16,
             zIndex: 10,
         },
@@ -2529,10 +2553,16 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        blockingErrorViewContainer: {
+        searchBlockingErrorViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 475,
             alignSelf: 'center',
+        },
+
+        companyCardsBlockingErrorViewContainer: {
+            maxWidth: 475,
+            alignSelf: 'center',
+            flex: undefined,
         },
 
         forcedBlockingViewContainer: {
@@ -5049,6 +5079,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredOverlay: {
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5355,6 +5389,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         translucentNavigationBarBG: {
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
+        },
+
+        todoBadge: {
+            width: variables.w36,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: 0,
+            paddingRight: 0,
         },
 
         stickToBottom: {

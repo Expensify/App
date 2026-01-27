@@ -19,6 +19,7 @@ type TrackExpenseParams = {
     reportPreviewReportActionID?: string;
     optimisticReportID?: string;
     optimisticReportActionID?: string;
+    policyID?: string;
     receipt?: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
@@ -35,6 +36,7 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
+    gpsCoordinates?: string;
     isDistance?: boolean;
 };
 
