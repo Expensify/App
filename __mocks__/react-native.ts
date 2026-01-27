@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import * as ReactNative from 'react-native';
-import type StartupTimer from '@libs/StartupTimer/types';
 
 jest.doMock('react-native', () => {
     let url = 'https://new.expensify.com/';
@@ -28,7 +27,6 @@ jest.doMock('react-native', () => {
                 logoSizeRatio: number;
                 navigationBarHeight: number;
             };
-            StartupTimer: StartupTimer;
         };
         Linking: typeof ReactNative.Linking & {
             setInitialURL: (newUrl: string) => void;
