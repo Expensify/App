@@ -743,6 +743,7 @@ const CONST = {
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         NEW_DOT_HOME: 'newDotHome',
+        CSV_CARD_IMPORT: 'csvCardImport',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
