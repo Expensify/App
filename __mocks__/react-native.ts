@@ -45,7 +45,6 @@ jest.doMock('react-native', () => {
                     logoSizeRatio: 1,
                     navigationBarHeight: 0,
                 },
-                StartupTimer: {stop: jest.fn()},
             },
             Linking: {
                 ...ReactNative.Linking,
