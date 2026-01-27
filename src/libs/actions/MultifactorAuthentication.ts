@@ -8,6 +8,8 @@ import Log from '@libs/Log';
 import {parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import type {ChallengeType} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Onyx from 'react-native-onyx';
 
 /**
  * To keep the code clean and readable, these functions return parsed data in order to:
@@ -70,4 +72,20 @@ async function troubleshootMultifactorAuthentication({signedChallenge}: Multifac
     }
 }
 
-export {registerAuthenticationKey, requestAuthenticationChallenge, troubleshootMultifactorAuthentication};
+async function revokeMultifactorAuthenticationCredentials() {
+    try {
+        Onyx.merge(ONYXKEYS.ACCOUNT, { isLoading: true });
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {});
+        Onyx.merge(ONYXKEYS.ACCOUNT, { isLoading: false });
+
+        const {jsonCode, message} = response ?? {};
+
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to troubleshoot multifactor authentication', {error});
+        Onyx.merge(ONYXKEYS.ACCOUNT, { isLoading: false });
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, undefined);
+    }
+}
+
+export {registerAuthenticationKey, requestAuthenticationChallenge, troubleshootMultifactorAuthentication, revokeMultifactorAuthenticationCredentials};

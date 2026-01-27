@@ -30,6 +30,7 @@ const REASON = {
         SIGNATURE_VERIFICATION_FAILED: 'Signature verification failed',
         NO_PENDING_REGISTRATION_CHALLENGE: 'No pending registration challenge',
         UNKNOWN_RESPONSE: 'Unknown response',
+        REVOKE_SUCCESSFUL: 'Revoked successfully'
     },
     CHALLENGE: {
         COULD_NOT_RETRIEVE_A_CHALLENGE: 'Could not retrieve a challenge',
@@ -112,6 +113,11 @@ const API_RESPONSE_MAP = {
         ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP,
         200: REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
     },
+
+    REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP: {
+        ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP,
+        200: REASON.BACKEND.REVOKE_SUCCESSFUL
+    }
 } as const;
 /* eslint-enable @typescript-eslint/naming-convention */
 

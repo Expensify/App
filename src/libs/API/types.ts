@@ -1305,6 +1305,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     REGISTER_AUTHENTICATION_KEY: 'RegisterAuthenticationKey',
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: 'TroubleshootMultifactorAuthentication',
     REQUEST_AUTHENTICATION_CHALLENGE: 'RequestAuthenticationChallenge',
+    REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS: 'RevokeMultifactorAuthenticationCredentials',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;

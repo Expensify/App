@@ -13,20 +13,22 @@ import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type { Account } from '@src/types/onyx';
 import type { OnyxEntry } from 'react-native-onyx';
+import { revokeMultifactorAuthenticationCredentials } from '@libs/actions/MultifactorAuthentication';
 
 function getHasDevices(data: OnyxEntry<Account>) {
-    // note that 0 is a valid value for this key, but false is the correct return when it is zero
-    if (!data?.isRegisteredForMultifactorAuthentication) {
-        return false;
-    }
-    return data?.isRegisteredForMultifactorAuthentication > 0
+    return data?.isRegisteredForMultifactorAuthentication === 1;
+}
+
+function getIsLoading(data: OnyxEntry<Account>) {
+    return !!data?.isLoading;
 }
 function MultifactorAuthenticationRevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
-    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, { selector: getHasDevices })
+    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, { selector: getHasDevices });
+    const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, { selector: getIsLoading });
 
     const onGoBackPress = () => {
         Navigation.dismissModal();
@@ -40,9 +42,9 @@ function MultifactorAuthenticationRevokePage() {
         setConfirmModalVisibility(false);
     };
 
-    const handleRevokeConfirm = () => {
+    const handleRevokeConfirm = async () => {
+        await revokeMultifactorAuthenticationCredentials();
         hideConfirmModal();
-        // TODO: Implement actual revoke logic
         Navigation.dismissModal();
     };
 
@@ -84,9 +86,10 @@ function MultifactorAuthenticationRevokePage() {
                 confirmText={translate('multifactorAuthentication.revoke.cta')}
                 cancelText={translate('common.cancel')}
                 isVisible={isConfirmModalVisible}
-                onConfirm={handleRevokeConfirm}
+                onConfirm={() => {handleRevokeConfirm()}}
                 onCancel={hideConfirmModal}
                 shouldShowCancelButton
+                isConfirmLoading={isLoading}
             />
         </ScreenWrapper>
     );

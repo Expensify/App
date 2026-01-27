@@ -15,6 +15,7 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import { revokeMultifactorAuthenticationCredentials } from '@libs/actions/MultifactorAuthentication';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -44,13 +45,6 @@ function TestToolMenu() {
     const navigateToBiometricsTestPage = singleExecution(
         waitForNavigate(() => {
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
-        }),
-    );
-
-    // TODO I think this should actually just clear the onyx key
-    const navigateToBiometricsRevokePage = singleExecution(
-        waitForNavigate(() => {
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
         }),
     );
 
@@ -127,7 +121,7 @@ function TestToolMenu() {
                                 <Button
                                     small
                                     text={translate('multifactorAuthentication.revoke.revoke')}
-                                    onPress={navigateToBiometricsRevokePage}
+                                    onPress={() => {revokeMultifactorAuthenticationCredentials()}}
                                 />
                             )}
                         </View>
