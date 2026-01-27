@@ -387,7 +387,7 @@ function IOURequestStepParticipants({
             let route: Route = iouConfirmationPageRoute;
 
             if (isCategorizing) {
-                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute);
+                route = ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute);
             } else if (isMerchantRequired) {
                 route = ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
                     action,
