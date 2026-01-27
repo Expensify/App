@@ -14,6 +14,9 @@ import {
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
@@ -3009,6 +3012,72 @@ describe('ReportActionsUtils', () => {
 
             const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
             expect(result).toBe('set the invoice company website to "https://newwebsite.com"');
+        });
+    });
+
+    describe('getCustomTaxNameUpdateMessage', () => {
+        it('should return the correct message when updating custom tax name', () => {
+            // Given an UPDATE_CUSTOM_TAX_NAME action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Sales Tax',
+                    newName: 'VAT',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getCustomTaxNameUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the custom tax name to "VAT" (previously "Sales Tax")');
+        });
+    });
+
+    describe('getCurrencyDefaultTaxUpdateMessage', () => {
+        it('should return the correct message when updating workspace currency default tax', () => {
+            // Given an UPDATE_CURRENCY_DEFAULT_TAX action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Standard Rate',
+                    newName: 'Reduced Rate',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getCurrencyDefaultTaxUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")');
+        });
+    });
+
+    describe('getForeignCurrencyDefaultTaxUpdateMessage', () => {
+        it('should return the correct message when updating foreign currency default tax', () => {
+            // Given an UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Foreign Tax (15%)',
+                    newName: 'Foreign Tax (10%)',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
         });
     });
 });
