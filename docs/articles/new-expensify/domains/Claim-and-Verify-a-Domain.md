@@ -2,7 +2,7 @@
 title: Claim and Verify a Domain
 description: Learn how to claim and verify a private domain in New Expensify to enable SAML login and unlock enhanced security features.
 internalScope: Audience is Domain Admins and IT admins. Covers claiming a domain and verifying domain ownership via DNS. Does not cover SAML configuration details, Domain Members management, Domain Groups, or login troubleshooting.
-keywords: [New Expensify, claim domain, verify domain, private domain, domain settings, enhanced security, SAML, domain admin]
+keywords: [New Expensify, claim domain, verify domain, private domain, domain settings, enhanced security, SAML, domain admin, domain verification, DNS TXT record, verify domain for SAML, how to verify domain, SAML setup]
 ---
 
 If you have a private domain (e.g., yourcompany.com), you can claim and verify it in Expensify to manage employee permissions and enable additional security features.
