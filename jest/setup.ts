@@ -87,14 +87,6 @@ jest.mock('react-native-fs', () => ({
     CachesDirectoryPath: jest.fn(),
 }));
 
-jest.mock('react-native-sound', () => {
-    class SoundMock {
-        play = jest.fn();
-    }
-
-    return SoundMock;
-});
-
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
