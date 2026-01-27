@@ -12697,24 +12697,26 @@ class OpenAIUtils {
         this.client = new openai_1.default({ apiKey });
     }
     /**
-     * Prompt the Chat Completions API.
+     * Prompt the Responses API with optional prompt caching.
      */
-    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5.1' }) {
-        const messages = [{ role: 'user', content: userPrompt }];
-        if (systemPrompt) {
-            messages.unshift({ role: 'system', content: systemPrompt });
-        }
-        const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
+    async promptResponses({ input, instructions, promptCacheKey, model = 'gpt-5.1', }) {
+        const response = await (0, retryWithBackoff_1.default)(() => this.client.responses.create({
             model,
-            messages,
+            input,
+            instructions,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            reasoning_effort: 'low',
+            prompt_cache_key: promptCacheKey,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            prompt_cache_retention: '24h',
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        const result = response.choices.at(0)?.message?.content?.trim();
+        const result = response.output_text?.trim();
         if (!result) {
-            throw new Error('Error getting chat completion response from OpenAI');
+            throw new Error('Error getting response from OpenAI Responses API');
         }
-        return result;
+        return {
+            text: result,
+            responseID: response.id,
+        };
     }
     /**
      * Prompt a pre-defined assistant.
@@ -12769,9 +12771,17 @@ class OpenAIUtils {
     static isRetryableError(error) {
         // Handle known/predictable API errors
         if (error instanceof openai_1.default.APIError) {
-            // Only retry 429 (rate limit) or 5xx errors
             const status = error.status;
-            return !!status && (status === 429 || status >= 500);
+            // Retry 429 (rate limit) or 5xx errors
+            if (status === 429 || status >= 500) {
+                return true;
+            }
+            // Retry conversation_locked errors (another process is still operating on this conversation)
+            // This can happen when a previous request is still being processed by OpenAI
+            if ('code' in error && error.code === 'conversation_locked') {
+                return true;
+            }
+            return false;
         }
         // Handle random/unpredictable network errors
         if (error instanceof Error) {
@@ -12790,6 +12800,9 @@ class OpenAIUtils {
         }
         return false;
     }
+    /**
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
+     */
     parseAssistantResponse(response) {
         const sanitized = (0, sanitizeJSONStringValues_1.default)(response);
         let parsed;
@@ -23063,6 +23076,19 @@ class Responses extends resource_1.APIResource {
     cancel(responseID, options) {
         return this._client.post((0, path_1.path) `/responses/${responseID}/cancel`, options);
     }
+    /**
+     * Compact conversation
+     *
+     * @example
+     * ```ts
+     * const compactedResponse = await client.responses.compact({
+     *   model: 'gpt-5.2',
+     * });
+     * ```
+     */
+    compact(body, options) {
+        return this._client.post('/responses/compact', { body, ...options });
+    }
 }
 exports.Responses = Responses;
 Responses.InputItems = input_items_1.InputItems;
@@ -23758,7 +23784,7 @@ tslib_1.__exportStar(__nccwpck_require__(11364), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '6.9.1'; // x-release-please-version
+exports.VERSION = '6.16.0'; // x-release-please-version
 //# sourceMappingURL=version.js.map
 
 /***/ }),
