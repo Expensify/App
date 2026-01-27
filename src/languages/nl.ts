@@ -761,6 +761,17 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
         },
+        revoke: {
+            revoke: 'Intrekken',
+            title: 'Gezichtsherkenning/vingerafdruk & passkeys',
+            explanation:
+                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
+            confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat',
+            cta: 'Toegang intrekken',
+            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkeys-verificatie. Als je er een registreert, kun je hier die toegang intrekken.',
+            dismiss: 'Begrepen',
+            error: 'Verzoek mislukt. Probeer het later opnieuw.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -884,6 +895,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Weet je zeker dat je dit ${type} wilt verwijderen?`;
         },
         onlyVisible: 'Alleen zichtbaar voor',
+        explain: 'Uitleggen',
+        explainMessage: 'Leg dit alstublieft aan mij uit.',
         replyInThread: 'Antwoord in thread',
         joinThread: 'Deelnemen aan thread',
         leaveThread: 'Thread verlaten',
@@ -1481,6 +1494,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
         correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2617,19 +2631,19 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'Uitgaven goedkeuringen toevoegen',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Uitgavegoedkeuringen toevoegen* om de uitgaven van je team te beoordelen en onder controle te houden.
+                        *Voeg uitgavenfiattering toe* om de uitgaven van je team te beoordelen en onder controle te houden.
 
-                        Dit doe je zo:
+                        Zo doe je dat:
 
                         1. Ga naar *Workspaces*.
                         2. Selecteer je workspace.
-                        3. Klik op *More features*.
+                        3. Klik op *Meer functies*.
                         4. Schakel *Workflows* in.
                         5. Ga naar *Workflows* in de workspace-editor.
-                        6. Schakel *Add approvals* in.
-                        7. Jij wordt ingesteld als de goedkeurder van uitgaven. Je kunt dit wijzigen naar elke beheerder zodra je je team hebt uitgenodigd.
+                        6. Schakel *Fiatteringen* in.
+                        7. Jij wordt ingesteld als de fiatteur voor uitgaven. Je kunt dit wijzigen naar elke beheerder zodra je je team uitnodigt.
 
-                        [Breng me naar more features](${workspaceMoreFeaturesLink}).`),
+                        [Breng me naar Meer functies](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Maak](${workspaceConfirmationLink}) een workspace`,
@@ -6709,6 +6723,11 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `stel maximale leeftijd uitgave in op "${newValue}" dagen`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale uitgaafleeftijd gewijzigd naar "${newValue}" dagen (voorheen "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale onkostendatum verwijderd (voorheen "${oldValue}" dagen)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'Uitgeschakeld'} automatisch betaalde goedgekeurde rapporten`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `stel de drempel voor automatische betaling van goedgekeurde rapporten in op "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `heeft de drempel voor automatisch betalen van goedgekeurde rapporten gewijzigd naar "${newLimit}" (voorheen "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'drempel voor automatisch betalen van goedgekeurde rapporten verwijderd',
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -8093,6 +8112,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
         notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
+        continueGpsTripModal: {
+            title: 'GPS-reisregistratie voortzetten?',
+            prompt: 'Het lijkt erop dat de app is afgesloten tijdens je laatste GPS-rit. Wil je de opname van die rit hervatten?',
+            confirm: 'Reis voortzetten',
+            cancel: 'Reis bekijken',
+        },
         signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',

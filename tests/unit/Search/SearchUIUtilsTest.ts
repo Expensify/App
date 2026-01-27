@@ -2553,6 +2553,7 @@ describe('SearchUIUtils', () => {
                     status: '',
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    view: CONST.SEARCH.VIEW.TABLE,
                     hash: 12345,
                     flatFilters: [],
                     inputQuery: 'type:expense groupBy:category',
