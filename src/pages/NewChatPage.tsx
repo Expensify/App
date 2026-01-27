@@ -399,8 +399,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     onPress={() => toggleOption(item)}
                     disabled={item.isDisabled}
                     role={CONST.ROLE.CHECKBOX}
-                    accessibilityLabel={item.text ?? ''}
-                    accessibilityState={{checked: item.isSelected}}
+                    accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
                 >
                     <SelectCircle
@@ -416,6 +415,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onPress={() => toggleOption(item)}
                 style={[styles.pl2]}
                 text={translate('newChatPage.addToGroup')}
+                accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
                 innerStyles={buttonInnerStyles}
                 small
             />

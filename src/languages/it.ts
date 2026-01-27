@@ -798,6 +798,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: 'Nome, email o numero di telefono',
         findMember: 'Trova un membro',
         searchForSomeone: 'Cerca qualcuno',
+        userSelected: (username: string) => `${username} selezionato`,
     },
     customApprovalWorkflow: {
         title: 'Flusso di approvazione personalizzato',
@@ -2979,10 +2980,7 @@ ${
     detailsPage: {
         localTime: 'Ora locale',
     },
-    newChatPage: {
-        startGroup: 'Avvia gruppo',
-        addToGroup: 'Aggiungi al gruppo',
-    },
+    newChatPage: {startGroup: 'Avvia gruppo', addToGroup: 'Aggiungi al gruppo', addUserToGroup: (username: string) => `Aggiungi ${username} al gruppo`},
     yearPickerPage: {
         year: 'Anno',
         selectYear: 'Seleziona un anno',
