@@ -1,4 +1,5 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {filterPersonalCards} from '@selectors/Card';
 import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef} from 'react';
@@ -37,7 +38,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
-import {filterPersonalCards, hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';

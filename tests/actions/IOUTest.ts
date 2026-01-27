@@ -1025,7 +1025,7 @@ describe('actions/IOU', () => {
 
             const draftTransaction = transactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${originalTransaction.transactionID}`];
             expect(draftTransaction).toBeTruthy();
-            expect(draftTransaction?.amount).toBe(originalTransaction.amount);
+            expect(draftTransaction?.amount).toBe(-originalTransaction.amount);
             expect(draftTransaction?.currency).toBe(originalTransaction.currency);
             expect(draftTransaction?.actionableWhisperReportActionID).toBe(reportActionID);
             expect(draftTransaction?.linkedTrackedExpenseReportID).toBe(selfDMReport.reportID);
@@ -6662,7 +6662,7 @@ describe('actions/IOU', () => {
                         if (chatReport) {
                             reportToArchive.push(chatReport);
                         }
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+
                         deleteWorkspace({
                             policyID: policy.id,
                             personalPolicyID: undefined,
@@ -8565,7 +8565,7 @@ describe('actions/IOU', () => {
         it('should initialize split expense with correct transaction details', async () => {
             const transaction: Transaction = {
                 transactionID: '123',
-                amount: 100,
+                amount: -100,
                 currency: 'USD',
                 merchant: 'Test Merchant',
                 comment: {
@@ -8649,7 +8649,7 @@ describe('actions/IOU', () => {
         it('should initialize split expense with correct VND currency amounts', async () => {
             const transaction: Transaction = {
                 transactionID: '123',
-                amount: 1700,
+                amount: -1700,
                 currency: 'VND',
                 merchant: 'Test Merchant',
                 comment: {
