@@ -2,19 +2,17 @@
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import {getDecodedCategoryName} from './CategoryUtils';
-import type {OptionTree, SectionBase} from './OptionsListUtils';
+import type {OptionTree} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
 
-type CategoryTreeSection = SectionBase & {
-    data: OptionTree[];
-    indexOffset?: number;
-};
+type CategoryTreeSection = Section<OptionTree>;
 
 type Category = {
     name: string;
@@ -130,9 +128,8 @@ function getCategoryListSections({
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 0,
         });
 
         return categorySections;
@@ -150,9 +147,8 @@ function getCategoryListSections({
         categorySections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 0,
         });
 
         return categorySections;
@@ -163,9 +159,8 @@ function getCategoryListSections({
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 1,
         });
     }
 
@@ -177,9 +172,8 @@ function getCategoryListSections({
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 2,
         });
 
         return categorySections;
@@ -202,9 +196,8 @@ function getCategoryListSections({
         categorySections.push({
             // "Recent" section
             title: translate('common.recent'),
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 3,
         });
     }
 
@@ -212,9 +205,8 @@ function getCategoryListSections({
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
-        shouldShow: true,
         data,
-        indexOffset: data.length,
+        sectionIndex: 4,
     });
 
     return categorySections;

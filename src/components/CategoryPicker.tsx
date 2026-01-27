@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,16 +10,14 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionListWithSections';
-import RadioListItem from './SelectionListWithSections/RadioListItem';
-import type {ListItem} from './SelectionListWithSections/types';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SelectionList from './SelectionList/SelectionListWithSections';
+import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
-    contentContainerStyle?: StyleProp<ViewStyle>;
 
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
@@ -28,7 +25,7 @@ type CategoryPickerProps = {
     addBottomSafeAreaPadding?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false, contentContainerStyle}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -75,19 +72,23 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
 
     const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((category) => category.searchText === selectedCategory)?.keyForList, [sections, selectedCategory]);
 
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+        headerMessage,
+        hint: offlineMessage,
+    };
+
     return (
         <SelectionList
             sections={sections}
-            headerMessage={headerMessage}
-            textInputValue={searchValue}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            textInputHint={offlineMessage}
-            onChangeText={setSearchValue}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            shouldShowTextInput={shouldShowTextInput}
+            textInputOptions={textInputOptions}
+            initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            contentContainerStyle={contentContainerStyle}
         />
     );
 }
