@@ -38,7 +38,6 @@ import type {
     BankAccountList,
     Beta,
     IntroSelected,
-    NewGroupChatDraft,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalDetails,
@@ -1213,12 +1212,6 @@ Onyx.connectWithoutView({
     callback: (value) => {
         reportAttributesDerivedValue = value?.reports ?? {};
     },
-});
-
-let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    callback: (value) => (newGroupChatDraft = value),
 });
 
 let cachedSelfDMReportID: OnyxEntry<string>;
@@ -4471,7 +4464,7 @@ function getTransactionDetails(
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
-    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
+    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isPaidGroupPolicyPolicyUtils(policy);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
@@ -5053,7 +5046,7 @@ function getTransactionReportName({
     }
 
     // The unit does not matter as we are only interested in whether the distance is zero or not
-    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)) {
+    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) && !hasReceiptTransactionUtils(transaction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('violations.noRoute');
     }
@@ -5090,8 +5083,11 @@ function getReportPreviewMessage(
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
-    if (isCopyAction && report) {
-        return computeReportName(report) || (originalReportAction?.childReportName ?? '');
+    if (isCopyAction) {
+        if (report) {
+            return computeReportName(report) || (originalReportAction?.childReportName ?? '');
+        }
+        return originalReportAction?.childReportName ?? '';
     }
 
     if (isEmptyObject(report) || !report?.reportID) {
@@ -11475,6 +11471,7 @@ type PrepareOnboardingOnyxDataParams = {
     selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
+    isSelfTourViewed?: boolean;
 };
 
 function prepareOnboardingOnyxData({
@@ -11489,6 +11486,7 @@ function prepareOnboardingOnyxData({
     selectedInterestedFeatures,
     isInvitedAccountant,
     onboardingPurposeSelected,
+    isSelfTourViewed,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -11641,7 +11639,8 @@ function prepareOnboardingOnyxData({
 
             let isTaskAutoCompleted: boolean = task.autoCompleted;
 
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR && onboarding?.selfTourViewed) {
+            const onboardingSelfTourViewed = isSelfTourViewed ?? onboarding?.selfTourViewed;
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR && onboardingSelfTourViewed) {
                 // If the user has already viewed the self tour, we mark the task as auto completed
                 isTaskAutoCompleted = true;
             }
@@ -12542,10 +12541,6 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getGroupChatDraft() {
-    return newGroupChatDraft;
-}
-
 function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
@@ -13332,7 +13327,6 @@ export {
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
     getReportFieldsByPolicyID,
-    getGroupChatDraft,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
     populateOptimisticReportFormula,
