@@ -38,13 +38,15 @@ const additionalParametersToExclude = ['chainedWithAuthorization', 'chainedPriva
 const extractAdditionalParameters = <T extends MultifactorAuthenticationScenario>(
     params: MultifactorAuthenticationScenarioParams<T> & Record<string, unknown>,
 ): MultifactorAuthenticationScenarioAdditionalParams<T> => {
-    const factorParams = Object.values(CONST.MULTIFACTOR_AUTHENTICATION.FACTORS_REQUIREMENTS).map(({parameter}) => parameter);
+    const factorParams = Object.values(CONST.MULTIFACTOR_AUTHENTICATION.FACTORS);
+
     const newParams = {...params};
     for (const param of factorParams) {
         if (param in newParams) {
             delete newParams[param];
         }
     }
+
     for (const additionalParameter of additionalParametersToExclude) {
         if (additionalParameter in newParams) {
             delete newParams[additionalParameter];

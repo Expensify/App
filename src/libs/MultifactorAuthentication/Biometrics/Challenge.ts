@@ -92,14 +92,10 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
             return this.createErrorReturnValue(VALUES.REASON.GENERIC.SIGNATURE_MISSING);
         }
 
-        const authorizationResult = processScenario(
-            this.scenario,
-            {
-                ...this.params,
-                signedChallenge: this.challenge,
-            },
-            VALUES.FACTOR_COMBINATIONS.BIOMETRICS_AUTHENTICATION,
-        );
+        const authorizationResult = processScenario(this.scenario, {
+            ...this.params,
+            signedChallenge: this.challenge,
+        });
 
         const {
             reason,

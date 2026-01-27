@@ -120,14 +120,6 @@ const API_RESPONSE_MAP = {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 /**
- * Available multifactor authentication factors.
- */
-const MULTIFACTOR_AUTHENTICATION_FACTORS = {
-    SIGNED_CHALLENGE: 'SIGNED_CHALLENGE',
-    VALIDATE_CODE: 'VALIDATE_CODE',
-} as const;
-
-/**
  * Expo error message search strings and separator.
  */
 const EXPO_ERRORS = {
@@ -139,31 +131,6 @@ const EXPO_ERRORS = {
         EXISTS: 'already exists',
         NO_AUTHENTICATION: 'No authentication method available',
         OLD_ANDROID: 'NoSuchMethodError',
-    },
-} as const;
-
-/**
- * Maps authentication factors and Expo errors to appropriate reason messages.
- */
-const MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS = {
-    /** Maps authentication factors to their missing error translation paths */
-    FACTOR_MISSING_REASONS: {
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.GENERIC.VALIDATE_CODE_MISSING,
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: REASON.GENERIC.SIGNATURE_MISSING,
-    },
-
-    /** Maps authentication factors to their invalid error translation paths */
-    FACTOR_INVALID_REASONS: {
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.BACKEND.INVALID_VALIDATE_CODE,
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: REASON.GENERIC.SIGNATURE_INVALID,
-    },
-    EXPO_ERROR_MAPPINGS: {
-        [EXPO_ERRORS.SEARCH_STRING.CANCELED]: REASON.EXPO.CANCELED,
-        [EXPO_ERRORS.SEARCH_STRING.IN_PROGRESS]: REASON.EXPO.IN_PROGRESS,
-        [EXPO_ERRORS.SEARCH_STRING.NOT_IN_FOREGROUND]: REASON.EXPO.NOT_IN_FOREGROUND,
-        [EXPO_ERRORS.SEARCH_STRING.EXISTS]: REASON.EXPO.KEY_EXISTS,
-        [EXPO_ERRORS.SEARCH_STRING.NO_AUTHENTICATION]: REASON.EXPO.NO_METHOD_AVAILABLE,
-        [EXPO_ERRORS.SEARCH_STRING.OLD_ANDROID]: REASON.EXPO.NOT_SUPPORTED,
     },
 } as const;
 
@@ -200,37 +167,23 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         FAILURE: 'FAILURE',
     },
     EXPO_ERRORS,
+
+    /**
+     * Maps authentication factors and Expo errors to appropriate reason messages.
+     */
+    EXPO_ERROR_MAPPINGS: {
+        [EXPO_ERRORS.SEARCH_STRING.CANCELED]: REASON.EXPO.CANCELED,
+        [EXPO_ERRORS.SEARCH_STRING.IN_PROGRESS]: REASON.EXPO.IN_PROGRESS,
+        [EXPO_ERRORS.SEARCH_STRING.NOT_IN_FOREGROUND]: REASON.EXPO.NOT_IN_FOREGROUND,
+        [EXPO_ERRORS.SEARCH_STRING.EXISTS]: REASON.EXPO.KEY_EXISTS,
+        [EXPO_ERRORS.SEARCH_STRING.NO_AUTHENTICATION]: REASON.EXPO.NO_METHOD_AVAILABLE,
+        [EXPO_ERRORS.SEARCH_STRING.OLD_ANDROID]: REASON.EXPO.NOT_SUPPORTED,
+    },
     NO_SCENARIO_FOR_STATUS_REASON: {
         REGISTER: 'REGISTER',
         CANCEL: 'CANCEL',
         UPDATE: 'UPDATE',
         FULFILL: 'FULFILL',
-    },
-
-    /**
-     * Defines the requirements and configuration for each authentication factor.
-     */
-    FACTORS_REQUIREMENTS: {
-        SIGNED_CHALLENGE: {
-            id: MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE,
-            name: 'Signed Challenge',
-            parameter: 'signedChallenge',
-            length: undefined,
-        },
-        VALIDATE_CODE: {
-            id: MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE,
-            name: 'Email One-Time Password',
-            parameter: 'validateCode',
-            length: 6,
-        },
-    },
-
-    /**
-     * Valid authentication factor combinations for different scenarios.
-     */
-    FACTOR_COMBINATIONS: {
-        REGISTRATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE],
-        BIOMETRICS_AUTHENTICATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE],
     },
 
     /**
@@ -253,10 +206,17 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         REGISTRATION: 'registration',
         AUTHENTICATION: 'authentication',
     },
-    FACTORS: MULTIFACTOR_AUTHENTICATION_FACTORS,
+    /**
+     * Named factors for backwards compatibility and constituency.
+     * These are the essential params for MultifactorAuthentication API calls.
+     */
+    FACTORS: {
+        SIGNED_CHALLENGE: 'signedChallenge',
+        VALIDATE_CODE: 'validateCode',
+    },
     API_RESPONSE_MAP,
     REASON,
 } as const;
 
-export {MultifactorAuthenticationCallbacks, MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS};
+export {MultifactorAuthenticationCallbacks};
 export default MULTIFACTOR_AUTHENTICATION_VALUES;
