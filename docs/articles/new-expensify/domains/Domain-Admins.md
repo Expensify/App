@@ -21,7 +21,7 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 
 ---
 
-# Remove a Domain Admin
+## How to remove a Domain Admin
 
 **To remove a Domain Admin:**
 1. Go to **Workspaces > Domains**.
