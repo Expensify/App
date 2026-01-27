@@ -133,14 +133,14 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^5.0.3",
     "expensify-common": "2.0.169",
-    "expo": "54.0.10",
-    "expo-asset": "12.0.8",
+    "expo": "55.0.0-preview.6",
+    "expo-asset": "55.0.2",
     "expo-av": "15.1.7",
     "expo-font": "14.0.8",
     "expo-image": "3.0.8",
-    "expo-image-manipulator": "^13.1.5",
+    "expo-image-manipulator": "55.0.2",
     "expo-location": "^19.0.7",
-    "expo-modules-core": "3.0.18",
+    "expo-modules-core": "55.0.4",
     "expo-secure-store": "~14.2.4",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "~14.0.9",
@@ -252,6 +252,7 @@
     "@react-native-community/cli-platform-ios": "20.0.0",
     "@react-native/babel-preset": "0.83.1",
     "@react-native/metro-config": "0.83.1",
+      "@react-navigation/core": "7.10.0",
     "@react-navigation/devtools": "^6.0.10",
     "@rock-js/platform-android": "0.12.6",
     "@rock-js/platform-ios": "0.12.6",
@@ -400,7 +401,28 @@
     "eslint-plugin-react-native-a11y": {
       "eslint": "^9.36.0"
     },
-    "node-abi": "^3.78.0"
+    "node-abi": "^3.78.0",
+      "@fullstory/react-native": {
+          "expo": "55.0.0-preview.6"
+      },
+      "@react-native-firebase/app": {
+          "expo": "55.0.0-preview.6"
+      },
+      "@react-native-firebase/crashlytics": {
+          "expo": "55.0.0-preview.6"
+      },
+      "@react-native-firebase/perf": {
+          "expo": "55.0.0-preview.6"
+      },
+      "@react-native-google-signin/google-signin": {
+          "expo": "55.0.0-preview.6"
+      },
+      "@rnmapbox/maps": {
+          "expo": "55.0.0-preview.6"
+      },
+      "@sentry/react-native": {
+          "expo": "55.0.0-preview.6"
+      }
   },
   "expo": {
     "autolinking": {
