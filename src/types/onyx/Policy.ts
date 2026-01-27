@@ -1699,7 +1699,7 @@ type CodingRuleFilter = {
 
 /** Tax configuration for coding rule */
 type CodingRuleTax = {
-    // Object wrapping the tax field - field_id_TAX matches the backend API format
+    /** Object wrapping the tax field - field_id_TAX matches the backend API format */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     field_id_TAX: {
         /** The external ID of the tax rate */
