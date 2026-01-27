@@ -1,5 +1,3 @@
-type ImportCSVCompanyCardsParams = {
-};
+type ImportCSVCompanyCardsParams = {};
 
 export default ImportCSVCompanyCardsParams;
-

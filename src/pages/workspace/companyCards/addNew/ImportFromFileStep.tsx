@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
@@ -12,7 +13,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
-import RenderHTML from '@components/RenderHTML';
 
 function ImportFromFileStep() {
     const {translate} = useLocalize();
@@ -74,4 +74,3 @@ function ImportFromFileStep() {
 }
 
 export default ImportFromFileStep;
-
