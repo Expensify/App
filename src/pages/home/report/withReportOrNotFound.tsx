@@ -4,6 +4,7 @@ import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
@@ -64,6 +65,7 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
 export default function (shouldRequireReportID = true): <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) => ComponentType<TProps> {
     return function <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
         function WithReportOrNotFound(props: TProps) {
+            const {isOffline} = useNetwork();
             const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -80,14 +82,14 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
             // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
             useEffect(() => {
-                if (isReportLoaded || !shouldFetchReport) {
-                    // If the report is not required or is already loaded, we don't need to call the API
+                if (isReportLoaded || !shouldFetchReport || isOffline) {
+                    // If the report is not required or is already loaded, or we're offline, we don't need to call the API
                     return;
                 }
 
                 openReport(props.route.params.reportID);
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
+            }, [shouldFetchReport, isReportLoaded, isOffline, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);

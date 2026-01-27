@@ -145,7 +145,7 @@ describe('ContactMethodsPage', () => {
             node = screen.getByTestId(`menu-${otherEmail}`);
 
             // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            expect(node).toHaveTextContent('info-brickRoadIndicator');
         });
     });
 });

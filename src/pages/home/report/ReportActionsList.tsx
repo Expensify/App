@@ -120,6 +120,9 @@ type ReportActionsListProps = {
 
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
+
+    /** Whether initial report actions are being loaded */
+    isLoadingInitialReportActions?: boolean;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -159,6 +162,7 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
+    isLoadingInitialReportActions,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -802,8 +806,7 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-
+    const shouldShowSkeleton = !isOffline && isLoadingInitialReportActions && sortedVisibleReportActions.length === 0;
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
             return;

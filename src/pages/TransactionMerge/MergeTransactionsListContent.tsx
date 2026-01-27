@@ -125,37 +125,39 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         onConfirm: handleConfirm,
     };
 
-    const filteredTransactions = eligibleTransactions?.filter((transaction) => {
-        return !isIOUReport(transaction?.reportID);
-    });
+    const shouldShowLoadingPlaceholder = !isOffline && !Array.isArray(eligibleTransactions);
 
-    if (filteredTransactions?.length === 0) {
+    if (eligibleTransactions?.length === 0 || (!eligibleTransactions && !shouldShowLoadingPlaceholder && data.length === 0)) {
         return (
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                <EmptyStateComponent
-                    cardStyles={[styles.appBG]}
-                    cardContentStyles={[styles.p0]}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                    headerMedia={illustrations.EmptyShelves}
-                    title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
-                    subtitleText={subTitleContent}
-                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
-                    headerContentStyles={styles.emptyStateTransactionMergeIllustration}
-                />
-            </ScrollView>
+            <View style={styles.flex1}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                    <EmptyStateComponent
+                        cardStyles={[styles.appBG]}
+                        cardContentStyles={[styles.p0]}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                        headerMedia={illustrations.EmptyShelves}
+                        title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
+                        subtitleText={subTitleContent}
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
+                        headerContentStyles={styles.emptyStateTransactionMergeIllustration}
+                    />
+                </ScrollView>
+            </View>
         );
     }
 
     return (
-        <SelectionList<MergeTransactionListItemType>
-            data={data}
-            onSelectRow={handleSelectRow}
-            ListItem={MergeTransactionItem}
-            customListHeader={headerContent}
-            confirmButtonOptions={confirmButtonOptions}
-            customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
-            showLoadingPlaceholder
-        />
+        <View style={styles.flex1}>
+            <SelectionList<MergeTransactionListItemType>
+                data={data}
+                onSelectRow={handleSelectRow}
+                ListItem={MergeTransactionItem}
+                customListHeader={headerContent}
+                confirmButtonOptions={confirmButtonOptions}
+                customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
+                showLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            />
+        </View>
     );
 }
 

@@ -12,7 +12,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {
     JoinWorkspaceResolution,
     OriginalMessageChangeLog,
@@ -42,6 +42,12 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+// This cycle import is safe because the functions imported here don't create initialization-time dependencies.
+// ReportActionsUtils imports utility functions from ReportUtils, and ReportUtils imports utility functions from ReportActionsUtils.
+// Some functions use module-level variables (e.g., allReports, allReportActions) that are initialized asynchronously via Onyx.connect(), so there's no circular dependency during module initialization.
+// eslint-disable-next-line import/no-cycle
+import {getReportOrDraftReport, isExpenseReport, isHarvestCreatedExpenseReport, isPolicyExpenseChat} from './ReportUtils';
+// eslint-disable-next-line import/no-cycle
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -1529,6 +1535,82 @@ const isIOUActionMatchingTransactionList = (
     const {IOUTransactionID} = getOriginalMessage(action) ?? {};
     return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
 };
+
+/**
+ * Checks if a transaction has a valid pending action for expense report filtering.
+ * When online, transactions with ADD or UPDATE pending action are included (to keep them visible during optimistic edits).
+ * When offline, transactions with ADD pending action are included.
+ */
+function hasValidPendingActionForExpenseReport(transaction: Transaction, isOffline: boolean): boolean {
+    return (
+        !transaction.pendingAction ||
+        transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        (!isOffline && transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE)
+    );
+}
+
+/**
+ * Filters transactions for an expense report and returns their transaction IDs.
+ * When online, excludes transactions with pending actions (except ADD when offline).
+ *
+ * @param allTransactions - Collection of all transactions from Onyx
+ * @param iouReportID - The expense report ID to filter transactions for
+ * @param transactionID - Optional specific transaction ID to include if it matches the report
+ * @param isOffline - Whether the app is currently offline (affects which pending actions are considered valid)
+ * @returns Array of transaction IDs that belong to the expense report
+ */
+function getExpenseReportTransactionIDs(allTransactions: OnyxCollection<Transaction>, iouReportID: string, transactionID: string | undefined, isOffline: boolean): string[] {
+    if (!iouReportID) {
+        return [];
+    }
+
+    const expenseReportTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
+        if (!transaction) {
+            return false;
+        }
+        const matchesReportID = transaction.reportID === iouReportID;
+        return matchesReportID && hasValidPendingActionForExpenseReport(transaction, isOffline);
+    });
+
+    const transactionIDsToCheck = expenseReportTransactions.map((transaction) => transaction?.transactionID).filter((id): id is string => !!id);
+
+    if (transactionID) {
+        const transactionInOnyx = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (transactionInOnyx && transactionInOnyx.reportID === iouReportID && !transactionIDsToCheck.includes(transactionID)) {
+            if (hasValidPendingActionForExpenseReport(transactionInOnyx, isOffline)) {
+                transactionIDsToCheck.push(transactionID);
+            }
+        }
+    }
+
+    return transactionIDsToCheck;
+}
+
+/**
+ * Determines which transaction IDs should be checked for an IOU action.
+ */
+function getTransactionIDsForIOUAction(reportAction: ReportAction, reportTransactionIDs: string[], allTransactions: OnyxCollection<Transaction>, isOffline: boolean): string[] {
+    if (!isMoneyRequestAction(reportAction)) {
+        return reportTransactionIDs;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const iouReportID = originalMessage?.IOUReportID;
+    const transactionID = originalMessage?.IOUTransactionID;
+
+    if (!iouReportID || !transactionID) {
+        return reportTransactionIDs;
+    }
+
+    const iouReport = getReportOrDraftReport(iouReportID);
+    const isIOUReportExpense = isExpenseReport(iouReport);
+
+    if (isIOUReportExpense) {
+        return getExpenseReportTransactionIDs(allTransactions, iouReportID, transactionID, isOffline);
+    }
+
+    return reportTransactionIDs;
+}
 
 /**
  * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
@@ -3384,11 +3466,11 @@ function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction
     return connectionName ? translate('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
-function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
+function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReportParam: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translate('newRoomPage.renamedRoomAction', {
         actorName,
-        isExpenseReport,
+        isExpenseReport: isExpenseReportParam,
         oldName: originalMessage?.oldName ?? '',
         newName: originalMessage?.newName ?? '',
     });
@@ -3773,6 +3855,7 @@ export {
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
+    getExpenseReportTransactionIDs,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
@@ -3805,6 +3888,7 @@ export {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getTextFromHtml,
+    getTransactionIDsForIOUAction,
     getTrackExpenseActionableWhisper,
     getWhisperedTo,
     hasReasoning,

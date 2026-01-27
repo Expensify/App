@@ -30,6 +30,10 @@ import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getPolicy, isPolicyAdmin} from './PolicyUtils';
+// This cycle import is safe because the functions imported here don't create initialization-time dependencies.
+// ReportNameUtils imports utility functions from ReportActionsUtils, and ReportActionsUtils imports utility functions from ReportNameUtils (via ReportUtils).
+// Some functions may use module-level variables that are initialized asynchronously via Onyx.connect(), so there's no circular dependency during module initialization.
+// eslint-disable-next-line import/no-cycle
 import {
     getActionableCardFraudAlertResolutionMessage,
     getAutoPayApprovedReportsEnabledMessage,

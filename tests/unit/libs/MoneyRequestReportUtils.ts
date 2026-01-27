@@ -89,4 +89,43 @@ describe('getAllNonDeletedTransactions', () => {
         expect(result.map((t) => t.transactionID)).toContain(transactionR14932.transactionID);
         expect(result.map((t) => t.transactionID)).toContain(orphanedTransaction.transactionID);
     });
+
+    test('should include transaction with pending delete action when offline', () => {
+        const transaction = {...transactionR14932};
+        const actionWithPendingDelete = {
+            ...actionR14932,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        };
+        const transactions = {
+            [transaction.transactionID]: transaction,
+        };
+        const reportActions = [actionWithPendingDelete];
+
+        const result = getAllNonDeletedTransactions(transactions, reportActions, true, false);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.transactionID).toBe(transaction.transactionID);
+    });
+
+    test('should exclude transaction with pending delete action when online', () => {
+        const transaction = {...transactionR14932};
+        const actionWithPendingDelete = {
+            ...actionR14932,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: '',
+                    text: '',
+                    isDeletedParentAction: true,
+                },
+            ],
+        };
+        const transactions = {
+            [transaction.transactionID]: transaction,
+        };
+        const reportActions = [actionWithPendingDelete];
+
+        const result = getAllNonDeletedTransactions(transactions, reportActions, false, false);
+        expect(result).toHaveLength(0);
+    });
 });

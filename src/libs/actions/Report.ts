@@ -1010,7 +1010,6 @@ function openReport(
         },
     ];
 
-    // Only add the report update if optimisticReport has data
     if (Object.keys(optimisticReport).length > 0) {
         optimisticData.unshift({
             onyxMethod: Onyx.METHOD.MERGE,

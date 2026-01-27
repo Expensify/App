@@ -5,24 +5,39 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import {
     areTransactionsEligibleForMerge,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
+    getTransactionThreadReportID,
     MERGE_FIELDS,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
+import {getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
+import {
+    buildOptimisticIOUReportAction,
+    findSelfDMReportID,
+    getReportOrDraftReport,
+    getReportTransactions,
+    getTransactionDetails,
+    isChatReport,
+    isCurrentUserSubmitter,
+    isMoneyRequestReportEligibleForMerge,
+    isReportManager,
+    isSelfDM,
+} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getAmount, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
 import type {UpdateMoneyRequestData} from './IOU';
 
@@ -210,6 +225,10 @@ function getOnyxTargetTransactionData({
     let data: UpdateMoneyRequestData;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
+    const targetReportForMerge = mergeTransaction.reportID ? getReportOrDraftReport(mergeTransaction.reportID) : null;
+    const isTargetDM = targetReportForMerge ? isSelfDM(targetReportForMerge) : false;
+    const shouldUseTrackExpenseParams = isUnreportedExpense || isTargetDM;
+
     // Compare mergeTransaction with targetTransaction and remove fields with same values
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const filteredTransactionChanges = Object.fromEntries(
@@ -226,11 +245,15 @@ function getOnyxTargetTransactionData({
     filteredTransactionChanges.comment = filteredTransactionChanges.description;
     const shouldBuildOptimisticModifiedExpenseReportAction = false;
 
-    if (isUnreportedExpense) {
+    const newTransactionReportID = filteredTransactionChanges.reportID as string | undefined;
+    const transactionChangesWithoutReportID = {...filteredTransactionChanges};
+    delete transactionChangesWithoutReportID.reportID;
+
+    if (shouldUseTrackExpenseParams) {
         data = getUpdateTrackExpenseParams(
             targetTransaction.transactionID,
             targetTransactionThreadReport?.reportID,
-            filteredTransactionChanges,
+            transactionChangesWithoutReportID,
             policy,
             shouldBuildOptimisticModifiedExpenseReportAction,
         );
@@ -240,11 +263,12 @@ function getOnyxTargetTransactionData({
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
             iouReportNextStep: targetTransactionThreadParentReportNextStep,
-            transactionChanges: filteredTransactionChanges,
+            transactionChanges: transactionChangesWithoutReportID,
             policy,
             policyTagList: policyTags,
             policyCategories,
             violations: targetTransactionViolations ?? [],
+            newTransactionReportID,
             shouldBuildOptimisticModifiedExpenseReportAction,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -317,6 +341,8 @@ function mergeTransactionRequest({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
 }: MergeTransactionRequestParams) {
+    const reportIDChanged = mergeTransaction.reportID && mergeTransaction.reportID !== targetTransaction.reportID;
+
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
     const finalAmount = -mergeTransaction.amount;
@@ -361,27 +387,60 @@ function mergeTransactionRequest({
     });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
-    const optimisticSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
-        value: null,
-    };
-    const failureSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
-        value: sourceTransaction,
-    };
+    const optimisticSourceTransactionData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
+            value: null,
+        },
+    ];
+    const failureSourceTransactionData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
+            value: sourceTransaction,
+        },
+    ];
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
-    const optimisticSourceReportData: OnyxUpdate[] =
-        transactionsOfSourceReport.length === 1
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                      value: null,
-                  },
-              ]
-            : [];
+    // Only delete source report if it differs from target and has one transaction
+    const sourceReport = getReportOrDraftReport(sourceTransaction.reportID);
+    const isSourceDM = sourceReport ? isSelfDM(sourceReport) : false;
+    const shouldDeleteSourceReport = sourceTransaction.reportID !== mergeTransaction.reportID && transactionsOfSourceReport.length === 1 && !isSourceDM;
+
+    // Remove ACTIONABLE_TRACK_EXPENSE_WHISPER when target transaction is moved to expense report
+    const isTargetUnreported = !targetTransaction.reportID || targetTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const targetReport = isTargetUnreported ? null : getReportOrDraftReport(targetTransaction.reportID);
+    let targetChatReportID: string | undefined;
+    if (isTargetUnreported) {
+        targetChatReportID = findSelfDMReportID();
+    } else if (targetReport && isChatReport(targetReport)) {
+        targetChatReportID = targetTransaction.reportID;
+    } else {
+        targetChatReportID = targetReport?.chatReportID;
+    }
+    const isTargetMovingToExpenseReport =
+        mergeTransaction.reportID && mergeTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && mergeTransaction.reportID !== targetTransaction.reportID;
+    const actionableWhisperAction = getTrackExpenseActionableWhisper(targetTransaction.transactionID, targetChatReportID);
+
+    const optimisticSourceReportData: OnyxUpdate[] = shouldDeleteSourceReport
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                  value: null,
+              },
+          ]
+        : [];
+
+    if (actionableWhisperAction && targetChatReportID && isTargetMovingToExpenseReport) {
+        optimisticSourceReportData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [actionableWhisperAction.reportActionID]: null,
+            },
+        });
+    }
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureSourceReportData: OnyxUpdate[] =
@@ -394,6 +453,16 @@ function mergeTransactionRequest({
                   },
               ]
             : [];
+
+    if (actionableWhisperAction && targetChatReportID && isTargetMovingToExpenseReport) {
+        failureSourceReportData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [actionableWhisperAction.reportActionID]: actionableWhisperAction,
+            },
+        });
+    }
     const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
     const optimisticSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
         ? [
@@ -464,11 +533,152 @@ function mergeTransactionRequest({
         };
     });
 
+    // If reportID changed during merge, create optimistic IOU action for target report
+    // This ensures the target report has a report action to display the transaction
+    const optimisticTargetReportActionData: OnyxUpdate[] = [];
+    const successTargetReportActionData: OnyxUpdate[] = [];
+    const failureTargetReportActionData: OnyxUpdate[] = [];
+    const finallyTargetReportActionData: OnyxUpdate[] = [];
+    const optimisticTargetReportData: OnyxUpdate[] = [];
+    const failureTargetReportData: OnyxUpdate[] = [];
+
+    if (reportIDChanged && mergeTransaction.reportID) {
+        const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+        const transactionThreadReport = transactionThreadReportID ? getReportOrDraftReport(transactionThreadReportID) : null;
+        const oldIOUReportID = transactionThreadReport?.parentReportID ?? targetTransaction.reportID;
+
+        const oldIOUAction = getIOUActionForReportID(oldIOUReportID, targetTransaction.transactionID);
+        const optimisticMoneyRequestReportActionID = rand64();
+        let newIOUAction;
+
+        // For expense reports, IOU actions are stored in the expense report itself, not in the parent report
+        const reportIDForIOUAction = mergeTransaction.reportID;
+
+        const targetReportForIOUAction = getReportOrDraftReport(reportIDForIOUAction);
+        const targetReportExists = !!targetReportForIOUAction;
+
+        if (!targetReportExists) {
+            optimisticTargetReportData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDForIOUAction}`,
+                value: {
+                    reportID: reportIDForIOUAction,
+                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                },
+            });
+
+            failureTargetReportData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDForIOUAction}`,
+                value: null,
+            });
+        }
+
+        if (oldIOUAction) {
+            const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
+            const isUnreportedExpense = targetTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || !targetTransaction.reportID;
+            newIOUAction = {
+                ...oldIOUAction,
+                originalMessage: {
+                    ...originalMessage,
+                    IOUReportID: mergeTransaction.reportID,
+                    IOUTransactionID: targetTransaction.transactionID,
+                    type: isUnreportedExpense ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                reportActionID: optimisticMoneyRequestReportActionID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: oldIOUAction?.created ?? DateUtils.getDBTime(),
+            };
+        } else {
+            const transactionAmount = getAmount(targetTransaction, false, false);
+            const transactionCurrency = targetTransaction.currency ?? CONST.CURRENCY.USD;
+            const transactionComment = targetTransaction.comment?.comment ?? mergeTransaction.description ?? '';
+
+            newIOUAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: Math.abs(transactionAmount),
+                currency: transactionCurrency,
+                comment: transactionComment,
+                participants: [],
+                transactionID: targetTransaction.transactionID,
+                isOwnPolicyExpenseChat: false,
+                reportActionID: optimisticMoneyRequestReportActionID,
+                iouReportID: mergeTransaction.reportID,
+            });
+
+            newIOUAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+            newIOUAction.actionName = CONST.REPORT.ACTIONS.TYPE.IOU;
+        }
+
+        optimisticTargetReportActionData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForIOUAction}`,
+            value: {
+                [newIOUAction.reportActionID]: newIOUAction,
+            },
+        });
+
+        successTargetReportActionData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForIOUAction}`,
+            value: {
+                [newIOUAction.reportActionID]: {pendingAction: null},
+            },
+        });
+
+        finallyTargetReportActionData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForIOUAction}`,
+            value: {
+                [newIOUAction.reportActionID]: null,
+            },
+        });
+
+        failureTargetReportActionData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForIOUAction}`,
+            value: {
+                [newIOUAction.reportActionID]: null,
+            },
+        });
+
+        if (oldIOUAction && oldIOUReportID && oldIOUReportID !== reportIDForIOUAction) {
+            optimisticTargetReportActionData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUReportID}`,
+                value: {
+                    [oldIOUAction.reportActionID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+
+            finallyTargetReportActionData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUReportID}`,
+                value: {
+                    [oldIOUAction.reportActionID]: null,
+                },
+            });
+
+            failureTargetReportActionData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUReportID}`,
+                value: {
+                    [oldIOUAction.reportActionID]: {pendingAction: null},
+                },
+            });
+        }
+    }
+
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
-        optimisticSourceTransactionData,
+        ...optimisticTargetReportActionData,
+        ...optimisticTargetReportData,
+        ...optimisticSourceTransactionData,
         ...optimisticSourceReportData,
         optimisticMergeTransactionData,
         ...optimisticTransactionViolations,
@@ -479,17 +689,23 @@ function mergeTransactionRequest({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const failureData: OnyxUpdate[] = [
         ...(onyxTargetTransactionData.failureData ?? []),
-        failureSourceTransactionData,
+        ...failureSourceTransactionData,
         ...failureSourceReportData,
+        ...failureTargetReportData,
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
+        ...failureTargetReportActionData,
     ];
 
     const successData: OnyxUpdate[] = [];
     successData.push(...successSourceReportActionData);
     successData.push(...(onyxTargetTransactionData.successData ?? []));
+    successData.push(...successTargetReportActionData);
 
-    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
+    const finallyData: OnyxUpdate[] = [];
+    finallyData.push(...finallyTargetReportActionData);
+
+    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData, finallyData});
 }
 
 export {areTransactionsEligibleForMerge, setupMergeTransactionData, setupMergeTransactionDataAndNavigate, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};

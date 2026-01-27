@@ -4321,6 +4321,13 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             true,
             isTransactionOnHold,
         );
+        // Set default type for reports with parentReportID and chatReportID but no type
+        if (!updatedMoneyRequestReport?.type && iouReport?.parentReportID && iouReport?.chatReportID) {
+            updatedMoneyRequestReport = {
+                ...updatedMoneyRequestReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+        }
     }
 
     optimisticData.push(

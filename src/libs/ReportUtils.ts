@@ -123,6 +123,8 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
+// This cycle import is safe because the functions imported here are pure utility functions that don't create initialization-time dependencies.
+// ReportUtils imports message formatting functions from ModifiedExpenseMessage, and ModifiedExpenseMessage imports utility functions from ReportUtils.
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
@@ -170,6 +172,10 @@ import {
     isSubmitAndClose,
     shouldShowPolicy,
 } from './PolicyUtils';
+// This cycle import is safe because the functions imported here don't create initialization-time dependencies.
+// ReportUtils imports utility functions from ReportActionsUtils, and ReportActionsUtils imports utility functions from ReportUtils.
+// Some functions use module-level variables (e.g., allReports, allReportActions) that are initialized asynchronously via Onyx.connect(), so there's no circular dependency during module initialization.
+// eslint-disable-next-line import/no-cycle
 import {
     formatLastMessageText,
     getActionableCardFraudAlertResolutionMessage,
