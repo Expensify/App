@@ -13,7 +13,7 @@ Once you've claimed and verified a domain, you can:
 - Configure SAML login
 - Enforce SAML login for domain members
 
-# Step 1: Claim Your Domain
+## How to claim a domain in Expensify
 
 To claim a private domain, you must:
 - Be logged in with an email address from that domain
