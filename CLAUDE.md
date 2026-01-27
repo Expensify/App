@@ -178,7 +178,7 @@ Use the `/react-native-best-practices` skill when working on performance-sensiti
 The skill provides guidance on:
 - **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
 - **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
-- **Startup (TTI)**: Hermes mmap, native navigation, deferred work
+- **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
 - **Native Modules**: Turbo Module development, threading model, Swift/Kotlin/C++ patterns
 - **Memory**: JS and native memory leak detection and patterns
 - **Build Compliance**: Android 16KB page alignment (Google Play requirement)
