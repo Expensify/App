@@ -3202,7 +3202,7 @@ function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurren
     );
 }
 
-function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList | undefined) {
     return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
         value: cardFeed.id,

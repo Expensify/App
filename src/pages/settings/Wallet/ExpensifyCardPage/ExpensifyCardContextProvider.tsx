@@ -1,7 +1,7 @@
+import {filterPersonalCards} from '@selectors/Card';
 import type {PropsWithChildren} from 'react';
 import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
-import {filterPersonalCards} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';

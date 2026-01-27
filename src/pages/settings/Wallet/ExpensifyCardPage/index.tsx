@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {filterPersonalCards} from '@selectors/Card';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,7 +24,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
-import {filterPersonalCards, formatCardExpiration, getDomainCards, maskCard, maskPin} from '@libs/CardUtils';
+import {formatCardExpiration, getDomainCards, maskCard, maskPin} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
