@@ -227,7 +227,7 @@ function RoomInvitePage({
         }
         if (report?.reportID) {
             if (isPolicyExpenseChat(report)) {
-                inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserPersonalDetails.accountID);
             } else {
                 inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
             }

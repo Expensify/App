@@ -11,6 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -44,6 +45,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [errorMessage, setErrorMessage] = useState('');
     const [showVerifyCompanyModal, setShowVerifyCompanyModal] = useState(false);
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
@@ -60,9 +62,9 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
-        addComment(conciergeReport, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE);
+        addComment(conciergeReport, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE, currentUserAccountID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
-    }, [translate, account?.primaryLogin, conciergeReportID, conciergeReport]);
+    }, [translate, account?.primaryLogin, conciergeReportID, conciergeReport, currentUserAccountID]);
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {

@@ -92,13 +92,13 @@ const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navig
 const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
-function initializePusher() {
+function initializePusher(currentUserAccountID?: number) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents();
+        User.subscribeToUserEvents(currentUserAccountID);
     });
 }
 
@@ -196,9 +196,9 @@ function AuthScreens() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher();
+        initializePusher(session?.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session]);
+    }, [session?.accountID]);
 
     useAutoUpdateTimezone();
 
@@ -227,7 +227,7 @@ function AuthScreens() {
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => handleNetworkReconnect());
         PusherConnectionManager.init();
-        initializePusher();
+        initializePusher(session?.accountID);
         // Sometimes when we transition from old dot to new dot, the client is not the leader
         // so we need to initialize the client again
         if (!isClientTheLeader() && isTransitioning) {
