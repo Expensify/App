@@ -1,12 +1,14 @@
 import type {Ref} from 'react';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import {clearMoneyRequest} from '@libs/actions/IOU';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {getOptimisticChatReport, saveReportDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type ROUTES from '@src/ROUTES';
 
 type ShareTabParticipantsSelectorProps = {
@@ -20,13 +22,14 @@ type InputFocusRef = {
 
 function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: ShareTabParticipantsSelectorProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     return (
         <MoneyRequestParticipantsSelector
             ref={ref}
             iouType={CONST.IOU.TYPE.SUBMIT}
             onParticipantsAdded={(value) => {
                 // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
-                clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+                clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, false, allTransactionDrafts);
 
                 const participant = value.at(0);
                 let reportID = participant?.reportID ?? CONST.DEFAULT_NUMBER_ID;

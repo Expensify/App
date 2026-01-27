@@ -163,6 +163,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const {isProduction} = useEnvironment();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
@@ -242,7 +243,19 @@ function AttachmentPickerWithMenuItems({
                     text: translate('quickAction.recordDistance'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
-                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                    onSelected: () =>
+                        selectOption(
+                            () =>
+                                startDistanceRequest(
+                                    CONST.IOU.TYPE.SUBMIT,
+                                    report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                                    lastDistanceExpenseType,
+                                    false,
+                                    undefined,
+                                    allTransactionDrafts,
+                                ),
+                            true,
+                        ),
                 },
             ],
             [CONST.IOU.TYPE.PAY]: [
@@ -275,7 +288,19 @@ function AttachmentPickerWithMenuItems({
                     text: translate('iou.trackDistance'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
-                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                    onSelected: () =>
+                        selectOption(
+                            () =>
+                                startDistanceRequest(
+                                    CONST.IOU.TYPE.TRACK,
+                                    report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                                    lastDistanceExpenseType,
+                                    false,
+                                    undefined,
+                                    allTransactionDrafts,
+                                ),
+                            true,
+                        ),
                 },
             ],
             [CONST.IOU.TYPE.INVOICE]: [

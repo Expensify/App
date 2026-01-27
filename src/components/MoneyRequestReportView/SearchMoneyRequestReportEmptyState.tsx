@@ -27,6 +27,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
@@ -59,7 +60,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, lastDistanceExpenseType);
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, lastDistanceExpenseType, false, undefined, allTransactionDrafts);
             },
         },
         {
