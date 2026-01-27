@@ -6755,6 +6755,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },

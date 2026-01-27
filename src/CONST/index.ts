@@ -7264,6 +7264,7 @@ const CONST = {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
             THIS_MONTH: 'this-month',
+            YEAR_TO_DATE: 'year-to-date',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [
