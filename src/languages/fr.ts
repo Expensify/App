@@ -784,7 +784,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Retournez sur l’appareil d’origine et demandez un nouveau code',
         successfulNewCodeRequest: 'Code demandé. Veuillez vérifier votre appareil.',
         tfaRequiredTitle: dedent(`
-            Authentification à deux facteurs
+            Authentification à deux facteurs  
             requise
         `),
         tfaRequiredDescription: dedent(`
@@ -4659,7 +4659,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Quel est l’ID du script ?',
-                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous :
+                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous : 
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Cliquez sur un segment personnalisé.
@@ -4913,14 +4913,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             assignCardFailedError: 'L’attribution de la carte a échoué.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
-                workspaceFeedsCouldNotBeLoadedMessage:
-                    'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
-                feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
-                feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
-                tryAgain: 'Réessayer',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',

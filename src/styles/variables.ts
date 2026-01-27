@@ -324,9 +324,6 @@ export default {
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
-    companyCardsPageNotFoundIconWidth: 97,
-    companyCardsPageNotFoundIconHeight: 140,
-
     h20: 20,
     h28: 28,
     h36: 36,
