@@ -9,13 +9,13 @@ Expensify makes it easy to create expenses through SmartScanning a receipt, uplo
 
 ---
 
-# When to Submit to an Individual
-
-Use this option for personal payments. The person receiving the expense will be notified via email or text and can pay directly through Expensify. You can also send expenses within a 1:1 chat.
-
 # When to Submit to a Workspace
 
 If you're submitting business expenses, send them to a workspace. This ensures proper coding, review, and approval through your company's configured workflow.
+
+# When to Submit to an Individual
+
+Use this option for personal payments. The person receiving the expense will be notified via email or text and can pay directly through Expensify. You can also send expenses within a 1:1 chat.
 
 ---
 
@@ -102,6 +102,19 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 3. Follow the prompts to assign workspaces, recipients, and coding.
 4. Once the expenses are ready, click **Create expenses**. 
 
+---
+
+# Next Steps for Workspace Expenses
+
+- Expenses are automatically added to a report.
+- Workspace settings check for violations or missing fields.
+- Approvers are notified to review and approve.
+- Reports can be submitted manually or automatically.
+- Approved expenses are ready for payment.
+- [Connect your bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payment.
+
+---
+
 # Next Steps for Individual Expenses
 
 - Expenses created and submitted to an individual are sent immediately.
@@ -113,7 +126,7 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 # Split Personal Expenses
 
-To split an expense, you’ll need to start a chat with each person you’re requesting money from. Once the chat is started, you can request their share of the bill.
+To split an expense with multiple individuals, you’ll need to start a group chat including each person you’re requesting money from. Once the chat is started, you can request their share of the bill.
 
 ## Start a Chat Before Splitting
 
@@ -138,15 +151,6 @@ To split an expense, you’ll need to start a chat with each person you’re req
 
 Each person will receive a notification via email or text with the request details. You can chat about the expense in Expensify Chat, and payments can be received via your Expensify Wallet or through other methods.
 
-# Next Steps for Workspace Expenses
-
-- Expenses are automatically added to a report.
-- Workspace settings check for violations or missing fields.
-- Approvers are notified to review and approve.
-- Reports can be submitted manually or automatically.
-- Approved expenses are ready for payment.
-- [Connect your bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payment.
-
 ---
 
 # FAQ
@@ -154,10 +158,6 @@ Each person will receive a notification via email or text with the request detai
 ## Can I attach multiple receipts to one expense?
 
 No. Only one receipt image is allowed per expense. Combine receipts into a single PDF or attach additional files to the report.
-
-## Can I split a payment between multiple people?
-
-Yes. Use the [Split Expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Split-an-expense) feature in a group chat.
 
 ## Can I edit an expense after submission?
 
