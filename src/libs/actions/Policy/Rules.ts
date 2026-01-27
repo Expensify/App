@@ -88,8 +88,12 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
         return;
     }
 
+    const isEditing = !!ruleID;
     const optimisticRuleID = ruleID ?? NumberUtils.rand64();
     const ruleFields = mapFormFieldsToRule(form, policy);
+
+    // Get the existing rule for restoring on failure (when editing)
+    const existingRule = isEditing ? policy?.rules?.codingRules?.[ruleID] : undefined;
 
     const optimisticRule: CodingRule = {
         ruleID: optimisticRuleID,
@@ -99,10 +103,14 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
             right: form.merchantToMatch,
         },
         ...ruleFields,
-        created: new Date().toISOString(),
+        created: isEditing && existingRule?.created ? existingRule.created : new Date().toISOString(),
     };
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    // On failure: for new rules, remove the optimistic rule; for edits, restore the original rule
+    const failureRuleValue = isEditing ? existingRule : null;
 
     const onyxData = {
         optimisticData: [
@@ -116,7 +124,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                         },
                     },
                     pendingFields: {
-                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        rules: pendingAction,
                     },
                 },
             },
@@ -142,7 +150,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                 value: {
                     rules: {
                         codingRules: {
-                            [optimisticRuleID]: null,
+                            [optimisticRuleID]: failureRuleValue,
                         },
                     },
                     pendingFields: {
