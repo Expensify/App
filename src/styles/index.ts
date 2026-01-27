@@ -1043,6 +1043,12 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeNewFeature: {
+            minHeight: 20,
+            height: 20,
+            paddingHorizontal: 8,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -1638,6 +1644,15 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        floatingSecondaryActionButton: {
+            backgroundColor: theme.buttonDefaultBG,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
+            borderRadius: 999,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -1646,6 +1661,15 @@ const staticStyles = (theme: ThemeColors) =>
         floatingCameraButton: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButton: {
+            position: 'absolute',
+            // floatingCameraButton top property value (componentSizeLarge + 16) +
+            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
             right: 16,
             zIndex: 10,
         },
@@ -3288,6 +3312,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyLHNAnimation: {
+            width: 180,
+            height: 180,
+        },
+
+        mfaBlockingViewAnimation: {
             width: 180,
             height: 180,
         },
@@ -5044,6 +5073,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredOverlay: {
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5352,6 +5385,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
+        todoBadge: {
+            width: variables.w36,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: 0,
+            paddingRight: 0,
+        },
+
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
@@ -5628,6 +5669,9 @@ const staticStyles = (theme: ThemeColors) =>
         saveTheWorldStaticIllustration: {
             width: 179,
             height: 180,
+        },
+        paymentMethodErrorRow: {
+            paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
     }) satisfies StaticStyles;
 

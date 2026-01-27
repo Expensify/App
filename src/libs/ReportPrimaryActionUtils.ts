@@ -4,7 +4,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
-import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getSubmitToAccountID,
@@ -42,7 +41,7 @@ import {
     allHavePendingRTERViolation,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
-    hasSmartScanFailedViolation,
+    hasSubmissionBlockingViolations,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -115,7 +114,7 @@ function isSubmitAction(
     }
 
     if (violations && currentUserEmail && currentUserAccountID !== undefined) {
-        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+        if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
             return false;
         }
     }
@@ -129,14 +128,12 @@ function isSubmitAction(
     return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
 }
 
-function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
+function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, policy?: Policy) {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
-    const currentUserAccountID = getCurrentUserAccountID();
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
     if (!isCurrentUserManager) {
@@ -449,7 +446,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isApproveAction(report, reportTransactions, policy)) {
+    if (isApproveAction(report, reportTransactions, currentUserAccountID, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
