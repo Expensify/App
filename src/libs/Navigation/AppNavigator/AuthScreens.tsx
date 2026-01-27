@@ -8,6 +8,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -726,6 +727,7 @@ function AuthScreens() {
             {/* Full-screen 2FA enforcement overlay - blocks all interaction until 2FA is set up */}
             {shouldShowRequire2FAPage && !isIn2FASetupFlow && <RequireTwoFactorAuthenticationPage />}
             <SearchRouterModal />
+            <GPSTripStateChecker />
             <OpenAppFailureModal />
             <PriorityModeController />
             <OpenConfirmNavigateExpensifyClassicModal />

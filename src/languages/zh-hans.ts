@@ -767,7 +767,7 @@ const translations: TranslationDeepObject<typeof en> = {
             请输入在最初请求该代码的设备上显示的代码
         `),
         doNotShare: dedent(`
-            不要与任何人分享你的验证码。
+            不要与任何人分享你的验证码。  
             Expensify 永远不会向你索要它！
         `),
         or: '，或',
@@ -776,7 +776,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: '返回原始设备并请求新验证码',
         successfulNewCodeRequest: '已请求验证码。请检查您的设备。',
         tfaRequiredTitle: dedent(`
-            双重身份验证
+            双重身份验证  
             必填
         `),
         tfaRequiredDescription: dedent(`
@@ -4787,13 +4787,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             assignCardFailedError: '卡片分配失败。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: '卡片取消分配失败。',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片信息流',
-                workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时出错。请重试或联系您的管理员。',
-                feedCouldNotBeLoadedTitle: '无法加载此订阅内容',
-                feedCouldNotBeLoadedMessage: '加载此信息流时出错。请重试或联系您的管理员。',
-                tryAgain: '重试',
-            },
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',
@@ -7877,6 +7870,7 @@ ${reportName}
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
         signOutWarningTripInProgress: {title: 'GPS 跟踪进行中', prompt: '您确定要放弃此行程并登出吗？', confirm: '放弃并退出'},
         notification: {title: '正在进行 GPS 跟踪', body: '前往应用完成'},
+        continueGpsTripModal: {title: '是否继续记录 GPS 行程？', prompt: '看起来在您上一次的 GPS 行程中应用已关闭。您想从那次行程继续记录吗？', confirm: '继续行程', cancel: '查看行程'},
         locationServicesRequiredModal: {title: '需要访问位置信息', confirm: '打开设置', prompt: '请在设备设置中允许位置访问，以开始 GPS 距离跟踪。'},
         fabGpsTripExplained: '前往 GPS 屏幕（悬浮操作）',
     },

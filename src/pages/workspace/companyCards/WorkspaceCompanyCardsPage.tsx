@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
@@ -44,32 +44,23 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
     const {isOffline} = useNetwork({
-        onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate),
+        onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),
     });
 
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
-
-    const loadPolicyCompanyCardsPage = useCallback(() => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
-    }, [domainOrWorkspaceAccountID, policyID, translate]);
+    useEffect(() => {
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
+    }, [policyID, domainOrWorkspaceAccountID]);
 
     useEffect(() => {
-        loadPolicyCompanyCardsPage();
-    }, [policyID, domainOrWorkspaceAccountID, loadPolicyCompanyCardsPage]);
-
-    const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending) {
             return;
         }
 
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
         openWorkspaceMembersPage(policyID, clientMemberEmails);
-        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policy?.employeeList, policyID, translate]);
-
-    useEffect(() => {
-        loadPolicyCompanyCardsFeed();
-    }, [loadPolicyCompanyCardsFeed]);
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName);
+    }, [bankName, isLoading, policyID, isFeedPending, domainOrWorkspaceAccountID, policy?.employeeList]);
 
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
@@ -94,8 +85,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     companyCards={companyCards}
                     onAssignCard={assignCard}
                     isAssigningCardDisabled={isAssigningCardDisabled}
-                    onReloadPage={loadPolicyCompanyCardsPage}
-                    onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
             </WorkspacePageWithSections>
 
