@@ -31,10 +31,14 @@ Note: Any setting with a chain link icon (🔗) that is not crossed out is inher
 ## Hotel policy settings
 
 **Restrict bookings by**
+
 Set specific keywords that will restrict hotel bookings if matched in the rate description.
 - Useful for excluding specific phrases like "non-refundable" or "prepaid."
 
+---
+
 **Hotel rate conditions not allowed to be booked**
+
 Block specific rate types from being available to travelers.
 - Options include:
   - Non-refundable
@@ -47,6 +51,7 @@ You can also add a custom message explaining the restriction to travelers during
 ---
 
 **Add Property type**  
+
 Configure hotel restrictions by property type.
 
 When setting this up, customers will set:
@@ -63,12 +68,14 @@ When setting this up, customers will set:
 ---
 
 **Only consider cheapest rate as in-policy**
+
 Flags the lowest-priced rate at each hotel as **in policy**.
 - All other rates for that property will be **out of policy**.
 
 ---
 
 **Maximum price**
+
 Set a global nightly price cap for hotel stays.
 - Customize rates further by city or country/region.
 - Choose whether the limit includes taxes and fees.
@@ -76,12 +83,14 @@ Set a global nightly price cap for hotel stays.
 ---
 
 **Booking window**
+
 Define how many days before check-in a booking becomes out of policy.
     - Example: If set to 5 days, any booking made less than 5 days in advance is flagged as out of policy.
 
 ---
 
 **Cancellation policy**
+
 Determine what refund options you want travelers to book:
   - Any (allow all)
   - Fully refundable rooms only
@@ -90,12 +99,14 @@ Determine what refund options you want travelers to book:
 ---
 
 **Experience**
+
 Set minimum and maximum star ratings to define acceptable hotel experiences.
 - Helps maintain booking quality while controlling costs.
 
 ---
 
 **Nightly median rate**  
+
 Configure parameters to calculate the median hotel rate based on the traveler's search results. The median rate represents the midpoint price where half the hotels cost more and half cost less. 
 
 To configure:
@@ -107,6 +118,7 @@ To configure:
 ---
 
 **Out of policy reason codes**
+
 Enable travelers to create or select a reason when selecting an out-of-policy hotel.
 - Click **Manage Reason Codes** to create, edit, or delete available reason options.
 
