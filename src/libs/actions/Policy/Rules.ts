@@ -80,7 +80,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
                         },
                     },
                     pendingFields: {
-                        codingRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
             },
@@ -91,10 +91,10 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
-                        codingRules: null,
+                        rules: null,
                     },
                     errorFields: {
-                        codingRules: null,
+                        rules: null,
                     },
                 },
             },
@@ -110,10 +110,10 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
                         },
                     },
                     pendingFields: {
-                        codingRules: null,
+                        rules: null,
                     },
                     errorFields: {
-                        codingRules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        rules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
             },
