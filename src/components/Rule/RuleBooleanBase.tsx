@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -33,13 +34,13 @@ type RuleBooleanBaseProps = {
     /** Callback to go back */
     onBack: () => void;
 
-    /** Optional wrapper component for the content */
-    ContentWrapper?: React.ComponentType<{children: React.ReactNode}>;
+    /** Optional hash for rule not found validation */
+    hash?: string;
 };
 
 const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
 
-function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, ContentWrapper}: RuleBooleanBaseProps) {
+function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash}: RuleBooleanBaseProps) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
@@ -73,34 +74,30 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, ContentWr
         onSelect(fieldID, value);
     };
 
-    const content = (
-        <ScreenWrapper
-            testID="RuleBooleanBase"
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate(titleKey)}
-                onBackButtonPress={onBack}
-            />
-            <View style={[styles.flex1]}>
-                <SelectionList
-                    shouldSingleExecuteRowSelect
-                    data={items}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={onSelectItem}
+    return (
+        <RuleNotFoundPageWrapper hash={hash}>
+            <ScreenWrapper
+                testID="RuleBooleanBase"
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate(titleKey)}
+                    onBackButtonPress={onBack}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={[styles.flex1]}>
+                    <SelectionList
+                        shouldSingleExecuteRowSelect
+                        data={items}
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={onSelectItem}
+                    />
+                </View>
+            </ScreenWrapper>
+        </RuleNotFoundPageWrapper>
     );
-
-    if (ContentWrapper) {
-        return <ContentWrapper>{content}</ContentWrapper>;
-    }
-
-    return content;
 }
 
 export default RuleBooleanBase;

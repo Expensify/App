@@ -1,6 +1,5 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
-import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import RuleTextBase from '@components/Rule/RuleTextBase';
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,12 +24,6 @@ function AddDescriptionPage({route}: AddDescriptionPageProps) {
         goBack();
     };
 
-    const ContentWrapper = useMemo(
-        () =>
-            ({children}: {children: React.ReactNode}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>,
-        [hash],
-    );
-
     return (
         <RuleTextBase
             fieldID={CONST.EXPENSE_RULES.FIELDS.DESCRIPTION}
@@ -40,7 +33,7 @@ function AddDescriptionPage({route}: AddDescriptionPageProps) {
             characterLimit={CONST.DESCRIPTION_LIMIT}
             onSave={onSave}
             onBack={goBack}
-            ContentWrapper={ContentWrapper}
+            hash={hash}
         />
     );
 }

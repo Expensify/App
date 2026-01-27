@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
 import {updateDraftRule} from '@libs/actions/User';
@@ -53,12 +52,6 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
         updateDraftRule({category: value});
     };
 
-    const ContentWrapper = useMemo(
-        () =>
-            ({children}: {children: React.ReactNode}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>,
-        [hash],
-    );
-
     return (
         <RuleSelectionBase
             titleKey="common.category"
@@ -68,7 +61,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
             onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
             backToRoute={backToRoute}
-            ContentWrapper={ContentWrapper}
+            hash={hash}
         />
     );
 }

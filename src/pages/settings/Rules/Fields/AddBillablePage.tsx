@@ -1,6 +1,5 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import RuleBooleanBase from '@components/Rule/RuleBooleanBase';
-import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,12 +23,6 @@ function AddBillablePage({route}: AddBillablePageProps) {
         goBack();
     };
 
-    const ContentWrapper = useMemo(
-        () =>
-            ({children}: {children: React.ReactNode}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>,
-        [hash],
-    );
-
     return (
         <RuleBooleanBase
             fieldID={CONST.EXPENSE_RULES.FIELDS.BILLABLE}
@@ -37,7 +30,7 @@ function AddBillablePage({route}: AddBillablePageProps) {
             titleKey="common.billable"
             onSelect={onSelect}
             onBack={goBack}
-            ContentWrapper={ContentWrapper}
+            hash={hash}
         />
     );
 }

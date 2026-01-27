@@ -1,6 +1,7 @@
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,8 +41,8 @@ type RuleTextBaseProps<TFormID extends OnyxFormKey> = {
     /** Callback to go back */
     onBack: () => void;
 
-    /** Optional wrapper component for the content */
-    ContentWrapper?: React.ComponentType<{children: React.ReactNode}>;
+    /** Optional hash for rule not found validation */
+    hash?: string;
 };
 
 function RuleTextBase<TFormID extends OnyxFormKey>({
@@ -55,41 +56,37 @@ function RuleTextBase<TFormID extends OnyxFormKey>({
     formID,
     onSave,
     onBack,
-    ContentWrapper,
+    hash,
 }: RuleTextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const content = (
-        <ScreenWrapper
-            testID={testID}
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate(titleKey)}
-                onBackButtonPress={onBack}
-            />
-            <TextBase
-                fieldID={fieldID}
-                formID={formID}
-                hint={hintKey ? translate(hintKey) : undefined}
-                isRequired={isRequired}
-                label={translate(labelKey ?? titleKey)}
-                onSubmit={onSave}
-                title={translate(titleKey)}
-                characterLimit={characterLimit}
-            />
-        </ScreenWrapper>
+    return (
+        <RuleNotFoundPageWrapper hash={hash}>
+            <ScreenWrapper
+                testID={testID}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate(titleKey)}
+                    onBackButtonPress={onBack}
+                />
+                <TextBase
+                    fieldID={fieldID}
+                    formID={formID}
+                    hint={hintKey ? translate(hintKey) : undefined}
+                    isRequired={isRequired}
+                    label={translate(labelKey ?? titleKey)}
+                    onSubmit={onSave}
+                    title={translate(titleKey)}
+                    characterLimit={characterLimit}
+                />
+            </ScreenWrapper>
+        </RuleNotFoundPageWrapper>
     );
-
-    if (ContentWrapper) {
-        return <ContentWrapper>{content}</ContentWrapper>;
-    }
-
-    return content;
 }
 
 export default RuleTextBase;

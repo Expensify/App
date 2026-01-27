@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
@@ -35,42 +36,38 @@ type RuleSelectionBaseProps = {
     /** The route to navigate back to */
     backToRoute: Route;
 
-    /** Optional wrapper component for the content */
-    ContentWrapper?: React.ComponentType<{children: React.ReactNode}>;
+    /** Optional hash for rule not found validation */
+    hash?: string;
 };
 
-function RuleSelectionBase({titleKey, testID, selectedItem, items, onSave, onBack, backToRoute, ContentWrapper}: RuleSelectionBaseProps) {
+function RuleSelectionBase({titleKey, testID, selectedItem, items, onSave, onBack, backToRoute, hash}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const content = (
-        <ScreenWrapper
-            testID={testID}
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate(titleKey)}
-                onBackButtonPress={onBack}
-            />
-            <View style={[styles.flex1]}>
-                <SearchSingleSelectionPicker
-                    backToRoute={backToRoute}
-                    initiallySelectedItem={selectedItem}
-                    items={items}
-                    onSaveSelection={onSave}
-                    shouldAutoSave
+    return (
+        <RuleNotFoundPageWrapper hash={hash}>
+            <ScreenWrapper
+                testID={testID}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate(titleKey)}
+                    onBackButtonPress={onBack}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={[styles.flex1]}>
+                    <SearchSingleSelectionPicker
+                        backToRoute={backToRoute}
+                        initiallySelectedItem={selectedItem}
+                        items={items}
+                        onSaveSelection={onSave}
+                        shouldAutoSave
+                    />
+                </View>
+            </ScreenWrapper>
+        </RuleNotFoundPageWrapper>
     );
-
-    if (ContentWrapper) {
-        return <ContentWrapper>{content}</ContentWrapper>;
-    }
-
-    return content;
 }
 
 export default RuleSelectionBase;

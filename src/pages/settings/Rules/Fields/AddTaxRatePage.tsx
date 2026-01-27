@@ -1,5 +1,4 @@
-import React, {useMemo} from 'react';
-import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
+import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
 import {updateDraftRule} from '@libs/actions/User';
@@ -30,12 +29,6 @@ function AddTaxRatePage({route}: AddTaxRatePageProps) {
         updateDraftRule({tax: value});
     };
 
-    const ContentWrapper = useMemo(
-        () =>
-            ({children}: {children: React.ReactNode}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>,
-        [hash],
-    );
-
     return (
         <RuleSelectionBase
             titleKey="common.tax"
@@ -45,7 +38,7 @@ function AddTaxRatePage({route}: AddTaxRatePageProps) {
             onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
             backToRoute={backToRoute}
-            ContentWrapper={ContentWrapper}
+            hash={hash}
         />
     );
 }
