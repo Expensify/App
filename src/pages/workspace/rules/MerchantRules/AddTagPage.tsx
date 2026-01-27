@@ -14,7 +14,7 @@ type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, type
 
 function AddTagPage({route}: AddTagPageProps) {
     const {policyID, ruleID} = route.params;
-    const isEditing = ruleID !== 'new';
+    const isEditing = ruleID !== ROUTES.NEW;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});

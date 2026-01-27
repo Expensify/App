@@ -13,7 +13,7 @@ type AddReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function AddReimbursablePage({route}: AddReimbursablePageProps) {
     const {policyID, ruleID} = route.params;
-    const isEditing = ruleID !== 'new';
+    const isEditing = ruleID !== ROUTES.NEW;
 
     const goBack = () => {
         const backRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);

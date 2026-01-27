@@ -14,7 +14,7 @@ type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList,
 
 function AddCategoryPage({route}: AddCategoryPageProps) {
     const {policyID, ruleID} = route.params;
-    const isEditing = ruleID !== 'new';
+    const isEditing = ruleID !== ROUTES.NEW;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
