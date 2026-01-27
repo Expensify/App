@@ -95,7 +95,6 @@ class OpenAIUtils {
 
     /**
      * Prompt a pre-defined assistant.
-     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
      */
     public async promptAssistant(assistantID: string, userMessage: string): Promise<string> {
         // 1. Create a thread
