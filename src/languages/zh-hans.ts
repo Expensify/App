@@ -755,6 +755,15 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: '使用您的脸部或指纹启用快速安全验证。无需密码或代码。',
         },
+        revoke: {
+            revoke: '撤销',
+            title: '人脸/指纹与通行密钥',
+            explanation: '一个或多个设备已启用面容/指纹或通行密钥验证。撤销访问权限后，下一次在任何设备上进行验证时都需要输入魔法代码',
+            confirmationPrompt: '你确定吗？在任何设备上的下一次验证中，你都需要一个魔法代码',
+            cta: '撤销访问权限',
+            noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。注册后，您可以在此撤销这些访问权限。',
+            dismiss: '知道了',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

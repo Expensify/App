@@ -760,6 +760,16 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
         },
+        revoke: {
+            revoke: 'Intrekken',
+            title: 'Gezichts-/vingerafdrukherkenning & passkeys',
+            explanation:
+                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
+            confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat',
+            cta: 'Toegang intrekken',
+            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkeys-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
+            dismiss: 'Begrepen',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
