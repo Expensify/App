@@ -64,7 +64,7 @@ function shouldUseOldApp(tryNewDot: TryNewDot) {
         return true;
     }
 
-    if (tryNewDot.classicRedirect.isLockedToNewApp === true) {
+    if (tryNewDot.isLockedToNewApp) {
         return false;
     }
 

@@ -3,6 +3,11 @@
  */
 type TryNewDot = {
     /**
+     * Indicates whether the user is forced to use the NewApp on mobile.
+     */
+    isLockedToNewApp?: boolean;
+
+    /**
      * This key is mostly used on OldDot. In NewDot, we only use `completedHybridAppOnboarding` and `isLockedToNewDot`.
      */
     classicRedirect?: {
@@ -24,11 +29,6 @@ type TryNewDot = {
          * Indicates whether the user has access to the OldDot transition.
          */
         isLockedToNewDot?: boolean;
-
-        /**
-         * Indicates whether the user is forced to use the NewApp on mobile.
-         */
-        isLockedToNewApp?: boolean;
 
         /**
          * Array of dismissed reasons with timestamps.

@@ -100,7 +100,7 @@ function TroubleshootPage() {
         const platform = getPlatform();
         const isMobileApp = [CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(platform as 'ios' | 'android');
 
-        if (tryNewDot?.classicRedirect?.isLockedToNewApp && isMobileApp) {
+        if (tryNewDot?.isLockedToNewApp && isMobileApp) {
             return null;
         }
 
