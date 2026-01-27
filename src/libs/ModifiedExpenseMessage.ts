@@ -215,7 +215,7 @@ function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, poli
             return value ? translate('iou.markedAsBillable') : translate('iou.markedAsNonBillable');
         }
 
-        return translate('iou.updatedFieldTo', {key: translate(`common.${key}`), value, first: isFirst});
+        return translate('iou.updatedFieldTo', {key: translate(`common.${key}`).toLowerCase(), value, first: isFirst});
     });
 
     if (fragments.length > 1) {
@@ -223,7 +223,7 @@ function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, poli
         fragments[lastIndex] = `${translate('common.and')} ${fragments[lastIndex]}`;
     }
 
-    const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}/rules`;
+    const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
     return `${fragments.join(', ')} ${translate('iou.viaWorkspaceRules', {route: policyRulesRoute})}`;
 }
 
