@@ -11,7 +11,7 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
-import {getReportTransactions, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
+import {getReportTransactions, isExpenseReport, isPolicyExpenseChat} from './ReportUtils';
 import {getCurrency, getTagArrayFromName, isMerchantMissing, isScanRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
@@ -340,7 +340,7 @@ function shouldRequireMerchant(transaction: OnyxInputOrEntry<Transaction> | unde
     }
 
     // Check if merchant is required based on report type and participants
-    const isMerchantRequired = !!(isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat));
+    const isMerchantRequired = !!(isPolicyExpenseChat(report) || isExpenseReport(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat));
 
     // For scan requests, merchant is not required unless it's a split bill being edited
     if (isScanRequest(transaction) && !isEditingSplitBill) {
