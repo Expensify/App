@@ -16,7 +16,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
+import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
@@ -84,7 +84,8 @@ function IOURequestStepScan({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
-    const {isLoaderVisible, setIsLoaderVisible} = useFullScreenLoader();
+    const {isLoaderVisible} = useFullScreenLoaderState();
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
@@ -292,6 +293,7 @@ function IOURequestStepScan({
                 isSelfTourViewed,
             });
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- reportNameValuePairs?.private_isArchived is not needed
         [
             backTo,
             backToReport,
@@ -543,6 +545,7 @@ function IOURequestStepScan({
                         Log.warn('Error taking photo', error);
                     });
             });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
         didCapturePhoto,

@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -28,12 +28,10 @@ type FullPageErrorViewProps = {
 
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
-
-    containerStyle?: StyleProp<ViewStyle>;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle, containerStyle}: FullPageErrorViewProps) {
+function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
 
@@ -41,7 +39,7 @@ function FullPageErrorView({testID, children = null, shouldShow = false, title =
         return (
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <View
-                    style={[styles.flex1, styles.searchBlockingErrorViewContainer]}
+                    style={[styles.flex1, styles.blockingErrorViewContainer]}
                     testID={testID}
                 >
                     <BlockingView
@@ -51,7 +49,6 @@ function FullPageErrorView({testID, children = null, shouldShow = false, title =
                         title={title}
                         subtitle={subtitle}
                         subtitleStyle={subtitleStyle}
-                        containerStyle={containerStyle}
                     />
                 </View>
             </ForceFullScreenView>
