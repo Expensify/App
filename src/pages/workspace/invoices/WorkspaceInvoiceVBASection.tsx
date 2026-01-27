@@ -169,6 +169,14 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         }
     }, [bankAccountList, styles, translate, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
 
+    const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
+        const accountPolicyID = accountData?.additionalData?.policyID;
+
+        if (accountPolicyID) {
+            navigateToBankAccountRoute(accountPolicyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
+        }
+    };
+
     const onAddBankAccountPress = () => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
@@ -195,8 +203,9 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             subtitleMuted
         >
             <PaymentMethodList
-                onPress={paymentMethodPressed}
+                onPress={onBankAccountRowPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
+                onThreeDotsMenuPress={paymentMethodPressed}
                 shouldSkipDefaultAccountValidation={!isSupportedGlobalReimbursement}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
