@@ -6740,7 +6740,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     };
 
     const parameters: CreatePerDiemRequestParams = {
-        policyID: policy?.id ?? '',
+        policyID: policy?.id,
         customUnitID: customUnit.customUnitID,
         customUnitRateID: customUnit.customUnitRateID,
         customUnitRate: JSON.stringify(customUnitRateParam),
