@@ -6941,6 +6941,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             accessPlaceHolder: 'Abra para ver detalhes',
         },
         noCategory: 'Sem categoria',
+        noMerchant: 'Sem comerciante',
         noTag: 'Sem tag',
         expenseType: 'Tipo de despesa',
         withdrawalType: 'Tipo de saque',

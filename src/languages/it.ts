@@ -6968,6 +6968,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             accessPlaceHolder: 'Apri per i dettagli',
         },
         noCategory: 'Nessuna categoria',
+        noMerchant: 'Nessun commerciante',
         noTag: 'Nessun tag',
         expenseType: 'Tipo di spesa',
         withdrawalType: 'Tipo di prelievo',

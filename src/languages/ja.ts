@@ -6908,6 +6908,7 @@ ${reportName}
             accessPlaceHolder: '詳細を開く',
         },
         noCategory: 'カテゴリなし',
+        noMerchant: '加盟店なし',
         noTag: 'タグなし',
         expenseType: '経費の種類',
         withdrawalType: '出金タイプ',

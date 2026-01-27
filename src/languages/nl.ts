@@ -6950,6 +6950,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             accessPlaceHolder: 'Open voor details',
         },
         noCategory: 'Geen categorie',
+        noMerchant: 'Geen handelaar',
         noTag: 'Geen tag',
         expenseType: 'Onkostentype',
         withdrawalType: 'Type opname',

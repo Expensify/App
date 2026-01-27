@@ -6863,6 +6863,7 @@ const translations = {
             accessPlaceHolder: 'Open for details',
         },
         noCategory: 'No category',
+        noMerchant: 'No merchant',
         noTag: 'No tag',
         expenseType: 'Expense type',
         withdrawalType: 'Withdrawal type',

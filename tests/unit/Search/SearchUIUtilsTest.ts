@@ -2858,6 +2858,52 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.merchant === 'Starbucks')).toBe(true);
         });
 
+        it('should normalize empty merchant to MERCHANT_EMPTY_VALUE in transactionsQueryJSON', () => {
+            const dataWithEmptyMerchant: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
+                    merchant: '',
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEmptyMerchant,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                queryJSON: {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    status: '',
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    view: CONST.SEARCH.VIEW.TABLE,
+                    hash: 12345,
+                    flatFilters: [],
+                    inputQuery: 'type:expense groupBy:merchant',
+                    recentSearchHash: 12345,
+                    similarSearchHash: 12345,
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                        right: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    },
+                },
+            }) as [TransactionMerchantGroupListItemType[], number];
+
+            expect(result).toHaveLength(1);
+            const emptyMerchantItem = result.find((item) => item.merchant === '');
+            expect(emptyMerchantItem?.transactionsQueryJSON).toBeDefined();
+            // The query should use 'none' (MERCHANT_EMPTY_VALUE) instead of empty string
+            expect(emptyMerchantItem?.transactionsQueryJSON?.inputQuery).toContain(CONST.SEARCH.MERCHANT_EMPTY_VALUE);
+        });
+
         it('should return isTransactionMerchantGroupListItemType true for merchant group items', () => {
             const merchantItem: TransactionMerchantGroupListItemType = {
                 merchant: 'Starbucks',

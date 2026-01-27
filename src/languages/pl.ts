@@ -6940,6 +6940,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły',
         },
         noCategory: 'Brak kategorii',
+        noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',
         withdrawalType: 'Typ wypłaty',

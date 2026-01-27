@@ -6788,6 +6788,7 @@ ${reportName}
             accessPlaceHolder: '打开以查看详情',
         },
         noCategory: '无类别',
+        noMerchant: '无商户',
         noTag: '无标签',
         expenseType: '费用类型',
         withdrawalType: '提现类型',

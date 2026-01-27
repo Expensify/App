@@ -6979,6 +6979,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             accessPlaceHolder: 'Für Details öffnen',
         },
         noCategory: 'Keine Kategorie',
+        noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
         expenseType: 'Ausgabenart',
         withdrawalType: 'Auszahlungsart',

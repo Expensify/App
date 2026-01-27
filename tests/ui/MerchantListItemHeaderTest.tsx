@@ -146,28 +146,28 @@ describe('MerchantListItemHeader', () => {
             expect(screen.getByText('Starbucks Coffee')).toBeOnTheScreen();
         });
 
-        it('should display "Unknown Merchant" for empty merchant string', async () => {
+        it('should display "No merchant" for empty merchant string', async () => {
             const merchantItem = createMerchantListItem('', {formattedMerchant: ''});
             renderMerchantListItemHeader(merchantItem);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(CONST.TRANSACTION.UNKNOWN_MERCHANT)).toBeOnTheScreen();
+            expect(screen.getByText('No merchant')).toBeOnTheScreen();
         });
 
-        it('should display "Unknown Merchant" when merchant is undefined', async () => {
+        it('should display "No merchant" when merchant is undefined', async () => {
             const merchantItem = createMerchantListItem('', {formattedMerchant: undefined});
             renderMerchantListItemHeader(merchantItem);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(CONST.TRANSACTION.UNKNOWN_MERCHANT)).toBeOnTheScreen();
+            expect(screen.getByText('No merchant')).toBeOnTheScreen();
         });
 
-        it('should display "Unknown Merchant" when both merchant and formattedMerchant are empty', async () => {
+        it('should display "No merchant" when both merchant and formattedMerchant are empty', async () => {
             const merchantItem = createMerchantListItem('', {merchant: '', formattedMerchant: ''});
             renderMerchantListItemHeader(merchantItem);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(CONST.TRANSACTION.UNKNOWN_MERCHANT)).toBeOnTheScreen();
+            expect(screen.getByText('No merchant')).toBeOnTheScreen();
         });
     });
 

@@ -409,7 +409,7 @@ type GetSectionsParams = {
 };
 
 /**
- * Creates a top search menu item with common structure for TOP_SPENDERS and TOP_CATEGORIES
+ * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
  */
 function createTopSearchMenuItem(
     key: SearchKey,
@@ -2820,7 +2820,18 @@ function getSortedMerchantData(data: TransactionMerchantGroupListItemType[], loc
         data,
         localeCompare,
         transactionMerchantGroupColumnNamesToSortingProperty,
-        (a, b) => localeCompare(a.formattedMerchant ?? '', b.formattedMerchant ?? ''),
+        (a, b) => {
+            const merchantA = a.formattedMerchant ?? '';
+            const merchantB = b.formattedMerchant ?? '';
+            // Empty merchants should sort to the bottom
+            if (!merchantA && merchantB) {
+                return 1;
+            }
+            if (merchantA && !merchantB) {
+                return -1;
+            }
+            return localeCompare(merchantA, merchantB);
+        },
         sortBy,
         sortOrder,
     );

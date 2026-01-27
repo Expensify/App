@@ -1,6 +1,7 @@
 import React from 'react';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
+import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import BaseListItemHeader from './BaseListItemHeader';
 
@@ -44,8 +45,9 @@ function MerchantListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
 }: MerchantListItemHeaderProps<TItem>) {
+    const {translate} = useLocalize();
     const rawMerchant = merchantItem.formattedMerchant ?? merchantItem.merchant;
-    const merchantName = rawMerchant || CONST.TRANSACTION.UNKNOWN_MERCHANT;
+    const merchantName = rawMerchant || translate('search.noMerchant');
 
     return (
         <BaseListItemHeader

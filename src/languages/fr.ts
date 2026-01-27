@@ -6990,6 +6990,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             accessPlaceHolder: 'Ouvrir pour plus de détails',
         },
         noCategory: 'Aucune catégorie',
+        noMerchant: 'Aucun commerçant',
         noTag: 'Aucune étiquette',
         expenseType: 'Type de dépense',
         withdrawalType: 'Type de retrait',
