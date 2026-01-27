@@ -91,6 +91,7 @@ describe('MoneyRequest', () => {
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
             selfDMReport,
+            isSelfTourViewed: false,
         };
 
         afterEach(() => {
@@ -297,6 +298,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
             selfDMReport,
+            isSelfTourViewed: false,
         };
 
         beforeEach(async () => {
