@@ -2202,8 +2202,8 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
 
             let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON && tagGroup.tag !== undefined) {
-                // Normalize empty tag to TAG_EMPTY_VALUE to avoid invalid query like "tag:"
-                const tagValue = tagGroup.tag === '' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag;
+                // Normalize empty tag or "(untagged)" to TAG_EMPTY_VALUE to avoid invalid query like "tag:"
+                const tagValue = tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag;
 
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue}]});
@@ -2729,14 +2729,7 @@ function getSortedCategoryData(data: TransactionCategoryGroupListItemType[], loc
  * Sorts tag sections based on a specified column and sort order.
  */
 function getSortedTagData(data: TransactionTagGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    return getSortedData(
-        data,
-        localeCompare,
-        transactionTagGroupColumnNamesToSortingProperty,
-        (a, b) => localeCompare(a.formattedTag ?? '', b.formattedTag ?? ''),
-        sortBy,
-        sortOrder,
-    );
+    return getSortedData(data, localeCompare, transactionTagGroupColumnNamesToSortingProperty, (a, b) => localeCompare(a.formattedTag ?? '', b.formattedTag ?? ''), sortBy, sortOrder);
 }
 
 /**

@@ -59,8 +59,10 @@ function TagListItemHeader<TItem extends ListItem>({
     const {translate} = useLocalize();
 
     // formattedTag is pre-decoded in SearchUIUtils, just translate empty values
+    // Backend returns "(untagged)" for transactions without tags
     const rawTag = tagItem.formattedTag ?? tagItem.tag;
-    const tagName = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE ? translate('search.noTag') : rawTag;
+    const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
+    const tagName = isEmptyTag ? translate('search.noTag') : rawTag;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG]: (

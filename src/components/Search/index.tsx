@@ -828,7 +828,7 @@ function Search({
             }
 
             if (isTransactionTagGroupListItemType(item)) {
-                const tagValue = item.tag === '' ? CONST.SEARCH.TAG_EMPTY_VALUE : item.tag;
+                const tagValue = item.tag === '' || item.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : item.tag;
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
