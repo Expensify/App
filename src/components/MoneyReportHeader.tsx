@@ -520,7 +520,8 @@ function MoneyReportHeader({
             if (hasDEWApproveFailed) {
                 const dewApproveFailedAction = getMostRecentActiveDEWApproveFailedAction(reportActions);
                 const {automaticAction} = getOriginalMessage(dewApproveFailedAction) ?? {};
-                if (!automaticAction) {
+                const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
+                if (!automaticAction || isCurrentUserTheApprover) {
                     optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
                 }
             } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {

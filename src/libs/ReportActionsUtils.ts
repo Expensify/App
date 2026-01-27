@@ -329,10 +329,12 @@ function isActionThatSupersedesDEWApproveFailure(action: ReportAction): boolean 
     return isApprovedAction(action) || isForwardedAction(action) || isRetractedAction(action) || isReopenedAction(action);
 }
 
-function getMostRecentActiveDEWApproveFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
+function getMostRecentActiveDEWApproveFailedAction(
+    reportActions: OnyxEntry<ReportActions> | ReportAction[],
+): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> | undefined {
     const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
 
-    let mostRecentDewApproveFailedAction: ReportAction | undefined;
+    let mostRecentDewApproveFailedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> | undefined;
     let mostRecentSupersedingAction: ReportAction | undefined;
 
     for (const action of actionsArray) {
