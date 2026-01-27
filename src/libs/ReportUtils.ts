@@ -802,7 +802,6 @@ type TransactionDetails = {
     odometerStart?: number;
     odometerEnd?: number;
     convertedAmount: number;
-    gpsCoordinates?: string;
 };
 
 type OptimisticIOUReport = Pick<

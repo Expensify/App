@@ -2,13 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
-import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import TripStatusIndicator from './TripStatusIndicator';
@@ -18,23 +15,16 @@ type DistanceCounterProps = {
     transaction: OnyxEntry<Transaction>;
     /** The report corresponding to the reportID in the route params */
     report: OnyxEntry<Report>;
-    /** The type of IOU report, i.e. split, request, send, track */
-    iouType: IOUType;
 };
 
-function DistanceCounter({report, transaction, iouType}: DistanceCounterProps) {
+function DistanceCounter({report, transaction}: DistanceCounterProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(report?.policyID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
 
-    const defaultExpensePolicy = useDefaultExpensePolicy();
-
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy);
-
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+    const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
 
     const distance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit).toFixed(1);
-
     const tripInProgressOrStopped = (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0 || gpsDraftDetails?.isTracking;
 
     return (

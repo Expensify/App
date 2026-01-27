@@ -2,8 +2,9 @@ import type {LocationObject} from 'expo-location';
 import {defineTask} from 'expo-task-manager';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {addGpsPoints, setStartAddress} from '@libs/actions/GPSDraftDetails';
-import {addressFromGpsPoint, coordinatesToString} from '@libs/GPSDraftDetailsUtils';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import addressFromGpsPoint from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/addressFromGpsPoint';
+import coordinatesToString from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/coordinatesToString';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type BackgroundLocationTrackingTaskData = {locations: LocationObject[]};
