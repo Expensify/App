@@ -77,7 +77,7 @@ To access the **Subscription** section:
 2. Click **Request early cancellation**.
 3. Follow the prompts. Your request may be processed automatically or reviewed by our team.
 
-**Note:** This option is only available to the billing owner and early cancelation is not available to all members. 
+**Note:** This option is only available to the billing owner and early cancellation is not available to all members. 
 
 ---
 
