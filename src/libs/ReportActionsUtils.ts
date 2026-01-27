@@ -2622,26 +2622,6 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
                 newValue: getTranslation(newValue),
             });
         }
-
-        if (updatedField === 'maxAmountNoItemizedReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
-            const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoItemizedReceipt;
-
-            const formatAmount = () => convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD);
-            const getTranslation = (value?: number | string) => {
-                if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
-                    return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never');
-                }
-                if (value === 0) {
-                    return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.always');
-                }
-                return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.default', formatAmount());
-            };
-            return translate('workspaceActions.updateCategoryMaxAmountNoItemizedReceipt', {
-                categoryName: decodedOptionName,
-                oldValue: getTranslation(oldValue),
-                newValue: getTranslation(newValue),
-            });
-        }
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {

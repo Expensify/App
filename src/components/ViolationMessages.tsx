@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {TransactionViolation} from '@src/types/onyx';
 import Text from './Text';
 
@@ -19,12 +19,9 @@ type ViolationMessagesProps = {
 export default function ViolationMessages({violations, isLast, containerStyle, textStyle, canEdit, companyCardPageURL}: ViolationMessagesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const filteredViolations = useMemo(() => filterReceiptViolations(violations), [violations]);
-
     const violationMessages = useMemo(
-        () => filteredViolations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)]),
-        [canEdit, translate, filteredViolations, companyCardPageURL],
+        () => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)]),
+        [canEdit, translate, violations, companyCardPageURL],
     );
 
     return (

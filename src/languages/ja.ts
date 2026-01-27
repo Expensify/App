@@ -6148,10 +6148,6 @@ ${reportName}
                     `<muted-text>個々の経費に対して支出コントロールとデフォルトを設定します。<a href="${categoriesPageLink}">カテゴリ</a>や<a href="${tagsPageLink}">タグ</a>のルールを作成することもできます。</muted-text>`,
                 receiptRequiredAmount: '領収書が必要な金額',
                 receiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、支出がこの金額を超えた場合に領収書を必須にする。',
-                receiptRequiredAmountError: ({amount}: {amount: string}) => `金額は明細領収書の必要金額（${amount}）より高くすることはできません`,
-                itemizedReceiptRequiredAmount: '明細領収書の必要金額',
-                itemizedReceiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出には明細領収書が必要です。',
-                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `金額は通常の領収書に必要な金額（${amount}）より低くすることはできません`,
                 maxExpenseAmount: '最大経費金額',
                 maxExpenseAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出にフラグを付けます。',
                 maxAge: '最大年齢',
@@ -6242,12 +6238,6 @@ ${reportName}
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} デフォルト`,
                     never: 'レシートを要求しない',
                     always: '常に領収書を必須にする',
-                },
-                requireItemizedReceiptsOver: 'を超える明細領収書を必須にする',
-                requireItemizedReceiptsOverList: {
-                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} デフォルト`,
-                    never: '明細領収書を要求しない',
-                    always: '常に明細領収書を要求する',
                 },
                 defaultTaxRate: '既定の税率',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6399,12 +6389,6 @@ ${reportName}
                 return `レシートを${newValue}に変更して、カテゴリ「${categoryName}」を更新しました`;
             }
             return `「${categoryName}」カテゴリを${newValue}に変更しました（以前は${oldValue}）。`;
-        },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
-            if (!oldValue) {
-                return `カテゴリ「${categoryName}」を更新し、明細領収書を${newValue}に変更しました。`;
-            }
-            return `「${categoryName}」カテゴリの明細領収書を${newValue}に変更しました（以前は${oldValue}）`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `カテゴリ名を「${oldName}」から「${newName}」に変更しました`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -7275,7 +7259,6 @@ ${reportName}
             }
             return '領収書が必要';
         },
-        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `明細領収書が必要です${formattedLimit ? `（${formattedLimit}超）` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止経費:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {

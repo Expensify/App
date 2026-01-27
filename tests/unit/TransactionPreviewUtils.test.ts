@@ -384,14 +384,6 @@ describe('TransactionPreviewUtils', () => {
         const reviewRequired = {translationPath: 'violations.reviewRequired'};
         const longMessage = 'x'.repeat(CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW + 1);
 
-        const receiptRequiredViolation = {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$25.00'}};
-        const itemizedReceiptRequiredViolation = {
-            name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
-            type: CONST.VIOLATION_TYPES.VIOLATION,
-            showInReview: true,
-            data: {formattedLimit: '$75.00'},
-        };
-
         const mockViolations = (count: number) =>
             [
                 {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
@@ -421,20 +413,6 @@ describe('TransactionPreviewUtils', () => {
 
         test('returns translationPath when there are no violations but message is too long', () => {
             expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false, false)).toEqual(reviewRequired);
-        });
-
-        test('returns text when both receiptRequired and itemizedReceiptRequired exist (filters to 1 violation)', () => {
-            const bothReceiptViolations = [itemizedReceiptRequiredViolation, receiptRequiredViolation];
-            // Should return text because receiptRequired is filtered out, leaving only 1 violation
-            expect(getViolationTranslatePath(bothReceiptViolations, false, message, false, false)).toEqual({text: message});
-        });
-
-        test('returns text when only itemizedReceiptRequired exists', () => {
-            expect(getViolationTranslatePath([itemizedReceiptRequiredViolation], false, message, false, false)).toEqual({text: message});
-        });
-
-        test('returns text when only receiptRequired exists', () => {
-            expect(getViolationTranslatePath([receiptRequiredViolation], false, message, false, false)).toEqual({text: message});
         });
     });
 

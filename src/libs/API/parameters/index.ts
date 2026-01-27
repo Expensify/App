@@ -334,7 +334,6 @@ export type {default as SetPolicyAutoReimbursementLimitParams} from './SetPolicy
 export type {default as EnablePolicyAutoReimbursementLimitParams} from './EnablePolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoApprovalOptionsParams} from './EnablePolicyAutoApprovalOptions';
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
-export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetPolicyExpenseMaxAmountNoItemizedReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
@@ -365,8 +364,6 @@ export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
 export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
 export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';
-export type {default as SetPolicyCategoryItemizedReceiptsRequiredParams} from './SetPolicyCategoryItemizedReceiptsRequiredParams';
-export type {default as RemovePolicyCategoryItemizedReceiptsRequiredParams} from './RemovePolicyCategoryItemizedReceiptsRequiredParams';
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
