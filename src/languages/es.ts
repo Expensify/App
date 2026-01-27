@@ -1,9 +1,9 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';

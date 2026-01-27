@@ -12,7 +12,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {formatList, translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -475,8 +475,9 @@ function getForReportAction({
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
         if (policyRulesModifiedFields && rulePolicyID) {
+            const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(rulePolicyID)}`;
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.policyRulesModifiedFields', policyRulesModifiedFields, rulePolicyID, environmentURL);
+            return translateLocal('iou.policyRulesModifiedFields', policyRulesModifiedFields, policyRulesRoute, formatList);
         }
     }
 
@@ -729,7 +730,8 @@ function getForReportActionTemp({
         const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
 
         if (policyRulesModifiedFields && policyID) {
-            return translate('iou.policyRulesModifiedFields', policyRulesModifiedFields, policyID, environmentURL);
+            const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+            return translate('iou.policyRulesModifiedFields', policyRulesModifiedFields, policyRulesRoute, formatList);
         }
     }
 
