@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import MQ_VALUES from './MQValues';
 import type {SecureStoreMethods, SecureStoreValues} from './types';
 
 /**
@@ -12,26 +13,32 @@ const SECURE_STORE_VALUES = {
         UNKNOWN: {
             CODE: SecureStore.AUTH_TYPE.UNKNOWN,
             NAME: 'Unknown',
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         NONE: {
             CODE: SecureStore.AUTH_TYPE.NONE,
             NAME: 'None',
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.NONE,
         },
         CREDENTIALS: {
             CODE: SecureStore.AUTH_TYPE.CREDENTIALS,
             NAME: 'Credentials',
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         BIOMETRICS: {
             CODE: SecureStore.AUTH_TYPE.BIOMETRICS,
             NAME: 'Biometrics',
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         FACE_ID: {
             CODE: SecureStore.AUTH_TYPE.FACE_ID,
             NAME: 'FaceID',
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
         TOUCH_ID: {
             CODE: SecureStore.AUTH_TYPE.TOUCH_ID,
             NAME: 'TouchID',
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         /**
          * OpticID is reserved by apple, used on Apple Vision Pro and not iOS.
@@ -40,6 +47,7 @@ const SECURE_STORE_VALUES = {
         OPTIC_ID: {
             CODE: SecureStore.AUTH_TYPE.OPTIC_ID,
             NAME: 'OpticID',
+            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
     },
     /**
