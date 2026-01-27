@@ -4766,6 +4766,10 @@ const translations = {
             selectCards: 'Select cards',
             addNewCard: {
                 other: 'Other',
+                fileImport: 'Import transactions from file',
+                createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
+                companyCardLayoutName: 'Company card layout name',
+                useAdvancedFields: 'Use advanced fields (not recommended)',
                 cardProviders: {
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Commercial Cards',
@@ -4826,6 +4830,14 @@ const translations = {
                     prompt: "We noticed you didn't finish adding your cards. If you found an issue, let us know so we can help get things back on track.",
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
+                },
+                csvColumns: {
+                    cardNumber: 'Card number',
+                    date: 'Date',
+                    merchant: 'Merchant',
+                    amount: 'Amount',
+                    currency: 'Currency',
+                    ignore: 'Ignore',
                 },
             },
             statementCloseDate: {

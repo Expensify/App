@@ -11,6 +11,7 @@ export type {IKnowTeacherForm} from './IKnowTeacherForm';
 export type {IntroSchoolPrincipalForm} from './IntroSchoolPrincipalForm';
 export type {IssueNewExpensifyCardForm} from './IssueNewExpensifyCardForm';
 export type {AddNewCardFeedForm} from './AddNewCardFeedForm';
+export type {CompanyCardLayoutNameForm} from './CompanyCardLayoutNameForm';
 export type {EditExpensifyCardNameForm} from './EditExpensifyCardNameForm';
 export type {LegalNameForm} from './LegalNameForm';
 export type {MoneyRequestAmountForm} from './MoneyRequestAmountForm';

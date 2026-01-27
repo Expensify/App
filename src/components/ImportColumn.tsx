@@ -99,6 +99,24 @@ function findColumnName(header: string): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.AMOUNT;
             break;
 
+        case 'cardnumber':
+        case 'card':
+        case 'number':
+            attribute = CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER;
+            break;
+
+        case 'posteddate':
+        case 'postdate':
+        case 'transactiondate':
+        case 'date':
+            attribute = CONST.CSV_IMPORT_COLUMNS.DATE;
+            break;
+
+        case 'merchant':
+        case 'vendor':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT;
+            break;
+
         case 'currency':
             attribute = CONST.CSV_IMPORT_COLUMNS.CURRENCY;
             break;
