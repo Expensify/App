@@ -122,7 +122,8 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>;
 
 type SearchContextData = {
     currentSearchHash: number;

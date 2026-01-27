@@ -6849,6 +6849,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -7973,7 +7974,6 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
                 `<comment><muted-text-label>有効にすると、<strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを代表連絡先が行い、すべての請求書の領収書を受け取ります。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '統合ドメイン請求を変更できませんでした。後でもう一度お試しください。',
             addAdmin: '管理者を追加',
-            invite: '招待',
             addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
             revokeAdminAccess: '管理者アクセスを取り消す',
             cantRevokeAdminAccess: '技術連絡先から管理者アクセス権を取り消すことはできません',
@@ -7987,7 +7987,13 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             enterDomainName: 'ここにドメイン名を入力してください',
             resetDomainInfo: `この操作は<strong>永久的</strong>であり、次のデータが削除されます：<br/> <ul><li>会社カードの接続およびそれらのカードからの未報告の経費</li> <li>SAML とグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：関連付けられているメールアドレスを<a href="#">連絡先方法</a>から削除することで、このドメインをドメイン一覧から消去できます。`,
         },
-        members: {title: 'メンバー', findMember: 'メンバーを検索'},
+        members: {
+            title: 'メンバー',
+            findMember: 'メンバーを検索',
+            addMember: 'メンバーを追加',
+            email: 'メールアドレス',
+            errors: {addMember: 'このメンバーを追加できませんでした。もう一度お試しください。'},
+        },
         domainAdmins: 'ドメイン管理者',
     },
     gps: {

@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -422,6 +423,8 @@ const CONST = {
         MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
+
+    MULTIFACTOR_AUTHENTICATION: MULTIFACTOR_AUTHENTICATION_VALUES,
 
     DESKTOP_SHORTCUT_ACCELERATOR: {
         PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
@@ -5502,7 +5505,7 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
-    MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE: {
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE: {
         SUCCESS: 'success',
         FAILURE: 'failure',
     },
@@ -6835,6 +6838,7 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+            CATEGORY: 'category',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6911,6 +6915,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                CATEGORY: {
+                    CATEGORY: this.TABLE_COLUMNS.GROUP_CATEGORY,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -6952,6 +6961,7 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_EXPENSES,
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
+                CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7047,6 +7057,7 @@ const CONST = {
             GROUP_BANK_ACCOUNT: 'groupBankAccount',
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
+            GROUP_CATEGORY: 'groupCategory',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7229,6 +7240,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'group-bank-account',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
+                [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
             };
         },
         NOT_MODIFIER: 'Not',

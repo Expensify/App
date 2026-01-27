@@ -244,6 +244,7 @@ const SCREENS = {
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
+        SEARCH_ROUTER: 'Search_Router',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
@@ -907,11 +908,12 @@ const SCREENS = {
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
         RESET_DOMAIN: 'Domain_Reset',
+        ADD_MEMBER: 'Domain_Add_Member',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
         BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
-        NOTIFICATION: 'Multifactor_Authentication_Notification',
+        OUTCOME: 'Multifactor_Authentication_Outcome',
         PROMPT: 'Multifactor_Authentication_Prompt',
         NOT_FOUND: 'Multifactor_Authentication_Not_Found',
     },
