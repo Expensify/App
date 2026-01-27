@@ -32,12 +32,14 @@
     from: "from",
     card: "card",
     "withdrawal-id": "withdrawn",
+    category: "category",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
     from: "asc",
     card: "asc",
     "withdrawal-id": "desc",
+    category: "asc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
@@ -53,7 +55,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -260,7 +262,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / limit)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

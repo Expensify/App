@@ -18,7 +18,7 @@ import {primaryLoginSelector} from '@src/selectors/Account';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getSubstepValues} from './utils';
+import {getSubPageValues} from './utils';
 
 const areAllCardsShippedSelector = (cardList: OnyxEntry<CardList>) =>
     Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && isPersonalCard(card));
@@ -54,7 +54,7 @@ function MissingPersonalDetailsMagicCodePage() {
         clearPersonalDetailsErrors();
     };
 
-    const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
@@ -74,7 +74,7 @@ function MissingPersonalDetailsMagicCodePage() {
             clearError={clearError}
             onClose={() => {
                 resetValidateActionCodeSent();
-                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS);
+                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute());
             }}
             isLoading={privatePersonalDetails?.isLoading}
         />

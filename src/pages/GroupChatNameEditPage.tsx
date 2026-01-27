@@ -13,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import {getGroupChatName} from '@libs/ReportNameUtils';
-import {getGroupChatDraft} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {setGroupDraft, updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -23,6 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
 import type {Report as ReportOnyxType} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type GroupChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
     report?: ReportOnyxType;
@@ -33,7 +33,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
-    const [groupChatDraft = getGroupChatDraft()] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
+    const [groupChatDraft, groupChatDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -67,6 +67,10 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
     };
+
+    if (isLoadingOnyxValue(groupChatDraftMetadata)) {
+        return null;
+    }
 
     return (
         <ScreenWrapper

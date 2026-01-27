@@ -167,6 +167,7 @@ const FILTER_KEYS = {
     REPORT_FIELD: 'reportField',
 
     COLUMNS: 'columns',
+    LIMIT: 'limit',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -265,6 +266,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.ATTENDEE_NOT,
         FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.LIMIT,
     ],
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: [
         FILTER_KEYS.TYPE,
@@ -674,6 +676,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.IS]: string[];
         [FILTER_KEYS.HAS]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
+        [FILTER_KEYS.LIMIT]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &
         Record<ReportFieldNegatedKey, string>

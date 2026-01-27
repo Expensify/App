@@ -1555,4 +1555,75 @@ describe('actions/Policy', () => {
             mockFetch.succeed?.();
         });
     });
+
+    describe('setPolicyMaxExpenseAmountNoItemizedReceipt', () => {
+        it('should set itemized receipt required amount', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const testAmount = '50.00';
+            const expectedBackendAmount = 5000; // $50.00 in cents
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.setPolicyMaxExpenseAmountNoItemizedReceipt(fakePolicy.id, testAmount);
+            await waitForBatchedUpdates();
+
+            // Check optimistic data
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(expectedBackendAmount);
+                        expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        resolve();
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Check success data
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
+                        expect(policy?.errorFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should disable itemized receipt requirement when empty string is passed', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.maxExpenseAmountNoItemizedReceipt = 7500;
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.setPolicyMaxExpenseAmountNoItemizedReceipt(fakePolicy.id, '');
+            await waitForBatchedUpdates();
+
+            // Check optimistic data - should set to DISABLED_MAX_EXPENSE_VALUE
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+                        expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        resolve();
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+    });
 });

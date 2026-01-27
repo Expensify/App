@@ -10,6 +10,7 @@ import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import useTodos from './useTodos';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -55,6 +56,7 @@ const useSearchTypeMenuSections = () => {
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
+    const {reportCounts} = useTodos();
 
     const handlePendingConfirm = useCallback(
         (shouldDismissEmptyReportsConfirmation: boolean) => {
@@ -102,6 +104,7 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
                 allTransactionDrafts,
+                reportCounts,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -115,6 +118,7 @@ const useSearchTypeMenuSections = () => {
             shouldRedirectToExpensifyClassic,
             allTransactionDrafts,
             icons,
+            reportCounts,
         ],
     );
 

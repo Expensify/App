@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -21,12 +22,6 @@ type Tax = {
     modifiedName: string;
     isSelected?: boolean;
     isDisabled?: boolean;
-};
-
-type TaxSection = {
-    title: string | undefined;
-    shouldShow: boolean;
-    data: TaxRatesOption[];
 };
 
 /**
@@ -68,7 +63,7 @@ function getTaxRatesSection({
     localeCompare: LocaleContextProps['localeCompare'];
     selectedOptions?: Tax[];
     transaction?: OnyxEntry<Transaction>;
-}): TaxSection[] {
+}): Array<Section<TaxRatesOption>> {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(policy, transaction);
@@ -94,7 +89,7 @@ function getTaxRatesSection({
         policyRatesSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            sectionIndex: 0,
             data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
         });
 
@@ -110,7 +105,7 @@ function getTaxRatesSection({
         policyRatesSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
+            sectionIndex: 1,
             data: getTaxRatesOptions(taxesForSearch),
         });
 
@@ -121,7 +116,7 @@ function getTaxRatesSection({
         policyRatesSections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            shouldShow: false,
+            sectionIndex: 2,
             data: getTaxRatesOptions([...selectedTaxRateWithDisabledState, ...enabledTaxRatesWithoutSelectedOptions]),
         });
 
@@ -132,7 +127,7 @@ function getTaxRatesSection({
         policyRatesSections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
+            sectionIndex: 3,
             data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
         });
     }
@@ -140,7 +135,7 @@ function getTaxRatesSection({
     policyRatesSections.push({
         // "All" section when number of items are more than the threshold
         title: '',
-        shouldShow: true,
+        sectionIndex: 4,
         data: getTaxRatesOptions(enabledTaxRatesWithoutSelectedOptions),
     });
 

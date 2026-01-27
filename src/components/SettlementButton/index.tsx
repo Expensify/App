@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspace, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
 import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -214,14 +215,15 @@ function SettlementButton({
         return false;
     }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
-    const getPaymentSubitems = useCallback(
+    const getPaymentSubItems = useCallback(
         (payAsBusiness: boolean) => {
             const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
 
             return formattedPaymentMethods
                 .filter((method) => {
                     const accountData = method?.accountData as AccountData;
-                    return accountData?.type === requiredAccountType;
+                    const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                    return accountData?.type === requiredAccountType && !isPartiallySetup;
                 })
                 .map((formattedPaymentMethod) => ({
                     text: formattedPaymentMethod?.title ?? '',
@@ -376,7 +378,7 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 };
                 return [
-                    ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
+                    ...(isCurrencySupported ? getPaymentSubItems(payAsBusiness) : []),
                     ...(isCurrencySupported && isPolicyCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),

@@ -26,6 +26,7 @@ import type {
     ReportActionListItemType,
     TaskListItemType,
     TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
 } from '@components/SelectionListWithSections/types';
@@ -152,6 +153,9 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
         return !!transaction.transactionID;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
+        return (transaction.category ?? '') === ((groupItem as TransactionCategoryGroupListItemType).category ?? '');
     }
     return false;
 }

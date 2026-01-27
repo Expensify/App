@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
-    checkIfFeedConnectionIsBroken,
     filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
@@ -156,23 +155,6 @@ const directFeedCardsSingleList: WorkspaceCardsList = {
     },
 };
 
-const commercialFeedCardsSingleList: WorkspaceCardsList = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    '21570652': {
-        accountID: 18439984,
-        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-        cardID: 21570652,
-        cardName: 'CREDIT CARD...5501',
-        domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
-        fraud: 'none',
-        lastFourPAN: '5501',
-        lastScrape: '',
-        lastUpdated: '',
-        lastScrapeResult: 531,
-        scrapeMinDate: '2024-08-27',
-        state: 3,
-    },
-};
 const directFeedCardsMultipleList: WorkspaceCardsList = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570655': {
@@ -913,50 +895,6 @@ describe('CardUtils', () => {
             const workspaceAccountID = 11111111;
             const flattenedCardsList = flatAllCardsList(undefined, workspaceAccountID);
             expect(flattenedCardsList).toBeUndefined();
-        });
-    });
-
-    describe('checkIfFeedConnectionIsBroken', () => {
-        it('should return true if at least one of the feed(s) cards has the lastScrapeResult not equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsMultipleList)).toBeTruthy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 531', () => {
-            expect(checkIfFeedConnectionIsBroken(commercialFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if no feed(s) cards are provided', () => {
-            expect(checkIfFeedConnectionIsBroken({})).toBeFalsy();
-        });
-
-        it('should not take into consideration cards related to feed which is provided as feedToExclude', () => {
-            const cards = {...directFeedCardsMultipleList, ...directFeedCardsSingleList};
-            const feedToExclude = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
-            expect(checkIfFeedConnectionIsBroken(cards, feedToExclude)).toBeFalsy();
-        });
-    });
-
-    describe('checkIfFeedConnectionIsBroken', () => {
-        it('should return true if at least one of the feed(s) cards has the lastScrapeResult not equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsMultipleList)).toBeTruthy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if no feed(s) cards are provided', () => {
-            expect(checkIfFeedConnectionIsBroken({})).toBeFalsy();
-        });
-
-        it('should not take into consideration cards related to feed which is provided as feedToExclude', () => {
-            const cards = {...directFeedCardsMultipleList, ...directFeedCardsSingleList};
-            const feedToExclude = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
-            expect(checkIfFeedConnectionIsBroken(cards, feedToExclude)).toBeFalsy();
         });
     });
 

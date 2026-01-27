@@ -36,6 +36,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     anchorPosition={styles.createMenuPositionSearchBar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
+                    badgeStyle={styles.todoBadge}
                     anchorRef={buttonRef}
                     shouldUseScrollView
                     shouldUseModalPaddingStyle={false}

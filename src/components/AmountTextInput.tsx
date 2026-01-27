@@ -43,6 +43,9 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
+
+    /** A unique identifier for this text input for testing purposes */
+    testID?: string;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
 
 function AmountTextInput({

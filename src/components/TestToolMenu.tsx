@@ -22,6 +22,9 @@ import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
+// Temporary hardcoded value until MultifactorAuthenticationContext is implemented
+const TEMP_BIOMETRICS_REGISTERED_STATUS = false;
+
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
@@ -33,6 +36,11 @@ function TestToolMenu() {
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
+
+    /**
+     * The wrapper is needed to prevent rapid double‑taps on native from triggering multiple navigations.
+     * Context: https://github.com/Expensify/App/pull/79475#discussion_r2708230681
+     */
     const navigateToBiometricsTestPage = singleExecution(
         waitForNavigate(() => {
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
@@ -43,7 +51,7 @@ function TestToolMenu() {
     const isAuthenticated = useIsAuthenticated();
 
     // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
-    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: false});
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: TEMP_BIOMETRICS_REGISTERED_STATUS});
 
     return (
         <>
@@ -100,7 +108,7 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Allows you to test the Biometrics flow */}
+                    {/* Allows testing the biometric multifactor authentication flow */}
                     <TestToolRow title={biometricsTitle}>
                         <View style={[styles.flexRow, styles.gap2]}>
                             <Button
