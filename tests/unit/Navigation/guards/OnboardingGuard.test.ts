@@ -184,12 +184,10 @@ describe('OnboardingGuard', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
 
             expect(result.type).toBe('REDIRECT');
-            if (result.type === 'REDIRECT') {
-                expect(result.route).toContain('onboarding');
-            }
+            expect(result.route).toContain('onboarding');
         });
 
         it('should redirect to correct step for users with accessible policies', async () => {
@@ -202,12 +200,10 @@ describe('OnboardingGuard', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
 
             expect(result.type).toBe('REDIRECT');
-            if (result.type === 'REDIRECT') {
-                expect(result.route).toContain('onboarding');
-            }
+            expect(result.route).toContain('onboarding');
         });
 
         it('should redirect when user tries to access wrong onboarding step', async () => {
@@ -229,12 +225,10 @@ describe('OnboardingGuard', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = OnboardingGuard.evaluate(onboardingState, mockAction, authenticatedContext);
+            const result = OnboardingGuard.evaluate(onboardingState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
 
             expect(result.type).toBe('REDIRECT');
-            if (result.type === 'REDIRECT') {
-                expect(result.route).toContain('onboarding');
-            }
+            expect(result.route).toContain('onboarding');
         });
 
         it('should redirect when user in onboarding tries to access non-onboarding path', async () => {
@@ -261,12 +255,10 @@ describe('OnboardingGuard', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = OnboardingGuard.evaluate(onboardingState, homeAction, authenticatedContext);
+            const result = OnboardingGuard.evaluate(onboardingState, homeAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
 
             expect(result.type).toBe('REDIRECT');
-            if (result.type === 'REDIRECT') {
-                expect(result.route).toContain('onboarding');
-            }
+            expect(result.route).toContain('onboarding');
         });
 
         it('should always redirect to correct onboarding step when user needs onboarding', async () => {
@@ -288,13 +280,11 @@ describe('OnboardingGuard', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = OnboardingGuard.evaluate(onboardingState, mockAction, authenticatedContext);
+            const result = OnboardingGuard.evaluate(onboardingState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
 
             // Guard should redirect to ensure user is on correct step
             expect(result.type).toBe('REDIRECT');
-            if (result.type === 'REDIRECT') {
-                expect(result.route).toContain('onboarding');
-            }
+            expect(result.route).toContain('onboarding');
         });
     });
 });
