@@ -72,6 +72,7 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import ConciergeThinkingMessage from './ConciergeThinkingMessage';
 import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
@@ -120,6 +121,12 @@ type ReportActionsListProps = {
 
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
+
+    /** Whether Concierge is currently processing */
+    isConciergeProcessing?: boolean;
+
+    /** Reasoning history from Concierge */
+    conciergeReasoningHistory?: string[];
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -159,6 +166,8 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
+    isConciergeProcessing = false,
+    conciergeReasoningHistory = [],
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -789,18 +798,23 @@ function ReportActionsList({
 
     const listHeaderComponent = useMemo(() => {
         // In case of an error we want to display the header no matter what.
-        if (!canShowHeader) {
+        if (!canShowHeader && !isConciergeProcessing) {
             hasHeaderRendered.current = true;
             return null;
         }
 
         return (
-            <ListBoundaryLoader
-                type={CONST.LIST_COMPONENTS.HEADER}
-                onRetry={retryLoadNewerChatsError}
-            />
+            <View>
+                {isConciergeProcessing && <ConciergeThinkingMessage reasoningHistory={conciergeReasoningHistory} />}
+                {canShowHeader && (
+                    <ListBoundaryLoader
+                        type={CONST.LIST_COMPONENTS.HEADER}
+                        onRetry={retryLoadNewerChatsError}
+                    />
+                )}
+            </View>
         );
-    }, [canShowHeader, retryLoadNewerChatsError]);
+    }, [canShowHeader, retryLoadNewerChatsError, isConciergeProcessing, conciergeReasoningHistory]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 

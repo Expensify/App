@@ -60,7 +60,6 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -259,7 +258,7 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
 
-    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
+    const {kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -645,10 +644,6 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <AgentZeroProcessingRequestIndicator
-                            reportID={reportID}
-                            label={agentZeroDisplayLabel}
-                        />
                         <ReportTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength

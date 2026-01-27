@@ -100,8 +100,10 @@ import {
     isSubmitAndClose,
 } from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
+import * as ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
+import type {ReasoningEventData} from '@libs/ConciergeReasoningStore';
 import Pusher from '@libs/Pusher';
-import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
+import type {ConciergeReasoningEvent, UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
@@ -331,6 +333,7 @@ Onyx.connect({
 });
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
+const reasoningSubscriptionReportIdentifiers = new Set<string>();
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
@@ -479,6 +482,59 @@ function subscribeToReportLeavingEvents(reportID: string | undefined, currentUse
     }).catch((error: ReportError) => {
         Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
     });
+}
+
+/** Initialize our pusher subscriptions to listen for Concierge reasoning events. */
+function subscribeToReportReasoningEvents(reportID: string) {
+    console.log('[REASONING_DEBUG] Report.ts subscribeToReportReasoningEvents called', {reportID});
+
+    if (!reportID) {
+        console.log('[REASONING_DEBUG] Report.ts skipping - no reportID');
+        return;
+    }
+
+    if (reasoningSubscriptionReportIdentifiers.has(reportID)) {
+        console.log('[REASONING_DEBUG] Report.ts already subscribed to reportID', {reportID});
+        return;
+    }
+
+    reasoningSubscriptionReportIdentifiers.add(reportID);
+
+    const pusherChannelName = getReportChannelName(reportID);
+    console.log('[REASONING_DEBUG] Report.ts subscribing to Pusher channel', {pusherChannelName, eventType: Pusher.TYPE.CONCIERGE_REASONING});
+
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: ConciergeReasoningEvent) => {
+        console.log('[REASONING_DEBUG] Report.ts RECEIVED Pusher event!', {
+            reportID,
+            reasoning: data.reasoning?.substring(0, 100),
+            agentZeroRequestID: data.agentZeroRequestID,
+            loopCount: data.loopCount,
+        });
+        const reasoningData: ReasoningEventData = {
+            reasoning: data.reasoning,
+            agentZeroRequestID: data.agentZeroRequestID,
+            loopCount: data.loopCount,
+        };
+        ConciergeReasoningStore.addReasoning(reportID, reasoningData);
+    }).catch((error: ReportError) => {
+        console.log('[REASONING_DEBUG] Report.ts subscription FAILED', {errorType: error.type, pusherChannelName});
+        reasoningSubscriptionReportIdentifiers.delete(reportID);
+        Log.hmmm('[Report] Failed to subscribe to Concierge reasoning events', {errorType: error.type, pusherChannelName});
+    });
+
+    console.log('[REASONING_DEBUG] Report.ts subscription initiated');
+}
+
+/** Remove our pusher subscriptions to listen for Concierge reasoning events. */
+function unsubscribeFromReportReasoningChannel(reportID: string) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    reasoningSubscriptionReportIdentifiers.delete(reportID);
+    ConciergeReasoningStore.clearReasoning(reportID);
+    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING);
 }
 
 /**
@@ -6608,12 +6664,14 @@ export {
     startNewChat,
     subscribeToNewActionEvent,
     subscribeToReportLeavingEvents,
+    subscribeToReportReasoningEvents,
     subscribeToReportTypingEvents,
     toggleEmojiReaction,
     togglePinnedState,
     toggleSubscribeToChildReport,
     unsubscribeFromLeavingRoomReportChannel,
     unsubscribeFromReportChannel,
+    unsubscribeFromReportReasoningChannel,
     updateDescription,
     updateGroupChatAvatar,
     updatePolicyRoomAvatar,

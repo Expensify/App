@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
@@ -31,7 +32,7 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -114,6 +115,8 @@ function ReportActionsView({
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(false);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
+    const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
+    const {isProcessing: isConciergeProcessing, reasoningHistory: conciergeReasoningHistory} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
     const reportTransactionIDs = useMemo(
@@ -331,6 +334,8 @@ function ReportActionsView({
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}
+                isConciergeProcessing={isConciergeProcessing}
+                conciergeReasoningHistory={conciergeReasoningHistory}
             />
             <UserTypingEventListener report={report} />
         </>
