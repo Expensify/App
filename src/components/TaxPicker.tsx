@@ -26,7 +26,7 @@ type TaxPickerProps = {
     transactionID?: string;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: TaxRatesOption) => void;
+    onSubmit: (tax: TaxRatesOption, shouldClearTax?: boolean) => void;
 
     /** The action to take */
     action?: IOUAction;
@@ -68,8 +68,12 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
+    const {taxCode, taxValue} = transaction ?? {};
+    const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[taxCode];
+    const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[taxCode]?.value !== taxValue;
+
     const selectedOptions = useMemo<Tax[]>(() => {
-        if (!selectedTaxRate) {
+        if (!selectedTaxRate || hasTaxValueChanged) {
             return [];
         }
 
@@ -80,31 +84,57 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
                 accountID: null,
             },
         ];
-    }, [selectedTaxRate]);
+    }, [selectedTaxRate, hasTaxValueChanged]);
 
-    const sections = useMemo(
-        () =>
-            getTaxRatesSection({
-                policy,
-                searchValue,
-                localeCompare,
-                selectedOptions,
-                transaction: currentTransaction,
-            }),
-        [searchValue, selectedOptions, policy, currentTransaction, localeCompare],
-    );
+    const deletedTaxOption = useMemo(() => {
+        if (!hasTaxBeenDeleted && !hasTaxValueChanged) {
+            return null;
+        }
+        return {
+            code: undefined,
+            text: taxValue ?? '',
+            keyForList: taxCode ?? '',
+            searchText: taxValue ?? '',
+            tooltipText: taxValue ?? '',
+            isDisabled: true,
+            isSelected: true,
+        };
+    }, [hasTaxBeenDeleted, hasTaxValueChanged, taxCode, taxValue]);
+    const sections = useMemo(() => {
+        const baseSections = getTaxRatesSection({
+            policy,
+            searchValue,
+            localeCompare,
+            selectedOptions,
+            transaction: currentTransaction,
+        });
+
+        if (!deletedTaxOption) {
+            return baseSections;
+        }
+
+        return baseSections.map((section) => ({
+            ...section,
+            data: [...section.data, deletedTaxOption],
+        }));
+    }, [policy, searchValue, localeCompare, selectedOptions, currentTransaction, deletedTaxOption]);
 
     const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 
     const handleSelectRow = useCallback(
         (newSelectedOption: TaxRatesOption) => {
+            if (hasTaxValueChanged) {
+                onSubmit(newSelectedOption, !newSelectedOption.code);
+                return;
+            }
             if (selectedOptionKey === newSelectedOption.keyForList) {
                 onDismiss();
                 return;
             }
-            onSubmit(newSelectedOption);
+
+            onSubmit(newSelectedOption, hasTaxBeenDeleted);
         },
-        [onSubmit, onDismiss, selectedOptionKey],
+        [hasTaxValueChanged, selectedOptionKey, onSubmit, hasTaxBeenDeleted, onDismiss],
     );
 
     const textInputOptions = {
