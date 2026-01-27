@@ -11,9 +11,9 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
+    containsActionableFollowUps,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
-    containsActionableFollowUps,
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
