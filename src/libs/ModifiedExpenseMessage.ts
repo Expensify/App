@@ -202,27 +202,25 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
 }
 
 function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, policyRulesModifiedFields: PolicyRulesModifiedFields, policyID: string): string {
-    let index = 0;
-    const modificationCount = Object.keys(policyRulesModifiedFields).length;
-    const fragments = [];
+    const entries = Object.entries(policyRulesModifiedFields) as [keyof PolicyRulesModifiedFields, string | boolean][];
 
-    for (const [key, value] of Object.entries(policyRulesModifiedFields) as [keyof PolicyRulesModifiedFields, string | boolean][]) {
-        const isFirst = index === 0;
-        const isLast = index === modificationCount - 1;
-
-        let message = '';
+    const fragments = entries.map(([key, value], i) => {
+        const isFirst = i === 0;
 
         if (key === 'reimbursable') {
-            message += value ? translate('iou.markedAsReimbursable') : translate('iou.markedAsNonReimbursable');
-        } else if (key === 'billable') {
-            message += value ? translate('iou.markedAsBillable') : translate('iou.markedAsNonBillable');
-        } else {
-            message += translate('iou.updatedFieldTo', {key: translate(`common.${key}`), value, first: isFirst});
+            return value ? translate('iou.markedAsReimbursable') : translate('iou.markedAsNonReimbursable');
         }
 
-        const shouldAddAnd = isLast && !isFirst;
-        fragments.push(shouldAddAnd ? `${translate('common.and')} ${message}` : message);
-        index++;
+        if (key === 'billable') {
+            return value ? translate('iou.markedAsBillable') : translate('iou.markedAsNonBillable');
+        }
+
+        return translate('iou.updatedFieldTo', {key: translate(`common.${key}`), value, first: isFirst});
+    });
+
+    if (fragments.length > 1) {
+        const lastIndex = fragments.length - 1;
+        fragments[lastIndex] = `${translate('common.and')} ${fragments[lastIndex]}`;
     }
 
     const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}/rules`;
