@@ -46,14 +46,6 @@ jest.mock('@libs/NextStepUtils', () => ({
     buildOptimisticNextStep: jest.fn(),
 }));
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-    getActiveRoute: jest.fn().mockReturnValue(''),
-    isActiveRoute: jest.fn().mockReturnValue(false),
-    getTopmostReportId: jest.fn().mockReturnValue(undefined),
-    navigationRef: {getRootState: jest.fn().mockReturnValue(undefined)},
-}));
-
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -112,6 +104,7 @@ jest.mock('@libs/Sound', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRoute: jest.fn().mockReturnValue(''),
     dismissModalWithReport: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isActiveRoute: jest.fn(() => false),
@@ -3453,7 +3446,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(CHILD_REPORT_ID, PARENT_REPORT_ACTION, PARENT_REPORT_ID);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -3472,7 +3465,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT_ID);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
@@ -3487,7 +3480,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(CHILD_REPORT_ID, {}, PARENT_REPORT_ID);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, {} as OnyxTypes.ReportAction, PARENT_REPORT);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -3506,10 +3499,10 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(CHILD_REPORT_ID, PARENT_REPORT_ACTION, PARENT_REPORT_ID);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(CHILD_REPORT_ID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
         });
     });
 
