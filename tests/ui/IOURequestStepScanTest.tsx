@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
+import {shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('IOURequestStepScan', () => {
     beforeAll(() => {
@@ -16,7 +16,7 @@ describe('IOURequestStepScan', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
-        await waitForBatchedUpdatesWithAct();
+        await waitForBatchedUpdates();
     });
 
     afterEach(async () => {
@@ -34,7 +34,7 @@ describe('IOURequestStepScan', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction2.transactionID}`, transaction2);
-            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdates();
 
             const tx1Data = await new Promise<Transaction | undefined>((resolve) => {
                 const connection = Onyx.connect({
@@ -71,11 +71,11 @@ describe('IOURequestStepScan', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction2.transactionID}`, transaction2);
-            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdates();
 
             const updatedTransaction1 = {...transaction1, receipt: {source: 'file://receipt1-updated.png'}};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, updatedTransaction1);
-            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdates();
 
             const tx1Data = await new Promise<Transaction | undefined>((resolve) => {
                 const connection = Onyx.connect({
@@ -112,10 +112,10 @@ describe('IOURequestStepScan', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction1.transactionID}`, transaction1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction2.transactionID}`, transaction2);
-            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdates();
 
             const transactions = [transaction1, transaction2];
-            const shouldReuse = TransactionUtils.shouldReuseInitialTransaction(transaction1, true, 0, true, transactions);
+            const shouldReuse = shouldReuseInitialTransaction(transaction1, true, 0, true, transactions);
 
             expect(shouldReuse).toBe(false);
 
@@ -138,18 +138,18 @@ describe('IOURequestStepScan', () => {
             initialTx.receipt = {source: 'file://initial-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${initialTx.transactionID}`, initialTx);
-            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdates();
 
             const secondTx = createRandomTransaction(1);
             secondTx.receipt = {source: 'file://second-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
             const transactions = [initialTx];
-            const shouldReuseForSecondFile = TransactionUtils.shouldReuseInitialTransaction(initialTx, true, 1, true, transactions);
+            const shouldReuseForSecondFile = shouldReuseInitialTransaction(initialTx, true, 1, true, transactions);
 
             expect(shouldReuseForSecondFile).toBe(false);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTx.transactionID}`, secondTx);
-            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdates();
 
             const tx1Data = await new Promise<Transaction | undefined>((resolve) => {
                 const connection = Onyx.connect({
