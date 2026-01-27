@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys, Status} from '@components/MultifactorAuthentication/helpers';
 import type {BiometricsStatus, Register, UseBiometricsSetup} from '@components/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';
@@ -38,25 +38,26 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      * @param overwriteStatus - Optional partial status fields to overwrite in the status update.
      * @returns Updated authentication status with fresh biometric configuration.
      */
-    // useCallback should not be added to the code due to the React Compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const refreshStatus = async (overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>) => {
-        const setupStatus = await isBiometryConfigured(accountID);
+    const refreshStatus = useCallback(
+        async (overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>) => {
+            const setupStatus = await isBiometryConfigured(accountID);
 
-        const {isLocalPublicKeyInAuth, isAnyDeviceRegistered, isBiometryRegisteredLocally} = setupStatus;
+            const {isLocalPublicKeyInAuth, isAnyDeviceRegistered, isBiometryRegisteredLocally} = setupStatus;
 
-        return setStatus(
-            Status.createRefreshStatusStatus(
-                {
-                    isLocalPublicKeyInAuth,
-                    isAnyDeviceRegistered,
-                    isBiometryRegisteredLocally,
-                },
-                overwriteStatus,
-            ),
-            CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.UPDATE,
-        );
-    };
+            return setStatus(
+                Status.createRefreshStatusStatus(
+                    {
+                        isLocalPublicKeyInAuth,
+                        isAnyDeviceRegistered,
+                        isBiometryRegisteredLocally,
+                    },
+                    overwriteStatus,
+                ),
+                CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.UPDATE,
+            );
+        },
+        [accountID, setStatus],
+    );
 
     useEffect(() => {
         refreshStatus();
@@ -99,6 +100,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
 
         const publicKeyResult = await PublicKeyStore.set(accountID, publicKey);
         if (!publicKeyResult.value) {
+            await PrivateKeyStore.delete(accountID);
             return setStatus(Status.createKeyErrorStatus(publicKeyResult), statusReason);
         }
 

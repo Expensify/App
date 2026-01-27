@@ -74,7 +74,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         const {value: publicKey} = await PublicKeyStore.get(accountID);
 
         if (!publicKey || !this.publicKeys.includes(publicKey)) {
-            resetKeys(accountID);
+            await resetKeys(accountID);
             return this.createErrorReturnValue(VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED);
         }
 

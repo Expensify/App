@@ -96,20 +96,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * Navigates to the appropriate screen based on authentication status and result.
      * Handles required factors, callbacks, and result-specific routing.
      * @param status - The current authentication status.
-     * @param softPrompt - Whether to navigate to soft prompt for biometric setup.
-     * @param noEligibleMethods - Whether no authentication methods are available.
+     * @param shouldShowSoftPrompt - Whether to navigate to soft prompt for biometric setup.
+     * @param hasEligibleAuthenticationMethods - Value is `true` if the user's device supports at least one eligible method (i.e. biometric, passkey, and/or device passcode)
      */
-    const navigate = (status: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>, softPrompt?: boolean, noEligibleMethods?: boolean) => {
+    const navigate = (status: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>, shouldShowSoftPrompt?: boolean, hasEligibleAuthenticationMethods = true) => {
         const {step, scenario, outcomePaths} = status;
 
         const {requiredFactorForNextStep, isRequestFulfilled, wasRecentStepSuccessful} = step;
 
-        if (softPrompt) {
+        if (shouldShowSoftPrompt) {
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
             return;
         }
 
-        if (noEligibleMethods) {
+        if (!hasEligibleAuthenticationMethods) {
             const scenarioLowerCase = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
             const outcome = getOutcomePath(scenarioLowerCase, 'no-eligible-methods');
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(outcome));
@@ -164,16 +164,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         ...args: [
             ...Parameters<typeof setMergedStatus>,
             rest?: {
-                softPrompt?: boolean;
-                noEligibleMethods?: boolean;
+                shouldShowSoftPrompt?: boolean;
+                hasEligibleAuthenticationMethods?: boolean;
             },
         ]
     ) => {
         const [status, scenario, outcomePaths, rest] = args;
-        const {softPrompt, noEligibleMethods} = rest ?? {};
+        const {shouldShowSoftPrompt, hasEligibleAuthenticationMethods} = rest ?? {};
         const merged = setMergedStatus(status, scenario, outcomePaths);
 
-        navigate(merged, softPrompt, noEligibleMethods);
+        navigate(merged, shouldShowSoftPrompt, hasEligibleAuthenticationMethods);
         return merged;
     };
 
@@ -276,7 +276,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         if (!doesDeviceSupportBiometrics()) {
             return setStatus((prevStatus) => prevStatus, scenario, outcomePaths, {
-                noEligibleMethods: true,
+                hasEligibleAuthenticationMethods: false,
             });
         }
 
@@ -311,13 +311,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 scenario,
                 outcomePaths,
                 {
-                    softPrompt: !!validateCode,
+                    shouldShowSoftPrompt: !!validateCode,
                 },
             );
         }
 
         if (!NativeBiometrics.setup.isLocalPublicKeyInAuth) {
-            /** Multifactor authentication is not configured, let's do that first */
+            /** Device is not registered, let's do that first */
+
             /** Run the setup method */
             if (!params) {
                 return setStatus((prevStatus) => ContextStatus.badRequestStatus(prevStatus), scenario, outcomePaths);

@@ -34,7 +34,12 @@ function TestToolMenu() {
     const {clearLHNCache} = useSidebarOrderedReports();
     const {setup} = useNativeBiometrics();
 
-    useEffect(() => MultifactorAuthenticationObserver.registerCallback('TestToolMenu', setup.refresh), [setup.refresh]);
+    useEffect(() => {
+        MultifactorAuthenticationObserver.registerCallback('TestToolMenu', setup.refresh);
+        return () => {
+            MultifactorAuthenticationObserver.unregisterCallback('TestToolMenu');
+        };
+    }, [setup.refresh]);
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
