@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,18 +11,33 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 function ImportFromFileStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [shouldUseAdvancedFields, setShouldUseAdvancedFields] = useState(false);
+    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
+    const companyCardLayoutName = addNewCard?.data?.companyCardLayoutName ?? '';
+    const {policyID} = route.params;
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+    };
+
+    const toggleAdvancedFields = (value: boolean) => {
+        setAddNewCompanyCardStepAndData({data: {useAdvancedFields: value}});
     };
 
     return (
@@ -45,8 +61,10 @@ function ImportFromFileStep() {
                 </View>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
+                    title={companyCardLayoutName}
                     shouldShowRightIcon
-                    interactive={false}
+                    interactive
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID))}
                 />
                 <View style={[styles.mt5, styles.mh5]}>
                     <View style={[styles.flexRow, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -54,7 +72,7 @@ function ImportFromFileStep() {
                         <Switch
                             isOn={shouldUseAdvancedFields}
                             accessibilityLabel={translate('workspace.companyCards.addNewCard.useAdvancedFields')}
-                            onToggle={setShouldUseAdvancedFields}
+                            onToggle={toggleAdvancedFields}
                         />
                     </View>
                 </View>

@@ -625,6 +625,7 @@ const SCREENS = {
         COMPANY_CARDS_INSTRUCTIONS: 'Workspace_CompanyCards_Instructions',
         COMPANY_CARDS_NAME: 'Workspace_CompanyCards_Name',
         COMPANY_CARDS_DETAILS: 'Workspace_CompanyCards_Details',
+        COMPANY_CARDS_LAYOUT_NAME: 'Workspace_CompanyCards_Layout_Name',
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
         COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
