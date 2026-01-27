@@ -5,6 +5,7 @@ import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.p
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -113,9 +114,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            // Will be fixed in https://github.com/Expensify/App/issues/76852
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = ReportUtils.getReportName(report);
+            const roomName = getReportName(report);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
