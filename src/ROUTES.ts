@@ -60,8 +60,9 @@ const MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES = {
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
-    INBOX: 'inbox',
-    HOME: 'home',
+    INBOX: 'home',
+    // @TODO: Rename it to 'home' and INBOX to 'inbox' when removing the newDotHome beta
+    HOME: 'home-page',
 
     // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
     WORKSPACES_LIST: {route: 'workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo)},
