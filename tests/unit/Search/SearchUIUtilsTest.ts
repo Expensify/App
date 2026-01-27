@@ -12,6 +12,7 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
@@ -1721,6 +1722,64 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
     },
 ];
 
+const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {
+            year: 2026,
+            month: 1,
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}2025_12` as const]: {
+            year: 2025,
+            month: 12,
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
+    },
+    search: {
+        count: 8,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const transactionMonthGroupListItems: TransactionMonthGroupListItemType[] = [
+    {
+        year: 2026,
+        month: 1,
+        count: 5,
+        currency: 'USD',
+        total: 250,
+        groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+        formattedMonth: 'January 2026',
+        sortKey: 202601,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+    {
+        year: 2025,
+        month: 12,
+        count: 3,
+        currency: 'USD',
+        total: 75,
+        groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+        formattedMonth: 'December 2025',
+        sortKey: 202512,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+];
+
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -2375,6 +2434,90 @@ describe('SearchUIUtils', () => {
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(categoryItem)).toBe(true);
+        });
+
+        it('should return getMonthSections result when type is EXPENSE and groupBy is month', () => {
+            expect(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByMonth.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                })[0],
+            ).toStrictEqual(transactionMonthGroupListItems);
+        });
+
+        it('should format month names correctly', () => {
+            const dataWithDifferentMonths: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {
+                    year: 2026,
+                    month: 1,
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_6` as const]: {
+                    year: 2026,
+                    month: 6,
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithDifferentMonths,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            }) as [TransactionMonthGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.formattedMonth === 'January 2026')).toBe(true);
+            expect(result.some((item) => item.formattedMonth === 'June 2026')).toBe(true);
+        });
+
+        it('should calculate sortKey correctly for month groups', () => {
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByMonth.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            }) as [TransactionMonthGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.sortKey === 202601)).toBe(true);
+            expect(result.some((item) => item.sortKey === 202512)).toBe(true);
+        });
+
+        it('should return isTransactionMonthGroupListItemType true for month group items', () => {
+            const monthItem: TransactionMonthGroupListItemType = {
+                year: 2026,
+                month: 1,
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+                formattedMonth: 'January 2026',
+                sortKey: 202601,
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionMonthGroupListItemType(monthItem)).toBe(true);
         });
 
         it('should return isTransactionCategoryGroupListItemType false for non-category group items', () => {

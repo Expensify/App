@@ -638,6 +638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analizy',
         duplicateExpense: 'Zduplikowany wydatek',
         newFeature: 'Nowa funkcja',
+        month: 'Miesiąc',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -6873,6 +6874,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nigdy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'W zeszłym miesiącu',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ten miesiąc',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Od początku roku',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ostatnie zestawienie',
                 },
             },
@@ -6914,6 +6916,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
             },
             feed: 'Kanał',
             withdrawalType: {

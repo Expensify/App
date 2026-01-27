@@ -634,6 +634,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: '洞察',
         duplicateExpense: '重复报销',
         newFeature: '新功能',
+        month: '月',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -6721,7 +6722,8 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从不',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '本月',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新结单',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '本年截至目前',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新对账单',
                 },
             },
             status: '状态',
@@ -6758,10 +6760,11 @@ ${reportName}
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '从',
-                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
+                [CONST.SEARCH.GROUP_BY.FROM]: '来自',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
+                [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
             feed: '动态',
             withdrawalType: {

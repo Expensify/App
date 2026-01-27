@@ -638,6 +638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analisi',
         duplicateExpense: 'Spesa duplicata',
         newFeature: 'Nuova funzionalità',
+        month: 'Mese',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6899,8 +6900,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 on: (date?: string) => `Su ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Lo scorso mese',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Da inizio anno',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultimo estratto conto',
                 },
             },
@@ -6940,8 +6942,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
             },
             feed: 'Feed',
             withdrawalType: {

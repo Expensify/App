@@ -639,6 +639,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analyses',
         duplicateExpense: 'Note de frais en double',
         newFeature: 'Nouvelle fonctionnalité',
+        month: 'Mois',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -6921,8 +6922,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 on: (date?: string) => `Le ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
-                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci', //_/\__/_/  \_,_/\__/\__/\_,_/
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Année à ce jour',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
             },
@@ -6964,6 +6966,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             },
             feed: 'Flux',
             withdrawalType: {
