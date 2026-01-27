@@ -91,7 +91,7 @@ function SecuritySettingsPage() {
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
 
-    const isRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== undefined;
+    const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== undefined;
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
@@ -149,7 +149,7 @@ function SecuritySettingsPage() {
             },
         ];
 
-        if (isRegisteredForMultifactorAuthentication) {
+        if (hasEverRegisteredForMultifactorAuthentication) {
             baseMenuItems.push({
                 translationKey: 'multifactorAuthentication.revoke.title',
                 icon: icons.Fingerprint,
@@ -236,7 +236,7 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
-        isRegisteredForMultifactorAuthentication,
+        hasEverRegisteredForMultifactorAuthentication,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
