@@ -227,6 +227,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
         const pendingChatMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
         const pendingAction = pendingChatMember?.pendingAction ?? reportParticipants?.[accountID]?.pendingAction;
+        if (!isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
         const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
 
         participants.push({

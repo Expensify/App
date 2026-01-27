@@ -70,7 +70,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'CreditCardHourglass',
         'Bank',
     ] as const);
-    const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
+    const {showDeleteModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -240,13 +240,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
 
                                 {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                                    <>
-                                        {renderSavedSearchesSection(savedSearchesMenuItems)}
-                                        {/* DeleteConfirmModal is a stable JSX element returned by the hook.
-                                        Returning the element directly keeps the component identity across re-renders so React
-                                        can play its exit animation instead of removing it instantly. */}
-                                        {DeleteConfirmModal}
-                                    </>
+                                    renderSavedSearchesSection(savedSearchesMenuItems)
                                 ) : (
                                     <>
                                         {section.menuItems.map((item, itemIndex) => {
