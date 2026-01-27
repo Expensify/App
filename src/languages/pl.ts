@@ -782,7 +782,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Wróć do oryginalnego urządzenia i poproś o nowy kod',
         successfulNewCodeRequest: 'Kod został wysłany. Sprawdź swoje urządzenie.',
         tfaRequiredTitle: dedent(`
-            Dwuskładnikowe uwierzytelnianie  
+            Dwuskładnikowe uwierzytelnianie
             wymagane
         `),
         tfaRequiredDescription: dedent(`
@@ -882,6 +882,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Czy na pewno chcesz usunąć ten element typu ${type}?`;
         },
         onlyVisible: 'Widoczne tylko dla',
+        explain: 'Wyjaśnij',
+        explainMessage: 'Proszę, wyjaśnij mi to.',
         replyInThread: 'Odpowiedz w wątku',
         joinThread: 'Dołącz do wątku',
         leaveThread: 'Opuść wątek',
@@ -1065,6 +1067,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',
         scanFailed: 'Nie można było zeskanować paragonu, ponieważ brakuje na nim sprzedawcy, daty lub kwoty.',
+        addAReceipt: {
+            phrase1: 'Dodaj paragon',
+            phrase2: 'lub przeciągnij i upuść go tutaj',
+        },
     },
     quickAction: {
         scanReceipt: 'Zeskanuj paragon',
@@ -1475,6 +1481,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Całkowita kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
         correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2373,18 +2380,26 @@ ${amount} dla ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Zasady wydatków',
         subtitle: 'Te zasady będą miały zastosowanie do Twoich wydatków. Jeśli wysyłasz je do przestrzeni roboczej, zasady tej przestrzeni roboczej mogą je zastąpić.',
+        findRule: 'Znajdź regułę',
         emptyRules: {title: 'Nie utworzyłeś żadnych reguł', subtitle: 'Dodaj regułę, aby zautomatyzować raportowanie wydatków.'},
         changes: {
-            billable: (value: boolean) => `Zaktualizuj wydatek ${value ? 'Fakturowalne' : 'niefakturowalne'}`,
-            category: (value: string) => `Zaktualizuj kategorię na „${value}”`,
-            comment: (value: string) => `Zmień opis na „${value}”`,
-            merchant: (value: string) => `Zaktualizuj sprzedawcę na „${value}”`,
-            reimbursable: (value: boolean) => `Zaktualizuj wydatek ${value ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`,
-            report: (value: string) => `Dodaj do raportu o nazwie „${value}”`,
-            tag: (value: string) => `Zaktualizuj znacznik na „${value}”`,
-            tax: (value: string) => `Zaktualizuj stawkę podatku na ${value}`,
+            billableUpdate: (value: boolean) => `Zaktualizuj wydatek ${value ? 'Fakturowalne' : 'niefakturowalne'}`,
+            categoryUpdate: (value: string) => `Zaktualizuj kategorię na „${value}”`,
+            commentUpdate: (value: string) => `Zmień opis na „${value}”`,
+            merchantUpdate: (value: string) => `Zaktualizuj sprzedawcę na „${value}”`,
+            reimbursableUpdate: (value: boolean) => `Zaktualizuj wydatek ${value ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`,
+            tagUpdate: (value: string) => `Zaktualizuj znacznik na „${value}”`,
+            taxUpdate: (value: string) => `Zaktualizuj stawkę podatku na ${value}`,
+            billable: (value: boolean) => `wydatek ${value ? 'fakturowalne' : 'niefakturowalne'}`,
+            category: (value: string) => `kategorię na „${value}”`,
+            comment: (value: string) => `opis na „${value}”`,
+            merchant: (value: string) => `sprzedawcę na „${value}”`,
+            reimbursable: (value: boolean) => `wydatek ${value ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`,
+            tag: (value: string) => `znacznik na „${value}”`,
+            tax: (value: string) => `stawkę podatku na ${value}`,
+            report: (value: string) => `dodaj do raportu o nazwie „${value}”`,
         },
-        newRule: 'Nowa zasada',
+        newRule: 'Nowa reguła',
         addRule: {
             title: 'Dodaj regułę',
             expenseContains: 'Jeśli wydatek zawiera:',
@@ -2597,19 +2612,19 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'Dodaj zatwierdzanie wydatków',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki swojego zespołu i mieć je pod kontrolą.
+                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki zespołu i utrzymać je pod kontrolą.
 
                         Oto jak:
 
                         1. Przejdź do *Workspaces*.
-                        2. Wybierz swoją przestrzeń roboczą.
+                        2. Wybierz swój workspace.
                         3. Kliknij *More features*.
                         4. Włącz *Workflows*.
-                        5. Przejdź do *Workflows* w edytorze przestrzeni roboczej.
-                        6. Włącz *Add approvals*.
-                        7. Zostaniesz ustawiony jako osoba zatwierdzająca wydatki. Po zaproszeniu zespołu możesz zmienić to na dowolnego administratora.
+                        5. Przejdź do *Workflows* w edytorze workspace.
+                        6. Włącz *Approvals*.
+                        7. Zostaniesz ustawiony jako zatwierdzający wydatki. Po zaproszeniu zespołu możesz zmienić tę osobę na dowolnego administratora.
 
-                        [Przejdź do more features](${workspaceMoreFeaturesLink}).`),
+                        [Przejdź do More features](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Utwórz](${workspaceConfirmationLink}) przestrzeń roboczą`,
@@ -4863,6 +4878,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
+                workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',
+                feedCouldNotBeLoadedTitle: 'Nie można było wczytać tego kanału',
+                feedCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania tego kanału. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
+                tryAgain: 'Spróbuj ponownie',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
@@ -6685,6 +6707,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `ustaw maksymalny wiek wydatku na „${newValue}” dni`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `zmieniono maksymalny wiek wydatku na „${newValue}” dni (wcześniej „${oldValue}”)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `usunięto maksymalny wiek wydatku (wcześniej „${oldValue}” dni)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Włączone' : 'wyłączone'} automatycznie opłacone zatwierdzone raporty`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `ustaw próg automatycznej płatności zatwierdzonych raportów na „${newLimit}”`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `zmienił próg automatycznej płatności dla zatwierdzonych raportów na „${newLimit}” (wcześniej „${oldLimit}”)`,
+        removedAutoPayApprovedReportsLimit: 'usunął próg dla automatycznego opłacania zatwierdzonych raportów',
     },
     roomMembersPage: {
         memberNotFound: 'Użytkownik nie został znaleziony.',
@@ -6820,6 +6847,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         deleteSavedSearchConfirm: 'Czy na pewno chcesz usunąć to wyszukiwanie?',
         searchName: 'Wyszukaj nazwę',
         savedSearchesMenuItemTitle: 'Zapisano',
+        topCategories: 'Najlepsze kategorie',
         groupedExpenses: 'pogrupowane wydatki',
         bulkActions: {
             approve: 'Zatwierdź',
@@ -6846,6 +6874,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             status: 'Status',
             keyword: 'Słowo kluczowe',
             keywords: 'Słowa kluczowe',
+            limit: 'Limit',
             currency: 'Waluta',
             completed: 'Zakończone',
             amount: {

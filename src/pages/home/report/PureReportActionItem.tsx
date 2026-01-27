@@ -69,6 +69,8 @@ import {
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -223,6 +225,7 @@ import ReportActionItemDraft from './ReportActionItemDraft';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
+import ReportActionItemMessageWithExplain from './ReportActionItemMessageWithExplain';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import TripSummary from './TripSummary';
@@ -1259,21 +1262,24 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = (
-                <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
+                <ReportActionItemMessageWithExplain
+                    message={modifiedExpenseMessage}
+                    action={action}
+                    reportID={reportID}
+                />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-
             if (wasSubmittedViaHarvesting) {
                 children = (
-                    <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
-                    </ReportActionItemBasicMessage>
+                    <ReportActionItemMessageWithExplain
+                        message={translate('iou.automaticallySubmitted')}
+                        action={action}
+                        reportID={reportID}
+                    />
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
@@ -1489,6 +1495,10 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getSubmitsToUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
             children = <ReportActionItemBasicMessage message={getForwardsToUpdateMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getAutoPayApprovedReportsEnabledMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
+            children = <ReportActionItemBasicMessage message={getAutoReimbursementMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
             children = <ReportActionItemBasicMessage message={getInvoiceCompanyNameUpdateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE)) {

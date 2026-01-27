@@ -882,6 +882,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Tem certeza de que deseja excluir este(a) ${type}?`;
         },
         onlyVisible: 'Visível apenas para',
+        explain: 'Explicar',
+        explainMessage: 'Por favor, explique isso para mim.',
         replyInThread: 'Responder na conversa',
         joinThread: 'Participar da conversa',
         leaveThread: 'Sair da conversa',
@@ -1064,6 +1066,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
         scanFailed: 'O recibo não pôde ser escaneado, pois está faltando o comerciante, a data ou o valor.',
+        addAReceipt: {
+            phrase1: 'Adicionar um recibo',
+            phrase2: 'ou arraste e solte um aqui',
+        },
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
@@ -1473,6 +1479,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Reduza as horas ou diminua a tarifa.',
         },
         correctDistanceRateError: 'Corrija o erro na taxa de distância e tente novamente.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2373,16 +2380,24 @@ ${amount} para ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Regras de despesas',
         subtitle: 'Essas regras serão aplicadas às suas despesas. Se você enviar para um workspace, as regras do workspace poderão substituí-las.',
+        findRule: 'Encontrar regra',
         emptyRules: {title: 'Você não criou nenhuma regra', subtitle: 'Adicione uma regra para automatizar o relatório de despesas.'},
         changes: {
-            billable: (value: boolean) => `Atualizar despesa ${value ? 'cobrável' : 'não faturável'}`,
-            category: (value: string) => `Atualizar categoria para "${value}"`,
-            comment: (value: string) => `Alterar descrição para "${value}"`,
-            merchant: (value: string) => `Atualizar comerciante para "${value}"`,
-            reimbursable: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
-            report: (value: string) => `Adicionar a um relatório chamado "${value}"`,
-            tag: (value: string) => `Atualizar etiqueta para "${value}"`,
-            tax: (value: string) => `Atualizar taxa de imposto para ${value}`,
+            billableUpdate: (value: boolean) => `Atualizar despesa ${value ? 'cobrável' : 'não faturável'}`,
+            categoryUpdate: (value: string) => `Atualizar categoria para "${value}"`,
+            commentUpdate: (value: string) => `Alterar descrição para "${value}"`,
+            merchantUpdate: (value: string) => `Atualizar comerciante para "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
+            tagUpdate: (value: string) => `Atualizar etiqueta para "${value}"`,
+            taxUpdate: (value: string) => `Atualizar taxa de imposto para ${value}`,
+            billable: (value: boolean) => `despesa ${value ? 'cobrável' : 'não faturável'}`,
+            category: (value: string) => `categoria para "${value}"`,
+            comment: (value: string) => `descrição para "${value}"`,
+            merchant: (value: string) => `comerciante para "${value}"`,
+            reimbursable: (value: boolean) => `despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
+            tag: (value: string) => `etiqueta para "${value}"`,
+            tax: (value: string) => `taxa de imposto para ${value}`,
+            report: (value: string) => `adicionar a um relatório chamado "${value}"`,
         },
         newRule: 'Nova regra',
         addRule: {
@@ -2601,15 +2616,15 @@ ${amount} para ${merchant} - ${date}`,
 
                         Veja como:
 
-                        1. Vá para *Workspaces*.
-                        2. Selecione seu workspace.
-                        3. Clique em *More features*.
+                        1. Vá para *Espaços de trabalho*.
+                        2. Selecione seu espaço de trabalho.
+                        3. Clique em *Mais recursos*.
                         4. Ative *Workflows*.
-                        5. Acesse *Workflows* no editor do workspace.
-                        6. Ative *Add approvals*.
-                        7. Você será definido como aprovador de despesas. Você pode alterar isso para qualquer administrador depois de convidar sua equipe.
+                        5. Acesse *Workflows* no editor do espaço de trabalho.
+                        6. Ative *Approvals*.
+                        7. Você será definido como o aprovador de despesas. Você pode alterar isso para qualquer administrador depois de convidar sua equipe.
 
-                        [Levar-me para mais recursos](${workspaceMoreFeaturesLink}).`),
+                        [Leve-me para mais recursos](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um workspace`,
@@ -4863,6 +4878,13 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             assignCardFailedError: 'Falha na atribuição do cartão.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',
+                workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou entre em contato com o administrador.',
+                feedCouldNotBeLoadedTitle: 'Não foi possível carregar este feed',
+                feedCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar este feed. Tente novamente ou entre em contato com o seu administrador.',
+                tryAgain: 'Tentar novamente',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir e gerenciar seus Cartões Expensify',
@@ -6687,6 +6709,11 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `definir idade máxima da despesa como "${newValue}" dias`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `alterou a idade máxima da despesa para "${newValue}" dias (antes "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removeu a idade máxima de despesa (anteriormente "${oldValue}" dias)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} relatórios com pagamento automático aprovado`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `definir o limite de relatórios aprovados para pagamento automático como "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `alterou o limite de relatórios aprovados com pagamento automático para "${newLimit}" (anteriormente "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'removeu o limite de relatórios aprovados para pagamento automático',
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -6822,6 +6849,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         deleteSavedSearchConfirm: 'Você tem certeza de que deseja excluir esta pesquisa?',
         searchName: 'Pesquisar nome',
         savedSearchesMenuItemTitle: 'Salvo',
+        topCategories: 'Principais categorias',
         groupedExpenses: 'despesas agrupadas',
         bulkActions: {
             approve: 'Aprovar',
@@ -6848,6 +6876,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             status: 'Status',
             keyword: 'Palavra-chave',
             keywords: 'Palavras-chave',
+            limit: 'Limite',
             currency: 'Moeda',
             completed: 'Concluído',
             amount: {
