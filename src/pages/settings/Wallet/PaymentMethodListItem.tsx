@@ -137,9 +137,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 badgeIcon={isAccountInSetupState(item) ? icons.DotIndicator : undefined}
                 badgeSuccess={isAccountInSetupState(item) ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                iconRight={item.iconRight}
-                shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
-                shouldShowRightComponent={!!threeDotsMenuItems}
+                iconRight={isAccountInSetupState(item) ? undefined : item.iconRight}
+                shouldShowRightIcon={(isAccountInSetupState(item) || !threeDotsMenuItems) && item.shouldShowRightIcon}
+                shouldShowRightComponent={!isAccountInSetupState(item) && !!threeDotsMenuItems}
                 rightComponent={
                     threeDotsMenuItems ? (
                         <View style={styles.alignSelfCenter}>
