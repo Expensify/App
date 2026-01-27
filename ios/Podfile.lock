@@ -32,7 +32,7 @@ PODS:
   - EXAV (15.1.7):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXConstants (18.0.9):
+  - EXConstants (18.0.10):
     - ExpoModulesCore
   - EXImageLoader (5.1.0):
     - ExpoModulesCore
@@ -177,6 +177,9 @@ PODS:
     - ExpoModulesCore
   - ExpoStoreReview (9.0.8):
     - ExpoModulesCore
+  - EXTaskManager (14.0.9):
+    - ExpoModulesCore
+    - UMAppLoader
   - fast_float (8.0.0)
   - FBLazyVector (0.81.4)
   - Firebase/Analytics (11.13.0):
@@ -189,11 +192,6 @@ PODS:
   - Firebase/Crashlytics (11.13.0):
     - Firebase/CoreOnly
     - FirebaseCrashlytics (~> 11.13.0)
-  - Firebase/Performance (11.13.0):
-    - Firebase/CoreOnly
-    - FirebasePerformance (~> 11.13.0)
-  - FirebaseABTesting (11.13.0):
-    - FirebaseCore (~> 11.13.0)
   - FirebaseAnalytics (11.13.0):
     - FirebaseAnalytics/AdIdSupport (= 11.13.0)
     - FirebaseCore (~> 11.13.0)
@@ -234,24 +232,6 @@ PODS:
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
-  - FirebasePerformance (11.13.0):
-    - FirebaseCore (~> 11.13.0)
-    - FirebaseInstallations (~> 11.0)
-    - FirebaseRemoteConfig (~> 11.0)
-    - FirebaseSessions (~> 11.0)
-    - GoogleDataTransport (~> 10.0)
-    - GoogleUtilities/Environment (~> 8.1)
-    - GoogleUtilities/MethodSwizzler (~> 8.1)
-    - GoogleUtilities/UserDefaults (~> 8.1)
-    - nanopb (~> 3.30910.0)
-  - FirebaseRemoteConfig (11.13.0):
-    - FirebaseABTesting (~> 11.0)
-    - FirebaseCore (~> 11.13.0)
-    - FirebaseInstallations (~> 11.0)
-    - FirebaseRemoteConfigInterop (~> 11.0)
-    - FirebaseSharedSwift (~> 11.0)
-    - GoogleUtilities/Environment (~> 8.1)
-    - "GoogleUtilities/NSData+zlib (~> 8.1)"
   - FirebaseRemoteConfigInterop (11.15.0)
   - FirebaseSessions (11.13.0):
     - FirebaseCore (~> 11.13.0)
@@ -262,7 +242,6 @@ PODS:
     - GoogleUtilities/UserDefaults (~> 8.1)
     - nanopb (~> 3.30910.0)
     - PromisesSwift (~> 2.1)
-  - FirebaseSharedSwift (11.15.0)
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
   - FullStory (1.64.2)
@@ -530,6 +509,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -555,6 +535,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -579,6 +560,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -605,6 +587,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -630,6 +613,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -655,6 +639,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -680,6 +665,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -705,6 +691,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -730,6 +717,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -755,6 +743,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -780,6 +769,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -805,6 +795,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -830,6 +821,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -855,6 +847,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -3499,10 +3492,6 @@ PODS:
     - FirebaseCoreExtension
     - React-Core
     - RNFBApp
-  - RNFBPerf (22.2.1):
-    - Firebase/Performance (= 11.13.0)
-    - React-Core
-    - RNFBApp
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.28.0):
@@ -4111,6 +4100,7 @@ PODS:
   - SocketRocket (0.7.1)
   - Turf (2.8.0)
   - TweetNacl (1.0.2)
+  - UMAppLoader (6.0.8)
   - VisionCamera (4.7.2):
     - VisionCamera/Core (= 4.7.2)
     - VisionCamera/React (= 4.7.2)
@@ -4139,6 +4129,7 @@ DEPENDENCIES:
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - ExpoVideo (from `../node_modules/expo-video/ios`)
   - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
+  - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
@@ -4246,7 +4237,6 @@ DEPENDENCIES:
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
-  - "RNFBPerf (from `../node_modules/@react-native-firebase/perf`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
@@ -4264,6 +4254,7 @@ DEPENDENCIES:
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNWorklets (from `../node_modules/react-native-worklets`)
   - SocketRocket (~> 0.7.1)
+  - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -4274,18 +4265,14 @@ SPEC REPOS:
     - AirshipServiceExtension
     - AppAuth
     - Firebase
-    - FirebaseABTesting
     - FirebaseAnalytics
     - FirebaseCore
     - FirebaseCoreExtension
     - FirebaseCoreInternal
     - FirebaseCrashlytics
     - FirebaseInstallations
-    - FirebasePerformance
-    - FirebaseRemoteConfig
     - FirebaseRemoteConfigInterop
     - FirebaseSessions
-    - FirebaseSharedSwift
     - ForkInputMask
     - GoogleAppMeasurement
     - GoogleDataTransport
@@ -4356,6 +4343,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-video/ios"
   ExpoStoreReview:
     :path: "../node_modules/expo-store-review/ios"
+  EXTaskManager:
+    :path: "../node_modules/expo-task-manager/ios"
   fast_float:
     :podspec: "../node_modules/react-native/third-party-podspecs/fast_float.podspec"
   FBLazyVector:
@@ -4567,8 +4556,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBCrashlytics:
     :path: "../node_modules/@react-native-firebase/crashlytics"
-  RNFBPerf:
-    :path: "../node_modules/@react-native-firebase/perf"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -4601,6 +4588,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-svg"
   RNWorklets:
     :path: "../node_modules/react-native-worklets"
+  UMAppLoader:
+    :path: "../node_modules/unimodules-app-loader/ios"
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
   Yoga:
@@ -4616,10 +4605,10 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: ae28256069c4cdde93d185c007d8f68d92902c2e
-  EXConstants: a95804601ee4a6aa7800645f9b070d753b1142b3
+  EXConstants: fd688cef4e401dcf798a021cfb5d87c890c30ba3
   EXImageLoader: 4d3d3284141f1a45006cc4d0844061c182daf7ee
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
   ExpensifyNitroUtils: 86109fe1ab88351ed63ffe11b760d537c70019d7
@@ -4636,18 +4625,14 @@ SPEC CHECKSUMS:
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 941bef1c8eeabd9fe1f501e30a5220beee913886
   Firebase: 3435bc66b4d494c2f22c79fd3aae4c1db6662327
-  FirebaseABTesting: 4048f61cc10d2fad064d3089ace6bd5fb910169b
   FirebaseAnalytics: 630349facf4a114a0977e5d7570e104261973287
   FirebaseCore: c692c7f1c75305ab6aff2b367f25e11d73aa8bd0
   FirebaseCoreExtension: c048485c347616dba6165358dbef765c5197597b
   FirebaseCoreInternal: 29d7b3af4aaf0b8f3ed20b568c13df399b06f68c
   FirebaseCrashlytics: 8281e577b6f85a08ea7aeb8b66f95e1ae430c943
   FirebaseInstallations: 0ee9074f2c1e86561ace168ee1470dc67aabaf02
-  FirebasePerformance: d8d51127a7d1fe977866813c75836f4911849a09
-  FirebaseRemoteConfig: 518ca257cdb2ccbc2b781ef2f2104f1104c7488f
   FirebaseRemoteConfigInterop: 1c6135e8a094cc6368949f5faeeca7ee8948b8aa
   FirebaseSessions: eaa8ec037e7793769defe4201c20bd4d976f9677
-  FirebaseSharedSwift: e17c654ef1f1a616b0b33054e663ad1035c8fd40
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c381e701f709f5185471800bbb626f079d93fc0d
@@ -4688,7 +4673,7 @@ SPEC CHECKSUMS:
   React: 2073376f47c71b7e9a0af7535986a77522ce1049
   React-callinvoker: 751b6f2c83347a0486391c3f266f291f0f53b27e
   React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
-  React-Core: dff5d29973349b11dd6631c9498456d75f846d5e
+  React-Core: aeebd9b37ac383279f610f1e53f66b9931686a41
   React-CoreModules: c0ae04452e4c5d30e06f8e94692a49107657f537
   React-cxxreact: 376fd672c95dfb64ad5cc246e6a1e9edb78dec4c
   React-debug: d4955c86870792887ed695df6ebf0e94e39dc7e1
@@ -4727,7 +4712,7 @@ SPEC CHECKSUMS:
   react-native-key-command: 7538df85ed26502b2a929c0584235459b26c7a91
   react-native-keyboard-controller: c4ca61f44d66c2f8987a7e67e9b78e80dc965c45
   react-native-launch-arguments: d4759f7591e2766e6c5ec746b7032429edaf7058
-  react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
+  react-native-netinfo: f94b3a0fc305e812f3f615989d99299d7110c2ae
   react-native-pager-view: b93d2fcd4dc06c519b8ad0ceddaf183fb5fa32e7
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
   react-native-performance: a7a65d0b0f3055c5db33e1433e4345143ef6a100
@@ -4739,7 +4724,7 @@ SPEC CHECKSUMS:
   react-native-webview: cdce419e8022d0ef6f07db21890631258e7a9e6e
   React-NativeModulesApple: 8c7eb6057b00c191a11ad5ced41826ec5a0e4d78
   React-oscompat: 93b5535ea7f7dff46aaee4f78309a70979bdde9d
-  React-perflogger: 5536d2df3d18fe0920263466f7b46a56351c0510
+  React-perflogger: e7dcbfcb796d346be7936b75740c3e27a4bb3977
   React-performancetimeline: c6c9393c1a0453a51e1852e3531defe60790b36c
   React-RCTActionSheet: 42195ae666e6d79b4af2346770f765b7c29435b9
   React-RCTAnimation: fa103ccc3503b1ed8dedca7e62e7823937748843
@@ -4754,7 +4739,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 71f5c7fd7b5f4e725a4e2114a4b4373d0e46048f
   React-RCTText: b94d4699b49285bee22b8ebf768924d607eccee3
   React-RCTVibration: 6e3993c4f6c36a3899059f9a9ead560ddaf5a7d7
-  React-rendererconsistency: 612d0f6603d9837bb1236d7fd5194203b35c8799
+  React-rendererconsistency: bef28690433e2b4bb00c2f884b22b86e61a430f2
   React-renderercss: e5c2c3b84976f7a587cde8423c671db07a6a77da
   React-rendererdebug: cc7a6131733605b8897754f72c0c35c79f77da9e
   React-RuntimeApple: 3f96102fc1ebf738d36719cdce5422a5769293fb
@@ -4775,7 +4760,6 @@ SPEC CHECKSUMS:
   RNFBAnalytics: 2f451df50833a890974d55a93557da878a85b29e
   RNFBApp: db9c2e6d36fe579ab19b82c0a4a417ff7569db7e
   RNFBCrashlytics: 9dd481075a9bb5d95b56a567f4da33eb7707e766
-  RNFBPerf: 6e1baea50b7dbd576a3463b0e9879b302d4d1110
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: b8d2e75c2e88fc2a1f6be3b3beeeed80b88fa37d
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
@@ -4800,6 +4784,7 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
+  UMAppLoader: 145337733539f9af9b3dd97eeaa7f3bd97cacb23
   VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe
   Yoga: 9b30b783a17681321b52ac507a37219d7d795ace
 
