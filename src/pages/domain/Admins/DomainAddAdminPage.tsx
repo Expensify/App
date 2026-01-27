@@ -109,7 +109,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         <FormAlertWithSubmitButton
             isDisabled={!currentlySelectedUser}
             isAlertVisible={false}
-            buttonText={translate('domain.admins.invite')}
+            buttonText={translate('common.invite')}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
