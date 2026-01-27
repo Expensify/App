@@ -468,7 +468,7 @@ function getAlternateText(
     const formattedLastMessageText =
         formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, reportAttributesDerived, currentUserAccountID});
+        getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived, reportAttributesDerived});
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
@@ -604,7 +604,6 @@ function getLastMessageTextForReport({
     policyForMovingExpensesID,
     reportMetadata,
     reportAttributesDerived,
-    currentUserAccountID,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -616,7 +615,6 @@ function getLastMessageTextForReport({
     policyForMovingExpensesID?: string;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    currentUserAccountID: number;
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -929,13 +927,12 @@ function createOption(
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         result.lastMessageText = getLastMessageTextForReport({
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translate: translateLocal,
             report,
             lastActorDetails,
             isReportArchived: !!result.private_isArchived,
-            currentUserAccountID,
             reportAttributesDerived,
         });
         result.alternateText =

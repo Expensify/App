@@ -181,6 +181,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             return;
         }
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedOptions((prevSelectedOptions) => {
             if (
                 prevSelectedOptions.length === draftSelectedOptions.length &&
