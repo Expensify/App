@@ -218,7 +218,7 @@ function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, poli
         if (key === 'tax') {
             const taxEntry = value as PolicyRulesModifiedFields['tax'];
             const taxRateName = taxEntry?.field_id_TAX.name ?? '';
-            return translate('iou.updatedFieldTo', {key: translate('common.tax').toLowerCase(), value: taxRateName, first: isFirst});
+            return translate('iou.updatedFieldTo', {key: translate('workspace.taxes.taxRate').toLowerCase(), value: taxRateName, first: isFirst});
         }
 
         const updatedValue = value as string | boolean;
