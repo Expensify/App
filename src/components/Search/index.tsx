@@ -273,19 +273,21 @@ function Search({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
-    const handleDEWModalOpen = useCallback(async () => {
+    const handleDEWModalOpen = useCallback(() => {
         if (onDEWModalOpen) {
             onDEWModalOpen();
         } else {
-            const result = await showConfirmModal({
+            showConfirmModal({
                 title: translate('customApprovalWorkflow.title'),
                 prompt: translate('customApprovalWorkflow.description'),
                 confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
                 shouldShowCancelButton: false,
-            });
-            if (result.action === ModalActions.CONFIRM) {
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
                 openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-            }
+            });
         }
     }, [onDEWModalOpen, showConfirmModal, translate]);
 
@@ -1154,9 +1156,7 @@ function Search({
                     canSelectMultiple={canSelectMultiple}
                     selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
-                    onDEWModalOpen={() => {
-                        handleDEWModalOpen();
-                    }}
+                    onDEWModalOpen={handleDEWModalOpen}
                     isDEWBetaEnabled={isDEWBetaEnabled}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
