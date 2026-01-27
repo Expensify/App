@@ -6816,6 +6816,7 @@ ${reportName}
             status: 'ステータス',
             keyword: 'キーワード',
             keywords: 'キーワード',
+            limit: '制限',
             currency: '通貨',
             completed: '完了',
             amount: {

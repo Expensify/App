@@ -6848,6 +6848,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             status: 'Status',
             keyword: 'Palavra-chave',
             keywords: 'Palavras-chave',
+            limit: 'Limite',
             currency: 'Moeda',
             completed: 'Concluído',
             amount: {

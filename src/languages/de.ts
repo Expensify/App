@@ -6885,6 +6885,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             status: 'Status',
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
+            limit: 'Limit',
             currency: 'Währung',
             completed: 'Abgeschlossen',
             amount: {

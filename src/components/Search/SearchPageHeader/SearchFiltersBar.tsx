@@ -307,10 +307,11 @@ function SearchFiltersBar({
                 updatedFilterFormValues.columns = [];
             }
 
-            // Preserve the current sortBy and sortOrder from queryJSON when updating filters
+            // Preserve the current sortBy, sortOrder, and limit from queryJSON when updating filters
             let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
                 sortBy: queryJSON.sortBy,
                 sortOrder: queryJSON.sortOrder,
+                limit: queryJSON.limit,
             });
 
             if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
@@ -325,7 +326,7 @@ function SearchFiltersBar({
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, queryJSON.limit],
     );
 
     const openAdvancedFilters = useCallback(() => {
