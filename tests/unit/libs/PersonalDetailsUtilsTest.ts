@@ -17,7 +17,7 @@ describe('PersonalDetailsUtils', () => {
         });
     });
 
-    beforeEach(() => Onyx.clear());
+    afterEach(() => Onyx.clear());
 
     describe('getEffectiveDisplayName', () => {
         test('should return undefined when personalDetail is undefined', () => {
