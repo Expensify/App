@@ -26,8 +26,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,7 +50,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getPolicyByCustomUnitID, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     doesReportReceiverMatchParticipant,
     findSelfDMReportID,
@@ -161,26 +160,19 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
-
     const transactionsCategories = useDeepCompareRef(
         transactions.map(({transactionID, category}) => ({
             transactionID,
             category,
         })),
     );
-    const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const realPolicyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(initialTransaction, reportReal);
+    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
-
-    const personalPolicyMeta = usePersonalPolicy();
-    const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyMeta?.id}`, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -210,14 +202,20 @@ function IOURequestStepConfirmation({
         return reportWithDraftFallback;
     }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback, isTransactionReportDifferentFromRoute]);
 
-    const policy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : (policyReal ?? policyDraft);
-    const policyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(transaction, report);
+    const {policy} = usePolicyForTransaction({
+        transaction: initialTransaction,
+        reportPolicyID: realPolicyID ?? draftPolicyID ?? '',
+        action,
+        iouType,
+        isPerDiemRequest,
+    });
+    const policyID = isCreatingTrackExpense || isUnreported ? policy?.id : getIOURequestPolicyID(transaction, report);
     const isDraftPolicy = policy === policyDraft;
 
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${realPolicyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
@@ -227,7 +225,7 @@ function IOURequestStepConfirmation({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
@@ -235,16 +233,13 @@ function IOURequestStepConfirmation({
         if (isDraftPolicy && draftPolicyID) {
             return policyCategoriesDraft;
         }
-        if (personalPolicy?.id && isPerDiemRequest && isCreatingTrackExpense) {
-            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicy?.id}`];
-        }
 
-        if (realPolicyID) {
-            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${realPolicyID}`];
+        if (policyID) {
+            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
         }
 
         return undefined;
-    }, [allPolicyCategories, realPolicyID, policyCategoriesDraft, draftPolicyID, isDraftPolicy]);
+    }, [isDraftPolicy, draftPolicyID, policyID, policyCategoriesDraft, allPolicyCategories]);
 
     const receiverParticipant: Participant | InvoiceReceiver | undefined = transaction?.participants?.find((participant) => participant?.accountID) ?? report?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
@@ -343,12 +338,12 @@ function IOURequestStepConfirmation({
     }, []);
 
     useEffect(() => {
-        if (!isCreatingTrackExpense || policyForMovingExpensesID === undefined) {
+        if (!isCreatingTrackExpense || policyID === undefined) {
             return;
         }
 
-        openDraftWorkspaceRequest(policyForMovingExpensesID);
-    }, [isCreatingTrackExpense, policy?.pendingAction, policyForMovingExpensesID]);
+        openDraftWorkspaceRequest(policyID);
+    }, [isCreatingTrackExpense, policy?.pendingAction, policyID]);
 
     const policyExpenseChatPolicyID = useMemo(() => {
         return participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
@@ -701,7 +696,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.TRACK && selfDMReport) {
                 submitPerDiemExpenseForSelfDM({
                     selfDMReport,
-                    policy: customUnitPolicy,
+                    policy,
                     transactionParams: {
                         currency: transaction.currency,
                         created: transaction.created,
