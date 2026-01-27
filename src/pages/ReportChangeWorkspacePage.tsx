@@ -54,6 +54,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const reportTransactions = useReportTransactions(reportID);
 
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true, selector: changePolicyTrainingModalDismissedSelector});
@@ -94,21 +95,23 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(
+                changeReportPolicyAndInviteSubmitter({
                     report,
+                    parentReport,
                     policy,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    hasViolationsParam: hasViolations,
                     isChangePolicyTrainingModalDismissed,
                     isASAPSubmitBetaEnabled,
                     employeeList,
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
-                );
+                });
             } else {
                 changeReportPolicy(
                     report,
+                    parentReport,
                     policy,
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
@@ -125,6 +128,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             route.params,
             reportID,
             report,
+            parentReport,
             formatPhoneNumber,
             reportTransactions,
             isReportLastVisibleArchived,
