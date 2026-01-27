@@ -2609,19 +2609,19 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'Dodaj zatwierdzanie wydatków',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki swojego zespołu i mieć je pod kontrolą.
+                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki zespołu i utrzymać je pod kontrolą.
 
                         Oto jak:
 
                         1. Przejdź do *Workspaces*.
-                        2. Wybierz swoją przestrzeń roboczą.
+                        2. Wybierz swój workspace.
                         3. Kliknij *More features*.
                         4. Włącz *Workflows*.
-                        5. Przejdź do *Workflows* w edytorze przestrzeni roboczej.
-                        6. Włącz *Add approvals*.
-                        7. Zostaniesz ustawiony jako osoba zatwierdzająca wydatki. Po zaproszeniu zespołu możesz zmienić to na dowolnego administratora.
+                        5. Przejdź do *Workflows* w edytorze workspace.
+                        6. Włącz *Approvals*.
+                        7. Zostaniesz ustawiony jako zatwierdzający wydatki. Po zaproszeniu zespołu możesz zmienić tę osobę na dowolnego administratora.
 
-                        [Przejdź do more features](${workspaceMoreFeaturesLink}).`),
+                        [Przejdź do More features](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Utwórz](${workspaceConfirmationLink}) przestrzeń roboczą`,

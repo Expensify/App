@@ -2618,17 +2618,17 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Aggiungi approvazioni delle spese',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Aggiungi approvazioni delle spese* per rivedere le spese del tuo team e tenerle sotto controllo.
+                        *Aggiungi le approvazioni delle spese* per rivedere le spese del tuo team e mantenerle sotto controllo.
 
-                        Procedi così:
+                        Ecco come fare:
 
-                        1. Vai su *Spazi di lavoro*.
+                        1. Vai a *Spazi di lavoro*.
                         2. Seleziona il tuo spazio di lavoro.
                         3. Fai clic su *Altre funzionalità*.
                         4. Abilita *Flussi di lavoro*.
                         5. Vai a *Flussi di lavoro* nell’editor dello spazio di lavoro.
-                        6. Abilita *Aggiungi approvazioni*.
-                        7. Verrai impostato come approvatore delle spese. Puoi modificarlo in qualsiasi amministratore dopo aver invitato il tuo team.
+                        6. Abilita *Approvazioni*.
+                        7. Verrai impostato come approvatore delle spese. Puoi cambiarlo in qualsiasi amministratore dopo aver invitato il tuo team.
 
                         [Portami alle altre funzionalità](${workspaceMoreFeaturesLink}).`),
             },

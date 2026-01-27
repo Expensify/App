@@ -2609,19 +2609,19 @@ ${merchant} への ${amount}（${date}）`,
                 title: '経費承認を追加',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        チームの支出を確認して管理するには、*経費承認を追加* してください。
+                        チームの支出を確認し、コントロールするために、*経費承認を追加* しましょう。
 
                         手順は次のとおりです：
 
-                        1. *Workspaces* に移動します。
+                        1. *ワークスペース* に移動します。
                         2. ワークスペースを選択します。
-                        3. *More features* をクリックします。
-                        4. *Workflows* を有効にします。
-                        5. ワークスペースエディタで *Workflows* に移動します。
-                        6. *Add approvals* を有効にします。
-                        7. チームを招待すると、あなたが経費承認者として設定されます。これは、任意の管理者に変更できます。
+                        3. *その他の機能* をクリックします。
+                        4. *ワークフロー* を有効にします。
+                        5. ワークスペースエディタ内の *ワークフロー* に移動します。
+                        6. *承認* を有効にします。
+                        7. あなたが経費の承認者として設定されます。チームを招待した後は、任意の管理者に変更できます。
 
-                        [More features へ移動する](${workspaceMoreFeaturesLink})。`),
+                        [その他の機能に移動](${workspaceMoreFeaturesLink})。`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `ワークスペースを[作成](${workspaceConfirmationLink})`,
