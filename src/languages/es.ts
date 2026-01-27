@@ -1236,7 +1236,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     const taxEntry = value as PolicyRulesModifiedFields['tax'];
                     const taxRateName = taxEntry?.field_id_TAX.name ?? '';
                     if (isFirst) {
-                        return `estableció el tasa de impuesto a "${taxRateName}"`;
+                        return `estableció la tasa de impuesto a "${taxRateName}"`;
                     }
                     return `tasa de impuesto a "${taxRateName}"`;
                 }
