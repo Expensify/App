@@ -4465,6 +4465,9 @@ ${amount} para ${merchant} - ${date}`,
             addNewCard: {
                 other: 'Otros',
                 fileImport: 'Importar transacciones desde un archivo',
+                createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
+                companyCardLayoutName: 'Company card layout name',
+                useAdvancedFields: 'Use advanced fields (not recommended)',
                 cardProviders: {
                     gl1025: 'Tarjetas de empresa American Express',
                     cdf: 'Tarjetas comerciales Mastercard',

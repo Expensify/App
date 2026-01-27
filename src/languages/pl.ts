@@ -4763,6 +4763,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             addNewCard: {
                 other: 'Inne',
                 fileImport: 'Importuj transakcje z pliku',
+                createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
+                companyCardLayoutName: 'Company card layout name',
+                useAdvancedFields: 'Use advanced fields (not recommended)',
                 cardProviders: {
                     gl1025: 'Firmowe karty American Express',
                     cdf: 'Karty Komercyjne Mastercard',

@@ -4750,6 +4750,9 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             addNewCard: {
                 other: 'その他',
                 fileImport: 'ファイルから取引をインポート',
+                createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
+                companyCardLayoutName: 'Company card layout name',
+                useAdvancedFields: 'Use advanced fields (not recommended)',
                 cardProviders: {
                     gl1025: 'American Express コーポレートカード',
                     cdf: 'Mastercard 商用カード',

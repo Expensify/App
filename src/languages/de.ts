@@ -4788,6 +4788,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             addNewCard: {
                 other: 'Sonstiges',
                 fileImport: 'Transaktionen aus einer Datei importieren',
+                createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
+                companyCardLayoutName: 'Company card layout name',
+                useAdvancedFields: 'Use advanced fields (not recommended)',
                 cardProviders: {
                     gl1025: 'American Express Firmenkarten',
                     cdf: 'Mastercard Firmenkarten',

@@ -37,22 +37,33 @@ function SelectBankStep() {
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
+    const isFileImportSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT;
 
     const submit = useCallback(() => {
         if (!bankSelected) {
             setHasError(true);
         } else {
+            if (isFileImportSelected) {
+                setAddNewCompanyCardStepAndData({
+                    step: CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE,
+                    data: {
+                        selectedBank: bankSelected,
+                    },
+                    isEditing: false,
+                });
+                return;
+            }
             setAddNewCompanyCardStepAndData({
                 step: getCorrectStepForPlaidSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
-                    cardTitle: !isOtherBankSelected ? bankSelected : undefined,
+                    cardTitle: !isOtherBankSelected && !isFileImportSelected ? bankSelected : undefined,
                     feedType: bankSelected === CONST.COMPANY_CARDS.BANKS.STRIPE ? CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE : undefined,
                 },
                 isEditing: false,
             });
         }
-    }, [bankSelected, isOtherBankSelected]);
+    }, [bankSelected, isFileImportSelected, isOtherBankSelected]);
 
     useEffect(() => {
         setBankSelected(addNewCard?.data.selectedBank);

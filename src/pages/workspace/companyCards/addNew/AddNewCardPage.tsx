@@ -27,6 +27,7 @@ import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
 import DirectStatementCloseDateStep from './DirectStatementCloseDatePage';
+import ImportFromFileStep from './ImportFromFileStep';
 import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
@@ -128,6 +129,9 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
+            break;
+        case CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE:
+            CurrentStep = <ImportFromFileStep />;
             break;
         default:
             CurrentStep = <SelectCountryStep policyID={policyID} />;
