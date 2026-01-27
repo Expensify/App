@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -256,13 +257,6 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                 ))}
                         </View>
                     ))}
-                    {isEditing && (
-                        <MenuItem
-                            title={translate('workspace.rules.merchantRules.deleteRule')}
-                            icon={expensifyIcons.Trashcan}
-                            onPress={() => setIsDeleteModalVisible(true)}
-                        />
-                    )}
                 </ScrollView>
                 <FormAlertWithSubmitButton
                     buttonText={translate('workspace.rules.merchantRules.saveRule')}
@@ -271,6 +265,17 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     message={errorMessage}
                     onSubmit={handleSubmit}
                     enabledWhenOffline
+                    shouldRenderFooterAboveSubmit
+                    footerContent={
+                        isEditing ? (
+                            <Button
+                                text={translate('workspace.rules.merchantRules.deleteRule')}
+                                onPress={() => setIsDeleteModalVisible(true)}
+                                style={[styles.mb4]}
+                                large
+                            />
+                        ) : null
+                    }
                 />
                 {isEditing && (
                     <ConfirmModal
