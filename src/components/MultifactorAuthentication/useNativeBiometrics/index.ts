@@ -1,6 +1,5 @@
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
-import {createAuthorizeErrorStatus} from '@components/MultifactorAuthentication/helpers';
 import type {MultifactorAuthorization} from '@components/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -41,12 +40,34 @@ function useNativeBiometrics() {
 
         const requestStatus = await challenge.request();
         if (!requestStatus.value) {
-            return setStatus(createAuthorizeErrorStatus(requestStatus), scenario);
+            return setStatus(
+                (prevStatus) => ({
+                    ...prevStatus,
+                    ...requestStatus,
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                }),
+                scenario,
+            );
         }
 
         const signature = await challenge.sign(accountID, chainedPrivateKeyStatus);
         if (!signature.value) {
-            return setStatus(createAuthorizeErrorStatus(signature), scenario);
+            return setStatus(
+                (prevStatus) => ({
+                    ...prevStatus,
+                    ...signature,
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                }),
+                scenario,
+            );
         }
 
         const result = await challenge.send();

@@ -1,5 +1,5 @@
 import {useCallback, useEffect} from 'react';
-import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys, Status} from '@components/MultifactorAuthentication/helpers';
+import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys} from '@components/MultifactorAuthentication/helpers';
 import type {BiometricsStatus, Register, UseBiometricsSetup} from '@components/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -28,7 +28,17 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      * @returns Updated status reflecting the cancelled setup.
      */
     const cancel = (wasRecentStepSuccessful?: boolean) =>
-        setStatus(Status.createCancelStatus(wasRecentStepSuccessful), CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.CANCEL);
+        setStatus(
+            (prevStatus) => ({
+                ...prevStatus,
+                step: {
+                    isRequestFulfilled: true,
+                    wasRecentStepSuccessful,
+                    requiredFactorForNextStep: undefined,
+                },
+            }),
+            CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.CANCEL,
+        );
 
     const deviceSupportBiometrics = doesDeviceSupportBiometrics();
 
@@ -45,14 +55,15 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
             const {isLocalPublicKeyInAuth, isAnyDeviceRegistered, isBiometryRegisteredLocally} = setupStatus;
 
             return setStatus(
-                Status.createRefreshStatusStatus(
-                    {
+                (prevStatus) => ({
+                    ...prevStatus,
+                    ...overwriteStatus,
+                    value: {
                         isLocalPublicKeyInAuth,
                         isAnyDeviceRegistered,
                         isBiometryRegisteredLocally,
                     },
-                    overwriteStatus,
-                ),
+                }),
                 CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.UPDATE,
             );
         },
@@ -79,11 +90,37 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
         const statusReason = scenario ?? CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.REGISTER;
 
         if (!doesDeviceSupportBiometrics()) {
-            return setStatus(Status.createUnsupportedDeviceStatus, statusReason);
+            return setStatus(
+                (prevStatus) => ({
+                    ...prevStatus,
+                    value: {
+                        isAnyDeviceRegistered: prevStatus.value.isAnyDeviceRegistered,
+                        isLocalPublicKeyInAuth: false,
+                        isBiometryRegisteredLocally: false,
+                    },
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                }),
+                statusReason,
+            );
         }
 
         if (!validateCode) {
-            return setStatus(Status.createValidateCodeMissingStatus, statusReason);
+            return setStatus(
+                (prevStatus) => ({
+                    ...prevStatus,
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: false,
+                        requiredFactorForNextStep: CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE,
+                    },
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.VALIDATE_CODE_MISSING,
+                }),
+                statusReason,
+            );
         }
 
         const {privateKey, publicKey} = generateKeyPair();
@@ -95,13 +132,37 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
             if (privateKeyExists && !status.value) {
                 await PrivateKeyStore.delete(accountID);
             }
-            return setStatus(Status.createKeyErrorStatus(privateKeyResult), statusReason);
+            return setStatus(
+                (prevStatus) => ({
+                    ...prevStatus,
+                    reason: privateKeyResult.reason,
+                    type: privateKeyResult.type,
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                }),
+                statusReason,
+            );
         }
 
         const publicKeyResult = await PublicKeyStore.set(accountID, publicKey);
         if (!publicKeyResult.value) {
             await PrivateKeyStore.delete(accountID);
-            return setStatus(Status.createKeyErrorStatus(publicKeyResult), statusReason);
+            return setStatus(
+                (prevStatus) => ({
+                    ...prevStatus,
+                    reason: publicKeyResult.reason,
+                    type: publicKeyResult.type,
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                }),
+                statusReason,
+            );
         }
 
         const {
@@ -119,17 +180,19 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
             await resetKeys(accountID);
         }
 
-        const builtStatus = {
-            reason: isCallSuccessful ? successMessage : reason,
-            type: privateKeyResult.type,
-            step: {
-                wasRecentStepSuccessful: isCallSuccessful,
-                isRequestFulfilled: true,
-                requiredFactorForNextStep: undefined,
-            },
-        };
-
-        const statusResult = setStatus(Status.createRegistrationResultStatus(builtStatus), statusReason);
+        const statusResult = setStatus(
+            (prevStatus) => ({
+                ...prevStatus,
+                reason: isCallSuccessful ? successMessage : reason,
+                type: privateKeyResult.type,
+                step: {
+                    wasRecentStepSuccessful: isCallSuccessful,
+                    isRequestFulfilled: true,
+                    requiredFactorForNextStep: undefined,
+                },
+            }),
+            statusReason,
+        );
 
         await refreshStatus();
 

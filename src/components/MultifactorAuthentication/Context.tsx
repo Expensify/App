@@ -18,10 +18,8 @@ import ROUTES from '@src/ROUTES';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from './config/types';
 import {
-    ContextStatus,
-    convertResultIntoMultifactorAuthenticationStatus,
     doesDeviceSupportBiometrics,
-    EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
+    extractAdditionalParameters,
     getCancelStatus,
     getOutcomePath,
     getOutcomePaths,
@@ -34,6 +32,24 @@ import {
 import type {MultifactorAuthenticationScenarioStatus, MultifactorTriggerArgument, OutcomePaths, Register, UseMultifactorAuthentication} from './types';
 import useMultifactorAuthenticationStatus from './useMultifactorAuthenticationStatus';
 import useNativeBiometrics from './useNativeBiometrics';
+
+const EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> = {
+    value: {},
+    outcomePaths: {
+        successOutcome: 'biometrics-test-success',
+        failureOutcome: 'biometrics-test-failure',
+    },
+    scenario: undefined,
+    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ACTION_MADE_YET,
+    headerTitle: 'Biometrics authentication',
+    title: 'You couldn’t be authenticated',
+    description: 'Your authentication attempt was unsuccessful.',
+    step: {
+        wasRecentStepSuccessful: false,
+        isRequestFulfilled: true,
+        requiredFactorForNextStep: undefined,
+    },
+};
 
 /**
  * Context for multifactor authentication state and operations.
@@ -198,13 +214,33 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         softPromptAccepted?: boolean,
     ) => {
         if (!allowedMethods(scenario, softPromptAccepted).biometrics) {
-            return setStatus(ContextStatus.createBiometricsNotAllowedStatus<T>(params), scenario, outcomePaths);
+            return setStatus(
+                {
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                    value: {
+                        payload: extractAdditionalParameters<T>(params),
+                    },
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BIOMETRICS_NOT_ALLOWED,
+                },
+                scenario,
+                outcomePaths,
+            );
         }
 
         const {nativePromptTitle} = params;
 
         const result = await NativeBiometrics.setup.register({...params, nativePromptTitle}, scenario);
-        const status = convertResultIntoMultifactorAuthenticationStatus(result, scenario, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION, params);
+        const status = {
+            ...result,
+            value: {
+                payload: extractAdditionalParameters<T>(params),
+                type: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION,
+            },
+        };
         const mergedResult = setStatus(status, scenario, outcomePaths);
 
         if (params.chainedWithAuthorization) {
@@ -222,15 +258,30 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         softPromptAccepted?: boolean,
     ) => {
         if (!allowedMethods(scenario, softPromptAccepted).biometrics) {
-            return setStatus(ContextStatus.createBiometricsNotAllowedStatus<T>(params), scenario, outcomePaths);
+            return setStatus(
+                {
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                    value: {
+                        payload: extractAdditionalParameters<T>(params),
+                    },
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BIOMETRICS_NOT_ALLOWED,
+                },
+                scenario,
+                outcomePaths,
+            );
         }
         return setStatus(
-            convertResultIntoMultifactorAuthenticationStatus(
-                await NativeBiometrics.authorize(scenario, params),
-                scenario,
-                CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION,
-                params,
-            ),
+            {
+                ...(await NativeBiometrics.authorize(scenario, params)),
+                value: {
+                    payload: params ? extractAdditionalParameters<T>(params) : undefined,
+                    type: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION,
+                },
+            },
             scenario,
             outcomePaths,
         );
@@ -253,7 +304,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const scenarioType = type ?? CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION;
 
         return setStatus(
-            convertResultIntoMultifactorAuthenticationStatus(cancelStatus, scenario, scenarioType, false),
+            {
+                ...cancelStatus,
+                value: {
+                    payload: undefined,
+                    type: scenarioType,
+                },
+            },
             scenario ?? CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.CANCEL,
             {
                 successOutcome,
@@ -302,12 +359,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             return setStatus(
                 (prevStatus) =>
-                    convertResultIntoMultifactorAuthenticationStatus(
-                        {...prevStatus, step: {...prevStatus.step, ...stepUpdate}},
-                        scenario,
-                        CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
-                        params ?? false,
-                    ),
+                    ({
+                        ...prevStatus,
+                        step: {...prevStatus.step, ...stepUpdate},
+                        value: {
+                            payload: params ? extractAdditionalParameters<T>(params) : undefined,
+                            type: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
+                        },
+                    }) as typeof prevStatus,
                 scenario,
                 outcomePaths,
                 {
@@ -321,7 +380,22 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             /** Run the setup method */
             if (!params) {
-                return setStatus((prevStatus) => ContextStatus.badRequestStatus(prevStatus), scenario, outcomePaths);
+                return setStatus(
+                    (currentStatus) => ({
+                        ...currentStatus,
+                        value: {
+                            ...currentStatus.value,
+                        },
+                        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
+                        step: {
+                            wasRecentStepSuccessful: false,
+                            isRequestFulfilled: true,
+                            requiredFactorForNextStep: undefined,
+                        },
+                    }),
+                    scenario,
+                    outcomePaths,
+                );
             }
 
             const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
@@ -332,7 +406,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             if (!requestStatus.step.wasRecentStepSuccessful) {
                 return setStatus(
-                    convertResultIntoMultifactorAuthenticationStatus(requestStatus, scenario, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION, params),
+                    {
+                        ...requestStatus,
+                        value: {
+                            payload: params ? extractAdditionalParameters<T>(params) : undefined,
+                            type: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION,
+                        },
+                    },
                     scenario,
                     outcomePaths,
                 );
@@ -345,7 +425,22 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // If the scenario is pure, the payload is not needed hence for the proceed call the params can be empty
         if (!params && !('pure' in config)) {
-            return setStatus((prevStatus) => ContextStatus.badRequestStatus(prevStatus), scenario, outcomePaths);
+            return setStatus(
+                (currentStatus) => ({
+                    ...currentStatus,
+                    value: {
+                        ...currentStatus.value,
+                    },
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                }),
+                scenario,
+                outcomePaths,
+            );
         }
 
         /** Multifactor authentication is configured already, let's do the challenge logic */
@@ -368,7 +463,21 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const {scenario} = mergedStatus;
 
         if (!scenario || isRequestFulfilled) {
-            return setStatus(ContextStatus.badRequestStatus(mergedStatus), scenario ?? CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.UPDATE);
+            return setStatus(
+                (currentStatus) => ({
+                    ...currentStatus,
+                    value: {
+                        ...currentStatus.value,
+                    },
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
+                    step: {
+                        wasRecentStepSuccessful: false,
+                        isRequestFulfilled: true,
+                        requiredFactorForNextStep: undefined,
+                    },
+                }),
+                scenario ?? CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.UPDATE,
+            );
         }
 
         const validateCode = params.validateCode ?? storedValidateCode.current;
