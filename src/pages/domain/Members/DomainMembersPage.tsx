@@ -1,21 +1,20 @@
 import {defaultSecurityGroupIDSelector, memberAccountIDsSelector, memberPendingActionSelector} from '@selectors/Domain';
 import React from 'react';
 import Button from '@components/Button';
-import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { clearAddMemberError } from '@libs/actions/Domain';
-import { getLatestError } from '@libs/ErrorUtils';
+import {clearAddMemberError} from '@libs/actions/Domain';
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
-import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
-import type { DomainSplitNavigatorParamList } from '@navigation/types';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
