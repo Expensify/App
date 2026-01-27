@@ -40,6 +40,10 @@ function ImportFromFileStep() {
         setAddNewCompanyCardStepAndData({data: {useAdvancedFields: value}});
     };
 
+    const navigateToImport = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID));
+    };
+
     return (
         <ScreenWrapper
             testID="ImportFromFileStep"
@@ -78,11 +82,11 @@ function ImportFromFileStep() {
                 </View>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button
-                        isDisabled={isOffline}
+                        isDisabled={isOffline || !companyCardLayoutName.trim()}
                         success
                         large
                         style={[styles.w100]}
-                        onPress={() => {}}
+                        onPress={navigateToImport}
                         text={translate('common.next')}
                     />
                 </View>

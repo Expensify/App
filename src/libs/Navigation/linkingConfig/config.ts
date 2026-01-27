@@ -803,6 +803,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_LAYOUT_NAME]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.route,
                         },
