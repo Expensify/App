@@ -788,11 +788,7 @@ const translations: TranslationDeepObject<typeof en> = {
         paidBy: '支付方',
         whatsItFor: '它是用来做什么的？',
     },
-    selectionList: {
-        nameEmailOrPhoneNumber: '姓名、电子邮箱或电话号码',
-        findMember: '查找成员',
-        searchForSomeone: '搜索人员',
-    },
+    selectionList: {nameEmailOrPhoneNumber: '姓名、电子邮箱或电话号码', findMember: '查找成员', searchForSomeone: '搜索人员', userSelected: (username: string) => `已选择 ${username}`},
     customApprovalWorkflow: {
         title: '自定义审批流程',
         description: '您的公司在此工作区中使用了自定义审批工作流程。请在 Expensify Classic 中执行此操作',
@@ -2931,10 +2927,7 @@ ${
     detailsPage: {
         localTime: '本地时间',
     },
-    newChatPage: {
-        startGroup: '开始群组',
-        addToGroup: '添加到群组',
-    },
+    newChatPage: {startGroup: '开始群组', addToGroup: '添加到群组', addUserToGroup: (username: string) => `将 ${username} 添加到群组`},
     yearPickerPage: {
         year: '年',
         selectYear: '请选择年份',
@@ -6209,6 +6202,7 @@ ${reportName}
             symbols: '符号',
             flags: '标记',
         },
+        emojiNotSelected: '未选择表情符号',
     },
     newRoomPage: {
         newRoom: '新聊天室',

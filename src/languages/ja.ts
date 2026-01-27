@@ -797,6 +797,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: '名前、メールアドレス、または電話番号',
         findMember: 'メンバーを検索',
         searchForSomeone: 'ユーザーを検索',
+        userSelected: (username: string) => `${username} が選択されました`,
     },
     customApprovalWorkflow: {
         title: 'カスタム承認ワークフロー',
@@ -2975,10 +2976,7 @@ ${
     detailsPage: {
         localTime: '現地時間',
     },
-    newChatPage: {
-        startGroup: 'グループを開始',
-        addToGroup: 'グループに追加',
-    },
+    newChatPage: {startGroup: 'グループを開始', addToGroup: 'グループに追加', addUserToGroup: (username: string) => `${username} をグループに追加`},
     yearPickerPage: {
         year: '年',
         selectYear: '年を選択してください',
@@ -6319,6 +6317,7 @@ ${reportName}
             symbols: '記号',
             flags: 'フラグ',
         },
+        emojiNotSelected: '絵文字が選択されていません',
     },
     newRoomPage: {
         newRoom: '新しいルーム',

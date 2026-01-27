@@ -798,6 +798,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: 'Nome, e-mail ou número de telefone',
         findMember: 'Encontrar um membro',
         searchForSomeone: 'Pesquisar alguém',
+        userSelected: (username: string) => `${username} selecionado`,
     },
     customApprovalWorkflow: {
         title: 'Fluxo de aprovação personalizado',
@@ -2975,10 +2976,7 @@ ${
     detailsPage: {
         localTime: 'Hora local',
     },
-    newChatPage: {
-        startGroup: 'Iniciar grupo',
-        addToGroup: 'Adicionar ao grupo',
-    },
+    newChatPage: {startGroup: 'Iniciar grupo', addToGroup: 'Adicionar ao grupo', addUserToGroup: (username: string) => `Adicionar ${username} ao grupo`},
     yearPickerPage: {
         year: 'Ano',
         selectYear: 'Selecione um ano',
@@ -6343,6 +6341,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             symbols: 'Símbolos',
             flags: 'Bandeiras',
         },
+        emojiNotSelected: 'Emoji não selecionado',
     },
     newRoomPage: {
         newRoom: 'Nova sala',
