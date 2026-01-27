@@ -40,7 +40,8 @@ type SectionType = {
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
-    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH && !!value);
+    const merchantToMatchField = CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH;
+    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== merchantToMatchField && !!value);
     if (form?.merchantToMatch && hasAtLeastOneUpdate) {
         return '';
     }
