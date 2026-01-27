@@ -65,7 +65,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
         // so the user can log back in
         if (currentIsUsingImportedState) {
             Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
-            Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, false);
+            Onyx.merge(ONYXKEYS.IS_USING_IMPORTED_STATE, false);
         }
 
         if (!errorMessage) {
