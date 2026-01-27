@@ -117,7 +117,7 @@ function WorkspaceCompanyCardsTable({
     }
 
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
-    const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
+    const isLoadingCards = (selectedFeed?.accountList === undefined && cardList === undefined) || isLoadingOnyxValue(cardListMetadata);
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
     const isShowingLoadingState = isLoadingPage || isLoadingFeed;
 
