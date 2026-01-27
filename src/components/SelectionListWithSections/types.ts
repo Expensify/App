@@ -36,6 +36,7 @@ import type {
     SearchMonthGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchWeekGroup,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -509,6 +510,14 @@ type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
         /** Final and formatted "category" value used for displaying and sorting */
         formattedCategory?: string;
+    };
+
+type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
+        /** Final and formatted "week" value used for displaying */
+        formattedWeek: string;
+
+        /** Key used for sorting */
+        sortKey: string;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -1154,6 +1163,7 @@ export type {
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionWeekGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

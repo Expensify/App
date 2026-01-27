@@ -9,7 +9,7 @@ import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
 import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType, TransactionWeekGroupListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
@@ -57,6 +57,7 @@ import {
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
     isTransactionMonthGroupListItemType,
+    isTransactionWeekGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -524,7 +525,7 @@ function Search({
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
                 // This ensures report-level selection persists when new transactions are added.
-                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
+                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction: TransactionListItemType) => transaction.transactionID in selectedTransactions);
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const isSelected = transactionItem.transactionID in selectedTransactions;
@@ -848,13 +849,42 @@ function Search({
                 return;
             }
 
-            let reportID = item.reportID;
-            if (isTransactionItem && item?.reportAction?.childReportID) {
-                const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                const isFromOneTransactionReport = isOneTransactionReport(item.report);
+            if (isTransactionWeekGroupListItemType(item)) {
+                const weekGroupItem = item as TransactionWeekGroupListItemType;
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroupItem.week);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: weekStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: weekEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            // After handling all group types, item should be TransactionListItemType or ReportActionListItemType
+            if (!isTransactionItem && !isReportActionListItemType(item)) {
+                return;
+            }
+
+            const transactionItem = item as TransactionListItemType;
+            const reportActionItem = item as ReportActionListItemType;
+
+            let reportID = transactionItem.reportID ?? reportActionItem.reportID;
+            if (isTransactionItem && transactionItem?.reportAction?.childReportID) {
+                const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
 
                 if (isFromSelfDM || !isFromOneTransactionReport) {
-                    reportID = item?.reportAction?.childReportID;
+                    reportID = transactionItem?.reportAction?.childReportID;
                 }
             }
 
@@ -870,8 +900,9 @@ function Search({
             });
 
             if (isTransactionGroupListItemType(item)) {
-                const firstTransaction = item.transactions.at(0);
-                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                const groupItem = item as TransactionGroupListItemType;
+                const firstTransaction = groupItem.transactions.at(0);
+                if (groupItem.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
                     } else {
@@ -879,7 +910,7 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
+                if (groupItem.transactions.length > 1) {
                     markReportIDAsMultiTransactionExpense(reportID);
                 } else {
                     unmarkReportIDAsMultiTransactionExpense(reportID);
@@ -890,7 +921,7 @@ function Search({
             }
 
             if (isReportActionListItemType(item)) {
-                const reportActionID = item.reportActionID;
+                const reportActionID = reportActionItem.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
@@ -898,7 +929,7 @@ function Search({
             markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData, item?.reportAction?.childReportID);
+                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));

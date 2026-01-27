@@ -20,6 +20,7 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -45,6 +46,7 @@ import CategoryListItemHeader from './CategoryListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
+import WeekListItemHeader from './WeekListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 
@@ -301,6 +303,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 [CONST.SEARCH.GROUP_BY.MONTH]: (
                     <MonthListItemHeader
                         month={groupItem as TransactionMonthGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.WEEK]: (
+                    <WeekListItemHeader
+                        week={groupItem as TransactionWeekGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
                         columns={columns}

@@ -929,6 +929,19 @@ function getMonthDateRange(year: number, month: number): {start: string; end: st
 }
 
 /**
+ * Returns the start and end dates of a week in the format yyyy-MM-dd.
+ * @param weekStartDate - Week start date string in YYYY-MM-DD format
+ */
+function getWeekDateRange(weekStartDate: string): {start: string; end: string} {
+    const weekStart = new Date(weekStartDate);
+    const weekEnd = endOfWeek(weekStart, {weekStartsOn: CONST.WEEK_STARTS_ON});
+    return {
+        start: format(weekStart, 'yyyy-MM-dd'),
+        end: format(weekEnd, 'yyyy-MM-dd'),
+    };
+}
+
+/**
  * Checks if a date string (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss) falls within a specific month.
  * Uses string comparison to avoid timezone issues.
  *
@@ -1003,6 +1016,7 @@ const DateUtils = {
     isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
     getMonthDateRange,
+    getWeekDateRange,
     isDateStringInMonth,
 };
 

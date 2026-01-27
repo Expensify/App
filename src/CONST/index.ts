@@ -6843,6 +6843,7 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawal-id',
             CATEGORY: 'category',
             MONTH: 'month',
+            WEEK: 'week',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6929,6 +6930,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                WEEK: {
+                    WEEK: this.TABLE_COLUMNS.GROUP_WEEK,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -6972,6 +6978,7 @@ const CONST = {
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7069,6 +7076,7 @@ const CONST = {
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
             GROUP_CATEGORY: 'groupCategory',
             GROUP_MONTH: 'groupMonth',
+            GROUP_WEEK: 'groupWeek',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7252,6 +7260,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
+                [this.TABLE_COLUMNS.GROUP_MONTH]: 'group-month',
+                [this.TABLE_COLUMNS.GROUP_WEEK]: 'group-week',
             };
         },
         NOT_MODIFIER: 'Not',

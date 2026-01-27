@@ -1,4 +1,4 @@
-import {format} from 'date-fns';
+import {endOfWeek, format} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -39,6 +39,7 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import type {ThemeColors} from '@styles/theme/types';
@@ -933,6 +934,10 @@ function isTransactionCategoryGroupListItemType(item: ListItem): item is Transac
  */
 function isTransactionMonthGroupListItemType(item: ListItem): item is TransactionMonthGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH;
+}
+
+function isTransactionWeekGroupListItemType(item: ListItem): item is TransactionWeekGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK;
 }
 
 /**
@@ -2237,6 +2242,58 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
 }
 
 /**
+ * Returns sections for week-grouped search results.
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWeekGroupListItemType[], number] {
+    const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const weekGroup = data[key];
+            // Check if this is a week group by checking for week property
+            if (!('week' in weekGroup)) {
+                continue;
+            }
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
+            if (queryJSON && weekGroup.week) {
+                // Create date range for the week (start date to end date of the week)
+                const weekStartDate = new Date(weekGroup.week);
+                const weekEndDate = endOfWeek(weekStartDate, {weekStartsOn: CONST.WEEK_STARTS_ON});
+                const weekStart = format(weekStartDate, 'yyyy-MM-dd');
+                const weekEnd = format(weekEndDate, 'yyyy-MM-dd');
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: weekStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: weekEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+
+            // Format week display: "Week of January 27, 2025"
+            const weekStartDate = new Date(weekGroup.week);
+            const formattedWeek = `Week of ${format(weekStartDate, 'MMMM d, yyyy')}`;
+
+            weekSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+                transactions: [],
+                transactionsQueryJSON,
+                ...weekGroup,
+                formattedWeek,
+                sortKey: weekGroup.week,
+            };
+        }
+    }
+
+    const weekSectionsValues = Object.values(weekSections);
+    return [weekSectionsValues, weekSectionsValues.length];
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -2313,6 +2370,8 @@ function getSections({
                 return getCategorySections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return getMonthSections(data, queryJSON);
+            case CONST.SEARCH.GROUP_BY.WEEK:
+                return getWeekSections(data, queryJSON);
         }
     }
 
@@ -3383,6 +3442,7 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY,
             [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH,
+            [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK,
         }[groupBy];
 
         const defaultCustomColumns = {
@@ -3391,22 +3451,23 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY,
             [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH,
+            [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WEEK,
         }[groupBy];
 
-        const filteredVisibleColumns = visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>));
-        const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : defaultCustomColumns;
+        const filteredVisibleColumns = customColumns ? visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>)) : [];
+        const columnsToShow: SearchColumnType[] = filteredVisibleColumns.length ? filteredVisibleColumns : (defaultCustomColumns ?? []);
 
         if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
             const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]);
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -3418,12 +3479,12 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -3435,12 +3496,12 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -3452,12 +3513,29 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -3469,12 +3547,12 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -3764,6 +3842,7 @@ export {
     isTransactionWithdrawalIDGroupListItemType,
     isTransactionCategoryGroupListItemType,
     isTransactionMonthGroupListItemType,
+    isTransactionWeekGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
