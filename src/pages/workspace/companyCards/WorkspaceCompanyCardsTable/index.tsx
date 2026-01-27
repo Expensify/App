@@ -261,7 +261,7 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-
+    const shouldRenderHeaderAsChild = !shouldUseNarrowTableLayout || ((isFeedPending || isLoadingPage) && !showCards);
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
@@ -285,6 +285,18 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
+    const headerButtonsComponent = showTableHeaderButtons ? (
+        <View style={shouldUseNarrowTableLayout && styles.mb5}>
+            <WorkspaceCompanyCardsTableHeaderButtons
+                isLoading={isLoadingPage}
+                policyID={policyID}
+                feedName={feedName}
+                showTableControls={showTableControls}
+                CardFeedIcon={cardFeedIcon}
+            />
+        </View>
+    ) : undefined;
+
     return (
         <Table
             ref={tableRef}
@@ -297,18 +309,9 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
             ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
+            ListHeaderComponent={shouldUseNarrowTableLayout ? headerButtonsComponent : undefined}
         >
-            {showTableHeaderButtons && (
-                <View style={shouldUseNarrowTableLayout && styles.mb5}>
-                    <WorkspaceCompanyCardsTableHeaderButtons
-                        isLoading={isLoadingPage}
-                        policyID={policyID}
-                        feedName={feedName}
-                        showTableControls={showTableControls}
-                        CardFeedIcon={cardFeedIcon}
-                    />
-                </View>
-            )}
+            {shouldRenderHeaderAsChild && headerButtonsComponent}
 
             {(isLoadingPage || isFeedPending || isNoFeed) && (
                 <ScrollView>
