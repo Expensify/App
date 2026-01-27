@@ -243,6 +243,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
                 policyTags: itemPolicyTags,
                 reportMetadata: itemReportMetadata,
+                currentUserAccountID,
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;

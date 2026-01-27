@@ -65,6 +65,8 @@ function useOptions() {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
+    const currentUserAccountID = personalData.accountID;
+    const currentUserEmail = personalData.email ?? '';
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
@@ -105,6 +107,8 @@ function useOptions() {
         policyTags,
         translate,
         loginList,
+        currentUserAccountID,
+        currentUserEmail,
         {
             betas: betas ?? [],
             includeSelfDM: true,
@@ -118,7 +122,7 @@ function useOptions() {
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, translate, countryCode, loginList, {
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -130,7 +134,7 @@ function useOptions() {
         !!options.userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
+        selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
     );
 
     useFocusEffect(() => {
@@ -163,6 +167,8 @@ function useOptions() {
                           searchValue: participant?.login,
                           translate,
                           loginList,
+                          currentUserEmail: personalData.email ?? '',
+                          currentUserAccountID: personalData.accountID,
                       });
                   if (participantOption) {
                       result.push({
@@ -233,6 +239,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
+    const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
@@ -270,6 +277,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         undefined,
         translate,
+        currentUserAccountID,
         allPersonalDetails,
         undefined,
         undefined,

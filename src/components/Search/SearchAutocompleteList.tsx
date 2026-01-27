@@ -1,4 +1,3 @@
-import {accountIDSelector, emailSelector} from '@selectors/Session';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListW
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrencyList from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -197,6 +197,9 @@ function SearchAutocompleteList({
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -222,8 +225,23 @@ function SearchAutocompleteList({
             policyTags,
             shouldUnreadBeBold: true,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
         });
-    }, [areOptionsInitialized, translate, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, policyTags, loginList]);
+    }, [
+        areOptionsInitialized,
+        translate,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        policyTags,
+        loginList,
+        currentUserAccountID,
+        currentUserEmail,
+    ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -297,8 +315,6 @@ function SearchAutocompleteList({
     }, [allRecentCategories]);
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
@@ -307,9 +323,9 @@ function SearchAutocompleteList({
     const workspaceList = useMemo(
         () =>
             Object.values(policies)
-                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserLogin) && !singlePolicy?.isJoinRequestPending)
+                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserEmail) && !singlePolicy?.isJoinRequestPending)
                 .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''})),
-        [policies, currentUserLogin],
+        [policies, currentUserEmail],
     );
 
     const {currencyList} = useCurrencyList();
@@ -434,11 +450,13 @@ function SearchAutocompleteList({
                     loginList,
                     shouldShowGBR: true,
                     policyTags,
+                    currentUserAccountID,
+                    currentUserEmail,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
                     filterKey: autocompleteKey,
-                    text: participant.login === currentUserLogin ? CONST.SEARCH.ME : (participant.text ?? ''),
+                    text: participant.login === currentUserEmail ? CONST.SEARCH.ME : (participant.text ?? ''),
                     autocompleteID: String(participant.accountID),
                     mapKey: autocompleteKey,
                 }));
@@ -467,6 +485,8 @@ function SearchAutocompleteList({
                     loginList,
                     shouldShowGBR: true,
                     policyTags,
+                    currentUserAccountID,
+                    currentUserEmail,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;
@@ -638,7 +658,8 @@ function SearchAutocompleteList({
         countryCode,
         policyTags,
         loginList,
-        currentUserLogin,
+        currentUserAccountID,
+        currentUserEmail,
         groupByAutocompleteList,
         statusAutocompleteList,
         feedAutoCompleteList,

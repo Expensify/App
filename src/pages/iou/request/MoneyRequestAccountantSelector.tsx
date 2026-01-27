@@ -8,6 +8,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -67,6 +68,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     useEffect(() => {
@@ -89,6 +93,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             policyTags,
             translate,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -118,6 +124,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         betas,
         action,
         countryCode,
+        currentUserAccountID,
+        currentUserEmail,
         personalDetails,
     ]);
 
@@ -131,12 +139,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, translate, countryCode, loginList, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, translate, countryCode, loginList]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -157,6 +165,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             chatOptions.personalDetails,
             policyTags,
             translate,
+            currentUserAccountID,
             personalDetails,
             true,
             undefined,
@@ -181,6 +190,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             !isCurrentUser(
                 {...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined},
                 loginList,
+                currentUserEmail,
             )
         ) {
             newSections.push({
@@ -188,7 +198,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, policyTags, translate, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, policyTags, translate, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
@@ -217,6 +227,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         reportAttributesDerived,
         loginList,
         countryCode,
+        currentUserAccountID,
+        currentUserEmail,
     ]);
 
     const selectAccountant = useCallback(

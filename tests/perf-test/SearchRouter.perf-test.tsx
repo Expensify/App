@@ -44,9 +44,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 // Mock useRootNavigationState to return a stable value
-jest.mock('@src/hooks/useRootNavigationState', () => {
-    return jest.fn(() => undefined);
-});
 
 // Mock useLazyAsset hook to prevent async loading causing extra renders
 // Must include all icons used by SearchRouter and its children (SearchAutocompleteList)
@@ -55,6 +52,12 @@ jest.mock('@hooks/useLazyAsset', () => ({
         MagnifyingGlass: 'MagnifyingGlass',
         History: 'History',
     })),
+}));
+
+jest.mock('@src/hooks/useRootNavigationState', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -98,10 +101,12 @@ const getMockedPersonalDetails = (length = 100) =>
         length,
     );
 
+const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
+
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
-const mockedOptions = createOptionList(mockedPersonalDetails, undefined, jest.fn(), mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, undefined, jest.fn(), MOCK_CURRENT_USER_ACCOUNT_ID, mockedReports);
 
 beforeAll(() =>
     Onyx.init({

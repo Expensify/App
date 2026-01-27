@@ -5,6 +5,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
@@ -51,6 +52,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
@@ -74,6 +78,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             policyTags,
             translate,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
@@ -91,6 +97,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         policyTags,
         translate,
         loginList,
+        currentUserAccountID,
+        currentUserEmail,
         personalDetails,
         countryCode,
     ]);
@@ -100,7 +108,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, translate, countryCode, loginList, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -115,7 +123,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, translate, countryCode, loginList, selectedOptions]);
+    }, [unselectedOptions, cleanSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -130,6 +138,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             chatOptions.personalDetails,
             undefined,
             translate,
+            currentUserAccountID,
             personalDetails,
             true,
             undefined,
@@ -182,7 +191,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
