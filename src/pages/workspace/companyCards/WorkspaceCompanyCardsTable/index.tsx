@@ -285,18 +285,17 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
-    const headerButtonsComponent =
-        showTableHeaderButtons ? (
-            <View style={shouldUseNarrowTableLayout && styles.mb5}>
-                <WorkspaceCompanyCardsTableHeaderButtons
-                    isLoading={isLoadingPage}
-                    policyID={policyID}
-                    feedName={feedName}
-                    showTableControls={showTableControls}
-                    CardFeedIcon={cardFeedIcon}
-                />
-            </View>
-        ) : undefined;
+    const headerButtonsComponent = showTableHeaderButtons ? (
+        <View style={shouldUseNarrowTableLayout && styles.mb5}>
+            <WorkspaceCompanyCardsTableHeaderButtons
+                isLoading={isLoadingPage}
+                policyID={policyID}
+                feedName={feedName}
+                showTableControls={showTableControls}
+                CardFeedIcon={cardFeedIcon}
+            />
+        </View>
+    ) : undefined;
 
     return (
         <Table
