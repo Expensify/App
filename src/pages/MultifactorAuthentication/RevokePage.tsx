@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -26,6 +27,7 @@ function MultifactorAuthenticationRevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
     const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getHasDevices, canBeMissing: true});
     const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getIsLoading, canBeMissing: true});
@@ -43,9 +45,15 @@ function MultifactorAuthenticationRevokePage() {
     };
 
     const handleRevokeConfirm = async () => {
-        await revokeMultifactorAuthenticationCredentials();
-        hideConfirmModal();
-        Navigation.dismissModal();
+        const result = await revokeMultifactorAuthenticationCredentials();
+
+        if (result.httpCode === 200) {
+            hideConfirmModal();
+            Navigation.goBack();
+        } else {
+            hideConfirmModal();
+            setErrorMessage(translate('multifactorAuthentication.revoke.error'));
+        }
     };
 
     return (
@@ -61,6 +69,12 @@ function MultifactorAuthenticationRevokePage() {
                         {translate(hasDevices ? 'multifactorAuthentication.revoke.explanation' : 'multifactorAuthentication.revoke.noDevices')}
                     </Text>
                 </View>
+                {!!errorMessage && (
+                    <FormHelpMessage
+                        message={errorMessage}
+                        style={[styles.mh5, styles.mb3]}
+                    />
+                )}
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     {hasDevices ? (
                         <Button

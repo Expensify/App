@@ -755,6 +755,7 @@ const translations = {
             cta: 'Revoke access',
             noDevices: "You don't have any devices register for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
             dismiss: 'Got it',
+            error: 'Request failed. Try again later.',
         },
     },
     validateCodeModal: {
