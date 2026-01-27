@@ -1051,6 +1051,10 @@ const translations: TranslationDeepObject<typeof en> = {
         addReceipt: '添加收据',
         scanFailed: '无法扫描该收据，因为缺少商家、日期或金额。',
         crop: '裁剪',
+        addAReceipt: {
+            phrase1: '添加收据',
+            phrase2: '或者拖拽到这里',
+        },
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -6672,6 +6676,7 @@ ${reportName}
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
+        topCategories: '热门类别',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
             approve: '批准',

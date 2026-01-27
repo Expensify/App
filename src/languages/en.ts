@@ -1064,6 +1064,10 @@ const translations = {
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        addAReceipt: {
+            phrase1: 'Add a receipt',
+            phrase2: 'or drag and drop one here',
+        },
     },
     quickAction: {
         scanReceipt: 'Scan receipt',
@@ -6746,6 +6750,7 @@ const translations = {
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
+        topCategories: 'Top categories',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',

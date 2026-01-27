@@ -1070,6 +1070,10 @@ const translations: TranslationDeepObject<typeof en> = {
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il manque un commerçant, une date ou un montant.',
         crop: 'Recadrer',
+        addAReceipt: {
+            phrase1: 'Ajouter un reçu',
+            phrase2: 'ou faites-le glisser et déposez-le ici',
+        },
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -6871,6 +6875,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
+        topCategories: 'Catégories principales',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             approve: 'Approuver',

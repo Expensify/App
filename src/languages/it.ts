@@ -1066,6 +1066,10 @@ const translations: TranslationDeepObject<typeof en> = {
         addReceipt: 'Aggiungi ricevuta',
         scanFailed: 'Impossibile acquisire la ricevuta perché mancano l’esercente, la data o l’importo.',
         crop: 'Ritaglia',
+        addAReceipt: {
+            phrase1: 'Aggiungi una ricevuta',
+            phrase2: 'o trascinala e rilasciala qui',
+        },
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -6850,6 +6854,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
         searchName: 'Cerca nome',
         savedSearchesMenuItemTitle: 'Salvato',
+        topCategories: 'Categorie principali',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
             approve: 'Approva',
