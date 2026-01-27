@@ -931,7 +931,8 @@ function createOption(
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         result.lastMessageText = getLastMessageTextForReport({
-            translate: translateLocal,
+
+            translate,
             report,
             lastActorDetails,
             isReportArchived: !!result.private_isArchived,

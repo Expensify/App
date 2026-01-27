@@ -474,7 +474,29 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
         return result;
-    }, [policy?.employeeList, policy?.owner, policy?.ownerAccountID, policyMemberEmailsToAccountIDs, isOffline, personalDetails, isPolicyAdmin, formatPhoneNumber, session?.accountID, styles.cursorDefault, styles.flex1, styles.pr3, styles.alignSelfStart, styles.alignSelfEnd, isControlPolicyWithWideLayout, StyleUtils, icons.FallbackAvatar, invitedPrimaryToSecondaryLogins, policyOwner, currentUserLogin, translate]);
+    }, [
+        policy?.employeeList,
+        policy?.owner,
+        policy?.ownerAccountID,
+        policyMemberEmailsToAccountIDs,
+        isOffline,
+        personalDetails,
+        isPolicyAdmin,
+        formatPhoneNumber,
+        session?.accountID,
+        styles.cursorDefault,
+        styles.flex1,
+        styles.pr3,
+        styles.alignSelfStart,
+        styles.alignSelfEnd,
+        isControlPolicyWithWideLayout,
+        StyleUtils,
+        icons.FallbackAvatar,
+        invitedPrimaryToSecondaryLogins,
+        policyOwner,
+        currentUserLogin,
+        translate,
+    ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
         const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
