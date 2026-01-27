@@ -61,17 +61,11 @@ function UserSelectionListItem<TItem extends ListItem>({
     }, [currentUserPersonalDetails.login, item.login]);
 
     const userDisplayName = useMemo(() => {
-        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string from getDisplayNameForParticipant */
-        return (
-            getDisplayNameForParticipant({
-                accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                formatPhoneNumber,
-            }) ||
-            item.text ||
-            ''
-        );
-        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-    }, [formatPhoneNumber, item.accountID, item.text]);
+        return getDisplayNameForParticipant({
+            accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            formatPhoneNumber,
+        });
+    }, [formatPhoneNumber, item.accountID]);
 
     return (
         <BaseListItem
