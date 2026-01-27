@@ -782,7 +782,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori
+            Autenticazione a due fattori  
             richiesta
         `),
         tfaRequiredDescription: dedent(`
@@ -4893,14 +4893,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
-                workspaceFeedsCouldNotBeLoadedMessage:
-                    'Si è verificato un errore durante il caricamento dei feed della scheda dell’area di lavoro. Riprova o contatta il tuo amministratore.',
-                feedCouldNotBeLoadedTitle: 'Impossibile caricare questo feed',
-                feedCouldNotBeLoadedMessage: 'Si è verificato un errore durante il caricamento di questo feed. Riprova o contatta il tuo amministratore.',
-                tryAgain: 'Riprova',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
