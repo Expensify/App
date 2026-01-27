@@ -58,7 +58,6 @@ import type {
     SearchCategoryGroup,
     SearchDataTypes,
     SearchMemberGroup,
-    SearchMonthGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWithdrawalIDGroup,
@@ -2192,16 +2191,15 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionMonthGroupListItemType[], number] {
+function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
-            const groupData = data[key];
+            const monthGroup = data[key];
             // Check if this is a month group by checking for year and month properties
-            if (!('year' in groupData) || !('month' in groupData)) {
+            if (!('year' in monthGroup) || !('month' in monthGroup)) {
                 continue;
             }
-            const monthGroup = groupData as SearchMonthGroup;
             let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON && monthGroup.year && monthGroup.month) {
                 // Create date range for the month (first day to last day of the month)
@@ -2314,7 +2312,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.CATEGORY:
                 return getCategorySections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.MONTH:
-                return getMonthSections(data, queryJSON, translate);
+                return getMonthSections(data, queryJSON);
         }
     }
 
