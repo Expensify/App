@@ -760,7 +760,11 @@ type PolicyRulesModifiedFields = {
     reimbursable?: boolean;
 
     /** The value that the tax was changed to */
-    tax?: Record<string, PolicyRuleTaxRate>;
+    tax?: {
+        /** The tax rate being used  */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        field_id_TAX: PolicyRuleTaxRate;
+    };
 };
 
 /** Model of a `travel update` report action */

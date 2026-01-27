@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
-import type {PolicyRuleTaxRate} from '@src/types/onyx/ExpenseRule';
 import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -203,7 +202,7 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
 }
 
 function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, policyRulesModifiedFields: PolicyRulesModifiedFields, policyID: string): string {
-    const entries = Object.entries(policyRulesModifiedFields) as Array<[keyof PolicyRulesModifiedFields, string | boolean | PolicyRuleTaxRate]>;
+    const entries = Object.entries(policyRulesModifiedFields) as Array<[keyof PolicyRulesModifiedFields, ValueOf<PolicyRulesModifiedFields>]>;
 
     const fragments = entries.map(([key, value], i) => {
         const isFirst = i === 0;
@@ -217,8 +216,9 @@ function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, poli
         }
 
         if (key === 'tax') {
-            const taxRate = value as PolicyRuleTaxRate;
-            return translate('iou.updatedFieldTo', {key: translate('common.tax').toLowerCase(), value: taxRate.name, first: isFirst});
+            const taxEntry = value as PolicyRulesModifiedFields['tax'];
+            const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+            return translate('iou.updatedFieldTo', {key: translate('common.tax').toLowerCase(), value: taxRateName, first: isFirst});
         }
 
         const updatedValue = value as string | boolean;
