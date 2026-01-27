@@ -204,7 +204,7 @@ function IOURequestStepConfirmation({
 
     const {policy} = usePolicyForTransaction({
         transaction: initialTransaction,
-        reportPolicyID: realPolicyID ?? draftPolicyID ?? '',
+        reportPolicyID: realPolicyID ?? draftPolicyID,
         action,
         iouType,
         isPerDiemRequest,

@@ -12,7 +12,7 @@ type UsePolicyForTransactionParams = {
     transaction: OnyxEntry<Transaction>;
 
     /** The report policy ID associated with the transaction */
-    reportPolicyID: string;
+    reportPolicyID: string | undefined;
 
     /** The current action being performed */
     action: string;

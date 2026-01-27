@@ -59,7 +59,7 @@ function IOURequestStepCategory({
     const report = reportReal ?? reportDraft ?? transactionReport;
     const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: policyIdReal ?? policyIdDraft ?? '', action, iouType, isPerDiemRequest});
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: policyIdReal ?? policyIdDraft, action, iouType, isPerDiemRequest});
     const policyID = policy?.id;
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});

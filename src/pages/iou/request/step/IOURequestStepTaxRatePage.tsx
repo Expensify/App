@@ -42,7 +42,7 @@ function IOURequestStepTaxRatePage({
     report,
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID ?? '', action, iouType});
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});

@@ -312,7 +312,7 @@ function MoneyRequestConfirmationList({
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policy} = usePolicyForTransaction({
         transaction,
-        reportPolicyID: policyID ?? '',
+        reportPolicyID: policyID,
         action,
         iouType,
         isPerDiemRequest,
