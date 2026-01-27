@@ -231,26 +231,15 @@ type SearchResults = {
 export default SearchResults;
 
 export type {
-    
     ListItemType,
-   
     ListItemDataType,
-   
     SearchTask,
-   
     SearchTransactionAction,
-   
     SearchDataTypes,
-   
     SearchResultsInfo,
-   
     SearchMemberGroup,
-   
     SearchCardGroup,
-   
     SearchWithdrawalIDGroup,
-    
     SearchCategoryGroup,
-
     SearchMonthGroup,
 };
