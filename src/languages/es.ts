@@ -506,6 +506,18 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: 'Activa la verificación rápida y segura usando tu rostro o huella dactilar. No se requieren contraseñas ni códigos.',
         },
+        revoke: {
+            revoke: 'Revocar',
+            title: 'Reconocimiento facial/huella digital y claves de acceso',
+            explanation:
+                'La verificación mediante reconocimiento facial, huella digital o clave de acceso está habilitada en uno o más dispositivos. Revocar el acceso requerirá un código mágico para la próxima verificación en cualquier dispositivo.',
+            confirmationPrompt: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en cualquier dispositivo.',
+            cta: 'Revocar acceso',
+            noDevices:
+                'No tienes ningún dispositivo registrado para la verificación mediante reconocimiento facial, huella digital o clave de acceso. Si registras alguno, podrás revocar ese acceso aquí.',
+            dismiss: 'Entendido',
+            error: 'La solicitud ha fallado. Inténtalo de nuevo más tarde.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',

@@ -760,6 +760,17 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: 'Abilita una verifica rapida e sicura utilizzando il tuo viso o impronta digitale. Nessuna password o codice necessario.',
         },
+        revoke: {
+            revoke: 'Revoca',
+            title: 'Face/impronta digitale e passkey',
+            explanation:
+                'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo',
+            confirmationPrompt: 'Sei sicuro? Avrai bisogno di un codice magico per la prossima verifica su qualsiasi dispositivo',
+            cta: 'Revoca accesso',
+            noDevices: 'Non hai alcun dispositivo registrato per la verifica con volto/impronta digitale o passkey. Se ne registri uno, potrai revocare tale accesso qui.',
+            dismiss: 'Capito',
+            error: 'Richiesta non riuscita. Riprova più tardi.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

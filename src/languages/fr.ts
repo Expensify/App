@@ -762,6 +762,18 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: 'Activez une vérification rapide et sécurisée avec votre visage ou votre empreinte digitale. Aucun mot de passe ou code requis.',
         },
+        revoke: {
+            revoke: 'Révoquer',
+            title: 'Reconnaissance faciale/empreinte digitale et passkeys',
+            explanation:
+                'La vérification par reconnaissance faciale/empreinte digitale ou passkey est activée sur un ou plusieurs appareils. Révoquer l’accès nécessitera un code magique pour la prochaine vérification sur n’importe quel appareil',
+            confirmationPrompt: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil',
+            cta: 'Révoquer l’accès',
+            noDevices:
+                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale, empreinte digitale ou Passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
+            dismiss: 'Compris',
+            error: 'La demande a échoué. Veuillez réessayer plus tard.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
