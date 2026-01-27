@@ -16,10 +16,10 @@ import {
     getBankName,
     getCardDescription,
     getCardFeedIcon,
+    getCardFeedWithDomainID,
     getCardsByCardholderName,
     getCompanyCardDescription,
     getCompanyCardFeed,
-    getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
@@ -38,7 +38,7 @@ import {
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
-    splitCompanyCardFeedWithDomainID,
+    splitCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
@@ -1304,20 +1304,20 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('getCompanyCardFeedWithDomainID', () => {
+    describe('getCardFeedWithDomainID', () => {
         it('should combine feed name domain ID', () => {
             const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const domainID = 11111111;
-            const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
+            const combinedKey = getCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
         });
     });
 
-    describe('splitCompanyCardFeedWithDomainID', () => {
+    describe('splitCardFeedWithDomainID', () => {
         it('should split the feed name and domain ID', () => {
             const feedName = 'vcf#11111111';
 
-            const splitFeedName = splitCompanyCardFeedWithDomainID(feedName);
+            const splitFeedName = splitCardFeedWithDomainID(feedName);
             if (!splitFeedName) {
                 throw new Error('Failed to split feed name');
             }

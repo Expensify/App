@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
-import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
+import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import cardFeedErrorsConfig from '@src/libs/actions/OnyxDerived/configs/cardFeedErrors';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,17 +17,17 @@ const CARD_FEEDS = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
         workspaceAccountID: 44444444,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-        feedNameWithDomainID: getCompanyCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, 44444444),
+        feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, 44444444),
     },
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
         workspaceAccountID: 55555555,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-        feedNameWithDomainID: getCompanyCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 55555555),
+        feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 55555555),
     },
     [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: {
         workspaceAccountID: 66666666,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT,
-        feedNameWithDomainID: getCompanyCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, 66666666),
+        feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, 66666666),
     },
 } as const satisfies Partial<
     Record<

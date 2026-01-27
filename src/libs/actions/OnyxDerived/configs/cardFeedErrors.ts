@@ -1,5 +1,5 @@
 import {getCombinedCardFeedsFromAllFeeds} from '@libs/CardFeedUtils';
-import {filterInactiveCards, getCompanyCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
+import {filterInactiveCards, getCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +51,7 @@ export default createOnyxDerivedValueConfig({
                 return;
             }
 
-            const feedNameWithDomainID = getCompanyCardFeedWithDomainID(bankName, workspaceAccountID);
+            const feedNameWithDomainID = getCardFeedWithDomainID(bankName, workspaceAccountID);
             const previousFeedErrors = cardFeedErrors[feedNameWithDomainID] ?? DEFAULT_CARD_FEED_ERROR_STATE;
 
             const feed = combinedCompanyCardFeeds?.[feedNameWithDomainID];

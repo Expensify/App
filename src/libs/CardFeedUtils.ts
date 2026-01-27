@@ -11,7 +11,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
     getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
+    getCardFeedWithDomainID,
     getCustomOrFormattedFeedName,
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
@@ -547,7 +547,7 @@ function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | 
                 continue;
             }
 
-            const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
+            const combinedFeedKey = getCardFeedWithDomainID(feedName, domainID);
 
             acc[combinedFeedKey] = combinedCardFeed;
         }
@@ -557,6 +557,7 @@ function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | 
 }
 
 export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
+export type {DomainFeedData};
 export {
     buildCardsData,
     getCardFeedNamesWithType,

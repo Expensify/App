@@ -367,6 +367,7 @@ export type {
     CardLimitType,
     ProvisioningCardData,
     AssignableCardsList,
+    CardAssignmentData,
     FailedCardAssignment,
     FailedCardAssignments,
     UnassignedCard,

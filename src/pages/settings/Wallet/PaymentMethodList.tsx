@@ -24,7 +24,7 @@ import {
     filterPersonalCards,
     getAssignedCardSortKey,
     getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
+    getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
     isExpensifyCard,
     isExpensifyCardPendingAction,
@@ -199,7 +199,7 @@ function PaymentMethodList({
 
                 let shouldShowRBR = false;
                 if (card.fundID) {
-                    const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank, card.fundID);
+                    const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
                 } else {
                     shouldShowRBR = true;

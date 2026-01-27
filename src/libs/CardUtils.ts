@@ -559,13 +559,11 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID
     return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
-function getCompanyCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number | string): CardFeedWithDomainID {
+function getCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number | string): CardFeedWithDomainID {
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
 
-function splitCompanyCardFeedWithDomainID(
-    feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined,
-): {feedName: CardFeedWithNumber | undefined; domainID: number | undefined} | undefined {
+function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber | undefined; domainID: number | undefined} | undefined {
     if (!feedName) {
         return;
     }
@@ -867,7 +865,7 @@ function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithD
         return fallbackFeed;
     }
 
-    const splitFeedName = splitCompanyCardFeedWithDomainID(feedWithDomainID);
+    const splitFeedName = splitCardFeedWithDomainID(feedWithDomainID);
     if (!splitFeedName?.feedName) {
         return fallbackFeed;
     }
@@ -995,8 +993,8 @@ export {
     getCorrectStepForPlaidSelectedBank,
     getOriginalCompanyFeeds,
     getCompanyCardFeed,
-    getCompanyCardFeedWithDomainID,
-    splitCompanyCardFeedWithDomainID,
+    getCardFeedWithDomainID,
+    splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
     filterPersonalCards,
     isPersonalCard,

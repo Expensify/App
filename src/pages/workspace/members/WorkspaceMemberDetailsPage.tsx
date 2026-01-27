@@ -31,7 +31,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {
     getAllCardsForWorkspace,
     getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
+    getCardFeedWithDomainID,
     getCompanyFeeds,
     getPlaidInstitutionIconUrl,
     isExpensifyCardFullySetUp,
@@ -236,7 +236,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         Navigation.navigate(
             ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
                 policyID,
-                getCompanyCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID,
+                getCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID,
                 card.cardID.toString(),
                 Navigation.getActiveRoute(),
             ),
