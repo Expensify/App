@@ -1,10 +1,10 @@
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import ROUTES from '@src/ROUTES';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
+import type {ArchivedReportsIDSet} from './SearchUIUtils';
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
