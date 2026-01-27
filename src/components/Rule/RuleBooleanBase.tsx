@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -46,27 +46,21 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, ContentWr
 
     const formValue = (form as Record<string, unknown>)?.[fieldID];
 
-    const selectedItem = useMemo(() => {
-        if (!formValue) {
-            return null;
-        }
-        const yesValue = CONST.SEARCH.BOOLEAN.YES;
-        const noValue = CONST.SEARCH.BOOLEAN.NO;
+    const yesValue = CONST.SEARCH.BOOLEAN.YES;
+    const noValue = CONST.SEARCH.BOOLEAN.NO;
+
+    let selectedItem = null;
+    if (formValue) {
         const booleanValue = formValue === 'true' ? yesValue : noValue;
+        selectedItem = booleanValues.find((value) => booleanValue === value) ?? null;
+    }
 
-        return booleanValues.find((value) => booleanValue === value) ?? null;
-    }, [formValue]);
-
-    const items = useMemo(
-        () =>
-            booleanValues.map((value) => ({
-                value,
-                keyForList: value,
-                text: translate(`common.${value}`),
-                isSelected: selectedItem === value,
-            })),
-        [selectedItem, translate],
-    );
+    const items = booleanValues.map((value) => ({
+        value,
+        keyForList: value,
+        text: translate(`common.${value}`),
+        isSelected: selectedItem === value,
+    }));
 
     const onSelectItem = (selectedValue: BooleanFilterItem) => {
         const newValue = selectedValue.isSelected ? null : selectedValue.value;
