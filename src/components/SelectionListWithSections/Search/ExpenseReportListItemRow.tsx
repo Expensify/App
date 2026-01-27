@@ -5,6 +5,7 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
+import type {HoldMenuCallback} from '@components/Search';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -43,6 +44,7 @@ type ExpenseReportListItemRowProps = {
     isHovered?: boolean;
     isFocused?: boolean;
     columns?: SearchColumnType[];
+    onHoldMenuOpen?: HoldMenuCallback;
 };
 
 function ExpenseReportListItemRow({
@@ -61,6 +63,7 @@ function ExpenseReportListItemRow({
     columns = [],
     isHovered = false,
     isFocused = false,
+    onHoldMenuOpen,
 }: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -196,6 +199,8 @@ function ExpenseReportListItemRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={item.total}
+                    item={item}
+                    onHoldMenuOpen={onHoldMenuOpen}
                 />
             </View>
         ),
@@ -226,6 +231,7 @@ function ExpenseReportListItemRow({
                     shouldShowUserInfo={showUserInfo}
                     containerStyles={[styles.mb2, styles.ph0]}
                     isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
+                    onHoldMenuOpen={onHoldMenuOpen}
                 />
                 <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>

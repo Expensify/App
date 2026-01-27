@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,12 +20,14 @@ function UserInfoAndActionButtonRow({
     shouldShowUserInfo,
     containerStyles,
     isInMobileSelectionMode,
+    onHoldMenuOpen,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType;
     handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
     isInMobileSelectionMode: boolean;
+    onHoldMenuOpen?: HoldMenuCallback;
 }) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -74,6 +77,8 @@ function UserInfoAndActionButtonRow({
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
                     extraSmall={!isLargeScreenWidth}
                     shouldDisablePointerEvents={isInMobileSelectionMode}
+                    onHoldMenuOpen={onHoldMenuOpen}
+                    item={item as TransactionReportGroupListItemType}
                 />
             </View>
         </View>

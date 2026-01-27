@@ -6,6 +6,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {HoldMenuCallback} from '@components/Search';
 import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
@@ -83,6 +84,7 @@ type HandleActionButtonPressParams = {
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     currentSearchKey?: SearchKey;
     onDEWModalOpen?: () => void;
+    onHoldMenuOpen?: HoldMenuCallback;
     isDEWBetaEnabled?: boolean;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
@@ -98,6 +100,7 @@ function handleActionButtonPress({
     lastPaymentMethod,
     currentSearchKey,
     onDEWModalOpen,
+    onHoldMenuOpen,
     isDEWBetaEnabled,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
@@ -108,10 +111,10 @@ function handleActionButtonPress({
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT) {
-        goToItem();
-        return;
-    }
+    // if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT) {
+    //     goToItem();
+    //     return;
+    // }
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
@@ -128,6 +131,11 @@ function handleActionButtonPress({
             }
             if (hasDynamicExternalWorkflow(snapshotPolicy)) {
                 onDEWModalOpen?.();
+                return;
+            }
+
+            if (hasHeldExpense) {
+                onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);

@@ -5,6 +5,7 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {HoldMenuCallback} from '@components/Search';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -19,13 +20,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {hasHeldExpenses, isInvoiceReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {TransactionReportGroupListItemType} from '../types';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
@@ -51,6 +53,8 @@ type ActionCellProps = {
     amount?: number;
     extraSmall?: boolean;
     shouldDisablePointerEvents?: boolean;
+    item?: TransactionReportGroupListItemType;
+    onHoldMenuOpen?: HoldMenuCallback;
 };
 
 function ActionCell({
@@ -67,6 +71,8 @@ function ActionCell({
     amount,
     extraSmall = false,
     shouldDisablePointerEvents,
+    item,
+    onHoldMenuOpen,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -97,10 +103,17 @@ function ActionCell({
                 return;
             }
 
+            const hasHeldExpense = hasHeldExpenses('', item?.transactions ?? []);
+            console.log(item, hasHeldExpense, type);
+            if (hasHeldExpense && item && onHoldMenuOpen) {
+                onHoldMenuOpen(item, CONST.IOU.REPORT_ACTION_TYPE.PAY, type);
+                return;
+            }
+
             const invoiceParams = getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod);
             payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
         },
-        [reportID, hash, amount, policyID, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [reportID, hash, amount, isDelegateAccessRestricted, item, onHoldMenuOpen, policyID, iouReport, showDelegateNoAccessModal],
     );
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
