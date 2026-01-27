@@ -13,9 +13,11 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyMerchantRule} from '@libs/actions/Policy/Rules';
 import {clearDraftMerchantRule} from '@libs/actions/User';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getCleanedTagName} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,6 +69,17 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
+    // Get display names for category, tag, and tax
+    const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
+    const tagDisplayName = form?.tag ? getCleanedTagName(form.tag) : undefined;
+    const taxDisplayName = useMemo(() => {
+        if (!form?.tax || !policy?.taxRates?.taxes) {
+            return undefined;
+        }
+        const tax = policy.taxRates.taxes[form.tax];
+        return tax ? `${tax.name} (${tax.value})` : undefined;
+    }, [form?.tax, policy?.taxRates?.taxes]);
+
     const errorMessage = getErrorMessage(translate, form);
 
     const handleSubmit = () => {
@@ -106,21 +119,21 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                     areCategoriesEnabled
                         ? {
                               descriptionTranslationKey: 'common.category',
-                              title: form?.category,
+                              title: categoryDisplayName,
                               onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID)),
                           }
                         : undefined,
                     areTagsEnabled
                         ? {
                               descriptionTranslationKey: 'common.tag',
-                              title: form?.tag,
+                              title: tagDisplayName,
                               onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID)),
                           }
                         : undefined,
                     isTaxTrackingEnabled
                         ? {
                               descriptionTranslationKey: 'common.tax',
-                              title: form?.tax,
+                              title: taxDisplayName,
                               onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID)),
                           }
                         : undefined,
@@ -151,9 +164,9 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
             isBillableEnabled,
             form?.merchantToMatch,
             form?.merchant,
-            form?.category,
-            form?.tag,
-            form?.tax,
+            categoryDisplayName,
+            tagDisplayName,
+            taxDisplayName,
             form?.comment,
             form?.reimbursable,
             form?.billable,
