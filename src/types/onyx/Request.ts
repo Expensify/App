@@ -247,10 +247,10 @@ type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase
 type GenericRequestConflictResolver = RequestConflictResolverBase<GenericRequest>;
 
 /** Model of requests sent to the API */
-type GenericRequest = GenericRequestData & GenericOnyxData & GenericRequestConflictResolver;
+type GenericRequest = GenericRequestData & GenericRequestConflictResolver;
 
 /** Model of requests sent to the API */
-type Request<TKey extends OnyxKey> = RequestData<TKey> & OnyxData<TKey> & RequestConflictResolver<TKey>;
+type Request<TKey extends OnyxKey> = RequestData<TKey> & RequestConflictResolver<TKey>;
 
 /**
  * An object used to describe how a request can be paginated.
