@@ -407,6 +407,7 @@ function Search({
             isActionLoadingSet,
             cardFeeds,
             allTransactionViolations: violations,
+            customCardNames,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -427,6 +428,7 @@ function Search({
         policies,
         bankAccountList,
         violations,
+        customCardNames,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
