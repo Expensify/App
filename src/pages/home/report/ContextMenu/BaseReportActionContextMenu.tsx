@@ -129,7 +129,7 @@ function BaseReportActionContextMenu({
     disabledActions = [],
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const icons = useMemoizedLazyExpensifyIcons([
         'Download',
@@ -147,6 +147,7 @@ function BaseReportActionContextMenu({
         'Bug',
         'Trashcan',
         'Checkmark',
+        'Concierge',
     ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -196,7 +197,7 @@ function BaseReportActionContextMenu({
     const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = useMemo(
         () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
@@ -368,7 +369,7 @@ function BaseReportActionContextMenu({
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),
-                            transitionActionSheetState: actionSheetAwareScrollViewContext.transitionActionSheetState,
+                            transitionActionSheetState,
                             openContextMenu: () => setShouldKeepOpen(true),
                             interceptAnonymousUser,
                             openOverflowMenu,
@@ -388,7 +389,8 @@ function BaseReportActionContextMenu({
                             harvestReport,
                             isDelegateAccessRestricted,
                             showDelegateNoAccessModal,
-                            currentUserAccountID,
+                            currentUserAccountID: currentUserPersonalDetails?.accountID,
+                            currentUserPersonalDetails,
                         };
 
                         if ('renderContent' in contextAction) {

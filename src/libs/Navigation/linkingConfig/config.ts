@@ -1152,6 +1152,33 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
                             path: ROUTES.RULES_PROHIBITED_DEFAULT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
+                            path: ROUTES.RULES_MERCHANT_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
+                            path: ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: {
+                            path: ROUTES.RULES_MERCHANT_MERCHANT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY]: {
+                            path: ROUTES.RULES_MERCHANT_CATEGORY.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_TAG]: {
+                            path: ROUTES.RULES_MERCHANT_TAG.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
+                            path: ROUTES.RULES_MERCHANT_TAX.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION]: {
+                            path: ROUTES.RULES_MERCHANT_DESCRIPTION.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE]: {
+                            path: ROUTES.RULES_MERCHANT_REIMBURSABLE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
+                            path: ROUTES.RULES_MERCHANT_BILLABLE.route,
+                        },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
                         },
@@ -1953,6 +1980,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME]: ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.route,
                         [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.route,
                         [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND,
+                        [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE,
                     },
                 },
             },
