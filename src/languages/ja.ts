@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: '値',
         downloadFailedTitle: 'ダウンロードに失敗しました',
         downloadFailedDescription: 'ダウンロードを完了できませんでした。後でもう一度お試しください。',
-        downloadFailedEmptyReportDescription: () => ({
-            one: '空のレポートはエクスポートできません。',
-            other: () => '空のレポートはエクスポートできません。',
-        }),
         filterLogs: 'ログをフィルター',
         network: 'ネットワーク',
         reportID: 'レポート ID',
@@ -640,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: '元の金額',
         insights: 'インサイト',
         duplicateExpense: '重複した経費',
+        newFeature: '新機能',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1068,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
         scanFailed: 'この領収書は、店舗名、日付、または金額が欠けているためスキャンできませんでした。',
+        addAReceipt: {
+            phrase1: '領収書を追加',
+            phrase2: 'またはここにドラッグ＆ドロップしてください',
+        },
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -1201,14 +1202,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'この経費を削除してもよろしいですか？',
             other: 'これらの経費を削除してもよろしいですか？',
         }),
-        deleteReport: () => ({
-            one: 'レポートを削除',
-            other: 'レポートを削除',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'このレポートを削除してもよろしいですか？',
-            other: 'これらのレポートを削除してもよろしいですか？',
-        }),
+        deleteReport: 'レポートを削除',
+        deleteReportConfirmation: 'このレポートを削除してもよろしいですか？',
         settledExpensify: '支払済み',
         done: '完了',
         settledElsewhere: '他で支払済み',
@@ -2380,16 +2375,24 @@ ${merchant} への ${amount}（${date}）`,
     expenseRulesPage: {
         title: '経費ルール',
         subtitle: 'これらのルールはあなたの経費に適用されます。ワークスペースに提出する場合、そのワークスペースのルールがこれらより優先されることがあります。',
+        findRule: 'ルールを検索',
         emptyRules: {title: 'ルールがまだ作成されていません', subtitle: '経費報告を自動化するルールを追加する。'},
         changes: {
-            billable: (value: boolean) => `経費 ${value ? '請求対象' : '請求不可'} を更新`,
-            category: (value: string) => `カテゴリを「${value}」に更新`,
-            comment: (value: string) => `説明を「${value}」に変更`,
-            merchant: (value: string) => `支払先を「${value}」に更新`,
-            reimbursable: (value: boolean) => `経費 ${value ? '精算対象' : '非精算'} を更新`,
+            billableUpdate: (value: boolean) => `経費 ${value ? '請求対象' : '請求不可'} を更新`,
+            categoryUpdate: (value: string) => `カテゴリを「${value}」に更新`,
+            commentUpdate: (value: string) => `説明を「${value}」に変更`,
+            merchantUpdate: (value: string) => `支払先を「${value}」に更新`,
+            reimbursableUpdate: (value: boolean) => `経費 ${value ? '精算対象' : '非精算'} を更新`,
+            tagUpdate: (value: string) => `タグを「${value}」に更新`,
+            taxUpdate: (value: string) => `税率を${value}に更新`,
+            billable: (value: boolean) => `経費 ${value ? '請求対象' : '請求不可'}`,
+            category: (value: string) => `カテゴリを「${value}」`,
+            comment: (value: string) => `説明を「${value}」`,
+            merchant: (value: string) => `支払先を「${value}」`,
+            reimbursable: (value: boolean) => `経費 ${value ? '精算対象' : '非精算'}`,
+            tag: (value: string) => `タグを「${value}」`,
+            tax: (value: string) => `税率を「${value}」`,
             report: (value: string) => `"${value}" という名前のレポートに追加`,
-            tag: (value: string) => `タグを「${value}」に更新`,
-            tax: (value: string) => `税率を${value}に更新`,
         },
         newRule: '新しいルール',
         addRule: {
@@ -2606,19 +2609,19 @@ ${merchant} への ${amount}（${date}）`,
                 title: '経費承認を追加',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        チームの支出を確認して管理するには、*経費承認を追加* してください。
+                        チームの支出を確認し、コントロールするために、*経費承認を追加* しましょう。
 
                         手順は次のとおりです：
 
-                        1. *Workspaces* に移動します。
+                        1. *ワークスペース* に移動します。
                         2. ワークスペースを選択します。
-                        3. *More features* をクリックします。
-                        4. *Workflows* を有効にします。
-                        5. ワークスペースエディタで *Workflows* に移動します。
-                        6. *Add approvals* を有効にします。
-                        7. チームを招待すると、あなたが経費承認者として設定されます。これは、任意の管理者に変更できます。
+                        3. *その他の機能* をクリックします。
+                        4. *ワークフロー* を有効にします。
+                        5. ワークスペースエディタ内の *ワークフロー* に移動します。
+                        6. *承認* を有効にします。
+                        7. あなたが経費の承認者として設定されます。チームを招待した後は、任意の管理者に変更できます。
 
-                        [More features へ移動する](${workspaceMoreFeaturesLink})。`),
+                        [その他の機能に移動](${workspaceMoreFeaturesLink})。`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `ワークスペースを[作成](${workspaceConfirmationLink})`,
@@ -4860,6 +4863,13 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
+                workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
+                feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                tryAgain: '再試行',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
@@ -6267,6 +6277,16 @@ ${reportName}
                 title: '経費ポリシー',
                 cardSubtitle: 'ここにはチームの経費ポリシーが保存されています。これにより、何が対象になるかについて全員が同じ認識を持てます。',
             },
+            merchantRules: {
+                title: '加盟店',
+                subtitle: '取引先ルールを設定して、経費が正しくコード化された状態で届くようにし、後処理を最小限に抑えましょう。',
+                addRule: '店舗ルールを追加',
+                ruleSummaryTitle: (merchantName: string) => `もし取引先に「${merchantName}」が含まれている場合`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `支払先名を「${merchantName}」に変更`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} を「${fieldValue}」に更新`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `「${reimbursable ? '払い戻し対象' : '精算対象外'}」としてマーク`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `「${billable ? '請求可能' : '請求対象外'}」としてマーク`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6789,6 +6809,7 @@ ${reportName}
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
+        topCategories: 'トップカテゴリ',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
             approve: '承認',
@@ -6815,6 +6836,7 @@ ${reportName}
             status: 'ステータス',
             keyword: 'キーワード',
             keywords: 'キーワード',
+            limit: '制限',
             currency: '通貨',
             completed: '完了',
             amount: {

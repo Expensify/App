@@ -56,7 +56,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "view"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -263,7 +263,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / view)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / limit / view)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

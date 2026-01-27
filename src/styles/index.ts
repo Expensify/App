@@ -1043,6 +1043,12 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeNewFeature: {
+            minHeight: 20,
+            height: 20,
+            paddingHorizontal: 8,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -2547,10 +2553,16 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        blockingErrorViewContainer: {
+        searchBlockingErrorViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 475,
             alignSelf: 'center',
+        },
+
+        companyCardsBlockingErrorViewContainer: {
+            maxWidth: 475,
+            alignSelf: 'center',
+            flex: undefined,
         },
 
         forcedBlockingViewContainer: {

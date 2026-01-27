@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valore',
         downloadFailedTitle: 'Download non riuscito',
         downloadFailedDescription: 'Il download non può essere completato. Riprova più tardi.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Non puoi esportare un rapporto vuoto.',
-            other: () => 'Non puoi esportare rapporti vuoti.',
-        }),
         filterLogs: 'Filtra registri',
         network: 'Rete',
         reportID: 'ID rapporto',
@@ -641,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Importo originale',
         insights: 'Analisi',
         duplicateExpense: 'Spesa duplicata',
+        newFeature: 'Nuova funzionalità',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -785,7 +782,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori  
+            Autenticazione a due fattori
             richiesta
         `),
         tfaRequiredDescription: dedent(`
@@ -1068,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',
         scanFailed: 'Impossibile acquisire la ricevuta perché mancano l’esercente, la data o l’importo.',
+        addAReceipt: {
+            phrase1: 'Aggiungi una ricevuta',
+            phrase2: 'o trascinala e rilasciala qui',
+        },
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -1201,14 +1202,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: () => ({
-            one: 'Elimina rapporto',
-            other: 'Elimina rapporti',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Sei sicuro di voler eliminare questo report?',
-            other: 'Sei sicuro di voler eliminare questi report?',
-        }),
+        deleteReport: 'Elimina report',
+        deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
         settledExpensify: 'Pagato',
         done: 'Fatto',
         settledElsewhere: 'Pagato altrove',
@@ -2392,15 +2387,23 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Regole spesa',
         subtitle: 'Queste regole si applicheranno alle tue spese. Se le invii a uno spazio di lavoro, le regole dello spazio di lavoro potrebbero sostituirle.',
         emptyRules: {title: 'Non hai creato alcuna regola', subtitle: 'Aggiungi una regola per automatizzare la rendicontazione delle spese.'},
+        findRule: 'Trova regola',
         changes: {
-            billable: (value: boolean) => `Aggiorna spesa ${value ? 'fatturabile' : 'non fatturabile'}`,
-            category: (value: string) => `Aggiorna categoria in "${value}"`,
-            comment: (value: string) => `Modifica la descrizione in "${value}"`,
-            merchant: (value: string) => `Aggiorna esercente in "${value}"`,
-            reimbursable: (value: boolean) => `Aggiorna la spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
-            report: (value: string) => `Aggiungi a un report chiamato «${value}»`,
-            tag: (value: string) => `Aggiorna etichetta in "${value}"`,
-            tax: (value: string) => `Aggiorna l’aliquota fiscale a ${value}`,
+            billableUpdate: (value: boolean) => `Aggiorna spesa ${value ? 'fatturabile' : 'non fatturabile'}`,
+            categoryUpdate: (value: string) => `Aggiorna categoria in "${value}"`,
+            commentUpdate: (value: string) => `Modifica la descrizione in "${value}"`,
+            merchantUpdate: (value: string) => `Aggiorna esercente in "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Aggiorna la spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
+            tagUpdate: (value: string) => `Aggiorna etichetta in "${value}"`,
+            taxUpdate: (value: string) => `Aggiorna l’aliquota fiscale a ${value}`,
+            billable: (value: boolean) => `spesa ${value ? 'fatturabile' : 'non fatturabile'}`,
+            category: (value: string) => `categoria in "${value}"`,
+            comment: (value: string) => `la descrizione in "${value}"`,
+            merchant: (value: string) => `esercente in "${value}"`,
+            reimbursable: (value: boolean) => `la spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
+            tag: (value: string) => `etichetta in "${value}"`,
+            tax: (value: string) => `l’aliquota fiscale a ${value}`,
+            report: (value: string) => `aggiungi a un report chiamato «${value}»`,
         },
         newRule: 'Nuova regola',
         addRule: {
@@ -2615,17 +2618,17 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Aggiungi approvazioni delle spese',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Aggiungi approvazioni delle spese* per rivedere le spese del tuo team e tenerle sotto controllo.
+                        *Aggiungi le approvazioni delle spese* per rivedere le spese del tuo team e mantenerle sotto controllo.
 
-                        Procedi così:
+                        Ecco come fare:
 
-                        1. Vai su *Spazi di lavoro*.
+                        1. Vai a *Spazi di lavoro*.
                         2. Seleziona il tuo spazio di lavoro.
                         3. Fai clic su *Altre funzionalità*.
                         4. Abilita *Flussi di lavoro*.
                         5. Vai a *Flussi di lavoro* nell’editor dello spazio di lavoro.
-                        6. Abilita *Aggiungi approvazioni*.
-                        7. Verrai impostato come approvatore delle spese. Puoi modificarlo in qualsiasi amministratore dopo aver invitato il tuo team.
+                        6. Abilita *Approvazioni*.
+                        7. Verrai impostato come approvatore delle spese. Puoi cambiarlo in qualsiasi amministratore dopo aver invitato il tuo team.
 
                         [Portami alle altre funzionalità](${workspaceMoreFeaturesLink}).`),
             },
@@ -4887,6 +4890,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Si è verificato un errore durante il caricamento dei feed della scheda dell’area di lavoro. Riprova o contatta il tuo amministratore.',
+                feedCouldNotBeLoadedTitle: 'Impossibile caricare questo feed',
+                feedCouldNotBeLoadedMessage: 'Si è verificato un errore durante il caricamento di questo feed. Riprova o contatta il tuo amministratore.',
+                tryAgain: 'Riprova',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -6310,6 +6321,16 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Policy di spesa',
                 cardSubtitle: 'Qui è dove si trova la policy di spesa del tuo team, così tutti sono allineati su cosa è coperto.',
             },
+            merchantRules: {
+                title: 'Esercente',
+                subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
+                addRule: 'Aggiungi regola esercente',
+                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Contrassegna come "${billable ? 'fatturabile' : 'non fatturabile'}"`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6848,6 +6869,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
         searchName: 'Cerca nome',
         savedSearchesMenuItemTitle: 'Salvato',
+        topCategories: 'Categorie principali',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
             approve: 'Approva',
@@ -6874,6 +6896,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             status: 'Stato',
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
+            limit: 'Limite',
             currency: 'Valuta',
             completed: 'Completato',
             amount: {
