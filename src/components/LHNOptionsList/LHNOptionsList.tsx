@@ -251,6 +251,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportMetadata: itemReportMetadata,
                     visibleReportActionsDataParam: visibleReportActionsData,
                     lastAction,
+                    currentUserAccountID,
                 });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;

@@ -820,6 +820,7 @@ function getOptionData({
             isReportArchived,
             visibleReportActionsDataParam: visibleReportActionsData,
             lastAction,
+            currentUserAccountID,
         });
     }
 
