@@ -642,7 +642,7 @@ describe('Check valid amount for IOU/Expense request', () => {
     });
 
     test('Expense amount should be negative', () => {
-        const expenseReport = ReportUtils.buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', allBetas: [CONST.BETAS.ALL]});
+        const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,
