@@ -53,7 +53,7 @@ function WorkspaceTimeTrackingRatePage({route}: WorkspaceTimeTrackingRatePagePro
                     submitButtonText={translate('common.save')}
                     onSubmit={(values) => {
                         updatePolicyTimeTrackingDefaultRate(policyID, Number.parseFloat(values[INPUT_IDS.RATE]));
-                        Navigation.goBack();
+                        Navigation.dismissModal();
                     }}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
