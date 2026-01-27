@@ -4,7 +4,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
@@ -45,19 +44,7 @@ type RuleTextBaseProps<TFormID extends OnyxFormKey> = {
     hash?: string;
 };
 
-function RuleTextBase<TFormID extends OnyxFormKey>({
-    fieldID,
-    hintKey,
-    isRequired,
-    titleKey,
-    labelKey,
-    testID,
-    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
-    formID,
-    onSave,
-    onBack,
-    hash,
-}: RuleTextBaseProps<TFormID>) {
+function RuleTextBase<TFormID extends OnyxFormKey>({fieldID, hintKey, isRequired, titleKey, labelKey, testID, characterLimit, formID, onSave, onBack, hash}: RuleTextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

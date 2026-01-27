@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +29,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
 
     const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
 
-    const categoryItems = useMemo(() => {
+    const categoryItems = () => {
         const uniqueCategoryNames = new Set<string>();
 
         const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
@@ -43,7 +43,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
                 const decodedCategoryName = getDecodedCategoryName(categoryName);
                 return {name: decodedCategoryName, value: categoryName};
             });
-    }, [allPolicyCategories]);
+    };
 
     const hash = route.params?.hash;
     const backToRoute = hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute();
@@ -57,7 +57,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
             titleKey="common.category"
             testID="AddCategoryPage"
             selectedItem={selectedCategoryItem}
-            items={categoryItems}
+            items={categoryItems()}
             onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
             backToRoute={backToRoute}
