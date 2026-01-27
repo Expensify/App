@@ -7068,7 +7068,7 @@ const CONST = {
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
             GROUP_CATEGORY: 'groupCategory',
-            GROUP_MONTH: 'groupMonth',
+            GROUP_MONTH: 'groupmonth',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
