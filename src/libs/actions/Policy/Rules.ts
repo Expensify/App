@@ -3,13 +3,13 @@ import * as API from '@libs/API';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyMerchantRuleParams from '@libs/API/parameters/SetPolicyMerchantRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import Log from '@libs/Log';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type {OnyxData} from '@src/Onyx';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import type {OnyxData} from '@src/Onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CodingRule} from '@src/types/onyx/Policy';
 import type {MerchantRuleForm} from '@src/types/form';
+import type {CodingRule} from '@src/types/onyx/Policy';
 
 /**
  * Fetches policy rules data when the rules page is opened.

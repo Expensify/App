@@ -144,7 +144,22 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                 ],
             },
         ],
-        [areCategoriesEnabled, areTagsEnabled, isTaxTrackingEnabled, trackBillables, form?.merchantToMatch, form?.merchant, form?.category, form?.tag, form?.tax, form?.comment, form?.reimbursable, form?.billable, policyID, translate],
+        [
+            areCategoriesEnabled,
+            areTagsEnabled,
+            isTaxTrackingEnabled,
+            trackBillables,
+            form?.merchantToMatch,
+            form?.merchant,
+            form?.category,
+            form?.tag,
+            form?.tax,
+            form?.comment,
+            form?.reimbursable,
+            form?.billable,
+            policyID,
+            translate,
+        ],
     );
 
     return (
