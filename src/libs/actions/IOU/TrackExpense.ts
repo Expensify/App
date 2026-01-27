@@ -22,12 +22,8 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {
-    getMemberAccountIDsForWorkspace,
-    hasDependentTags,
-    isControlPolicy,
-    isPaidGroupPolicy,
-} from '@libs/PolicyUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {getMemberAccountIDsForWorkspace, hasDependentTags, isControlPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getLastVisibleAction,
@@ -52,9 +48,9 @@ import {
     buildOptimisticReportPreview,
     buildOptimisticSelfDMReport,
     buildOptimisticTransaction,
-    generateReportID,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
+    generateReportID,
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
@@ -114,7 +110,6 @@ import {
     getReportPreviewAction,
     getSearchOnyxUpdate,
 } from '.';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 
 // ============ Types ============
 
@@ -2581,7 +2576,6 @@ type UpdateMoneyRequestData = {
     params: UpdateMoneyRequestParams;
     onyxData: OnyxData<OnyxKey>;
 };
-
 
 // ============ Exports ============
 
