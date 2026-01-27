@@ -79,22 +79,30 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     }
 
     const isEditing = !!ruleID;
-    const optimisticRuleID = ruleID ?? NumberUtils.rand64();
+    const existingRule = isEditing ? policy?.rules?.codingRules?.[ruleID] : undefined;
     const ruleFields = mapFormFieldsToRule(form, policy);
 
-    // Get the existing rule for restoring on failure (when editing)
-    const existingRule = isEditing ? policy?.rules?.codingRules?.[ruleID] : undefined;
-
-    const optimisticRule: CodingRule = {
-        ruleID: optimisticRuleID,
-        filters: {
-            left: 'merchant',
-            operator: 'eq',
-            right: form.merchantToMatch,
-        },
-        ...ruleFields,
-        created: isEditing && existingRule?.created ? existingRule.created : new Date().toISOString(),
-    };
+    // When editing, use the existing rule and merge updated fields; when adding, create a new rule
+    const targetRuleID = ruleID ?? NumberUtils.rand64();
+    const ruleForOptimisticUpdate: CodingRule = isEditing && existingRule
+        ? {
+            ...existingRule,
+            ...ruleFields,
+            filters: {
+                ...existingRule.filters,
+                right: form.merchantToMatch,
+            },
+        }
+        : {
+            ruleID: targetRuleID,
+            filters: {
+                left: 'merchant',
+                operator: 'eq',
+                right: form.merchantToMatch,
+            },
+            ...ruleFields,
+            created: new Date().toISOString(),
+        };
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -110,7 +118,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                 value: {
                     rules: {
                         codingRules: {
-                            [optimisticRuleID]: optimisticRule,
+                            [targetRuleID]: ruleForOptimisticUpdate,
                         },
                     },
                     pendingFields: {
@@ -140,7 +148,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                 value: {
                     rules: {
                         codingRules: {
-                            [optimisticRuleID]: failureRuleValue,
+                            [targetRuleID]: failureRuleValue,
                         },
                     },
                     pendingFields: {
@@ -156,8 +164,8 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 
     const parameters: SetPolicyCodingRuleParams = {
         policyID,
-        ruleID: optimisticRuleID,
-        value: JSON.stringify(optimisticRule),
+        ruleID: targetRuleID,
+        value: JSON.stringify(ruleForOptimisticUpdate),
         shouldUpdateMatchingTransactions,
     };
 
