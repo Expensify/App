@@ -633,6 +633,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: '原始金额',
         insights: '洞察',
         duplicateExpense: '重复报销',
+        newFeature: '新功能',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -766,7 +767,7 @@ const translations: TranslationDeepObject<typeof en> = {
             请输入在最初请求该代码的设备上显示的代码
         `),
         doNotShare: dedent(`
-            不要与任何人分享你的验证码。  
+            不要与任何人分享你的验证码。
             Expensify 永远不会向你索要它！
         `),
         or: '，或',
@@ -775,7 +776,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: '返回原始设备并请求新验证码',
         successfulNewCodeRequest: '已请求验证码。请检查您的设备。',
         tfaRequiredTitle: dedent(`
-            双重身份验证  
+            双重身份验证
             必填
         `),
         tfaRequiredDescription: dedent(`
@@ -875,6 +876,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `您确定要删除此${type}吗？`;
         },
         onlyVisible: '仅对…可见',
+        explain: '解释',
+        explainMessage: '请为我解释一下。',
         replyInThread: '在线程中回复',
         joinThread: '加入话题',
         leaveThread: '离开会话',
@@ -1049,6 +1052,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: '您确定要删除此收据吗？',
         addReceipt: '添加收据',
         scanFailed: '无法扫描该收据，因为缺少商家、日期或金额。',
+        addAReceipt: {
+            phrase1: '添加收据',
+            phrase2: '或者拖拽到这里',
+        },
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -1451,12 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         correctDistanceRateError: '修复里程费率错误后请重试。',
-        markedAsReimbursable: '将该报销单标记为“可报销”',
-        markedAsNonReimbursable: '将此报销单标记为“不可报销”',
-        markedAsBillable: '将该报销标记为“可计费”',
-        markedAsNonBillable: '将此报销标记为“不可向客户计费”',
-        updatedFieldTo: ({key, value, first}: {key: string; value: string | boolean; first: boolean}) => `将 ${first ? '设置' : ''}${key} 设置为 "${value}"`,
-        viaWorkspaceRules: ({route}: {route: string}) => `通过<a href="${route}">工作区规则</a>`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>解释</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2344,16 +2346,24 @@ ${amount}，商户：${merchant} - ${date}`,
     expenseRulesPage: {
         title: '报销规则',
         subtitle: '这些规则将适用于你的报销。如果你提交到工作区，则该工作区的规则可能会覆盖这些规则。',
+        findRule: '查找规则',
         emptyRules: {title: '你还没有创建任何规则', subtitle: '添加一条规则以自动化报销报告。'},
         changes: {
-            billable: (value: boolean) => `更新报销 ${value ? '可计费' : '不可计费'}`,
-            category: (value: string) => `将类别更新为“${value}”`,
-            comment: (value: string) => `将描述更改为 “${value}”`,
-            merchant: (value: string) => `将商户更新为“${value}”`,
-            reimbursable: (value: boolean) => `更新报销 ${value ? '可报销' : '不予报销'}`,
+            billableUpdate: (value: boolean) => `更新报销 ${value ? '可计费' : '不可计费'}`,
+            categoryUpdate: (value: string) => `将类别更新为“${value}”`,
+            commentUpdate: (value: string) => `将描述更改为 “${value}”`,
+            merchantUpdate: (value: string) => `将商户更新为“${value}”`,
+            reimbursableUpdate: (value: boolean) => `更新报销 ${value ? '可报销' : '不予报销'}`,
+            tagUpdate: (value: string) => `将标签更新为“${value}”`,
+            taxUpdate: (value: string) => `将税率更新为 ${value}`,
+            billable: (value: boolean) => `报销 ${value ? '可计费' : '不可计费'}`,
+            category: (value: string) => `将类别为“${value}”`,
+            comment: (value: string) => `将描述为 “${value}”`,
+            merchant: (value: string) => `将商户为“${value}”`,
+            reimbursable: (value: boolean) => `报销 ${value ? '可报销' : '不予报销'}`,
+            tag: (value: string) => `将标签为“${value}”`,
+            tax: (value: string) => `将税率为 ${value}`,
             report: (value: string) => `添加到名为“${value}”的报表`,
-            tag: (value: string) => `将标签更新为“${value}”`,
-            tax: (value: string) => `将税率更新为 ${value}`,
         },
         newRule: '新规则',
         addRule: {
@@ -2562,17 +2572,17 @@ ${amount}，商户：${merchant} - ${date}`,
                 title: '添加报销审批',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *添加报销审批*，以便审核团队支出并保持支出可控。
+                        *添加报销审批*，以便审核团队支出并将其控制在合理范围内。
 
                         操作步骤如下：
 
-                        1. 进入 *工作区*。
+                        1. 进入 *Workspaces*。
                         2. 选择你的工作区。
-                        3. 点击 *更多功能*。
-                        4. 启用 *工作流*。
-                        5. 在工作区编辑器中前往 *工作流*。
-                        6. 启用 *添加审批*。
-                        7. 你将被设为报销审批人。邀请团队成员后，你可以将其更改为任何管理员。
+                        3. 点击 *More features*。
+                        4. 启用 *Workflows*。
+                        5. 在工作区编辑器中进入 *Workflows*。
+                        6. 启用 *Approvals*。
+                        7. 你将被设为报销审批人。邀请团队成员后，你可以将此角色更改为任何管理员。
 
                         [带我前往更多功能](${workspaceMoreFeaturesLink})。`),
             },
@@ -4777,6 +4787,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             assignCardFailedError: '卡片分配失败。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: '卡片取消分配失败。',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片信息流',
+                workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时出错。请重试或联系您的管理员。',
+                feedCouldNotBeLoadedTitle: '无法加载此订阅内容',
+                feedCouldNotBeLoadedMessage: '加载此信息流时出错。请重试或联系您的管理员。',
+                tryAgain: '重试',
+            },
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',
@@ -6153,6 +6170,16 @@ ${reportName}
                 title: '报销政策',
                 cardSubtitle: '这里是你们团队报销政策所在的位置，让所有人都能清楚了解哪些费用包含在内。',
             },
+            merchantRules: {
+                title: '商家',
+                subtitle: '设置商家规则，让报销费用自动按正确科目归类，减少后期清理工作。',
+                addRule: '添加商家规则',
+                ruleSummaryTitle: (merchantName: string) => `如果商户包含“${merchantName}”`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `将商家重命名为 “${merchantName}”`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `将 ${fieldName} 更新为“${fieldValue}”`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `标记为“${reimbursable ? '可报销' : '不予报销'}”`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `标记为“${billable ? '可计费' : '不可计费'}”`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6531,6 +6558,10 @@ ${reportName}
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销天数设置为“${newValue}”天`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销单据天数更改为 “${newValue}” 天（之前为 “${oldValue}”）`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除费用最长期限（之前为“${oldValue}”天）`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 份已批准的自动支付报销报告`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `将自动支付已审批报表的阈值设置为 “${newLimit}”`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) => `将自动支付已批准报销单的阈值更改为 “${newLimit}”（此前为 “${oldLimit}”）`,
+        removedAutoPayApprovedReportsLimit: '已移除自动支付已批准报表的阈值',
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -6666,6 +6697,7 @@ ${reportName}
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
+        topCategories: '热门类别',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
             approve: '批准',
@@ -6692,6 +6724,7 @@ ${reportName}
             status: '状态',
             keyword: '关键字',
             keywords: '关键词',
+            limit: '限制',
             currency: '货币',
             completed: '已完成',
             amount: {

@@ -205,7 +205,7 @@ function TransactionItemRow({
         if (!violations) {
             return undefined;
         }
-        if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+        if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
             return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
         }
         return violations;
