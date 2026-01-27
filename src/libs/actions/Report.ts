@@ -646,11 +646,9 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     const lastVisibleAction = getLastVisibleAction(reportID);
     const lastActorAccountID = lastVisibleAction?.actorAccountID;
     const lastActionReportActionID = lastVisibleAction?.reportActionID;
-    if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID) {
-        const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
-        if (resolvedAction) {
-            optimisticReportActions[lastActionReportActionID] = resolvedAction;
-        }
+    const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
+    if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID && resolvedAction) {
+        optimisticReportActions[lastActionReportActionID] = resolvedAction;
     }
 
     const parameters: AddCommentOrAttachmentParams = {
@@ -717,7 +715,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         };
     }
 
-    const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction> = {};
 
     for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
@@ -725,6 +723,10 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
             ...(action as OptimisticAddCommentReportAction),
             errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
+    }
+    // In case of error bring back the follow up buttons to the cast comment
+    if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID) {
+        failureReportActions[lastActionReportActionID] = lastVisibleAction;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
