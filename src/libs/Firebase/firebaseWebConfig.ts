@@ -4,4 +4,6 @@ import Config from '@src/CONFIG';
 const firebaseConfig = Config.FIREBASE_WEB_CONFIG;
 const firebaseApp = initializeApp(firebaseConfig);
 
-export {firebaseApp};
+export default {
+    firebaseApp,
+};
