@@ -6220,18 +6220,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `añadió presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} al ${entityType} "${entityName}"`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }) => {
+        updateBudget: ({entityType, entityName, oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold}) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -6293,10 +6282,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}) =>
             `cambió el método de reembolso a "${newReimbursementChoice}" (previamente "${oldReimbursementChoice}")`,
         setAutoJoin: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} la aprobación previa de solicitudes para unirse al espacio de trabajo`,
-        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}) =>
-            `cambió la fórmula personalizada del nombre del informe a "${newDefaultTitle}" (previamente "${oldDefaultTitle}")`,
-        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}) =>
-            `asumió la propiedad del espacio de trabajo de <strong>${policyName}</strong> de ${oldOwnerName} (${oldOwnerEmail})`,
+        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}) => `cambió la fórmula personalizada del nombre del informe a "${newDefaultTitle}" (previamente "${oldDefaultTitle}")`,
+        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}) => `asumió la propiedad del espacio de trabajo de <strong>${policyName}</strong> de ${oldOwnerName} (${oldOwnerEmail})`,
         updatedAutoHarvesting: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} el envío programado`,
         updatedIndividualBudgetNotification: ({
             budgetAmount,

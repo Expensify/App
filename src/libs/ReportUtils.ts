@@ -13,7 +13,6 @@ import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessagePolicyChangeLog} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 // eslint-disable-next-line no-restricted-imports
@@ -176,7 +175,6 @@ import {
     formatLastMessageText,
     getActionableCardFraudAlertResolutionMessage,
     getActionableJoinRequestPendingReportAction,
-    getAddedBudgetMessage,
     getAllReportActions,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
@@ -184,7 +182,6 @@ import {
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getDefaultApproverUpdateMessage,
-    getDeletedBudgetMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getForwardsToUpdateMessage,
@@ -220,9 +217,6 @@ import {
     getSortedReportActions,
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
-    getUpdatedBudgetMessage,
-    getUpdatedTimeEnabledMessage,
-    getUpdatedTimeRateMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -5403,7 +5397,7 @@ function getModifiedExpenseOriginalMessage(
  * Check if original message is an object and can be used as a ChangeLog type
  * @param originalMessage
  */
-function isChangeLogObject(originalMessage?: OriginalMessageChangeLog | OriginalMessagePolicyChangeLog): (OriginalMessageChangeLog | OriginalMessagePolicyChangeLog) | undefined {
+function isChangeLogObject(originalMessage?: OriginalMessageChangeLog): OriginalMessageChangeLog | undefined {
     if (originalMessage && typeof originalMessage === 'object') {
         return originalMessage;
     }
@@ -5765,31 +5759,6 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getChangedApproverActionMessage(translateLocal, parentReportAction);
-    }
-
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) && policy && 'outputCurrency' in policy) {
-         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getAddedBudgetMessage(translateLocal, parentReportAction, policy);
-    }
-
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) && policy && 'outputCurrency' in policy) {
-         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getUpdatedBudgetMessage(translateLocal, parentReportAction, policy);
-    }
-
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET) && policy && 'outputCurrency' in policy) {
-         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getDeletedBudgetMessage(translateLocal, parentReportAction, policy);
-    }
-
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED)) {
-         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getUpdatedTimeEnabledMessage(translateLocal, parentReportAction);
-    }
-
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE)) {
-         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getUpdatedTimeRateMessage(translateLocal, parentReportAction);
     }
 
     if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {
