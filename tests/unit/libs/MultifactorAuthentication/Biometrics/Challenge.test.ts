@@ -207,6 +207,10 @@ describe('MultifactorAuthenticationChallenge', () => {
 
             mockHelpers.isChallengeSigned.mockReturnValueOnce(true);
 
+            Object.defineProperty(challenge, 'authenticationMethodCode', {
+                value: 1,
+            });
+
             // Mock processScenario
             mockHelpers.processScenario.mockResolvedValueOnce({
                 reason: VALUES.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,

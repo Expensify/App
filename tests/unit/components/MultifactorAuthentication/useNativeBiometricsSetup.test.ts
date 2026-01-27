@@ -202,13 +202,14 @@ describe('useNativeBiometricsSetup hook', () => {
             publicKey: 'public-key',
             privateKey: 'private-key',
         });
-        (PrivateKeyStore.set as jest.Mock).mockResolvedValue({
-            value: true,
-            reason: 'KEY_SAVED',
-        });
         (PublicKeyStore.set as jest.Mock).mockResolvedValue({
             value: true,
             reason: 'KEY_SAVED',
+        });
+        (PrivateKeyStore.set as jest.Mock).mockResolvedValue({
+            value: true,
+            reason: 'KEY_SAVED',
+            type: 0,
         });
         (processRegistration as jest.Mock).mockResolvedValue({
             step: {

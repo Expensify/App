@@ -1,3 +1,21 @@
+/**
+ * MultifactorAuthenticationContextProvider and useMultifactorAuthenticationContext
+ *
+ * Manages the entire multifactor authentication flow including:
+ * - Biometric device registration (setting up private key and biometric data)
+ * - Biometric authorization (challenge/proof of biometric)
+ * - Validation code entry and verification
+ * - Soft prompt display for biometric setup suggestions
+ * - Navigation to outcome screens based on authentication results
+ *
+ * The provider orchestrates three main operations:
+ * 1. `register` - Sets up biometrics on the device (one-time or on demand)
+ * 2. `authorize` - Performs the actual authentication challenge
+ * 3. `proceed` - Orchestrates the full flow based on device state
+ *
+ * State is managed using `useMultifactorAuthenticationStatus` hook.
+ * Navigation is triggered through the `navigate` function based on the current status.
+ */
 import React, {createContext, useContext, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -102,7 +120,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         });
     }, [mergedStatus.scenario]);
 
-    const softStorePromptAccepted = useRef<boolean | undefined>(undefined);
+    /**
+     * Tracks if the user has accepted the soft biometric setup prompt.
+     * Can only be `true` (user accepted) or `undefined` (not yet answered).
+     * No rejection option exists - users can only accept or navigate back.
+     */
+    const didUserAcceptSoftPrompt = useRef<true | undefined>(undefined);
 
     const storedValidateCode = useRef<number | undefined>(undefined);
 
@@ -120,11 +143,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         const {requiredFactorForNextStep, isRequestFulfilled, wasRecentStepSuccessful} = step;
 
-        if (shouldShowSoftPrompt) {
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
-            return;
-        }
-
         if (!hasEligibleAuthenticationMethods) {
             const scenarioLowerCase = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
             const outcome = getOutcomePath(scenarioLowerCase, 'no-eligible-methods');
@@ -139,11 +157,26 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
+        if (shouldShowSoftPrompt) {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
+            return;
+        }
+
+        /**
+         * Don't proceed with outcome navigation until the API authentication request completes.
+         * This prevents navigating before we know if the authentication succeeded or failed.
+         * Previous checks (eligible methods, magic code, soft prompt) don't depend on API operations,
+         * so their order relative to this check does not matter.
+         */
         if (!isRequestFulfilled) {
             return;
         }
 
-        // Execute callbacks when request is fulfilled
+        /**
+         * Execute registered callbacks when the authentication request is fulfilled.
+         * These callbacks allow external components (outside the RHP) to perform cleanup, state refresh,
+         * or other side effects after successful authentication (e.g., refreshing biometric setup status).
+         */
         for (const callback of Object.values(MultifactorAuthenticationCallbacks.onFulfill)) {
             callback();
         }
@@ -156,6 +189,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         const scenarioRoute: Route = screen ? (normalizedConfigs[screen].path as Route) : ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND;
 
+        /**
+         * Navigate based on the step outcome.
+         * At this point, we've already verified:
+         * - `isRequestFulfilled` is true (the async request completed)
+         * - No `requiredFactorForNextStep` is pending (no more factors needed)
+         * Therefore, `wasRecentStepSuccessful` represents the outcome of the final step in the flow.
+         * Navigate to the corresponding outcome screen (success, failure, or back to scenario).
+         */
         if (wasRecentStepSuccessful === true && !Navigation.isActiveRoute(successRoute)) {
             Navigation.navigate(successRoute);
             return;
@@ -249,6 +290,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         return mergedResult;
     }) as Register<MultifactorAuthenticationScenarioStatus>;
 
+    /**
+     * Performs the authorization (challenge) step of multifactor authentication.
+     * Verifies that biometrics are allowed and delegates to the native biometrics authorization.
+     * Can be chained after a device registration if the private key was just set up.
+     * @param scenario - The authentication scenario being performed.
+     * @param params - Scenario parameters and optional chainedPrivateKeyStatus from a prior registration.
+     * @param outcomePaths - Navigation paths for success and failure outcomes.
+     * @param softPromptAccepted - Whether the user has accepted the soft biometric setup prompt.
+     * @returns The updated authentication status with authorization result.
+     */
     const authorize = async <T extends MultifactorAuthenticationScenario>(
         scenario: T,
         params: MultifactorAuthenticationScenarioParams<T> & {
@@ -297,7 +348,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const {type} = mergedStatus.value;
         const {scenario} = mergedStatus;
 
-        softStorePromptAccepted.current = undefined;
+        didUserAcceptSoftPrompt.current = undefined;
         storedValidateCode.current = undefined;
 
         const cancelStatus = getCancelStatus(type, wasRecentStepSuccessful, NativeBiometrics.cancel, NativeBiometrics.setup.cancel);
@@ -324,7 +375,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         params?: MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>,
     ): Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>> => {
         const {successOutcome, failureOutcome} = params ?? {};
-        const softPromptAccepted = softStorePromptAccepted.current;
+        const softPromptAccepted = didUserAcceptSoftPrompt.current;
 
         const outcomePaths = {
             successOutcome,
@@ -348,6 +399,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             const validateCode = params?.validateCode ?? storedValidateCode.current;
             storedValidateCode.current = validateCode;
 
+            /**
+             * Check if we have the validation code before proceeding to the soft prompt.
+             * The user must first complete magic code validation before we can show the soft biometric setup prompt.
+             * Note: validateCode is also checked later in useNativeBiometricsSetup during actual device registration.
+             * In re-registration scenarios, users may need to provide validateCode even if they don't see the soft prompt.
+             */
             let stepUpdate = {};
             if (!validateCode) {
                 stepUpdate = {
@@ -370,15 +427,24 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 scenario,
                 outcomePaths,
                 {
+                    // Only show soft prompt if we have the validation code; otherwise request it first
                     shouldShowSoftPrompt: !!validateCode,
                 },
             );
         }
 
         if (!NativeBiometrics.setup.isLocalPublicKeyInAuth) {
-            /** Device is not registered, let's do that first */
+            /**
+             * Device is not registered yet - the private key hasn't been stored in the native keystore.
+             * We need to register the device first before we can perform authorization.
+             */
 
-            /** Run the setup method */
+            /**
+             * Validate that we have the required scenario parameters to register the device.
+             * The `params` object contains the user's authentication proof (codes, signatures, biometric type)
+             * and the scenario-specific context (transaction IDs, request data, etc.) needed to complete setup.
+             * Without these parameters, we cannot proceed.
+             */
             if (!params) {
                 return setStatus(
                     (currentStatus) => ({
@@ -453,6 +519,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         return result;
     };
 
+    /**
+     * Handles updates to the authentication flow state from UI components.
+     * Specifically processes user input like validation codes and soft prompt decisions,
+     * then re-runs the authentication flow logic with the new data.
+     * @param params - User input containing validation codes, biometric choices, or soft prompt decision
+     * @returns The updated authentication status after processing the input
+     */
     const update = async (
         params: Partial<AllMultifactorAuthenticationFactors> & {
             softPromptDecision?: boolean;
@@ -462,6 +535,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const {isRequestFulfilled} = mergedStatus.step;
         const {scenario} = mergedStatus;
 
+        // Guard against updates before a scenario is set or after authentication is already complete
         if (!scenario || isRequestFulfilled) {
             return setStatus(
                 (currentStatus) => ({
@@ -480,9 +554,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             );
         }
 
+        // Preserve validation code across state updates and track soft prompt acceptance
         const validateCode = params.validateCode ?? storedValidateCode.current;
-        softStorePromptAccepted.current = params.softPromptDecision ?? softStorePromptAccepted.current;
+        didUserAcceptSoftPrompt.current = params.softPromptDecision ? true : didUserAcceptSoftPrompt.current;
 
+        // Re-run the full authentication flow with the new user input
         return proceed(scenario, {
             ...payload,
             ...params,
@@ -490,15 +566,30 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         });
     };
 
+    /**
+     * Public API for external components to programmatically end the authentication flow.
+     * Allows terminating the flow with a specific outcome (success, cancellation, or failure)
+     * and navigates to the corresponding outcome screen.
+     * Internally uses `cancel()` which is the function that actually terminates the flow
+     * and handles navigation for all three outcome types.
+     * @param triggerType - The outcome type: FULFILL (success), CANCEL (user cancelled), or FAILURE
+     * @param argument - Optional outcome path or scenario for custom navigation routing
+     * @returns The updated authentication status
+     */
     const trigger = async <T extends MultifactorAuthenticationTrigger>(triggerType: T, argument?: MultifactorTriggerArgument<T>) => {
         const isScenarioArgument = argument && isValidScenario(argument);
         const scenarioOutcomePaths = isScenarioArgument ? getOutcomePaths(argument) : {};
 
         switch (triggerType) {
+            // Authentication succeeded - mark as complete with success and navigate to success outcome
             case CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FULFILL:
                 return cancel({wasRecentStepSuccessful: true, ...(isScenarioArgument ? scenarioOutcomePaths : {successOutcome: argument ?? undefined})});
+
+            // User cancelled the authentication flow - no explicit success/failure, just end the flow
             case CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.CANCEL:
                 return cancel(isScenarioArgument ? scenarioOutcomePaths : {successOutcome: argument ?? undefined});
+
+            // Authentication failed - mark as complete with failure and navigate to failure outcome
             case CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE:
                 return cancel({wasRecentStepSuccessful: false, ...(isScenarioArgument ? scenarioOutcomePaths : {failureOutcome: argument ?? undefined})});
             default:
@@ -511,13 +602,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const {wasRecentStepSuccessful, requiredFactorForNextStep, isRequestFulfilled} = mergedStatus.step;
 
-    let success;
-
-    if (!!requiredFactorForNextStep || !isRequestFulfilled) {
-        success = undefined;
-    } else {
-        success = wasRecentStepSuccessful;
-    }
+    // Only report success status once authentication is complete (no pending factors and request fulfilled).
+    // While authentication is in progress, success is undefined.
+    const isAuthenticationComplete = !requiredFactorForNextStep && isRequestFulfilled;
+    const success = isAuthenticationComplete ? wasRecentStepSuccessful : undefined;
 
     const {title, headerTitle, description} = mergedStatus;
 
