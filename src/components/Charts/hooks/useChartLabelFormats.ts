@@ -7,18 +7,24 @@ type ChartDataPoint = {
 type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
     yAxisUnit?: string;
+    yAxisUnitPosition?: 'left' | 'right';
     labelSkipInterval: number;
     labelRotation: number;
     truncatedLabels: string[];
 };
 
-export default function useChartLabelFormats({data, yAxisUnit, labelSkipInterval, labelRotation, truncatedLabels}: UseChartLabelFormatsProps) {
+export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition = 'left', labelSkipInterval, labelRotation, truncatedLabels}: UseChartLabelFormatsProps) {
     const formatYAxisLabel = useCallback(
         (value: number) => {
             const formatted = value.toLocaleString();
-            return yAxisUnit ? `${yAxisUnit}${formatted}` : formatted;
+            if (!yAxisUnit) {
+                return formatted;
+            }
+            // Add space for multi-character codes (e.g., "PLN 100") but not for symbols (e.g., "$100")
+            const separator = yAxisUnit.length > 1 ? ' ' : '';
+            return yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
         },
-        [yAxisUnit],
+        [yAxisUnit, yAxisUnitPosition],
     );
 
     const formatXAxisLabel = useCallback(

@@ -156,21 +156,27 @@ function useChartInteractions({handlePress, checkIsOver, barGeometry}: UseChartI
 
     /**
      * Tap gesture configuration.
-     * Handles clicks/touches and triggers handlePress if the hit-test passes.
+     * Handles clicks/touches and triggers handlePress if Victory matched a data point.
      */
     const tapGesture = useMemo(
         () =>
             Gesture.Tap().onEnd((e) => {
                 'worklet';
 
+                // Update cursor position
+                chartInteractionState.cursor.x.set(e.x);
+                chartInteractionState.cursor.y.set(e.y);
+
+                // Let Victory calculate which data point was tapped
                 actionsRef.current?.handleTouch(chartInteractionState, e.x, e.y);
                 const matchedIndex = chartInteractionState.matchedIndex.get();
 
-                if (isCursorOverTarget.get() && matchedIndex >= 0) {
+                // If Victory matched a valid data point, trigger the press handler
+                if (matchedIndex >= 0) {
                     scheduleOnRN(handlePress, matchedIndex);
                 }
             }),
-        [chartInteractionState, isCursorOverTarget, handlePress],
+        [chartInteractionState, handlePress],
     );
 
     /** Combined gesture object to be passed to CartesianChart's customGestures prop */

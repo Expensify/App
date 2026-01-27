@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {
     TransactionCardGroupListItemType,
@@ -7,11 +7,13 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import SearchBarChart from './SearchBarChart';
-import type {SearchGroupBy, SearchParams, SearchQueryJSON, SearchView} from './types';
+import type {SearchGroupBy, SearchQueryJSON, SearchView} from './types';
 
 type GroupedItem =
     | TransactionMemberGroupListItemType
@@ -63,12 +65,6 @@ type SearchChartViewProps = {
     /** Grouped transaction data from search results */
     data: TransactionGroupListItemType[];
 
-    /** Callback to execute a new search */
-    handleSearch: (params: SearchParams) => void;
-
-    /** Search key for the current search */
-    searchKey: SearchKey | undefined;
-
     /** Whether data is loading */
     isLoading?: boolean;
 };
@@ -84,23 +80,42 @@ const CHART_VIEW_TO_COMPONENT = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, handleSearch, searchKey, isLoading}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
     const handleBarPress = useCallback(
         (filterQuery: string) => {
-            // Build new query: keep current query but remove groupBy and add the filter
-            const currentQuery = buildSearchQueryString(queryJSON);
-            // Remove group-by from query and add filter
-            const newQuery = currentQuery.replace(/\s*group-by:\S+/g, '') + ` ${filterQuery}`;
-            const newQueryJSON = buildSearchQueryJSON(newQuery.trim());
-            if (newQueryJSON) {
-                handleSearch({queryJSON: newQueryJSON, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+            // Build new query string from current query + filter, then parse it
+            const currentQueryString = buildSearchQueryString(queryJSON);
+            const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
+
+            if (!newQueryJSON) {
+                return;
             }
+
+            // Modify the query object directly: remove groupBy and view to show table
+            newQueryJSON.groupBy = undefined;
+            newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
+
+            // Build the final query string and navigate
+            const newQueryString = buildSearchQueryString(newQueryJSON);
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
         },
-        [queryJSON, handleSearch, searchKey],
+        [queryJSON],
     );
 
     const config = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view as keyof typeof CHART_VIEW_TO_COMPONENT];
+
+    // Get currency symbol and position from first data item
+    const {yAxisUnit, yAxisUnitPosition} = useMemo((): {yAxisUnit: string; yAxisUnitPosition: 'left' | 'right'} => {
+        const firstItem = data.at(0) as GroupedItem | undefined;
+        const currency = firstItem?.currency ?? 'USD';
+        const {symbol, position} = getCurrencyDisplayInfoForCharts(currency);
+
+        return {
+            yAxisUnit: symbol,
+            yAxisUnitPosition: position,
+        };
+    }, [data]);
 
     if (!config || !ChartComponent) {
         return null;
@@ -115,6 +130,8 @@ function SearchChartView({queryJSON, view, groupBy, data, handleSearch, searchKe
             getFilterQuery={config.getFilterQuery}
             onBarPress={handleBarPress}
             isLoading={isLoading}
+            yAxisUnit={yAxisUnit}
+            yAxisUnitPosition={yAxisUnitPosition}
         />
     );
 }

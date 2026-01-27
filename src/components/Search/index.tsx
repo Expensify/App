@@ -1158,8 +1158,6 @@ function Search({
                         view={view}
                         groupBy={validGroupBy}
                         data={sortedData as TransactionGroupListItemType[]}
-                        handleSearch={handleSearch}
-                        searchKey={searchKey}
                         isLoading={shouldShowLoadingState}
                     />
                 </Animated.View>

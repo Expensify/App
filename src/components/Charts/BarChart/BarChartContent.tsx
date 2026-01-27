@@ -45,7 +45,7 @@ function calculateMinDomainPadding(chartWidth: number, barCount: number, innerPa
     return Math.ceil(chartWidth * minPaddingRatio * DOMAIN_PADDING_SAFETY_BUFFER);
 }
 
-function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, useSingleColor = false, onBarPress}: BarChartProps) {
+function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const font = useFont(EXPENSIFY_NEUE_FONT_URL, variables.iconSizeExtraSmall);
@@ -100,6 +100,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, useSingl
     const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
         data,
         yAxisUnit,
+        yAxisUnitPosition,
         labelSkipInterval,
         labelRotation,
         truncatedLabels,
@@ -165,12 +166,18 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, useSingl
         if (!dataPoint) {
             return null;
         }
-        const formattedAmount = yAxisUnit ? `${yAxisUnit}${dataPoint.total.toLocaleString()}` : dataPoint.total.toLocaleString();
+        const formatted = dataPoint.total.toLocaleString();
+        let formattedAmount = formatted;
+        if (yAxisUnit) {
+            // Add space for multi-character codes (e.g., "PLN 100") but not for symbols (e.g., "$100")
+            const separator = yAxisUnit.length > 1 ? ' ' : '';
+            formattedAmount = yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
+        }
         return {
             label: dataPoint.label,
             amount: formattedAmount,
         };
-    }, [activeDataIndex, data, yAxisUnit]);
+    }, [activeDataIndex, data, yAxisUnit, yAxisUnitPosition]);
 
     const {getChartColor} = useChartColors();
 

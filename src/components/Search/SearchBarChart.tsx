@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {BarChart} from '@components/Charts';
 import type {BarChartDataPoint} from '@components/Charts';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -9,6 +8,7 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type GroupedItem =
     | TransactionMemberGroupListItemType
@@ -37,9 +37,15 @@ type SearchBarChartProps = {
 
     /** Whether data is loading */
     isLoading?: boolean;
+
+    /** Currency symbol for Y-axis labels */
+    yAxisUnit?: string;
+
+    /** Position of currency symbol relative to value */
+    yAxisUnitPosition?: 'left' | 'right';
 };
 
-function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBarPress, isLoading}: SearchBarChartProps) {
+function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBarPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchBarChartProps) {
     // Transform grouped transaction data to BarChart format
     const chartData: BarChartDataPoint[] = useMemo(() => {
         return data.map((item) => {
@@ -73,22 +79,6 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBar
         [data, getFilterQuery, onBarPress],
     );
 
-    // Get currency symbol for Y-axis
-    const yAxisUnit = useMemo(() => {
-        const firstCurrency = chartData.at(0)?.currency ?? 'USD';
-        // Simple currency symbol mapping
-        if (firstCurrency === 'USD') {
-            return '$';
-        }
-        if (firstCurrency === 'EUR') {
-            return '€';
-        }
-        if (firstCurrency === 'GBP') {
-            return '£';
-        }
-        return '';
-    }, [chartData]);
-
     return (
         <BarChart
             data={chartData}
@@ -97,6 +87,7 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBar
             isLoading={isLoading}
             onBarPress={handleBarPress}
             yAxisUnit={yAxisUnit}
+            yAxisUnitPosition={yAxisUnitPosition}
         />
     );
 }
