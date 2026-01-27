@@ -10,10 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       APP_REF: ${{ github.sha }}
-      APP_PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.number }}
+      APP_PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.PR_NUMBER }}
+      PR_URL: ${{ steps.getMergedPullRequest.outputs.PR_URL }}
       BUILD_WEB: ${{ steps.detectOSBotifyPush.outputs.BUILD_WEB || 'true' }}
       BUILD_MOBILE: ${{ steps.detectOSBotifyPush.outputs.BUILD_MOBILE || 'true' }}
-      POST_COMMENTS: ${{ steps.detectOSBotifyPush.outputs.POST_COMMENTS || 'true' }}
+      POST_COMMENTS: ${{ steps.detectOSBotifyPush.outputs.POST_COMMENTS || steps.getMergedPullRequest.outputs.POST_COMMENTS || 'true' }}
     steps:
       - name: Checkout
         # v4
@@ -28,30 +29,47 @@ jobs:
       - name: Detect OSBotify automated push
         id: detectOSBotifyPush
         if: ${{ github.actor == 'OSBotify' }}
-        env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-        run: |
-          if [[ "$COMMIT_MESSAGE" == Update\ Mobile-Expensify\ submodule* ]]; then
-            echo "::notice::✅ OSBotify Mobile-Expensify submodule update detected. Building native only."
-            {
-              echo "BUILD_WEB=false"
-              echo "POST_COMMENTS=false"
-            } >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::⏭️ OSBotify automated push detected but without Mobile-Expensify submodule update. Skipping workflow."
-            {
-              echo "BUILD_MOBILE=false"
-              echo "BUILD_WEB=false"
-              echo "POST_COMMENTS=false"
-            } >> "$GITHUB_OUTPUT"
-          fi
+        # v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const commitMessage = context.payload?.head_commit?.message || '';
+            
+            if (commitMessage.startsWith('Update Mobile-Expensify submodule')) {
+              core.notice(`${context.actor} automated push with Mobile-Expensify submodule update detected. Skipping web build and post comments. No PR associated with this commit.`);
+              core.setOutput('BUILD_WEB', 'false');
+              core.setOutput('POST_COMMENTS', 'false');
+            } else {
+              core.warning(`OSBotify automated push detected but without Mobile-Expensify submodule update commit phrase. Skipping rest of the workflow. No PR associated with this commit.`);
+              core.setOutput('BUILD_MOBILE', 'false');
+              core.setOutput('BUILD_WEB', 'false');
+              core.setOutput('POST_COMMENTS', 'false');
+            }
 
       - name: Get merged pull request
         id: getMergedPullRequest
         if: ${{ github.actor != 'OSBotify' }}
-        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        # v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
-          github_token: ${{ github.token }}
+            github-token: ${{ github.token }}
+            script: |
+                const prData = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                });
+                const prNumber = prData?.data?.find(p => p.state === 'closed' && p.merged_at)?.number?.toString();
+                if (prNumber) {
+                const prUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`;
+                core.notice(`Found merged pull request: [#${prNumber}](${prUrl})`);
+                core.setOutput('PR_URL', prUrl);
+                core.setOutput('PR_NUMBER', prNumber);
+                } else {
+                core.setOutput('POST_COMMENTS', 'false');
+                core.setFailed(`Commit pushed by non-OSBotify actor. No merged pull request found for commit ${context.sha}`);
+                }
 
   postGitHubCommentBuildStarted:
     name: Post build started comment
@@ -352,3 +370,74 @@ jobs:
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL || ''}}
           IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL || ''}}
           WEB_LINK: https://${{ needs.prep.outputs.APP_PR_NUMBER }}.pr-testing.expensify.com
+
+  buildSummary:
+    runs-on: ubuntu-latest
+    if: ${{ always() && (needs.prep.outputs.APP_PR_NUMBER != '' || needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL != '' || needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL != '') }}
+    name: Build Summary
+    needs: [prep, web, androidHybrid, iosHybrid]
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: ${{ needs.prep.outputs.APP_REF }}
+
+      - name: Get Mobile-Expensify submodule SHA
+        id: getSubmoduleSHA
+        run: |
+          if [ -d "Mobile-Expensify" ]; then
+            SUBMODULE_SHA=$(git ls-tree HEAD Mobile-Expensify | awk '{print $3}')
+            echo "SHA=$SUBMODULE_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create build summary
+        # v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const prNumber = '${{ needs.prep.outputs.APP_PR_NUMBER }}';
+            const webLink = prNumber && '${{ needs.web.result }}' === 'success' ? `https://${prNumber}.pr-testing.expensify.com` : '';
+            const androidLink = '${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}' || '';
+            const iosLink = '${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}' || '';
+            const submoduleSHA = '${{ steps.getSubmoduleSHA.outputs.SHA }}' || '';
+            
+            const webStatus = webLink ? '✅ Success' : '${{ needs.web.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
+            const androidStatus = androidLink ? '✅ Success' : '${{ needs.androidHybrid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
+            const iosStatus = iosLink ? '✅ Success' : '${{ needs.iosHybrid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
+            
+            const summary = core.summary
+              .addTable([
+                [{data: 'Platform', header: true}, {data: 'Status', header: true}, {data: 'Download', header: true}],
+                [
+                  'Web',
+                  webStatus,
+                  webLink ? `<a href="${webLink}">${webLink}</a>` : '-'
+                ],
+                [
+                  'Android',
+                  androidStatus,
+                  androidLink ? `<a href="${androidLink}">${androidLink}</a>` : '-'
+                ],
+                [
+                  'iOS',
+                  iosStatus,
+                  iosLink ? `<a href="${iosLink}">${iosLink}</a>` : '-'
+                ],
+              ]);
+            
+            if (submoduleSHA) {
+              const submoduleUrl = `https://github.com/Expensify/Mobile-Expensify/commit/${submoduleSHA}`;
+              summary.addRaw(`\n**Mobile-Expensify Submodule SHA:** [${submoduleSHA}](${submoduleUrl})`);
+            }
+            
+
+            const prUrl = '${{ needs.prep.outputs.PR_URL }}';
+            if (prUrl) {
+              summary.addRaw(`\n**PR Number:** [${prNumber}](${prUrl})`);
+            } else {
+              summary.addRaw(`\n**PR Number:** No PR associated with this commit.`);
+            }
+            
+            summary.write();
