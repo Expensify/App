@@ -28,10 +28,6 @@ type CardFeedWithNumber = CardFeed | `${CardFeed}${number}`;
  */
 type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
-/**
- * Either a company card feed name with domain ID or the Expensify card bank name with domain ID.
-type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
-
 /** Statement period end */
 type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
 

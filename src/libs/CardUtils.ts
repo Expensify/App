@@ -23,7 +23,7 @@ import type {
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {UnassignedCard} from '@src/types/onyx/Card';
-import type {CardFeedData, CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CardFeed, CardFeedData, CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {filterObject} from './ObjectUtils';
@@ -109,7 +109,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
-    const bankName = isPlaid ? card?.cardName : getBankName(card.bank as CompanyCardFeed);
+    const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
     return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
@@ -341,7 +341,11 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
     );
 }
 
-function getCardFeedIcon(cardFeed: CardFeedWithNumber, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
+function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
+    if (cardFeed === undefined) {
+        return illustrations.GenericCompanyCardLarge;
+    }
+
     const feedIcons = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: companyCardIllustrations.VisaCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetailLarge,
@@ -420,7 +424,7 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
     );
 }
 
-function getBankName(feedType: CardFeedWithNumber): string {
+function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
     const feedNamesMapping = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Mastercard',
@@ -438,7 +442,7 @@ function getBankName(feedType: CardFeedWithNumber): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: 'American Express',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: 'PEX',
         [CONST.EXPENSIFY_CARD.BANK]: 'Expensify',
-    };
+    } satisfies Record<CardFeed, string>;
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
     const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType?.startsWith(feed));
@@ -469,7 +473,12 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
-function getCustomOrFormattedFeedName(translate: LocalizedTranslate, feed?: CardFeedWithNumber, customFeedName?: string, shouldAddCardsSuffix = true): string | undefined {
+function getCustomOrFormattedFeedName(
+    translate: LocalizedTranslate,
+    feed?: CardFeedWithNumber | CardFeedWithDomainID,
+    customFeedName?: string,
+    shouldAddCardsSuffix = true,
+): string | undefined {
     if (!feed) {
         return;
     }
