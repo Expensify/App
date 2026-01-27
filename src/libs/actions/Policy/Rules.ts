@@ -50,10 +50,8 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         return;
     }
 
-    // Generate a random client-side ID for optimistic update
     const optimisticRuleID = NumberUtils.rand64();
 
-    // Create the optimistic coding rule
     const optimisticRule: CodingRule = {
         filters: {
             left: 'merchant',
