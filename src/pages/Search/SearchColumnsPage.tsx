@@ -63,6 +63,7 @@ function SearchColumnsPage() {
         CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
     ]);
 
     const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {

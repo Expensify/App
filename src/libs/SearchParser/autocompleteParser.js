@@ -270,7 +270,7 @@ function peg$parse(input, options) {
   var peg$c84 = "group-withdrawn";
   var peg$c85 = "group-withdrawal-id";
   var peg$c86 = "group-category";
-  var peg$c87 = "group-tag";
+  var peg$c87 = "group-month";
   var peg$c88 = "!=";
   var peg$c89 = ">=";
   var peg$c90 = ">";
@@ -384,7 +384,7 @@ function peg$parse(input, options) {
   var peg$e87 = peg$literalExpectation("group-withdrawn", true);
   var peg$e88 = peg$literalExpectation("group-withdrawal-id", true);
   var peg$e89 = peg$literalExpectation("group-category", true);
-  var peg$e90 = peg$literalExpectation("group-tag", true);
+  var peg$e90 = peg$literalExpectation("group-month", true);
   var peg$e91 = peg$otherExpectation("operator");
   var peg$e92 = peg$classExpectation([":", "="], false, false);
   var peg$e93 = peg$literalExpectation("!=", false);
@@ -547,7 +547,7 @@ function peg$parse(input, options) {
   var peg$f76 = function() { return "groupWithdrawn"; };
   var peg$f77 = function() { return "groupWithdrawalID"; };
   var peg$f78 = function() { return "groupCategory"; };
-  var peg$f79 = function() { return "groupTag"; };
+  var peg$f79 = function() { return "groupMonth"; };
   var peg$f80 = function() { return "eq"; };
   var peg$f81 = function() { return "neq"; };
   var peg$f82 = function() { return "gte"; };
@@ -2375,7 +2375,7 @@ function peg$parse(input, options) {
                                           if (s0 === peg$FAILED) {
                                             s0 = peg$parsegroupCategory();
                                             if (s0 === peg$FAILED) {
-                                              s0 = peg$parsegroupTag();
+                                              s0 = peg$parsegroupMonth();
                                             }
                                           }
                                         }
@@ -3261,13 +3261,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsegroupTag() {
+  function peg$parsegroupMonth() {
     var s0, s1, s2, s3;
 
     s0 = peg$currPos;
-    s1 = input.substr(peg$currPos, 9);
+    s1 = input.substr(peg$currPos, 11);
     if (s1.toLowerCase() === peg$c87) {
-      peg$currPos += 9;
+      peg$currPos += 11;
     } else {
       s1 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e90); }
