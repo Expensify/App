@@ -44,6 +44,23 @@ _Note: These rules override all other policy settings._
 
 ---
 
+## Add Restrict by fare name
+
+Define specific keywords by airline to block flight fares containing those keywords in their fare names.
+
+Customers can click **+ Add Restriction**, select the airlines the restriction applies to, then enter comma-separated keywords that should be restricted in the fare name.
+
+**Note:** Keywords are matched against fare names using complete word matching. Matching is:
+- Case-insensitive
+- Airline-specific
+- Evaluated independently
+
+For example:
+- The keyword **Basic** will match **Basic Economy** and **Basic Plus**
+- The keyword **Bas** will not match **Basic Economy**
+
+---
+
 ## Highest cabin class - Domestic flights
 
 Set a cabin class for domestic travel:
@@ -107,19 +124,30 @@ Let travelers book higher cabin classes when conditions are met:
   - Premium Economy
   - Business
   - First
+ 
+---
+
+## Add Block fares with airport transfers
+
+Block travelers from booking flights that require changing airports during layovers.
+
+To enable this restriction, customers can click the toggle.
    
 ---
 
 ## Budgets
 
-Create dynamic flight budgets for domestic and international flights. 
+Create dynamic flight budgets for domestic and international flights.
+
+Customers can now set budgets in two ways:
 - **Amount or % over** a selected baseline option which includes:
   - None
   - More than lowest fare
   - More than median fare
   - Less than median fare
   - More than lowest logical fare
-- Or set a **Maximum price per booking** for all flights under the policy.
+- **Maximum price per booking** for all flights under the policy
+  - Further customization is possible, setting a maximum price based on the flight duration, allowing higher budgets for longer flights
 
 ---
 
