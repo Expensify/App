@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {buildCardFeedsData, buildCardsData} from '@libs/CardFeedUtils';
+import type {DomainFeedData} from '@libs/CardFeedUtils';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type IllustrationsType from '@styles/theme/illustrations/types';
@@ -304,7 +305,7 @@ const cardListClosed = {
 
 const domainFeedDataMock = {
     'mockDomain.com': {domainName: 'mockDomain.com', bank: 'Expensify Card', correspondingCardIDs: ['21589168', '21589182']},
-};
+} as const satisfies Record<string, DomainFeedData>;
 
 const translateMock = jest.fn();
 

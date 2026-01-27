@@ -13,12 +13,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
+import {getBankName, getCardFeedWithDomainID} from '@libs/CardUtils';
 import Parser from '@libs/Parser';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
+import type {CardFeedProvider, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 type CardInstructionsStepProps = {
     policyID?: string;
@@ -54,7 +54,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const submit = () => {
         if (isStripeFeedProvider && policyID) {
-            updateSelectedFeed(getCompanyCardFeedWithDomainID(feedProvider, workspaceAccountID), policyID);
+            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID) as CompanyCardFeedWithDomainID, policyID);
             Navigation.goBack();
             return;
         }

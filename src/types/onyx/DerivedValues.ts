@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card} from '.';
-import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -152,7 +152,7 @@ type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 /**
  * The errors of all card feeds.
  */
-type CardFeedErrorsObject = Record<CompanyCardFeedWithDomainID, FeedErrors>;
+type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
 
 /**
  * The errors of card feeds.

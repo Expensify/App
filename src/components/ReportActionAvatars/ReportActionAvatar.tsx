@@ -26,7 +26,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
@@ -179,7 +179,7 @@ function ReportActionAvatarSubscript({
     shouldShowTooltip: boolean;
     noRightMarginOnContainer?: boolean;
     subscriptAvatarBorderColor?: ColorValue;
-    subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    subscriptCardFeed?: CardFeed;
     fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
     reportID?: string;

@@ -1,10 +1,11 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
-import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
+import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import cardFeedErrorsConfig from '@src/libs/actions/OnyxDerived/configs/cardFeedErrors';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, FailedCompanyCardAssignments, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, FailedCardAssignments, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeedWithDomainID, CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
     currentValue: undefined,
@@ -16,25 +17,25 @@ const CARD_FEEDS = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
         workspaceAccountID: 44444444,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-        feedNameWithDomainID: getCompanyCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, 44444444),
+        feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, 44444444),
     },
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
         workspaceAccountID: 55555555,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-        feedNameWithDomainID: getCompanyCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 55555555),
+        feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 55555555),
     },
     [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: {
         workspaceAccountID: 66666666,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT,
-        feedNameWithDomainID: getCompanyCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, 66666666),
+        feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, 66666666),
     },
 } as const satisfies Partial<
     Record<
-        CompanyCardFeed,
+        CardFeedWithNumber,
         {
             workspaceAccountID: number;
-            feedName: CompanyCardFeed;
-            feedNameWithDomainID: CompanyCardFeedWithDomainID;
+            feedName: CardFeedWithNumber;
+            feedNameWithDomainID: CardFeedWithDomainID;
         }
     >
 >;
@@ -249,14 +250,14 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card3]: card};
 
-                const failedAssignments: OnyxCollection<FailedCompanyCardAssignments> = {
+                const failedAssignments: OnyxCollection<FailedCardAssignments> = {
                     [`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${cardFeed.workspaceAccountID}_${cardFeed.feedNameWithDomainID}`]: {
                         [String(CARD_IDS.card3)]: {
                             errors: {error: 'Failed to assign card'},
                             errorFields: undefined,
                             pendingAction: undefined,
                             domainOrWorkspaceAccountID: cardFeed.workspaceAccountID,
-                            feed: cardFeed.feedNameWithDomainID,
+                            bankName: cardFeed.feedName,
                             cardName: card.cardName ?? '',
                             encryptedCardNumber: card.encryptedCardNumber ?? '',
                         },
@@ -576,14 +577,14 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const failedAssignments: OnyxCollection<FailedCompanyCardAssignments> = {
+                const failedAssignments: OnyxCollection<FailedCardAssignments> = {
                     [`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${cardFeed.workspaceAccountID}_${cardFeed.feedNameWithDomainID}`]: {
                         [String(CARD_IDS.card1)]: {
                             errors: {error: 'Assignment failed'},
                             errorFields: undefined,
                             pendingAction: undefined,
                             domainOrWorkspaceAccountID: cardFeed.workspaceAccountID,
-                            feed: cardFeed.feedNameWithDomainID,
+                            bankName: cardFeed.feedName,
                             cardName: card.cardName ?? '',
                             encryptedCardNumber: card.encryptedCardNumber ?? '',
                         },

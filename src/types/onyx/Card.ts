@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {CompanyCardFeedWithDomainID} from './CardFeeds';
+import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -22,7 +22,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 
     /** Bank name */
-    bank: string;
+    bank: CardFeedWithNumber;
 
     /** Available amount to spend */
     availableSpend?: number;
@@ -345,16 +345,16 @@ type CardAssignmentData = {
 /**
  * Pending action for a company card assignment
  */
-type FailedCompanyCardAssignment = CardAssignmentData & {
+type FailedCardAssignment = CardAssignmentData & {
     /** The domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
     /** The name of the feed */
-    feed: CompanyCardFeedWithDomainID;
+    bankName: CardFeedWithNumber | undefined;
 };
 
 /** Pending action for a company card assignment */
-type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
+type FailedCardAssignments = Record<string, FailedCardAssignment>;
 
 export default Card;
 export type {
@@ -364,11 +364,11 @@ export type {
     IssueNewCardStep,
     IssueNewCardData,
     WorkspaceCardsList,
-    CardAssignmentData,
-    FailedCompanyCardAssignment,
-    FailedCompanyCardAssignments,
     CardLimitType,
     ProvisioningCardData,
     AssignableCardsList,
+    CardAssignmentData,
+    FailedCardAssignment,
+    FailedCardAssignments,
     UnassignedCard,
 };
