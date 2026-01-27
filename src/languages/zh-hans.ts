@@ -6752,6 +6752,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
+                [CONST.SEARCH.GROUP_BY.TAG]: '标签',
             },
             feed: '动态',
             withdrawalType: {

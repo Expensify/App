@@ -6871,6 +6871,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
             },
             feed: 'フィード',
             withdrawalType: {
