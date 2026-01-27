@@ -41,7 +41,7 @@ describe('QuickActionUtils', () => {
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
 
                 // When the report contains Manager McTest
-                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined, undefined, [CONST.BETAS.ALL]);
+                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined, undefined);
 
                 // Then it should return false
                 expect(result).toBe(false);
@@ -93,24 +93,24 @@ describe('QuickActionUtils', () => {
             };
 
             it('should restrict REQUEST action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, false);
+                const withRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
             });
 
             it('should restrict SPLIT action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
             });
 
             it('should restrict SEND_MONEY action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, false);
+                const withRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -119,8 +119,8 @@ describe('QuickActionUtils', () => {
             it('should restrict SPLIT action on Group chats', () => {
                 const groupChatReport: Report = LHNTestUtils.getFakeReport([1, 2, 3, 4]);
 
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -132,8 +132,8 @@ describe('QuickActionUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
 
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -187,7 +187,7 @@ describe('QuickActionUtils', () => {
                 } as unknown as Policy;
                 mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
 
-                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(true);
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, false)).toBe(true);
             });
             it("should not allow per diem action when policy doesn't have per diem rates", () => {
                 mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(undefined);
@@ -195,14 +195,14 @@ describe('QuickActionUtils', () => {
                     id: '1',
                     arePerDiemRatesEnabled: true,
                 } as unknown as Policy;
-                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, false)).toBe(false);
             });
             it("should not allow per diem action when policy doesn't have per diem enabled", () => {
                 const policy = {
                     id: '1',
                     arePerDiemRatesEnabled: false,
                 } as unknown as Policy;
-                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, false)).toBe(false);
             });
         });
     });

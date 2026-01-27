@@ -62,7 +62,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
-    const cardDescription = getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(cardList?.[transactionCardID]) : '');
+    const cardDescription =
+        getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(cardList?.[transactionCardID], translate) : '');
     const secondaryBgcolorStyle = secondaryColor ? StyleUtils.getBackgroundColorStyle(secondaryColor) : undefined;
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
     const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;
@@ -85,7 +86,11 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
         >
             <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
-                    <ImageSVG src={backgroundImage} />
+                    <ImageSVG
+                        src={backgroundImage}
+                        // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                        cachePolicy="none"
+                    />
                 </View>
                 <View style={styles.eReceiptContentContainer}>
                     <View>
@@ -93,6 +98,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                             src={icons.ReceiptBody}
                             fill={theme.textColorfulBackground}
                             contentFit="fill"
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
                         <View style={styles.eReceiptContentWrapper}>
                             <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
@@ -113,6 +120,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={receiptMCCSize}
                                                 width={receiptMCCSize}
                                                 fill={primaryColor}
+                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                                                cachePolicy="none"
                                             />
                                         ) : null}
                                         {!MCCIcon && tripIcon ? (
@@ -121,6 +130,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={receiptMCCSize}
                                                 width={receiptMCCSize}
                                                 fill={primaryColor}
+                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                                                cachePolicy="none"
                                             />
                                         ) : null}
                                     </View>
@@ -161,6 +172,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={variables.eReceiptWordmarkHeight}
                                                 fill={secondaryColor}
                                                 src={icons.ExpensifyWordmark}
+                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                                                cachePolicy="none"
                                             />
                                         </View>
                                     </View>

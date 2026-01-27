@@ -86,6 +86,28 @@ jest.mock('@libs/Sound', () => ({
     SOUNDS: {DONE: 'DONE'},
 }));
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModalWithReport: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isActiveRoute: jest.fn(() => false),
+    getTopmostReportId: jest.fn(() => undefined),
+    goBack: jest.fn(),
+    navigationRef: {
+        getRootState: jest.fn(() => ({routes: []})),
+        isReady: jest.fn(() => true),
+        current: {
+            getRootState: jest.fn(() => ({routes: []})),
+        },
+    },
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('@libs/actions/Welcome', () => ({
+    ...jest.requireActual('@libs/actions/Welcome'),
+    onServerDataReady: jest.fn(() => Promise.resolve()),
+}));
+
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
 describe('actions/Report', () => {
@@ -899,6 +921,79 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+    });
+
+    it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const SELF_DM_ID = '555';
+        const CHILD_REPORT_ID = '9999';
+        const TXN_ID = 'txn_123';
+
+        // Sign in and set personal details
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+
+        // Seed a self-DM report
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_ID}`, {
+            reportID: SELF_DM_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        } as OnyxTypes.Report);
+
+        // Seed an existing action in self DM to ensure MERGE does not overwrite
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}`, {
+            123: {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{type: 'COMMENT', html: 'Existing', text: 'Existing'}],
+                reportActionID: '123',
+                created: DateUtils.getDBTime(),
+            },
+        } as unknown as OnyxTypes.ReportActions);
+
+        // Seed a legacy transaction (no parentReportActionID)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}`, {
+            transactionID: TXN_ID,
+            amount: -101,
+            currency: CONST.CURRENCY.USD,
+            comment: {comment: 'Legacy expense'},
+        } as unknown as OnyxTypes.Transaction);
+
+        // Get the transaction object from Onyx
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
+        expect(transaction).toBeTruthy();
+
+        // Call openReport with transaction object to trigger the legacy preview flow
+        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
+        await waitForBatchedUpdates();
+
+        // Validate the correct Onyx key received the new action and existing one is preserved
+        const selfDMActions = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}` as const)) as OnyxTypes.ReportActions | undefined;
+        expect(selfDMActions).toBeTruthy();
+        // Existing action still present
+        expect(selfDMActions?.['123']).toBeTruthy();
+
+        // Derive the created parentReportActionID from the self DM actions by finding the one that links to the child report
+        const entries = Object.entries(selfDMActions ?? {}) as Array<[string, OnyxTypes.ReportAction]>;
+        const createdEntry = entries.find((tuple): tuple is [string, OnyxTypes.ReportAction] => tuple?.[1]?.childReportID === CHILD_REPORT_ID);
+        expect(createdEntry).toBeDefined();
+        // Type guard for TS; the expect above will fail the test if undefined
+        if (!createdEntry) {
+            return;
+        }
+        const [parentReportActionID, createdAction] = createdEntry;
+        expect(createdAction.childReportID).toBe(CHILD_REPORT_ID);
+
+        // Ensure we did not create a stray concatenated key like reportActions_<selfDMReportID><generatedActionID>
+        const wrongKeyValue = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}${parentReportActionID}` as const);
+        expect(wrongKeyValue).toBeUndefined();
+
+        // The API call should include moneyRequestPreviewReportActionID matching the created action
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+            reportID: CHILD_REPORT_ID,
+            moneyRequestPreviewReportActionID: parentReportActionID,
+        });
     });
 
     it('should replace duplicate OpenReport commands with the same reportID', async () => {
@@ -1850,7 +1945,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], undefined, undefined);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -1923,7 +2018,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], undefined, undefined);
+        Report.createNewReport({accountID}, true, false, policy);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -1961,7 +2056,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], undefined, undefined);
+        Report.createNewReport({accountID}, true, false, policy);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2005,7 +2100,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -2755,7 +2850,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport.reportID, policy);
+            Report.moveIOUReportToPolicy(iouReport, policy);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -2792,7 +2887,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, (phone: string) => phone);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -2859,7 +2954,7 @@ describe('actions/Report', () => {
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
             const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy, formatPhoneNumber);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -3165,6 +3260,150 @@ describe('actions/Report', () => {
             const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
 
             expect(reportsCollectionAfter).toBeUndefined();
+        });
+    });
+
+    describe('navigateToConciergeChat', () => {
+        const CONCIERGE_REPORT_ID = '123456';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const mockNavigation: {navigate: jest.Mock; dismissModalWithReport: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            mockNavigation.navigate.mockClear();
+            mockNavigation.dismissModalWithReport.mockClear();
+            await Onyx.clear();
+            return waitForBatchedUpdates();
+        });
+
+        it('should navigate to concierge chat with provided conciergeReportID', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, false);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should navigate with shouldDismissModal=true when provided', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalled();
+        });
+
+        it('should handle undefined conciergeReportID gracefully', async () => {
+            // Don't set CONCIERGE_REPORT_ID to simulate undefined state
+            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await waitForBatchedUpdates();
+
+            // When conciergeReportID is undefined, the function uses onServerDataReady()
+            // which is async. We're testing that it doesn't throw and handles the case properly.
+            expect(() => {
+                Report.navigateToConciergeChat(undefined, false);
+            }).not.toThrow();
+        });
+
+        it('should navigate with reportActionID when provided', async () => {
+            const reportActionID = 'action789';
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true, undefined, undefined, reportActionID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalledWith({
+                reportID: CONCIERGE_REPORT_ID,
+                reportActionID,
+            });
+        });
+
+        it('should navigate with linkToOptions when provided', async () => {
+            const linkToOptions = {forceReplace: true};
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, false, undefined, linkToOptions);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.any(String), linkToOptions);
+        });
+
+        it('should respect checkIfCurrentPageActive callback when creating new concierge chat', async () => {
+            const checkIfCurrentPageActive = jest.fn(() => false);
+            const navigateToAndOpenReportSpy = jest.spyOn(Report, 'navigateToAndOpenReport');
+
+            // Don't set CONCIERGE_REPORT_ID to simulate undefined state
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(undefined, false, checkIfCurrentPageActive);
+
+            await waitForBatchedUpdates();
+
+            // Should not navigate if checkIfCurrentPageActive returns false
+            expect(navigateToAndOpenReportSpy).not.toHaveBeenCalled();
+        });
+
+        it('should handle null conciergeReportID gracefully', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+            await waitForBatchedUpdates();
+
+            // When conciergeReportID is undefined (or null passed as undefined),
+            // it should handle it gracefully
+            expect(() => {
+                Report.navigateToConciergeChat(undefined, false);
+            }).not.toThrow();
+        });
+
+        it('should handle empty string conciergeReportID gracefully', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '');
+            await waitForBatchedUpdates();
+
+            // Empty string is falsy in JavaScript, so it should trigger the undefined path
+            expect(() => {
+                Report.navigateToConciergeChat('', false);
+            }).not.toThrow();
+        });
+
+        it('should work with all optional parameters provided', async () => {
+            const reportActionID = 'action123';
+            const linkToOptions = {forceReplace: true};
+            const checkIfCurrentPageActive = jest.fn(() => true);
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, true, checkIfCurrentPageActive, linkToOptions, reportActionID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.dismissModalWithReport).toHaveBeenCalledWith({
+                reportID: CONCIERGE_REPORT_ID,
+                reportActionID,
+            });
+        });
+
+        it('should prioritize provided conciergeReportID over Onyx value', async () => {
+            const onyxConciergeReportID = 'onyx-report-id';
+            const providedConciergeReportID = 'provided-report-id';
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, onyxConciergeReportID);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChat(providedConciergeReportID, false);
+
+            await waitForBatchedUpdates();
+
+            // Should use the provided ID, not the Onyx ID
+            expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.stringContaining(providedConciergeReportID), undefined);
         });
     });
 });
