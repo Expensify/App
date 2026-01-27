@@ -26,7 +26,7 @@ import SetExpiryOptionsStep from './SetExpiryOptionsStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
-function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
+function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>, isSingleUseEnabled: boolean): number {
     if (!issueNewCard) {
         return 0;
     }
@@ -37,8 +37,8 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
         [CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS]: 3,
-        [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
-        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
+        [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: isSingleUseEnabled ? 4 : 3,
+        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: isSingleUseEnabled ? 5 : 4,
     };
 
     const stepIndex = STEP_INDEXES[issueNewCard.currentStep];
@@ -60,7 +60,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         }
         return isSingleUseEnabled ? CONST.EXPENSIFY_CARD.STEP_NAMES : CONST.EXPENSIFY_CARD.SINGLE_USE_DISABLED_STEP_NAMES;
     }, [issueNewCard?.isChangeAssigneeDisabled, isSingleUseEnabled]);
-    const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
+    const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard, isSingleUseEnabled), [issueNewCard, isSingleUseEnabled]);
 
     useEffect(() => {
         startIssueNewCardFlow(policyID);

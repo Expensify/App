@@ -1,5 +1,3 @@
-import {endOfDay, parse, startOfDay} from 'date-fns';
-import {fromZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -18,6 +16,7 @@ import type {
     UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -777,20 +776,6 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function formatValidFromDate(fromDate: string, timezone: SelectedTimezone): string {
-    const localDate = parse(fromDate, 'yyyy-MM-dd', new Date());
-    const midnightLocal = startOfDay(localDate);
-    const midnightUTC = fromZonedTime(midnightLocal, timezone);
-    return midnightUTC.toISOString();
-}
-
-function formatValidThruDate(thruDate: string, timezone: SelectedTimezone): string {
-    const localDate = parse(thruDate, 'yyyy-MM-dd', new Date());
-    const endOfDayLocal = endOfDay(localDate);
-    const endOfDayUTC = fromZonedTime(endOfDayLocal, timezone);
-    return endOfDayUTC.toISOString();
-}
-
 function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData, timezone?: SelectedTimezone) {
     if (!data) {
         return;
@@ -839,8 +824,6 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         cardTitle,
         validateCode,
         domainAccountID,
-        validFrom: validFrom && timezone ? formatValidFromDate(validFrom, timezone) : undefined,
-        validThru: validThru && timezone ? formatValidThruDate(validThru, timezone) : undefined,
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
@@ -859,7 +842,12 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
-        {...parameters, policyID},
+        {
+            ...parameters,
+            policyID,
+            validFrom: validFrom && timezone ? DateUtils.formatValidFromDate(validFrom, timezone) : undefined,
+            validThru: validThru && timezone ? DateUtils.formatValidThruDate(validThru, timezone) : undefined,
+        },
         {
             optimisticData,
             successData,

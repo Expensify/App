@@ -113,11 +113,15 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
-    const expirationDateTitle =
-        data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
 
     const isPhysicalCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
     const cardReadyTranslationKey = isPhysicalCard ? 'workspace.card.issueNewCard.willBeReadyToShip' : 'workspace.card.issueNewCard.willBeReadyToUse';
+
+    const isSingleUseEnabled = isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS);
+    const expirationDateTitle =
+        data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
+
+    const shouldShowExpirationDate = isSingleUseEnabled && !isPhysicalCard;
 
     return (
         <InteractiveStepWrapper
@@ -163,7 +167,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
-                {!!expirationDateTitle && (
+                {!!expirationDateTitle && shouldShowExpirationDate && (
                     <MenuItemWithTopDescription
                         description={translate('workspace.card.issueNewCard.expirationDate')}
                         title={expirationDateTitle}
