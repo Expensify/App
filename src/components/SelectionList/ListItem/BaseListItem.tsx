@@ -161,7 +161,10 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}>
+                        <View
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
+                            accessible={false}
+                        >
                             <View>
                                 <Icon
                                     src={Expensicons.Checkmark}

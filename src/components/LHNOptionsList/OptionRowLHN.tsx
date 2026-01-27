@@ -247,10 +247,8 @@ function OptionRowLHN({
                                 ]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${
-                                    hasDraftComment && optionItem.isAllowedToComment ? `${translate('sidebarScreen.draftedMessage')}.` : ''
-                                } ${optionItem.isPinned ? `${translate('sidebarScreen.chatPinned')}.` : ''} ${
-                                    brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? 'Attention needed.' : ''
-                                } ${brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? 'Completed action.' : ''} ${optionItem.alternateText}`}
+                                    optionItem.alternateText
+                                }`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                 sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}

@@ -1984,7 +1984,6 @@ function PureReportActionItem({
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={translate('accessibilityHints.chatMessage')}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessible={false}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
