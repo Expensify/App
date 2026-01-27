@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
@@ -18,8 +18,10 @@ type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList,
 function AddCategoryPage({route}: AddCategoryPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
-    const availableNonPersonalPolicyCategoriesSelector = (allPolicyCategories: OnyxCollection<PolicyCategories>) =>
-        getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
+    const availableNonPersonalPolicyCategoriesSelector = useCallback(
+        (allPolicyCategories: OnyxCollection<PolicyCategories>) => getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID),
+        [personalPolicyID],
+    );
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: true,
         selector: availableNonPersonalPolicyCategoriesSelector,
