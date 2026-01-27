@@ -71,7 +71,9 @@ function createGuardContext(overrides?: Partial<GuardContext>): GuardContext {
  */
 function evaluateGuards(state: NavigationState, action: NavigationAction, context: GuardContext): GuardResult {
     for (const guard of guards) {
-        if (!guard.shouldApply(state, action, context)) {
+        const shouldApply = guard.shouldApply?.(state, action, context) ?? true;
+
+        if (!shouldApply) {
             continue;
         }
 

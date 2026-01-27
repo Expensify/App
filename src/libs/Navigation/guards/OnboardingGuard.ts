@@ -124,9 +124,9 @@ const getTargetRoute = (action: NavigationAction) => {
 const OnboardingGuard: NavigationGuard = {
     name: 'OnboardingGuard',
 
-    shouldApply: () => {
-        // This guard needs to evaluate all navigation to determine if onboarding is required
-        return true;
+    shouldApply: (): boolean => {
+        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+        return !isOnboardingCompleted;
     },
 
     evaluate: (state: NavigationState | undefined, action: NavigationAction, context: GuardContext): GuardResult => {

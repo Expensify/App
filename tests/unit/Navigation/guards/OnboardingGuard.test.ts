@@ -34,8 +34,29 @@ describe('OnboardingGuard', () => {
     });
 
     describe('shouldApply', () => {
-        it('should always return true for all navigation', () => {
-            expect(OnboardingGuard.shouldApply(mockState, mockAction, authenticatedContext)).toBe(true);
+        it('should return false when user has completed onboarding', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await waitForBatchedUpdates();
+
+            expect(OnboardingGuard.shouldApply?.()).toBe(false);
+        });
+
+        it('should return true when user has not completed onboarding', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(OnboardingGuard.shouldApply?.()).toBe(true);
+        });
+
+        it('should return false when onboarding data is undefined (old/migrated accounts)', async () => {
+            // Empty/null onboarding means old account - considered completed
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, null);
+            await waitForBatchedUpdates();
+            expect(OnboardingGuard.shouldApply?.()).toBe(false);
         });
     });
 

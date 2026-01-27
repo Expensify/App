@@ -7,9 +7,9 @@ import type {Route} from '@src/ROUTES';
 type GuardResult = {type: 'ALLOW'} | {type: 'BLOCK'; reason?: string} | {type: 'REDIRECT'; route: Route};
 
 /**
- * Base guard context with common navigation-related data
+ * Context provided to guards during evaluation
  */
-type BaseGuardContext = {
+type GuardContext = {
     /** Whether the user is authenticated */
     isAuthenticated: boolean;
 
@@ -19,12 +19,6 @@ type BaseGuardContext = {
     /** Current URL (for HybridApp and deep link checks) */
     currentUrl: string;
 };
-
-/**
- * Complete context provided to guards during evaluation
- * Combines base context with optional Onyx data
- */
-type GuardContext = BaseGuardContext;
 
 /**
  * Navigation guard interface
@@ -37,8 +31,9 @@ type NavigationGuard = {
     /**
      * Determines if this guard should evaluate for the given navigation action
      * Use this to skip evaluation when the guard is not relevant
+     * @default true - guard applies to all navigation
      */
-    shouldApply(state: NavigationState, action: NavigationAction, context: GuardContext): boolean;
+    shouldApply?(state?: NavigationState, action?: NavigationAction, context?: GuardContext): boolean;
 
     /**
      * Evaluates the navigation action and returns a decision
@@ -49,4 +44,4 @@ type NavigationGuard = {
     evaluate(state: NavigationState, action: NavigationAction, context: GuardContext): GuardResult;
 };
 
-export type {GuardResult, GuardContext, BaseGuardContext, NavigationGuard};
+export type {GuardResult, GuardContext, NavigationGuard};
