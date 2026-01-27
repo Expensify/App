@@ -42,6 +42,12 @@ function AddTagPage({route}: AddTagPageProps) {
         updateDraftRule({tag: value});
     };
 
+    const ContentWrapper = useMemo(() => {
+        return function Wrapper({children}: {children: React.ReactNode}) {
+            return <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>;
+        };
+    }, [hash]);
+
     return (
         <RuleSelectionBase
             titleKey="common.tag"
@@ -51,7 +57,7 @@ function AddTagPage({route}: AddTagPageProps) {
             onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
             backToRoute={backToRoute}
-            ContentWrapper={({children}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>}
+            ContentWrapper={ContentWrapper}
         />
     );
 }

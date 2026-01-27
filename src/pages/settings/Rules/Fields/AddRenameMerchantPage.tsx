@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import RuleTextBase from '@components/Rule/RuleTextBase';
@@ -25,6 +25,12 @@ function AddRenameMerchantPage({route}: AddRenameMerchantPageProps) {
         goBack();
     };
 
+    const ContentWrapper = useMemo(() => {
+        return function Wrapper({children}: {children: React.ReactNode}) {
+            return <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>;
+        };
+    }, [hash]);
+
     return (
         <RuleTextBase
             fieldID={CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT}
@@ -34,7 +40,7 @@ function AddRenameMerchantPage({route}: AddRenameMerchantPageProps) {
             characterLimit={CONST.MERCHANT_NAME_MAX_BYTES}
             onSave={onSave}
             onBack={goBack}
-            ContentWrapper={({children}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>}
+            ContentWrapper={ContentWrapper}
         />
     );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import RuleTextBase from '@components/Rule/RuleTextBase';
@@ -25,6 +25,12 @@ function AddReportPage({route}: AddReportPageProps) {
         goBack();
     };
 
+    const ContentWrapper = useMemo(() => {
+        return function Wrapper({children}: {children: React.ReactNode}) {
+            return <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>;
+        };
+    }, [hash]);
+
     return (
         <RuleTextBase
             fieldID={CONST.EXPENSE_RULES.FIELDS.REPORT}
@@ -35,7 +41,7 @@ function AddReportPage({route}: AddReportPageProps) {
             characterLimit={CONST.REPORT_NAME_LIMIT}
             onSave={onSave}
             onBack={goBack}
-            ContentWrapper={({children}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>}
+            ContentWrapper={ContentWrapper}
         />
     );
 }

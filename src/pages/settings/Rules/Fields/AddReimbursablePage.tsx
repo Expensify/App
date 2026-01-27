@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import RuleBooleanBase from '@components/Rule/RuleBooleanBase';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import {updateDraftRule} from '@libs/actions/User';
@@ -24,6 +24,12 @@ function AddReimbursablePage({route}: AddReimbursablePageProps) {
         goBack();
     };
 
+    const ContentWrapper = useMemo(() => {
+        return function Wrapper({children}: {children: React.ReactNode}) {
+            return <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>;
+        };
+    }, [hash]);
+
     return (
         <RuleBooleanBase
             fieldID={CONST.EXPENSE_RULES.FIELDS.REIMBURSABLE}
@@ -31,7 +37,7 @@ function AddReimbursablePage({route}: AddReimbursablePageProps) {
             titleKey="common.reimbursable"
             onSelect={onSelect}
             onBack={goBack}
-            ContentWrapper={({children}) => <RuleNotFoundPageWrapper hash={hash}>{children}</RuleNotFoundPageWrapper>}
+            ContentWrapper={ContentWrapper}
         />
     );
 }

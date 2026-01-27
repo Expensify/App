@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type TextBaseProps<TFormID extends OnyxFormKey> = {
     fieldID: string;
