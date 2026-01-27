@@ -2613,15 +2613,15 @@ ${amount} para ${merchant} - ${date}`,
 
                         Veja como:
 
-                        1. Vá para *Workspaces*.
-                        2. Selecione seu workspace.
-                        3. Clique em *More features*.
+                        1. Vá para *Espaços de trabalho*.
+                        2. Selecione seu espaço de trabalho.
+                        3. Clique em *Mais recursos*.
                         4. Ative *Workflows*.
-                        5. Acesse *Workflows* no editor do workspace.
-                        6. Ative *Add approvals*.
-                        7. Você será definido como aprovador de despesas. Você pode alterar isso para qualquer administrador depois de convidar sua equipe.
+                        5. Acesse *Workflows* no editor do espaço de trabalho.
+                        6. Ative *Approvals*.
+                        7. Você será definido como o aprovador de despesas. Você pode alterar isso para qualquer administrador depois de convidar sua equipe.
 
-                        [Levar-me para mais recursos](${workspaceMoreFeaturesLink}).`),
+                        [Leve-me para mais recursos](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um workspace`,
@@ -4875,6 +4875,13 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             assignCardFailedError: 'Falha na atribuição do cartão.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',
+                workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou entre em contato com o administrador.',
+                feedCouldNotBeLoadedTitle: 'Não foi possível carregar este feed',
+                feedCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar este feed. Tente novamente ou entre em contato com o seu administrador.',
+                tryAgain: 'Tentar novamente',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir e gerenciar seus Cartões Expensify',

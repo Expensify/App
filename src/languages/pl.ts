@@ -782,7 +782,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Wróć do oryginalnego urządzenia i poproś o nowy kod',
         successfulNewCodeRequest: 'Kod został wysłany. Sprawdź swoje urządzenie.',
         tfaRequiredTitle: dedent(`
-            Dwuskładnikowe uwierzytelnianie  
+            Dwuskładnikowe uwierzytelnianie
             wymagane
         `),
         tfaRequiredDescription: dedent(`
@@ -2609,19 +2609,19 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'Dodaj zatwierdzanie wydatków',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki swojego zespołu i mieć je pod kontrolą.
+                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki zespołu i utrzymać je pod kontrolą.
 
                         Oto jak:
 
                         1. Przejdź do *Workspaces*.
-                        2. Wybierz swoją przestrzeń roboczą.
+                        2. Wybierz swój workspace.
                         3. Kliknij *More features*.
                         4. Włącz *Workflows*.
-                        5. Przejdź do *Workflows* w edytorze przestrzeni roboczej.
-                        6. Włącz *Add approvals*.
-                        7. Zostaniesz ustawiony jako osoba zatwierdzająca wydatki. Po zaproszeniu zespołu możesz zmienić to na dowolnego administratora.
+                        5. Przejdź do *Workflows* w edytorze workspace.
+                        6. Włącz *Approvals*.
+                        7. Zostaniesz ustawiony jako zatwierdzający wydatki. Po zaproszeniu zespołu możesz zmienić tę osobę na dowolnego administratora.
 
-                        [Przejdź do more features](${workspaceMoreFeaturesLink}).`),
+                        [Przejdź do More features](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Utwórz](${workspaceConfirmationLink}) przestrzeń roboczą`,
@@ -4875,6 +4875,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
+                workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',
+                feedCouldNotBeLoadedTitle: 'Nie można było wczytać tego kanału',
+                feedCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania tego kanału. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
+                tryAgain: 'Spróbuj ponownie',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
