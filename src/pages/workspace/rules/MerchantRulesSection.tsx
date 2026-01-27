@@ -47,8 +47,8 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     if (rule.comment) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, rule.comment));
     }
-    if (rule.tax?.field_id_TAX?.value) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, rule.tax.field_id_TAX.value));
+    if (rule.tax?.value) {
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.name} (${rule.tax.value})`));
     }
     if (rule.reimbursable !== undefined) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));

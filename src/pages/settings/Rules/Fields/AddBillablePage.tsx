@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import RuleBooleanBase from '@components/Rule/RuleBooleanBase';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import {updateDraftRule} from '@libs/actions/User';
