@@ -13,19 +13,6 @@ import type Policy from '@src/types/onyx/Policy';
 import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
 
 /**
- * Converts a string boolean value ('true'/'false') to a boolean or undefined
- */
-function parseStringBoolean(value: string | undefined): boolean | undefined {
-    if (value === 'true') {
-        return true;
-    }
-    if (value === 'false') {
-        return false;
-    }
-    return undefined;
-}
-
-/**
  * Builds the tax object from a tax key and policy
  */
 function buildTaxObject(taxKey: string | undefined, policy: Policy | undefined): CodingRuleTax | undefined {
@@ -55,8 +42,8 @@ function mapFormFieldsToRule(form: MerchantRuleForm, policy: Policy | undefined)
         tag: form.tag || undefined,
         tax: buildTaxObject(form.tax, policy),
         comment: form.comment || undefined,
-        reimbursable: parseStringBoolean(form.reimbursable),
-        billable: parseStringBoolean(form.billable),
+        reimbursable: form.reimbursable,
+        billable: form.billable,
     };
 }
 
@@ -95,7 +82,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
         ruleID: optimisticRuleID,
         filters: {
             left: 'merchant',
-            operator: 'contains',
+            operator: 'eq',
             right: form.merchantToMatch,
         },
         ...ruleFields,

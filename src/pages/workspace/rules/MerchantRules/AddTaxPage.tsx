@@ -17,17 +17,15 @@ function AddTaxPage({route}: AddTaxPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
-    const taxItems = () => {
-        const taxes = policy?.taxRates?.taxes ?? {};
-        return Object.entries(taxes)
-            .filter(([, tax]) => !tax.isDisabled)
-            .map(([taxKey, tax]) => ({
-                name: `${tax.name} (${tax.value})`,
-                value: taxKey,
-            }));
-    };
+    const taxes = policy?.taxRates?.taxes ?? {};
+    const taxItems = Object.entries(taxes)
+        .filter(([, tax]) => !tax.isDisabled)
+        .map(([taxKey, tax]) => ({
+            name: `${tax.name} (${tax.value})`,
+            value: taxKey,
+        }));
 
-    const selectedTaxItem = form?.tax ? taxItems().find(({value}) => value === form.tax) : undefined;
+    const selectedTaxItem = form?.tax ? taxItems.find(({value}) => value === form.tax) : undefined;
 
     const backToRoute = ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
@@ -40,7 +38,7 @@ function AddTaxPage({route}: AddTaxPageProps) {
             titleKey="common.tax"
             testID="AddTaxPage"
             selectedItem={selectedTaxItem}
-            items={taxItems()}
+            items={taxItems}
             onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
             backToRoute={backToRoute}

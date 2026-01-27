@@ -33,7 +33,7 @@ function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title
 
     const validate = (values: FormOnyxValues<TFormID>) => {
         const errors: FormInputErrors<TFormID> = {};
-        const fieldValue = (values as Record<string, unknown>)[fieldID] ?? '';
+        const fieldValue = values[fieldID as keyof FormOnyxValues<TFormID>] ?? '';
 
         if (typeof fieldValue !== 'string') {
             return errors;

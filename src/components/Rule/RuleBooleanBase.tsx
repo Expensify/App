@@ -29,7 +29,7 @@ type RuleBooleanBaseProps = {
     formID: OnyxFormKey;
 
     /** Callback when a value is selected */
-    onSelect: (fieldID: string, value: string) => void;
+    onSelect: (fieldID: string, value: boolean | undefined) => void;
 
     /** Callback to go back */
     onBack: () => void;
@@ -45,11 +45,11 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash}: Ru
     const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
 
-    const formValue = (form as Record<string, unknown>)?.[fieldID];
+    const formValue = (form as Record<string, boolean | undefined>)?.[fieldID];
 
     let selectedItem = null;
-    if (formValue) {
-        const booleanValue = formValue === 'true' ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+    if (formValue !== undefined) {
+        const booleanValue = formValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
         selectedItem = booleanValues.find((value) => booleanValue === value) ?? null;
     }
 
@@ -61,12 +61,12 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash}: Ru
     }));
 
     const onSelectItem = (selectedValue: BooleanFilterItem) => {
-        const newValue = selectedValue.isSelected ? null : selectedValue.value;
-        let value = '';
+        const newValue = selectedValue.isSelected ? undefined : selectedValue.value;
+        let value: boolean | undefined;
         if (newValue === CONST.SEARCH.BOOLEAN.YES) {
-            value = 'true';
+            value = true;
         } else if (newValue === CONST.SEARCH.BOOLEAN.NO) {
-            value = 'false';
+            value = false;
         }
         onSelect(fieldID, value);
     };
