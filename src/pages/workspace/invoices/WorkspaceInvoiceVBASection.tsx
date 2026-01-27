@@ -184,7 +184,18 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         });
 
         return items;
-    }, [isPopoverBottomMount, paymentMethod.formattedSelectedPaymentMethod, shouldShowMakeDefaultButton, translate, icons.Star, icons.Trashcan, makeDefaultPaymentMethod]);
+    }, [
+        isPopoverBottomMount,
+        paymentMethod.formattedSelectedPaymentMethod,
+        shouldShowMakeDefaultButton,
+        translate,
+        icons.Star,
+        icons.Trashcan,
+        makeDefaultPaymentMethod,
+        styles.mb1,
+        styles.ph5,
+        styles.pt5,
+    ]);
 
     return (
         <Section
