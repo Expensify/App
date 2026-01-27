@@ -718,6 +718,7 @@ function MoneyRequestReportPreviewContent({
                         role={getButtonRole(true)}
                         isNested
                         accessibilityLabel={translate('iou.viewDetails')}
+                        accessible={false}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.CARD}
                     >
                         <View
@@ -772,7 +773,7 @@ function MoneyRequestReportPreviewContent({
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
-                                                        accessibilityLabel="button"
+                                                        accessibilityLabel={translate('common.previous')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex - 1)}
                                                         disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
@@ -789,7 +790,7 @@ function MoneyRequestReportPreviewContent({
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
-                                                        accessibilityLabel="button"
+                                                        accessibilityLabel={translate('common.next')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
                                                         disabled={
