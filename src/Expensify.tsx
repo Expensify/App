@@ -29,7 +29,7 @@ import Timing from './libs/actions/Timing';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
-import './libs/DeepLinkHandler';
+import processInitialURL from './libs/DeepLinkHandler';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
 import Growl, {growlRef} from './libs/Growl';
@@ -283,10 +283,16 @@ function Expensify() {
         setIsAuthenticatedAtStartup(isAuthenticated);
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            console.log('[Expensify] getInitialURL resolved, url:', url, 'isAuthenticated:', isAuthenticated);
             setInitialUrl(url as Route);
-            if (!url || isAuthenticated) {
-                console.log('[Expensify] Calling doneCheckingPublicRoom because', !url ? 'no url' : 'user is authenticated');
+            if (url) {
+                // Pass the URL to DeepLinkHandler for processing
+                processInitialURL(url);
+                // If user is authenticated, unblock UI immediately (no need to wait for public room check)
+                if (isAuthenticated) {
+                    Report.doneCheckingPublicRoom();
+                }
+            } else {
+                // No URL, unblock the UI
                 Report.doneCheckingPublicRoom();
             }
         });
