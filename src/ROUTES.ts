@@ -64,7 +64,7 @@ const ROUTES = {
 
     // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
     WORKSPACES_LIST: {route: 'workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo)},
-
+    SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
         getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
@@ -3723,15 +3723,19 @@ const ROUTES = {
         route: 'domain/:domainAccountID/admins/:accountID/reset-domain',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}/reset-domain` as const,
     },
+    DOMAIN_ADD_MEMBER: {
+        route: 'domain/:domainAccountID/members/invite',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/invite` as const,
+    },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
 
-    // The exact notification & prompt type will be added as a part of Multifactor Authentication config in another PR,
+    // The exact outcome & prompt type will be added as a part of Multifactor Authentication config in another PR,
     // for now a string is accepted to avoid blocking this PR.
-    MULTIFACTOR_AUTHENTICATION_NOTIFICATION: {
-        route: 'multifactor-authentication/notification/:notificationType',
-        getRoute: (notificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE>) => `multifactor-authentication/notification/${notificationType}` as const,
+    MULTIFACTOR_AUTHENTICATION_OUTCOME: {
+        route: 'multifactor-authentication/outcome/:outcomeType',
+        getRoute: (outcomeType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE>) => `multifactor-authentication/outcome/${outcomeType}` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_PROMPT: {

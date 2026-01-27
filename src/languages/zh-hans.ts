@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: '值',
         downloadFailedTitle: '下载失败',
         downloadFailedDescription: '您的下载未能完成。请稍后再试。',
-        downloadFailedEmptyReportDescription: () => ({
-            one: '您无法导出空报告。',
-            other: () => '您无法导出空报告。',
-        }),
         filterLogs: '筛选日志',
         network: '网络',
         reportID: '报告 ID',
@@ -637,6 +633,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: '原始金额',
         insights: '洞察',
         duplicateExpense: '重复报销',
+        newFeature: '新功能',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1183,14 +1180,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '你确定要删除此报销吗？',
             other: '您确定要删除这些报销吗？',
         }),
-        deleteReport: () => ({
-            one: '删除报告',
-            other: '删除报告',
-        }),
-        deleteReportConfirmation: () => ({
-            one: '您确定要删除此报告吗？',
-            other: '您确定要删除这些报告吗？',
-        }),
+        deleteReport: '删除报表',
+        deleteReportConfirmation: '您确定要删除此报告吗？',
         settledExpensify: '已支付',
         done: '完成',
         settledElsewhere: '在其他地方已支付',
@@ -6157,6 +6148,16 @@ ${reportName}
                 title: '报销政策',
                 cardSubtitle: '这里是你们团队报销政策所在的位置，让所有人都能清楚了解哪些费用包含在内。',
             },
+            merchantRules: {
+                title: '商家',
+                subtitle: '设置商家规则，让报销费用自动按正确科目归类，减少后期清理工作。',
+                addRule: '添加商家规则',
+                ruleSummaryTitle: (merchantName: string) => `如果商户包含“${merchantName}”`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `将商家重命名为 “${merchantName}”`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `将 ${fieldName} 更新为“${fieldValue}”`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `标记为“${reimbursable ? '可报销' : '不予报销'}”`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `标记为“${billable ? '可计费' : '不可计费'}”`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6670,6 +6671,7 @@ ${reportName}
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
+        topCategories: '热门类别',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
             approve: '批准',
@@ -6696,6 +6698,7 @@ ${reportName}
             status: '状态',
             keyword: '关键字',
             keywords: '关键词',
+            limit: '限制',
             currency: '货币',
             completed: '已完成',
             amount: {
@@ -6729,6 +6732,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '从',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
             },
             feed: '动态',
             withdrawalType: {
@@ -7818,7 +7822,6 @@ ${reportName}
                 `<comment><muted-text-label>启用后，主要联系人将为<strong>${domainName}</strong>成员拥有的所有工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '无法更改合并域账单。请稍后重试。',
             addAdmin: '添加管理员',
-            invite: '邀请',
             addAdminError: '无法将此成员添加为管理员。请重试。',
             revokeAdminAccess: '撤销管理员访问权限',
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
@@ -7828,7 +7831,7 @@ ${reportName}
             enterDomainName: '在此输入您的域名',
             resetDomainInfo: `此操作是<strong>永久性的</strong>，并且以下数据将被删除：<br/> <ul><li>公司卡连接以及这些卡片上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用以及其他数据将会保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域名从您的域名列表中清除。`,
         },
-        members: {title: '成员', findMember: '查找成员'},
+        members: {title: '成员', findMember: '查找成员', addMember: '添加成员', email: '电子邮箱地址', errors: {addMember: '无法添加此成员。请重试。'}},
         domainAdmins: '域管理员',
     },
     gps: {

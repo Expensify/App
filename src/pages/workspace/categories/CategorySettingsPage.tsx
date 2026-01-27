@@ -195,7 +195,7 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible,
             shouldPreventDisableOrDelete,
             policyData,
-            policyCategory.name,
+            policyCategory?.name,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,

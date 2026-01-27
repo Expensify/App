@@ -1713,4 +1713,71 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, true)).toBe(-100);
         });
     });
+
+    describe('isExpenseSplit', () => {
+        it('should return false when transaction is assigned to a real report', () => {
+            const transaction = generateTransaction({
+                reportID: '12345',
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
+        });
+
+        it('should return true when transaction is in split report and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return true when transaction is unreported and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return true when transaction has no reportID and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: undefined,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return false when transaction comment source is not split', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.REQUEST,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
+        });
+
+        it('should return false when transaction comment is missing originalTransactionID', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
+        });
+    });
 });

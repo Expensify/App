@@ -245,6 +245,7 @@ const translations = {
         in: 'In',
         optional: 'Optional',
         new: 'New',
+        newFeature: 'New feature',
         search: 'Search',
         reports: 'Reports',
         find: 'Find',
@@ -525,10 +526,6 @@ const translations = {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
-        downloadFailedEmptyReportDescription: () => ({
-            one: "You can't export an empty report.",
-            other: () => `You can't export empty reports.`,
-        }),
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
@@ -1199,14 +1196,8 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: () => ({
-            one: 'Delete report',
-            other: 'Delete reports',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Are you sure that you want to delete this report?',
-            other: 'Are you sure that you want to delete these reports?',
-        }),
+        deleteReport: 'Delete report',
+        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -6169,6 +6160,16 @@ const translations = {
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
+            merchantRules: {
+                title: 'Merchant',
+                subtitle: 'Set the merchant rules so expenses arrive correctly coded and require less cleanup.',
+                addRule: 'Add merchant rule',
+                ruleSummaryTitle: (merchantName: string) => `If merchant contains "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Rename merchant to "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+            },
             categoryRules: {
                 title: 'Category rules',
                 approver: 'Approver',
@@ -6744,6 +6745,7 @@ const translations = {
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
+        topCategories: 'Top categories',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
@@ -6770,6 +6772,7 @@ const translations = {
             status: 'Status',
             keyword: 'Keyword',
             keywords: 'Keywords',
+            limit: 'Limit',
             currency: 'Currency',
             completed: 'Completed',
             amount: {
@@ -6803,6 +6806,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7991,7 +7995,6 @@ const translations = {
                 `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
             consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
             addAdmin: 'Add admin',
-            invite: 'Invite',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
             revokeAdminAccess: 'Revoke admin access',
             cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
@@ -8008,6 +8011,11 @@ const translations = {
         members: {
             title: 'Members',
             findMember: 'Find member',
+            addMember: 'Add member',
+            email: 'Email address',
+            errors: {
+                addMember: 'Unable to add this member. Please try again.',
+            },
         },
     },
 };

@@ -459,6 +459,7 @@ export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';
 export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
+export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
@@ -466,3 +467,6 @@ export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleCon
 export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
+export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
+export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
+export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
