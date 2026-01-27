@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import {
     arePersonalDetailsMissing,
     createDisplayName,
+    createPersonalDetailsLookupByAccountID,
     getAccountIDsByLogins,
     getEffectiveDisplayName,
     getPersonalDetailByEmail,
@@ -593,6 +594,54 @@ describe('PersonalDetailsUtils', () => {
                 login: 'Test@Example.com',
                 displayName: 'Test User',
             });
+        });
+    });
+
+    describe('createPersonalDetailsLookupByAccountID', () => {
+        it('should create a lookup map from an array of personal details', () => {
+            const details: PersonalDetails[] = [
+                {accountID: 1, login: 'user1@example.com', displayName: 'User One'},
+                {accountID: 2, login: 'user2@example.com', displayName: 'User Two'},
+                {accountID: 3, login: 'user3@example.com', displayName: 'User Three'},
+            ];
+
+            const result = createPersonalDetailsLookupByAccountID(details);
+
+            expect(result[1]).toEqual({accountID: 1, login: 'user1@example.com', displayName: 'User One'});
+            expect(result[2]).toEqual({accountID: 2, login: 'user2@example.com', displayName: 'User Two'});
+            expect(result[3]).toEqual({accountID: 3, login: 'user3@example.com', displayName: 'User Three'});
+        });
+
+        it('should return an empty object for an empty array', () => {
+            const result = createPersonalDetailsLookupByAccountID([]);
+            expect(result).toEqual({});
+        });
+
+        it('should allow O(1) lookup by accountID', () => {
+            const details: PersonalDetails[] = [
+                {accountID: 100, login: 'test@example.com', displayName: 'Test User'},
+            ];
+
+            const map = createPersonalDetailsLookupByAccountID(details);
+
+            // Direct access should work
+            expect(map[100]).toBeDefined();
+            expect(map[100].displayName).toBe('Test User');
+
+            // Non-existent key should be undefined
+            expect(map[999]).toBeUndefined();
+        });
+
+        it('should handle duplicate accountIDs by keeping the last occurrence', () => {
+            const details: PersonalDetails[] = [
+                {accountID: 1, login: 'first@example.com', displayName: 'First'},
+                {accountID: 1, login: 'second@example.com', displayName: 'Second'},
+            ];
+
+            const result = createPersonalDetailsLookupByAccountID(details);
+
+            // The second entry should overwrite the first
+            expect(result[1]).toEqual({accountID: 1, login: 'second@example.com', displayName: 'Second'});
         });
     });
 });
