@@ -194,7 +194,8 @@ function PaymentMethodList({
                 .filter(
                     (card) =>
                         CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
-                        (isExpensifyCard(card) || !!card.domainName || isUserAssignedPersonalCard(card, currentUserAccountID)),
+                        (isExpensifyCard(card) || !!card.domainName || isUserAssignedPersonalCard(card, currentUserAccountID)) &&
+                        card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);

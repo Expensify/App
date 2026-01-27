@@ -141,13 +141,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     description={cardholder?.login ?? ''}
                     interactive={false}
                 />
-                <MenuItemWithTopDescription
-                    numberOfLinesTitle={3}
-                    description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    title={maskCardNumber(card?.cardName ?? '', cardBank, true)}
-                    interactive={false}
-                    titleStyle={styles.walletCardNumber}
-                />
                 <OfflineWithFeedback
                     pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                     errorRowStyles={[styles.ph5, styles.mb3]}
@@ -160,7 +153,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     }}
                 >
                     <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.companyCards.cardName')}
+                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
                         title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
                         shouldShowRightIcon
                         brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

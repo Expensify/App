@@ -65,7 +65,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.companyCards.cardName')}
+                title={translate('workspace.moreFeatures.companyCards.cardNumber')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID))}
             />
             <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>

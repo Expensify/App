@@ -3,7 +3,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +16,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import {updateAssignedCardTransactionStartDate} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +44,6 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     });
 
     const [errorText, setErrorText] = useState('');
-    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
 
     const handleSelectDateOption = (dateOption: DateOption) => {
         setErrorText('');
@@ -75,17 +72,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
 
         if (currentStartDate === newStartDate) {
             Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
-            return;
         }
-
-        setIsWarningModalVisible(true);
-    };
-
-    const confirmSubmit = () => {
-        const newStartDate = getNewStartDate();
-        updateAssignedCardTransactionStartDate(cardID, newStartDate, currentStartDate);
-        setIsWarningModalVisible(false);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
     };
 
     const dateOptions = [
@@ -156,17 +143,6 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                     }
                 />
             </View>
-            <ConfirmModal
-                title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                isVisible={isWarningModalVisible}
-                onConfirm={confirmSubmit}
-                onCancel={() => setIsWarningModalVisible(false)}
-                shouldSetModalVisibility={false}
-                prompt={translate('workspace.moreFeatures.companyCards.changeTransactionStartDateWarning')}
-                confirmText={translate('common.save')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
         </ScreenWrapper>
     );
 }
