@@ -14,7 +14,7 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type MonthListItemHeaderProps<TItem extends ListItem> = {
-    /** The category currently being looked at */
+    /** The month group currently being looked at */
     month: TransactionMonthGroupListItemType;
 
     /** Callback to fire when a checkbox is pressed */
