@@ -26,5 +26,5 @@ export default {
         ignorePaths: ['Mobile-Expensify/Android/assets/app/shared/bundle.js'],
     },
     // Forces React Native to build from source to include our custom patches
-    usePrebuiltRNCore: false,
+    usePrebuiltRNCore: 0,
 };
