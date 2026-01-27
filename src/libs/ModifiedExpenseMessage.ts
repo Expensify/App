@@ -6,8 +6,8 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyTagLists, Report, ReportAction, TaxRate} from '@src/types/onyx';
-import {PolicyRuleTaxRate} from '@src/types/onyx/ExpenseRule';
+import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import type {PolicyRuleTaxRate} from '@src/types/onyx/ExpenseRule';
 import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -508,9 +508,9 @@ function getForReportAction({
         const rulePolicyID = reportActionOriginalMessage.policyID;
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
-        if (policyRulesModifiedFields && policyID) {
+        if (policyRulesModifiedFields && rulePolicyID) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return getPolicyRulesModifiedFieldsMessage(translateLocal, policyRulesModifiedFields, policyID);
+            return getPolicyRulesModifiedFieldsMessage(translateLocal, policyRulesModifiedFields, rulePolicyID);
         }
     }
 
