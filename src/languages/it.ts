@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -638,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analisi',
         duplicateExpense: 'Spesa duplicata',
         newFeature: 'Nuova funzionalità',
+        month: 'Mese',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1495,6 +1498,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: "Correggi l'errore nella tariffa della distanza e riprova.",
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'ha contrassegnato la spesa come "rimborsabile"' : 'ha contrassegnato la spesa come "non rimborsabile"';
+                }
+                if (key === 'billable') {
+                    return value ? 'ha contrassegnato la spesa come "fatturabile"' : 'ha contrassegnato la spesa come "non addebitabile"';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `imposta l'aliquota fiscale su "${taxRateName}"`;
+                    }
+                    return `aliquota fiscale in "${taxRateName}"`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `imposta ${translations.common[key].toLowerCase()} su "${updatedValue}"`;
+                }
+                return `${translations.common[key].toLowerCase()} a "${updatedValue}"`;
+            });
+            return `${formatList(fragments)} tramite <a href="${policyRulesRoute}">regole dello spazio di lavoro</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6910,8 +6939,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 on: (date?: string) => `Su ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Lo scorso mese',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Da inizio anno',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultimo estratto conto',
                 },
             },
@@ -6951,8 +6981,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
             },
             feed: 'Feed',
             withdrawalType: {

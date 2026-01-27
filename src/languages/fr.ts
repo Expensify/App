@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -639,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analyses',
         duplicateExpense: 'Note de frais en double',
         newFeature: 'Nouvelle fonctionnalité',
+        month: 'Mois',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1502,6 +1505,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Corrigez l’erreur de taux de distance et réessayez.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'a marqué la dépense comme « remboursable »' : 'a marqué la dépense comme « non remboursable »';
+                }
+                if (key === 'billable') {
+                    return value ? 'a marqué la dépense comme « facturable »' : 'a marqué la dépense comme « non refacturable »';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `définir le taux de taxe sur « ${taxRateName} »`;
+                    }
+                    return `taux de taxe vers « ${taxRateName} »`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `définir ${translations.common[key].toLowerCase()} sur « ${updatedValue} »`;
+                }
+                return `${translations.common[key].toLowerCase()} à « ${updatedValue} »`;
+            });
+            return `${formatList(fragments)} via les <a href="${policyRulesRoute}">règles de l’espace de travail</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6932,8 +6961,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 on: (date?: string) => `Le ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
-                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci', //_/\__/_/  \_,_/\__/\__/\_,_/
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Année à ce jour',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
             },
@@ -6975,6 +7005,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             },
             feed: 'Flux',
             withdrawalType: {

@@ -28,7 +28,16 @@ import type CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchCardGroup, SearchCategoryGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import type {
+    SearchCardGroup,
+    SearchCategoryGroup,
+    SearchDataTypes,
+    SearchMemberGroup,
+    SearchMonthGroup,
+    SearchTask,
+    SearchTransactionAction,
+    SearchWithdrawalIDGroup,
+} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -473,6 +482,14 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
     SearchMemberGroup & {
         /** Final and formatted "from" value used for displaying and sorting */
         formattedFrom?: string;
+    };
+
+type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
+        /** Final and formatted "month" value used for displaying */
+        formattedMonth: string;
+
+        /** Key used for sorting */
+        sortKey: number;
     };
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
@@ -1133,6 +1150,7 @@ export type {
     TransactionGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMonthGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionCategoryGroupListItemType,

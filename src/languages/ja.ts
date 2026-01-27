@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -637,6 +639,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'インサイト',
         duplicateExpense: '重複した経費',
         newFeature: '新機能',
+        month: '月',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1492,6 +1495,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明する</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? '経費を「立替精算対象」にマークしました' : '経費を「非精算」としてマークしました';
+                }
+                if (key === 'billable') {
+                    return value ? '経費を「請求可能」とマークしました' : '経費を「請求対象外」としてマークしました';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `税率を「${taxRateName}」に設定`;
+                    }
+                    return `税率を「${taxRateName}」に`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `${translations.common[key].toLowerCase()} を「${updatedValue}」に設定`;
+                }
+                return `${translations.common[key].toLowerCase()} を「${updatedValue}」に`;
+            });
+            return `${formatList(fragments)}（<a href="${policyRulesRoute}">ワークスペースルール</a>経由）`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6852,7 +6881,8 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'しない',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '年初来',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細書',
                 },
             },
             status: 'ステータス',
@@ -6892,7 +6922,8 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
-                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
+                [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
             feed: 'フィード',
             withdrawalType: {

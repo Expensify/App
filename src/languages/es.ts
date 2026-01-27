@@ -1,6 +1,8 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
+import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
@@ -388,6 +390,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
+        month: 'Monat',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1228,6 +1231,39 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Corrige el error de la tasa de distancia y vuelve a intentarlo.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+
+                if (key === 'reimbursable') {
+                    return value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"';
+                }
+
+                if (key === 'billable') {
+                    return value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"';
+                }
+
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `estableció la tasa de impuesto a "${taxRateName}"`;
+                    }
+                    return `tasa de impuesto a "${taxRateName}"`;
+                }
+
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `estableció el ${translations.common[key].toLowerCase()} a "${updatedValue}"`;
+                }
+
+                return `${translations.common[key].toLowerCase()} a "${updatedValue}"`;
+            });
+
+            return `${formatList(fragments)} a través de <a href="${policyRulesRoute}">reglas del espacio de trabajo</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6559,6 +6595,7 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mes',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Año hasta la fecha',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extracto',
                 },
             },
@@ -6598,6 +6635,7 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Tarjeta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retiro',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoría',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mes',
             },
             feed: 'Feed',
             withdrawalType: {

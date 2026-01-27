@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -634,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: '洞察',
         duplicateExpense: '重复报销',
         newFeature: '新功能',
+        month: '月',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1469,6 +1472,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: '修复里程费率错误后请重试。',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>解释</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”';
+                }
+                if (key === 'billable') {
+                    return value ? '将该报销标记为“可向客户收费”' : '已将该报销标记为“不可计费”';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `将税率设置为“${taxRateName}”`;
+                    }
+                    return `税率为“${taxRateName}”`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `将 ${translations.common[key].toLowerCase()} 设置为 “${updatedValue}”`;
+                }
+                return `${translations.common[key].toLowerCase()} 为 “${updatedValue}”`;
+            });
+            return `${formatList(fragments)} 通过<a href="${policyRulesRoute}">工作区规则</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6732,7 +6761,8 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从不',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '本月',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新结单',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '本年截至目前',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新对账单',
                 },
             },
             status: '状态',
@@ -6769,10 +6799,11 @@ ${reportName}
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '从',
-                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
+                [CONST.SEARCH.GROUP_BY.FROM]: '来自',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
+                [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
             feed: '动态',
             withdrawalType: {

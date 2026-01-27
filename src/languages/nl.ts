@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -638,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Inzichten',
         duplicateExpense: 'Dubbele uitgave',
         newFeature: 'Nieuwe functie',
+        month: 'Maand',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1494,6 +1497,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'heeft de uitgave als „vergoedbaar” gemarkeerd' : 'markeerde de uitgave als ‘niet-terugbetaalbaar’';
+                }
+                if (key === 'billable') {
+                    return value ? 'heeft de uitgave gemarkeerd als ‘factureerbaar’' : 'heeft de uitgave als ‘niet-declarabel’ gemarkeerd';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `stel het belastingtarief in op "${taxRateName}"`;
+                    }
+                    return `belastingtarief naar "${taxRateName}"`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `stel de ${translations.common[key].toLowerCase()} in op "${updatedValue}"`;
+                }
+                return `${translations.common[key].toLowerCase()} naar "${updatedValue}"`;
+            });
+            return `${formatList(fragments)} via <a href="${policyRulesRoute}">werkruimteregels</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6894,6 +6923,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Vorige maand',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Jaar tot nu toe',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Laatste afschrift',
                 },
             },
@@ -6935,6 +6965,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
             },
             feed: 'Feed',
             withdrawalType: {

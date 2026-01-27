@@ -6,6 +6,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
@@ -629,6 +631,7 @@ const translations = {
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        month: 'Month',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1481,6 +1484,39 @@ const translations = {
         },
         correctDistanceRateError: 'Fix the distance rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+
+                if (key === 'reimbursable') {
+                    return value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"';
+                }
+
+                if (key === 'billable') {
+                    return value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"';
+                }
+
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `set the tax rate to "${taxRateName}"`;
+                    }
+                    return `tax rate to "${taxRateName}"`;
+                }
+
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `set the ${translations.common[key].toLowerCase()} to "${updatedValue}"`;
+                }
+
+                return `${translations.common[key].toLowerCase()} to "${updatedValue}"`;
+            });
+
+            return `${formatList(fragments)} via <a href="${policyRulesRoute}">workspace rules</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6807,6 +6843,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
@@ -6848,6 +6885,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
             },
             feed: 'Feed',
             withdrawalType: {
