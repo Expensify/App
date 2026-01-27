@@ -1,4 +1,13 @@
-import type {CodingRuleTax} from '@src/types/onyx/Policy';
+type PolicyRuleTaxRate = {
+    /** The tax ID */
+    externalID: string;
+
+    /** The tax rate */
+    value: string;
+
+    /** The name of the tax rate */
+    name: string;
+};
 
 type SetPolicyMerchantRuleParams = {
     policyID: string;
@@ -6,10 +15,11 @@ type SetPolicyMerchantRuleParams = {
     merchant?: string;
     category?: string;
     tag?: string;
-    tax?: CodingRuleTax;
+    tax?: PolicyRuleTaxRate;
     comment?: string;
     reimbursable?: boolean;
     billable?: boolean;
 };
 
+export type {PolicyRuleTaxRate};
 export default SetPolicyMerchantRuleParams;

@@ -2,17 +2,16 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyMerchantRuleParams from '@libs/API/parameters/SetPolicyMerchantRuleParams';
+import type {PolicyRuleTaxRate} from '@libs/API/parameters/SetPolicyMerchantRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyRuleTaxRate} from '@libs/API/parameters/SetPolicyMerchantRuleParams';
 import type {MerchantRuleForm} from '@src/types/form';
-import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {CodingRuleTax} from '@src/types/onyx/Policy';
 
 /**
  * Converts a string boolean value ('true'/'false') to a boolean or undefined
@@ -25,6 +24,26 @@ function parseStringBoolean(value: string | undefined): boolean | undefined {
         return false;
     }
     return undefined;
+}
+
+/**
+ * Builds the PolicyRuleTaxRate object for API requests
+ */
+function buildApiTaxObject(taxKey: string | undefined, policy: Policy | undefined): PolicyRuleTaxRate | undefined {
+    if (!taxKey || !policy?.taxRates?.taxes) {
+        return undefined;
+    }
+
+    const tax = policy.taxRates.taxes[taxKey];
+    if (!tax) {
+        return undefined;
+    }
+
+    return {
+        externalID: taxKey,
+        value: tax.value,
+        name: tax.name,
+    };
 }
 
 /**
@@ -44,28 +63,8 @@ function buildOnyxTaxObject(taxKey: string | undefined, policy: Policy | undefin
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: {
             externalID: taxKey,
-            value: `${tax.name} (${tax.value})`,
+            value: tax.value,
         },
-    };
-}
-
-/**
- * Builds the PolicyRuleTaxRate object for API request
- */
-function buildApiTaxObject(taxKey: string | undefined, policy: Policy | undefined): PolicyRuleTaxRate | undefined {
-    if (!taxKey || !policy?.taxRates?.taxes) {
-        return undefined;
-    }
-
-    const tax = policy.taxRates.taxes[taxKey];
-    if (!tax) {
-        return undefined;
-    }
-
-    return {
-        externalID: taxKey,
-        value: tax.value,
-        name: tax.name,
     };
 }
 
@@ -126,11 +125,9 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
     }
 
     const optimisticRuleID = NumberUtils.rand64();
-
     const onyxFields = mapFormFieldsForOnyx(form, policy);
-    const apiFields = mapFormFieldsForApi(form, policy);
 
-    const optimisticRule: CodingRule = {
+    const optimisticRule = {
         filters: {
             left: 'merchant',
             operator: 'eq',
@@ -140,11 +137,13 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
         created: new Date().toISOString(),
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: policyKey,
                 value: {
                     rules: {
                         codingRules: {
@@ -160,7 +159,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: policyKey,
                 value: {
                     pendingFields: {
                         rules: null,
@@ -174,7 +173,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: policyKey,
                 value: {
                     rules: {
                         codingRules: {
@@ -192,6 +191,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
         ],
     };
 
+    const apiFields = mapFormFieldsForApi(form, policy);
     const parameters: SetPolicyMerchantRuleParams = {
         policyID,
         merchantToMatch: form.merchantToMatch,
