@@ -5208,7 +5208,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i nie tylko.',
             },
-            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.'},
+            timeTracking: {
+                title: 'Czas',
+                subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.',
+                defaultHourlyRate: 'Domyślna stawka godzinowa',
+                defaultHourlyRateSubtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',

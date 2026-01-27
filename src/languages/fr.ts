@@ -5247,7 +5247,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Règles',
                 subtitle: 'Exigez des reçus, signalez les dépenses élevées, et plus encore.',
             },
-            timeTracking: {title: 'Heure', subtitle: 'Définissez un taux horaire facturable pour que les employés soient rémunérés pour leur temps.'},
+            timeTracking: {
+                title: 'Heure',
+                subtitle: 'Définissez un taux horaire facturable pour que les employés soient rémunérés pour leur temps.',
+                defaultHourlyRate: 'Taux horaire par défaut',
+                defaultHourlyRateSubtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',

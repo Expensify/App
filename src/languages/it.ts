@@ -5226,7 +5226,12 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
-            timeTracking: {title: 'Ora', subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.'},
+            timeTracking: {
+                title: 'Ora',
+                subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.',
+                defaultHourlyRate: 'Tariffa oraria predefinita',
+                defaultHourlyRateSubtitle: 'Imposta una tariffa oraria fatturabile per il monitoraggio del tempo.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
