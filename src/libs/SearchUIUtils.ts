@@ -1398,7 +1398,7 @@ function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportI
     for (const key in data) {
         if (isTransactionEntry(key)) {
             const transaction = data[key];
-            if (transaction.reportID === reportID) {
+            if (transaction?.reportID === reportID) {
                 transactions.push(transaction);
             }
         }
