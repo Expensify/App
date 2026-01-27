@@ -23,11 +23,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const hideModal = () => {
         if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
             // Wait for history.back() to complete before calling onModalHide to prevent navigation race conditions
-            const handleHistoryBack = () => {
-                onModalHide();
-                window.removeEventListener('popstate', handleHistoryBack);
-            };
-            window.addEventListener('popstate', handleHistoryBack, {once: true});
+            window.addEventListener('popstate', onModalHide, {once: true});
             window.history.back();
         } else {
             onModalHide();
