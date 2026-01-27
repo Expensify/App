@@ -637,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'インサイト',
         duplicateExpense: '重複した経費',
         newFeature: '新機能',
+        month: '月',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6823,7 +6824,8 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'しない',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '年初来',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細書',
                 },
             },
             status: 'ステータス',
@@ -6863,7 +6865,8 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
-                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
+                [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
             feed: 'フィード',
             withdrawalType: {
