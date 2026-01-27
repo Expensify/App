@@ -9,7 +9,7 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
-import type {GenericOnyxUpdate} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // Local cache of reportID to optimistic Onyx data
@@ -81,7 +81,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             const {settledPersonalDetails, redundantParticipants} = reportOptimisticData.get(currentRequestReportID) ?? {};
             reportOptimisticData.delete(currentRequestReportID);
             if (!isEmptyObject(settledPersonalDetails) && !isEmptyObject(redundantParticipants)) {
-                (response.onyxData as GenericOnyxUpdate[]).push(
+                (response.onyxData as AnyOnyxUpdate[]).push(
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${currentRequestReportID}`,

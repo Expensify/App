@@ -6,7 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictActionData, GenericRequest} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
 
 type RequestMatcher<TKey extends OnyxKey> = (request: OnyxRequest<TKey>) => boolean;
 
@@ -41,7 +41,7 @@ const enablePolicyFeatureCommand = [
 type EnablePolicyFeatureCommand = TupleToUnion<typeof enablePolicyFeatureCommand>;
 
 function createUpdateCommentMatcher(reportActionID: string) {
-    return function (request: GenericRequest) {
+    return function (request: AnyRequest) {
         return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
     };
 }

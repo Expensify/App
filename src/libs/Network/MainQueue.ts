@@ -1,12 +1,12 @@
 import type {OnyxKey} from 'react-native-onyx';
 import {processWithMiddleware} from '@libs/Request';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {GenericRequest} from '@src/types/onyx/Request';
+import type {AnyRequest} from '@src/types/onyx/Request';
 import {isAuthenticating, isOffline} from './NetworkStore';
 import {isRunning as sequentialQueueIsRunning} from './SequentialQueue';
 
 // Queue for network requests so we don't lose actions done by the user while offline
-let networkRequestQueue: GenericRequest[] = [];
+let networkRequestQueue: AnyRequest[] = [];
 
 /**
  * Checks to see if a request can be made.
@@ -18,7 +18,7 @@ function canMakeRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>): boole
 }
 
 function push<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
-    networkRequestQueue.push(request as GenericRequest);
+    networkRequestQueue.push(request as AnyRequest);
 }
 
 function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
@@ -45,7 +45,7 @@ function process() {
     // - we are in the process of authenticating and the request is retryable (most are)
     // - the request does not have forceNetworkRequest === true (this will trigger it to process immediately)
     // - the request does not have shouldRetry === false (specified when we do not want to retry, defaults to true)
-    const requestsToProcessOnNextRun: GenericRequest[] = [];
+    const requestsToProcessOnNextRun: AnyRequest[] = [];
 
     for (const queuedRequest of networkRequestQueue) {
         // Check if we can make this request at all and if we can't see if we should save it for the next run or chuck it into the ether
@@ -75,7 +75,7 @@ function clear() {
     networkRequestQueue = networkRequestQueue.filter((request) => !request.data?.canCancel);
 }
 
-function getAll(): GenericRequest[] {
+function getAll(): AnyRequest[] {
     return networkRequestQueue;
 }
 

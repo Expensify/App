@@ -118,7 +118,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
 import type ReportViolations from './ReportViolation';
 import type Request from './Request';
-import type {GenericRequest} from './Request';
+import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
@@ -250,7 +250,7 @@ export type {
     ReportFieldsViolations,
     ReportLayoutGroupBy,
     GroupedTransactions,
-    GenericRequest,
+    AnyRequest as GenericRequest,
     Request,
     Response,
     ScreenShareRequest,

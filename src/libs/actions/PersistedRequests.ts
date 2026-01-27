@@ -4,11 +4,11 @@ import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
-import type {GenericRequest} from '@src/types/onyx/Request';
+import type {AnyRequest} from '@src/types/onyx/Request';
 
-let persistedRequests: GenericRequest[] = [];
-let ongoingRequest: GenericRequest | null = null;
-let pendingSaveOperations: GenericRequest[] = [];
+let persistedRequests: AnyRequest[] = [];
+let ongoingRequest: AnyRequest | null = null;
+let pendingSaveOperations: AnyRequest[] = [];
 let isInitialized = false;
 let initializationCallback: () => void;
 function triggerInitializationCallback() {
@@ -82,14 +82,14 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>) {
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false);
-        pendingSaveOperations.push(requestToPersist as GenericRequest);
+        pendingSaveOperations.push(requestToPersist as AnyRequest);
         return;
     }
 
     // If the command is not in the keepLastInstance array, add the new request as usual
     const requests = [...persistedRequests, requestToPersist];
-    persistedRequests = requests as GenericRequest[];
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests as GenericRequest[])
+    persistedRequests = requests as AnyRequest[];
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests as AnyRequest[])
         .then(() => {
             Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
         })
@@ -138,21 +138,21 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     const requests = [...persistedRequests];
     const oldRequest = requests.at(oldRequestIndex);
     Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
-    requests.splice(oldRequestIndex, 1, newRequest as GenericRequest);
+    requests.splice(oldRequestIndex, 1, newRequest as AnyRequest);
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
-    ongoingRequest = newRequest as GenericRequest;
+    ongoingRequest = newRequest as AnyRequest;
 
     if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as GenericRequest);
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest);
     }
 }
 
-function processNextRequest(): GenericRequest | null {
+function processNextRequest(): AnyRequest | null {
     if (ongoingRequest) {
         Log.info(`Ongoing Request already set returning same one ${ongoingRequest.commandName}`);
         return ongoingRequest;
@@ -188,11 +188,11 @@ function rollbackOngoingRequest() {
     ongoingRequest = null;
 }
 
-function getAll(): GenericRequest[] {
+function getAll(): AnyRequest[] {
     return persistedRequests;
 }
 
-function getOngoingRequest(): GenericRequest | null {
+function getOngoingRequest(): AnyRequest | null {
     return ongoingRequest;
 }
 

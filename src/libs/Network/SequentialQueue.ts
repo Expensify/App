@@ -20,7 +20,7 @@ import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictData, GenericRequest} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
@@ -326,7 +326,7 @@ function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictDat
     if (conflictAction.type === 'push') {
         savePersistedRequest(newRequest);
     } else if (conflictAction.type === 'replace') {
-        updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as GenericRequest));
+        updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
     } else if (conflictAction.type === 'delete') {
         deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {

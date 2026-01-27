@@ -36,7 +36,7 @@ type ExpandOnyxKeys<TKey extends OnyxKey> = TKey extends CollectionKeyBase ? NoI
  *
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GenericOnyxUpdate<TKey extends OnyxKey = any> = {
+type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
     /**
      *
      */
@@ -80,7 +80,7 @@ type OnyxDataBase<TOnyxUpdate> = {
 type OnyxData<TKey extends OnyxKey> = OnyxDataBase<OnyxUpdate<TKey>>;
 
 /** Model of onyx requests sent to the API */
-type GenericOnyxData = OnyxDataBase<GenericOnyxUpdate>;
+type AnyOnyxData = OnyxDataBase<AnyOnyxUpdate>;
 
 /** HTTP request method names */
 type RequestType = 'get' | 'post';
@@ -129,7 +129,7 @@ type RequestDataBase<TKey extends OnyxKey = OnyxKey> = {
 type RequestData<TKey extends OnyxKey> = RequestDataBase<TKey> & OnyxData<TKey>;
 
 /** Model of overall requests sent to the API */
-type GenericRequestData = RequestDataBase & GenericOnyxData;
+type AnyRequestData = RequestDataBase & AnyOnyxData;
 
 /**
  * Represents the possible actions to take in case of a conflict in the request queue.
@@ -153,7 +153,7 @@ type ConflictRequestReplace = {
     /**
      * The new request to replace the existing request in the queue.
      */
-    request?: GenericRequest;
+    request?: AnyRequest;
 };
 
 /**
@@ -244,10 +244,10 @@ type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase
  * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
-type GenericRequestConflictResolver = RequestConflictResolverBase<GenericRequest>;
+type AnyRequestConflictResolver = RequestConflictResolverBase<AnyRequest>;
 
 /** Model of requests sent to the API */
-type GenericRequest = GenericRequestData & GenericRequestConflictResolver;
+type AnyRequest = AnyRequestData & AnyRequestConflictResolver;
 
 /** Model of requests sent to the API */
 type Request<TKey extends OnyxKey> = RequestData<TKey> & RequestConflictResolver<TKey>;
@@ -279,15 +279,4 @@ type PaginatedRequest<TKey extends OnyxKey> = Request<TKey> &
     };
 
 export default Request;
-export type {
-    GenericOnyxUpdate,
-    OnyxData,
-    RequestType,
-    PaginationConfig,
-    PaginatedRequest,
-    RequestConflictResolver,
-    GenericRequestConflictResolver,
-    ConflictActionData,
-    ConflictData,
-    GenericRequest,
-};
+export type {AnyOnyxUpdate, OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, AnyRequestConflictResolver, ConflictActionData, ConflictData, AnyRequest};
