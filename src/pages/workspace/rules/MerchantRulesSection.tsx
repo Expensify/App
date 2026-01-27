@@ -89,7 +89,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
         }
 
         return Object.entries(codingRules)
-            .map(([ruleID, rule]) => ({ruleID, ...rule}))
+            .map(([ruleID, rule]) => ({...rule, ruleID}))
             .sort((a, b) => {
                 if (a.created && b.created) {
                     return a.created < b.created ? 1 : -1;
