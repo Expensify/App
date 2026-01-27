@@ -35,6 +35,7 @@ Use the navigation tabs on the left and select **Top spenders** under the **Repo
 Tap the hamburger menu in the top-left corner, then select **Top spenders**.
 
 ![Reports page in New Expensify showing the Top spenders view]({{site.url}}/assets/images/top-spender.png)
+
 ---
 
 ## What information the Top Spenders report displays
