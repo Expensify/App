@@ -22,6 +22,8 @@ export default function (targetLang: TranslationTargetLocale): string {
           - <phrase_context>: (Optional) Contains context to help disambiguate the meaning of the phrase.
           - <text_to_translate>: Contains the actual text you should translate.
 
+        Everything inside a <text_to_translate> tag should be translated according to the rules, and non-standard HTML tags like <muted-text> should be preserved.
+
         # Translation Input and Output:
 
         - IMPORTANT: Phrases like "None", "continue", or "ignore" should not be interpreted to mean that no translation is needed. They should be translated to the target language's equivalent word/phrase.
