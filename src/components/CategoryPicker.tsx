@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,6 +25,20 @@ type CategoryPickerProps = {
     addBottomSafeAreaPadding?: boolean;
 };
 
+const getSelectedOptions = (selectedCategory?: string): Category[] => {
+    if (!selectedCategory) {
+        return [];
+    }
+
+    return [
+        {
+            name: selectedCategory,
+            isSelected: true,
+            enabled: true,
+        },
+    ];
+};
+
 function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
@@ -35,48 +49,28 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const selectedOptions = useMemo((): Category[] => {
-        if (!selectedCategory) {
-            return [];
-        }
+    const selectedOptions = getSelectedOptions(selectedCategory);
 
-        return [
-            {
-                name: selectedCategory,
-                isSelected: true,
-                enabled: true,
-            },
-        ];
-    }, [selectedCategory]);
+    const categories = policyCategories ?? policyCategoriesDraft ?? {};
+    const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
+    const sections = getCategoryListSections({
+        searchValue: debouncedSearchValue,
+        selectedOptions,
+        categories,
+        localeCompare,
+        recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+        translate,
+    });
 
-    const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
-        const categories = policyCategories ?? policyCategoriesDraft ?? {};
-        const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-        const categoryOptions = getCategoryListSections({
-            searchValue: debouncedSearchValue,
-            selectedOptions,
-            categories,
-            localeCompare,
-            recentlyUsedCategories: validPolicyRecentlyUsedCategories,
-            translate,
-        });
-
-        const categoryData = categoryOptions?.at(0)?.data ?? [];
-        const header = getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
-        const categoriesCount = getEnabledCategoriesCount(categories);
-        const isCategoriesCountBelowThreshold = categoriesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
-        const showInput = !isCategoriesCountBelowThreshold;
-
-        return [categoryOptions, header, showInput];
-    }, [policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, localeCompare, translate]);
-
-    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((category) => category.searchText === selectedCategory)?.keyForList, [sections, selectedCategory]);
+    const categoryData = sections?.at(0)?.data ?? [];
+    const categoriesCount = getEnabledCategoriesCount(categories);
+    const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
 
     const textInputOptions = {
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
-        headerMessage,
+        headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
     };
 
@@ -85,7 +79,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             sections={sections}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            shouldShowTextInput={shouldShowTextInput}
+            shouldShowTextInput={categoriesCount < CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
