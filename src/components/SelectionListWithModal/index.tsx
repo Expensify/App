@@ -10,6 +10,7 @@ import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
@@ -33,6 +34,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -40,17 +42,25 @@ function SelectionListWithModal<TItem extends ListItem>({
     const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
 
+    // Filter out the pending delete item when online to prevent making multiple updates to debouncedData which causes the deleted item is shown again
+    const filteredData = useMemo(() => {
+        return data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    }, [data, isOffline]);
+
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     // Debounce the data prop to prevent rapid updates that cause FlashList layout errors
     // This gives FlashList time to properly update its layout cache when searching/filtering
-    const [, debouncedData, setDataState] = useDebouncedState<TItem[]>(data, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const [, debouncedData, setDataState] = useDebouncedState<TItem[]>(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+
+    // Determine if this is changed by filtering (to limit multiple rerenders)
+    const isFiltering = filteredData.length < debouncedData.length;
 
     useEffect(() => {
-        setDataState(data);
-    }, [data, setDataState]);
+        setDataState(filteredData);
+    }, [filteredData, setDataState]);
 
-    const displayData = debouncedData;
+    const displayData = isFiltering ? debouncedData : filteredData;
 
     const selectedItems = useMemo(
         () =>
