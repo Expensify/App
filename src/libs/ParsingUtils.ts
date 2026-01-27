@@ -3,6 +3,7 @@ import {parseExpensiMark} from '@expensify/react-native-live-markdown';
 import {Str} from 'expensify-common';
 import type {Extras} from 'expensify-common/dist/ExpensiMark';
 import CONST from '@src/CONST';
+import {normalizeMultilineMarkdownLinks} from './MarkdownLinkHelpers';
 import Parser from './Parser';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 
@@ -104,7 +105,9 @@ type GetParsedMessageWithShortMentionsArgs = {
  * This function is the missing piece that will use ExpensiMark for parsing, but will also strip+transform `mention-short` into full mentions.
  */
 function getParsedMessageWithShortMentions({text, availableMentionLogins, userEmailDomain, parserOptions}: GetParsedMessageWithShortMentionsArgs) {
-    const parsedText = Parser.replace(text, {
+    const normalizedText = normalizeMultilineMarkdownLinks(text);
+
+    const parsedText = Parser.replace(normalizedText, {
         shouldEscapeText: true,
         disabledRules: parserOptions.disabledRules,
         extras: parserOptions.extras,
