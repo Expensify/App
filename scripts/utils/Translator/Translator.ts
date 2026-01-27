@@ -104,8 +104,11 @@ abstract class Translator {
         const originalStructure = parseHTMLStructure(original);
         const translatedStructure = parseHTMLStructure(translated);
 
-        // Compare structures (tag names and non-translatable attributes)
-        return JSON.stringify(originalStructure) === JSON.stringify(translatedStructure);
+        // Serialize and sort for order-independent comparison (preserves duplicates)
+        const originalSorted = originalStructure.map((el) => JSON.stringify(el)).sort();
+        const translatedSorted = translatedStructure.map((el) => JSON.stringify(el)).sort();
+
+        return JSON.stringify(originalSorted) === JSON.stringify(translatedSorted);
     }
 }
 
