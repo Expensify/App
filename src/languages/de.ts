@@ -4908,7 +4908,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             ukRegulation:
                 'Expensify Limited ist als Vertreter von Plaid Financial Ltd. tätig, einem zugelassenen Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 (Firm Reference Number: 804718) reguliert wird. Plaid stellt Ihnen über Expensify Limited als seinen Vertreter regulierte Kontoinformationsdienste zur Verfügung.',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
-            cardAlreadyAssignedError: 'Diese Karte ist bereits einem Benutzer in einem anderen Workspace zugewiesen.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausgeben und verwalten',
@@ -5254,6 +5255,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Regeln',
                 subtitle: 'Belege anfordern, hohe Ausgaben kennzeichnen und mehr.',
             },
+            timeTracking: {title: 'Zeit', subtitle: 'Legen Sie einen abrechenbaren Stundensatz fest, damit Mitarbeitende für ihre Zeit bezahlt werden.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -6223,7 +6225,12 @@ Verlangen Sie Spesendetails wie Belege und Beschreibungen, legen Sie Grenzen und
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>Lege Ausgabenkontrollen und Standardwerte für einzelne Ausgaben fest. Du kannst auch Regeln für <a href="${categoriesPageLink}">Kategorien</a> und <a href="${tagsPageLink}">Tags</a> erstellen.</muted-text>`,
                 receiptRequiredAmount: 'Erforderlicher Belegbetrag',
-                receiptRequiredAmountDescription: 'Belege verlangen, wenn die Ausgaben diesen Betrag übersteigen, sofern dies nicht durch eine Kategorienregel außer Kraft gesetzt wird.',
+                receiptRequiredAmountDescription: 'Belege verlangen, wenn die Ausgaben diesen Betrag überschreiten, sofern dies nicht durch eine Kategorienregel außer Kraft gesetzt wird.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Der Betrag darf nicht höher sein als der für detaillierte Belege erforderliche Betrag (${amount})`,
+                itemizedReceiptRequiredAmount: 'Detaillierter Beleg erforderlicher Betrag',
+                itemizedReceiptRequiredAmountDescription:
+                    'Detaillierte Belege anfordern, wenn die Ausgaben diesen Betrag überschreiten, es sei denn, eine Kategorievorschrift hebt dies auf.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Der Betrag darf nicht niedriger sein als der für reguläre Belege erforderliche Betrag (${amount})`,
                 maxExpenseAmount: 'Maximaler Spesenbetrag',
                 maxExpenseAmountDescription: 'Ausgaben markieren, die diesen Betrag überschreiten, sofern dies nicht durch eine Kategorienregel außer Kraft gesetzt wird.',
                 maxAge: 'Maximales Alter',
@@ -6315,6 +6322,12 @@ Verlangen Sie Spesendetails wie Belege und Beschreibungen, legen Sie Grenzen und
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standard`,
                     never: 'Belege niemals erforderlich',
                     always: 'Belege immer erforderlich',
+                },
+                requireItemizedReceiptsOver: 'Detaillierte Belege über erforderlich',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standard`,
+                    never: 'Detaillierte Belege niemals verlangen',
+                    always: 'Immer detaillierte Belege anfordern',
                 },
                 defaultTaxRate: 'Standardsteuersatz',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6484,7 +6497,13 @@ Verlangen Sie Spesendetails wie Belege und Beschreibungen, legen Sie Grenzen und
             }
             return `hat die Kategorie „${categoryName}“ in ${newValue} geändert (zuvor ${oldValue})`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `hat die Kategorie „${oldName}“ in „${newName}“ umbenannt`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `hat die Kategorie "${categoryName}" aktualisiert, indem Detaillierte Belege in ${newValue} geändert wurden`;
+            }
+            return `hat die Detaillierte Belege der Kategorie "${categoryName}" auf ${newValue} geändert (vorher ${oldValue})`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `hat die Kategorie „${oldName}" in „${newName}" umbenannt`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `hat den Beschreibungshinweis „${oldValue}“ aus der Kategorie „${categoryName}“ entfernt`;
@@ -6909,6 +6928,7 @@ Verlangen Sie Spesendetails wie Belege und Beschreibungen, legen Sie Grenzen und
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7406,6 +7426,7 @@ Verlangen Sie Spesendetails wie Belege und Beschreibungen, legen Sie Grenzen und
             }
             return 'Beleg erforderlich';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Detaillierter Beleg erforderlich${formattedLimit ? ` über ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Verbotener Aufwand:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7938,7 +7959,8 @@ Verlangen Sie Spesendetails wie Belege und Beschreibungen, legen Sie Grenzen und
             tryItOut: 'Probiere es aus',
         },
         outstandingFilter: '<tooltip>Nach Ausgaben filtern,\ndie <strong>genehmigt werden müssen</strong></tooltip>',
-        scanTestDriveTooltip: '<tooltip>Diese Quittung senden, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Quittung senden, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',
@@ -8097,13 +8119,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             settings: 'Einstellungen',
             consolidatedDomainBilling: 'Konsolidierte Domainabrechnung',
             consolidatedDomainBillingDescription: (domainName: string) =>
-                `<comment><muted-text-label>Wenn diese Option aktiviert ist, bezahlt die Hauptansprechperson alle Workspaces, die Mitgliedern von <strong>${domainName}</strong> gehören, und erhält alle Rechnungsbelege.</muted-text-label></comment>`,
-            consolidatedDomainBillingError: 'Die konsolidierte Domain-Abrechnung konnte nicht geändert werden. Bitte versuche es später noch einmal.',
-            addAdmin: 'Administrator hinzufügen',
-            invite: 'Einladen',
-            addAdminError: 'Dieses Mitglied kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
-            revokeAdminAccess: 'Administratorzugriff entziehen',
-            cantRevokeAdminAccess: 'Administratorzugriff kann für den technischen Kontakt nicht entzogen werden',
+                `<comment><muted-text-label>Wenn diese Option aktiviert ist, bezahlt der Hauptansprechpartner für alle Workspaces, die Mitgliedern von <strong>${domainName}</strong> gehören, und erhält alle Rechnungsbelege.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'Die konsolidierte Domain-Abrechnung konnte nicht geändert werden. Bitte versuche es später erneut.',
+            addAdmin: 'Admin hinzufügen',
+            addAdminError: 'Dieser Benutzer kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
+            revokeAdminAccess: 'Administratorzugriff widerrufen',
+            cantRevokeAdminAccess: 'Adminzugriff kann dem technischen Ansprechpartner nicht entzogen werden',
             error: {
                 removeAdmin: 'Dieser Benutzer kann nicht als Administrator entfernt werden. Bitte versuche es erneut.',
                 removeDomain: 'Diese Domain kann nicht entfernt werden. Bitte versuche es erneut.',
@@ -8116,8 +8137,59 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         },
         members: {
             title: 'Mitglieder',
-            findMember: 'Mitglied finden',
+            findMember: 'Mitglied suchen',
+            addMember: 'Mitglied hinzufügen',
+            email: 'E-Mail-Adresse',
+            errors: {addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.'},
         },
+        domainAdmins: 'Domain-Admins',
+    },
+    gps: {
+        disclaimer: 'Benutze GPS, um eine Ausgabe von deiner Reise zu erstellen. Tippe unten auf „Start“, um mit der Aufzeichnung zu beginnen.',
+        error: {failedToStart: 'Standortverfolgung konnte nicht gestartet werden.', failedToGetPermissions: 'Die erforderlichen Standortberechtigungen konnten nicht abgerufen werden.'},
+        trackingDistance: 'Strecke wird verfolgt...',
+        stopped: 'Angehalten',
+        start: 'Start',
+        stop: 'Stopp',
+        discard: 'Verwerfen',
+        stopGpsTrackingModal: {
+            title: 'GPS-Tracking stoppen',
+            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Reise beendet.',
+            cancel: 'Verfolgung fortsetzen',
+            confirm: 'GPS-Tracking stoppen',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Entfernungsverfolgung verwerfen',
+            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Reise verworfen und kann nicht rückgängig gemacht werden.',
+            confirm: 'Entfernungsverfolgung verwerfen',
+        },
+        zeroDistanceTripModal: {title: 'Ausgabe kann nicht erstellt werden', prompt: 'Sie können keine Ausgabe mit demselben Start- und Zielort erstellen.'},
+        locationRequiredModal: {
+            title: 'Standortzugriff erforderlich',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
+            allow: 'Erlauben',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Zugriff auf den Standort im Hintergrund erforderlich',
+            prompt: 'Bitte erlaube den Zugriff auf den Standort im Hintergrund in den Geräteeinstellungen (Option „Immer zulassen“), um die GPS-Distanzverfolgung zu starten.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Genaue Position erforderlich',
+            prompt: 'Bitte aktiviere „genaue Standortbestimmung“ in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
+        },
+        desktop: {
+            title: 'Entfernung auf deinem Handy verfolgen',
+            subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
+            button: 'App herunterladen',
+        },
+        notification: {title: 'GPS-Tracking läuft', body: 'Zur App gehen, um abzuschließen'},
+        signOutWarningTripInProgress: {title: 'GPS-Tracking läuft', prompt: 'Sind Sie sicher, dass Sie die Reise verwerfen und sich abmelden möchten?', confirm: 'Verwerfen und abmelden'},
+        locationServicesRequiredModal: {
+            title: 'Standortzugriff erforderlich',
+            confirm: 'Einstellungen öffnen',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
+        },
+        fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -1213,7 +1213,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Tem certeza de que deseja excluir estas despesas?',
         }),
         deleteReport: 'Excluir relatório',
-        deleteReportConfirmation: 'Você tem certeza de que deseja excluir este relatório?',
+        deleteReportConfirmation: 'Tem certeza de que deseja excluir este relatório?',
         settledExpensify: 'Pago',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
@@ -4884,7 +4884,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             ukRegulation:
                 'A Expensify Limited é agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority segundo o Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços regulamentados de informação de conta por meio da Expensify Limited como sua agente.',
             assignCardFailedError: 'Falha na atribuição do cartão.',
-            cardAlreadyAssignedError: 'Este cartão já está atribuído a um usuário em outro workspace.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Falha ao desatribuir o cartão.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir e gerenciar seus Cartões Expensify',
@@ -5226,6 +5227,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Regras',
                 subtitle: 'Exigir recibos, sinalizar gastos altos e muito mais.',
             },
+            timeTracking: {title: 'Hora', subtitle: 'Defina uma taxa horária faturável para que os funcionários sejam pagos pelo tempo trabalhado.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -6191,6 +6193,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e valores
                     `<muted-text>Defina controles de gasto e padrões para despesas individuais. Você também pode criar regras para <a href="${categoriesPageLink}">categorias</a> e <a href="${tagsPageLink}">etiquetas</a>.</muted-text>`,
                 receiptRequiredAmount: 'Valor exigido no recibo',
                 receiptRequiredAmountDescription: 'Exigir recibos quando o gasto exceder este valor, a menos que seja substituído por uma regra de categoria.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `O valor não pode ser maior que o valor necessário para recibos detalhados (${amount})`,
+                itemizedReceiptRequiredAmount: 'Valor necessário do recibo detalhado',
+                itemizedReceiptRequiredAmountDescription: 'Exigir recibos detalhados quando o gasto exceder este valor, a menos que seja substituído por uma regra de categoria.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `O valor não pode ser menor que o valor necessário para recibos regulares (${amount})`,
                 maxExpenseAmount: 'Valor máximo da despesa',
                 maxExpenseAmountDescription: 'Sinalizar gastos que excedam esse valor, a menos que sejam substituídos por uma regra de categoria.',
                 maxAge: 'Idade máxima',
@@ -6283,7 +6289,13 @@ Exija detalhes de despesas como recibos e descrições, defina limites e valores
                     never: 'Nunca exigir recibos',
                     always: 'Sempre exigir recibos',
                 },
-                defaultTaxRate: 'Alíquota de imposto padrão',
+                requireItemizedReceiptsOver: 'Exigir recibos detalhados acima de',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Padrão`,
+                    never: 'Nunca exigir recibos detalhados',
+                    always: 'Sempre exigir recibos detalhados',
+                },
+                defaultTaxRate: 'Taxa de imposto padrão',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `Vá para [Mais recursos](${moreFeaturesLink}) e ative os fluxos de trabalho, depois adicione aprovações para desbloquear este recurso.`,
             },
@@ -6449,6 +6461,12 @@ Exija detalhes de despesas como recibos e descrições, defina limites e valores
                 return `atualizou a categoria "${categoryName}" alterando Comprovantes para ${newValue}`;
             }
             return `alterou a categoria "${categoryName}" para ${newValue} (antes ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `atualizou a categoria "${categoryName}" alterando Recibos detalhados para ${newValue}`;
+            }
+            return `alterou os Recibos detalhados da categoria "${categoryName}" para ${newValue} (anteriormente ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renomeou a categoria "${oldName}" para "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6872,6 +6890,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e valores
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7369,6 +7388,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e valores
             }
             return 'Recibo obrigatório';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Recibo detalhado necessário${formattedLimit ? ` acima de ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Despesa proibida:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7901,6 +7921,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e valores
         },
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
+        gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
@@ -8061,7 +8082,6 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
                 `<comment><muted-text-label>Quando ativado, o contato principal pagará por todos os workspaces pertencentes aos membros de <strong>${domainName}</strong> e receberá todos os recibos de cobrança.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Não foi possível alterar a cobrança consolidada de domínio. Tente novamente mais tarde.',
             addAdmin: 'Adicionar administrador',
-            invite: 'Convidar',
             addAdminError: 'Não foi possível adicionar este membro como administrador. Tente novamente.',
             revokeAdminAccess: 'Revogar acesso de administrador',
             cantRevokeAdminAccess: 'Não é possível revogar o acesso de administrador do contato técnico',
@@ -8078,7 +8098,58 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         members: {
             title: 'Membros',
             findMember: 'Encontrar membro',
+            addMember: 'Adicionar membro',
+            email: 'Endereço de e-mail',
+            errors: {addMember: 'Não foi possível adicionar este membro. Tente novamente.'},
         },
+        domainAdmins: 'Administradores de domínio',
+    },
+    gps: {
+        disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar o rastreamento.',
+        error: {failedToStart: 'Falha ao iniciar o rastreamento de localização.', failedToGetPermissions: 'Falha ao obter as permissões de localização necessárias.'},
+        trackingDistance: 'Acompanhando a distância...',
+        stopped: 'Parado',
+        start: 'Iniciar',
+        stop: 'Parar',
+        discard: 'Descartar',
+        stopGpsTrackingModal: {
+            title: 'Parar rastreamento por GPS',
+            prompt: 'Tem certeza? Isso encerrará sua jornada atual.',
+            cancel: 'Retomar rastreamento',
+            confirm: 'Parar rastreamento por GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Descartar rastreamento de distância',
+            prompt: 'Tem certeza? Isso descartará sua jornada atual e não poderá ser desfeito.',
+            confirm: 'Descartar rastreamento de distância',
+        },
+        zeroDistanceTripModal: {title: 'Não é possível criar a despesa', prompt: 'Você não pode criar uma despesa com o mesmo local de partida e de chegada.'},
+        locationRequiredModal: {
+            title: 'Acesso à localização necessário',
+            prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+            allow: 'Permitir',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Acesso à localização em segundo plano necessário',
+            prompt: 'Permita o acesso à localização em segundo plano nas configurações do seu dispositivo (opção "Permitir o tempo todo") para iniciar o rastreamento de distância por GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Localização precisa obrigatória',
+            prompt: 'Ative a opção "localização precisa" nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+        },
+        desktop: {
+            title: 'Controle a distância no seu telefone',
+            subtitle: 'Registre milhas ou quilômetros automaticamente com o GPS e transforme viagens em despesas instantaneamente.',
+            button: 'Baixar o app',
+        },
+        signOutWarningTripInProgress: {title: 'Rastreamento por GPS em andamento', prompt: 'Tem certeza de que deseja descartar a viagem e sair?', confirm: 'Descartar e sair'},
+        notification: {title: 'Rastreamento por GPS em andamento', body: 'Ir para o app para finalizar'},
+        locationServicesRequiredModal: {
+            title: 'Acesso à localização obrigatório',
+            confirm: 'Abrir configurações',
+            prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+        },
+        fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

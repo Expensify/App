@@ -4864,7 +4864,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             ukRegulation:
                 'Expensify Limited は Plaid Financial Ltd. の代理人であり、Plaid Financial Ltd. は 2017 年決済サービス規則（Payment Services Regulations 2017）に基づき金融行為監督機構（Financial Conduct Authority）の規制を受ける認可決済機関です（企業登録番号: 804718）。Plaid は、その代理人である Expensify Limited を通じて、規制対象となる口座情報サービスをお客様に提供します。',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
-            cardAlreadyAssignedError: 'このカードはすでに別のワークスペースのユーザーに割り当てられています。',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Card の発行と管理',
@@ -5205,6 +5206,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'ルール',
                 subtitle: '領収書の提出を必須にし、高額支出にフラグを立てるなど、さらに多くを管理できます。',
             },
+            timeTracking: {title: '時間', subtitle: '従業員が作業時間に対して支払いを受けられるよう、時間単位の請求レートを設定します。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6164,7 +6166,11 @@ ${reportName}
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>個々の経費に対する支出管理とデフォルト設定を行います。<a href="${categoriesPageLink}">カテゴリ</a>や<a href="${tagsPageLink}">タグ</a>に対するルールも作成できます。</muted-text>`,
                 receiptRequiredAmount: '領収書が必要な金額',
-                receiptRequiredAmountDescription: 'カテゴリーのルールで上書きされない限り、この金額を超える支出には領収書を必須にする。',
+                receiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、支出がこの金額を超えた場合に領収書を必須にする。',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `金額は明細領収書の必要金額（${amount}）より高くすることはできません`,
+                itemizedReceiptRequiredAmount: '明細領収書の必要金額',
+                itemizedReceiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出には明細領収書が必要です。',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `金額は通常の領収書に必要な金額（${amount}）より低くすることはできません`,
                 maxExpenseAmount: '最大経費金額',
                 maxExpenseAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出にフラグを付けます。',
                 maxAge: '最大年齢',
@@ -6256,7 +6262,13 @@ ${reportName}
                     never: '領収書を一切必須にしない',
                     always: '常に領収書を必須にする',
                 },
-                defaultTaxRate: 'デフォルト税率',
+                requireItemizedReceiptsOver: 'を超える明細領収書を必須にする',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} デフォルト`,
+                    never: '明細領収書を要求しない',
+                    always: '常に明細領収書を要求する',
+                },
+                defaultTaxRate: '既定の税率',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `[その他の機能](${moreFeaturesLink}) に移動してワークフローを有効にし、その後、承認を追加してこの機能を有効化してください。`,
             },
@@ -6424,7 +6436,13 @@ ${reportName}
             }
             return `「${categoryName}」カテゴリを${newValue}に変更しました（以前は${oldValue}）`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `カテゴリ「${oldName}」の名前を「${newName}」に変更しました`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `カテゴリ「${categoryName}」を更新し、明細領収書を${newValue}に変更しました。`;
+            }
+            return `「${categoryName}」カテゴリの明細領収書を${newValue}に変更しました（以前は${oldValue}）`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `カテゴリ名を「${oldName}」から「${newName}」に変更しました`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `カテゴリ「${categoryName}」から説明のヒント「${oldValue}」を削除しました`;
@@ -6840,6 +6858,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '送信元',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -7336,6 +7355,7 @@ ${reportName}
             }
             return '領収書が必要です';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `明細領収書が必要です${formattedLimit ? `（${formattedLimit}超）` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止対象の経費:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7863,8 +7883,9 @@ ${reportName}
             confirmation: '<tooltip>では、<strong>経費を送信</strong>して、マジックが起こるのを見てみましょう！</tooltip>',
             tryItOut: '試してみる',
         },
-        outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
-        scanTestDriveTooltip: '<tooltip>この領収書を送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
+        outstandingFilter: '<tooltip><strong>承認が必要</strong>な経費を絞り込む</tooltip>',
+        scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS 追跡を進行中です！完了したら、下で追跡を停止してください。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
@@ -8024,7 +8045,6 @@ ${reportName}
                 `<comment><muted-text-label>有効にすると、主な連絡先は<strong>${domainName}</strong>のメンバーが所有するすべてのワークスペースの支払いを行い、すべての請求書の受領書を受け取ります。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '統合ドメイン請求を変更できませんでした。後でもう一度お試しください。',
             addAdmin: '管理者を追加',
-            invite: '招待する',
             addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
             revokeAdminAccess: '管理者アクセスを取り消す',
             cantRevokeAdminAccess: '技術担当者から管理者アクセス権を取り消すことはできません',
@@ -8041,7 +8061,38 @@ ${reportName}
         members: {
             title: 'メンバー',
             findMember: 'メンバーを検索',
+            addMember: 'メンバーを追加',
+            email: 'メールアドレス',
+            errors: {addMember: 'このメンバーを追加できませんでした。もう一度お試しください。'},
         },
+        domainAdmins: 'ドメイン管理者',
+    },
+    gps: {
+        disclaimer: '移動中の経路から、GPS を使って経費を作成しましょう。下の「開始」をタップして追跡を始めてください。',
+        error: {failedToStart: '位置情報の追跡を開始できませんでした。', failedToGetPermissions: '必要な位置情報の権限を取得できませんでした。'},
+        trackingDistance: '距離を追跡中...',
+        stopped: '停止',
+        start: '開始',
+        stop: '停止',
+        discard: '破棄',
+        stopGpsTrackingModal: {title: 'GPS追跡を停止', prompt: '本当に終了しますか？現在のジャーニーが終了します。', cancel: '追跡を再開', confirm: 'GPS追跡を停止'},
+        discardDistanceTrackingModal: {title: '距離の追跡を破棄', prompt: '本当に実行しますか？現在の行程が破棄され、元に戻すことはできません。', confirm: '距離の追跡を破棄'},
+        zeroDistanceTripModal: {title: '経費を作成できません', prompt: '開始地点と終了地点が同じ経路では経費を作成できません。'},
+        locationRequiredModal: {title: '位置情報へのアクセスが必要です', prompt: 'GPS で距離を追跡するには、デバイスの設定で位置情報へのアクセスを許可してください。', allow: '許可'},
+        androidBackgroundLocationRequiredModal: {
+            title: 'バックグラウンド位置情報へのアクセスが必要です',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定でバックグラウンドの位置情報アクセスを許可し（「常に許可」オプション）、有効にしてください。',
+        },
+        preciseLocationRequiredModal: {title: '正確な位置情報が必要です', prompt: 'GPS距離の追跡を開始するには、デバイスの設定で「正確な位置情報」を有効にしてください。'},
+        desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
+        signOutWarningTripInProgress: {title: 'GPS追跡を実行中', prompt: 'この出張を破棄してサインアウトしてもよろしいですか？', confirm: '破棄してサインアウト'},
+        notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        locationServicesRequiredModal: {
+            title: '位置情報へのアクセスが必要です',
+            confirm: '設定を開く',
+            prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
+        },
+        fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

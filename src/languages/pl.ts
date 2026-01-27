@@ -4878,7 +4878,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             ukRegulation:
                 'Expensify Limited jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority na podstawie Payment Services Regulations 2017 (Numer identyfikacyjny firmy: 804718). Plaid świadczy na Twoją rzecz regulowane usługi dostępu do informacji o rachunku za pośrednictwem Expensify Limited jako swojego agenta.',
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
-            cardAlreadyAssignedError: 'Ta karta jest już przypisana do użytkownika w innym obszarze roboczym.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Nie udało się odłączyć karty.',
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj kartami Expensify',
@@ -5220,6 +5221,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i więcej.',
             },
+            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -6186,7 +6188,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>Ustaw limity wydatków i domyślne wartości dla poszczególnych wydatków. Możesz też utworzyć reguły dla <a href="${categoriesPageLink}">kategorii</a> i <a href="${tagsPageLink}">tagów</a>.</muted-text>`,
                 receiptRequiredAmount: 'Wymagana kwota paragonu',
-                receiptRequiredAmountDescription: 'Wymagaj paragonów, gdy wydatek przekracza tę kwotę, chyba że zastąpi to reguła kategorii.',
+                receiptRequiredAmountDescription: 'Wymagaj paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to nadpisane przez regułę kategorii.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być wyższa niż kwota wymagana dla szczegółowych paragonów (${amount})`,
+                itemizedReceiptRequiredAmount: 'Wymagana kwota szczegółowego paragonu',
+                itemizedReceiptRequiredAmountDescription: 'Wymagaj szczegółowych paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to zmienione przez regułę kategorii.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być niższa niż kwota wymagana dla zwykłych paragonów (${amount})`,
                 maxExpenseAmount: 'Maksymalna kwota wydatku',
                 maxExpenseAmountDescription: 'Oznacz wydatki przekraczające tę kwotę, chyba że zostanie to zastąpione przez regułę kategorii.',
                 maxAge: 'Maksymalny wiek',
@@ -6278,6 +6284,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślne`,
                     never: 'Nigdy nie wymagaj paragonów',
                     always: 'Zawsze wymagaj paragonów',
+                },
+                requireItemizedReceiptsOver: 'Wymagaj szczegółowych paragonów powyżej',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślny`,
+                    never: 'Nigdy nie wymagaj szczegółowych paragonów',
+                    always: 'Zawsze wymagaj szczegółowych paragonów',
                 },
                 defaultTaxRate: 'Domyślna stawka podatku',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6447,7 +6459,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return `zmienił kategorię „${categoryName}” na ${newValue} (wcześniej ${oldValue})`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `zmieniono nazwę kategorii z „${oldName}” na „${newName}”`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `zaktualizowano kategorię "${categoryName}", zmieniając Szczegółowe paragony na ${newValue}`;
+            }
+            return `zmieniono Szczegółowe paragony kategorii "${categoryName}" na ${newValue} (wcześniej ${oldValue})`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `zmienił(a) nazwę kategorii z „${oldName}" na „${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `usunięto podpowiedź opisu „${oldValue}” z kategorii „${categoryName}”`;
@@ -6869,6 +6887,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
             },
             feed: 'Kanał',
             withdrawalType: {
@@ -7366,6 +7385,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return 'Wymagany paragon';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Wymagany szczegółowy paragon${formattedLimit ? ` powyżej ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7896,6 +7916,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>ukończyć jazdę próbną!</strong></tooltip>',
+        gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
@@ -8056,7 +8077,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 `<comment><muted-text-label>Po włączeniu główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Nie udało się zmienić zbiorczego rozliczania domen. Spróbuj ponownie później.',
             addAdmin: 'Dodaj administratora',
-            invite: 'Zaproś',
             addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
             revokeAdminAccess: 'Cofnij dostęp administratora',
             cantRevokeAdminAccess: 'Nie można cofnąć dostępu administratora od kontaktu technicznego',
@@ -8073,7 +8093,53 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         members: {
             title: 'Członkowie',
             findMember: 'Znajdź członka',
+            addMember: 'Dodaj członka',
+            email: 'Adres e-mail',
+            errors: {addMember: 'Nie można dodać tego członka. Spróbuj ponownie.'},
         },
+        domainAdmins: 'Administratorzy domeny',
+    },
+    gps: {
+        disclaimer: 'Użyj GPS, aby utworzyć wydatek z Twojej podróży. Stuknij „Start” poniżej, aby rozpocząć śledzenie.',
+        error: {failedToStart: 'Nie udało się uruchomić śledzenia lokalizacji.', failedToGetPermissions: 'Nie udało się uzyskać wymaganych uprawnień do lokalizacji.'},
+        trackingDistance: 'Śledzenie dystansu…',
+        stopped: 'Zatrzymano',
+        start: 'Start',
+        stop: 'Zatrzymaj',
+        discard: 'Odrzuć',
+        stopGpsTrackingModal: {title: 'Zatrzymaj śledzenie GPS', prompt: 'Czy na pewno? To zakończy Twoją obecną podróż.', cancel: 'Wznów śledzenie', confirm: 'Zatrzymaj śledzenie GPS'},
+        discardDistanceTrackingModal: {
+            title: 'Odrzuć śledzenie dystansu',
+            prompt: 'Czy na pewno? Spowoduje to odrzucenie Twojej obecnej ścieżki i nie będzie można tego cofnąć.',
+            confirm: 'Odrzuć śledzenie dystansu',
+        },
+        zeroDistanceTripModal: {title: 'Nie można utworzyć wydatku', prompt: 'Nie możesz utworzyć wydatku z tym samym miejscem początkowym i końcowym.'},
+        locationRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji',
+            prompt: 'Aby rozpocząć śledzenie dystansu GPS, zezwól na dostęp do lokalizacji w ustawieniach swojego urządzenia.',
+            allow: 'Zezwól',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji w tle',
+            prompt: 'Zezwól aplikacji na dostęp do lokalizacji w tle w ustawieniach urządzenia (opcja „Zawsze zezwalaj”), aby rozpocząć śledzenie dystansu GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Wymagane dokładne położenie',
+            prompt: 'Włącz proszę „dokładną lokalizację” w ustawieniach swojego urządzenia, aby rozpocząć śledzenie dystansu GPS.',
+        },
+        desktop: {
+            title: 'Śledź dystans na swoim telefonie',
+            subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',
+            button: 'Pobierz aplikację',
+        },
+        notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby dokończyć'},
+        signOutWarningTripInProgress: {title: 'Śledzenie GPS w toku', prompt: 'Czy na pewno chcesz porzucić podróż i się wylogować?', confirm: 'Odrzuć i wyloguj się'},
+        locationServicesRequiredModal: {
+            title: 'Wymagany dostęp do lokalizacji',
+            confirm: 'Otwórz ustawienia',
+            prompt: 'Zezwól na dostęp do lokalizacji w ustawieniach urządzenia, aby rozpocząć śledzenie dystansu za pomocą GPS.',
+        },
+        fabGpsTripExplained: 'Przejdź do ekranu GPS (przycisk akcji)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -4896,9 +4896,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze helpsite](${CONST.NETSUITE_I
             companyCard: 'bedrijfskaart',
             chooseCardFeed: 'Kaartfeed kiezen',
             ukRegulation:
-                'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betaaldienstinstelling die wordt gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (firmreferentienummer: 804718). Plaid levert u gereguleerde rekeninginformatiediensten via Expensify Limited als haar agent.',
-            assignCardFailedError: 'Kaarttoewijzing mislukt.',
-            cardAlreadyAssignedError: 'Deze kaart is al toegewezen aan een gebruiker in een andere workspace.',
+                'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betalingsinstelling die wordt gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als haar agent.',
+            assign: 'Toewijzen',
+            assignCardFailedError: 'Toewijzing van kaart mislukt.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Kaartontkoppeling mislukt.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards uitgeven en beheren',
@@ -5240,6 +5242,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze helpsite](${CONST.NETSUITE_I
                 title: 'Regels',
                 subtitle: 'Vraag om bonnen, markeer hoge uitgaven en meer.',
             },
+            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6202,14 +6205,19 @@ Vraag om uitgavendetails zoals bonnen en beschrijvingen, stel limieten en standa
             individualExpenseRules: {
                 title: 'Declaraties',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
-                    `<muted-text>Stel bestedingslimieten en standaarden in voor individuele uitgaven. Je kunt ook regels maken voor <a href="${categoriesPageLink}">categorieën</a> en <a href="${tagsPageLink}">labels</a>.</muted-text>`,
-                receiptRequiredAmount: 'Vereist bonbedrag',
-                receiptRequiredAmountDescription: 'Bonnetjes vereisen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
-                maxExpenseAmount: 'Maximale onkostensom',
-                maxExpenseAmountDescription: 'Markeer uitgaven die dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriregel.',
-                maxAge: 'Maximale leeftijd',
-                maxExpenseAge: 'Maximale onkostenleeftijd',
-                maxExpenseAgeDescription: 'Markeer uitgaven ouder dan een specifiek aantal dagen.',
+                    `<muted-text>Stel uitgavenlimieten en standaardwaarden in voor afzonderlijke uitgaven. Je kunt ook regels maken voor <a href="${categoriesPageLink}">categorieën</a> en <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                receiptRequiredAmount: 'Vereist bedrag voor bon',
+                receiptRequiredAmountDescription: 'Bonnen verplicht stellen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Bedrag kan niet hoger zijn dan het bedrag dat vereist is voor gespecificeerde bonnen (${amount})`,
+                itemizedReceiptRequiredAmount: 'Gespecificeerde bon vereist bedrag',
+                itemizedReceiptRequiredAmountDescription:
+                    'Vereis gespecificeerde bonnen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Bedrag kan niet lager zijn dan het bedrag dat vereist is voor reguliere bonnen (${amount})`,
+                maxExpenseAmount: 'Maximumbedrag uitgave',
+                maxExpenseAmountDescription: 'Markeer uitgaven die dit bedrag overschrijden, tenzij dit wordt overschreven door een categorielimiet.',
+                maxAge: 'Max. leeftijd',
+                maxExpenseAge: 'Maximale declaratieleeftijd',
+                maxExpenseAgeDescription: 'Uitgaven markeren die ouder zijn dan een specifiek aantal dagen.',
                 maxExpenseAgeDays: () => ({
                     one: '1 dag',
                     other: (count: number) => `${count} dagen`,
@@ -6296,6 +6304,12 @@ Vraag om uitgavendetails zoals bonnen en beschrijvingen, stel limieten en standa
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standaard`,
                     never: 'Nooit bonnen vereisen',
                     always: 'Altijd bonnen vereisen',
+                },
+                requireItemizedReceiptsOver: 'Vereis gespecificeerde bonnen boven',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standaard`,
+                    never: 'Nooit gespecificeerde bonnen vereisen',
+                    always: 'Altijd gespecificeerde bonnen vereisen',
                 },
                 defaultTaxRate: 'Standaardbelastingtarief',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6465,7 +6479,13 @@ Vraag om uitgavendetails zoals bonnen en beschrijvingen, stel limieten en standa
             }
             return `heeft de categorie „${categoryName}” gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `heeft de categorie "${oldName}" hernoemd naar "${newName}"`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `heeft de categorie "${categoryName}" bijgewerkt door Gedetailleerde bonnen te wijzigen naar ${newValue}`;
+            }
+            return `heeft de Gedetailleerde bonnen van categorie "${categoryName}" gewijzigd naar ${newValue} (voorheen ${oldValue})`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `de categorie "${oldName}" hernoemd naar "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `heeft de beschrijvingshint „${oldValue}” verwijderd uit de categorie „${categoryName}”`;
@@ -6892,6 +6912,7 @@ Vraag om uitgavendetails zoals bonnen en beschrijvingen, stel limieten en standa
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7389,6 +7410,7 @@ Vraag om uitgavendetails zoals bonnen en beschrijvingen, stel limieten en standa
             }
             return 'Bon nodig';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Gespecificeerde bon vereist${formattedLimit ? ` boven ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Verboden uitgave:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7920,8 +7942,9 @@ Vraag om uitgavendetails zoals bonnen en beschrijvingen, stel limieten en standa
             confirmation: '<tooltip>Dien nu <strong>je uitgave in</strong> en zie de magie gebeuren!</tooltip>',
             tryItOut: 'Probeer het uit',
         },
-        outstandingFilter: '<tooltip>Filter voor onkostendeclaraties\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
-        scanTestDriveTooltip: '<tooltip>Stuur deze bon in\n<strong>om de proefrit af te ronden!</strong></tooltip>',
+        outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedgekeurd moeten worden</strong></tooltip>',
+        scanTestDriveTooltip: '<tooltip>Stuur dit bonnetje om\n<strong>de proefrit te voltooien!</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen weggooien?',
@@ -8081,7 +8104,6 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
                 `<comment><muted-text-label>Indien ingeschakeld betaalt het primaire contact voor alle werkruimten die eigendom zijn van leden van <strong>${domainName}</strong> en ontvangt het alle factuurbewijzen.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Samengevoegde domeinfacturering kon niet worden gewijzigd. Probeer het later opnieuw.',
             addAdmin: 'Beheerder toevoegen',
-            invite: 'Uitnodigen',
             addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
             revokeAdminAccess: 'Beheerderstoegang intrekken',
             cantRevokeAdminAccess: 'Kan geen beheerdersrechten intrekken van de technische contactpersoon',
@@ -8098,7 +8120,51 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         members: {
             title: 'Leden',
             findMember: 'Lid zoeken',
+            addMember: 'Lid toevoegen',
+            email: 'E-mailadres',
+            errors: {addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.'},
         },
+        domainAdmins: 'Domeinbeheerders',
+    },
+    gps: {
+        disclaimer: 'Gebruik GPS om een uitgave van je reis te maken. Tik hieronder op Start om het volgen te beginnen.',
+        error: {failedToStart: 'Locatiebijhouding starten is mislukt.', failedToGetPermissions: 'Verkrijgen van vereiste locatierechten mislukt.'},
+        trackingDistance: 'Afstand bijhouden...',
+        stopped: 'Gestopt',
+        start: 'Start',
+        stop: 'Stoppen',
+        discard: 'Verwerpen',
+        stopGpsTrackingModal: {
+            title: 'GPS-tracking stoppen',
+            prompt: 'Weet je het zeker? Hiermee beëindig je je huidige flow.',
+            cancel: 'Hervatten met volgen',
+            confirm: 'GPS-tracking stoppen',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Afstandstracking negeren',
+            prompt: 'Weet je het zeker? Dit verwijdert je huidige traject en kan niet ongedaan worden gemaakt.',
+            confirm: 'Afstandstracking negeren',
+        },
+        zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
+        locationRequiredModal: {
+            title: 'Locatietoegang vereist',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
+            allow: 'Toestaan',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Toegang tot locatie op de achtergrond vereist',
+            prompt: 'Sta achtergrondlocatietoegang toe in de instellingen van je apparaat (de optie “Altijd toestaan”) om het bijhouden van de GPS-afstand te starten.',
+        },
+        preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
+        desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
+        notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
+        signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
+        locationServicesRequiredModal: {
+            title: 'Locatietoegang vereist',
+            confirm: 'Instellingen openen',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om het bijhouden van GPS-afstand te starten.',
+        },
+        fabGpsTripExplained: 'Ga naar GPS-scherm (Zwevende actie)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

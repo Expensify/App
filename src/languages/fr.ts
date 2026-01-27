@@ -1216,8 +1216,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Voulez-vous vraiment supprimer cette dépense ?',
             other: 'Voulez-vous vraiment supprimer ces dépenses ?',
         }),
-        deleteReport: 'Supprimer la note de frais',
-        deleteReportConfirmation: 'Voulez-vous vraiment supprimer cette note de frais ?',
+        deleteReport: 'Supprimer le rapport',
+        deleteReportConfirmation: 'Voulez-vous vraiment supprimer ce rapport ?',
         settledExpensify: 'Payé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
@@ -4923,9 +4923,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             companyCard: 'carte d’entreprise',
             chooseCardFeed: 'Choisir le flux de carte',
             ukRegulation:
-                'Expensify Limited est un agent de Plaid Financial Ltd., un établissement de paiement agréé et réglementé par la Financial Conduct Authority en vertu du Payment Services Regulations 2017 (numéro de référence de la société : 804718). Plaid vous fournit des services réglementés d’information sur les comptes par l’intermédiaire de Expensify Limited, en sa qualité d’agent.',
-            assignCardFailedError: 'L’assignation de la carte a échoué.',
-            cardAlreadyAssignedError: 'Cette carte est déjà assignée à un utilisateur dans un autre espace de travail.',
+                'Expensify Limited est un agent de Plaid Financial Ltd., un établissement de paiement agréé réglementé par la Financial Conduct Authority en vertu des Payment Services Regulations 2017 (numéro de référence de l’entreprise : 804718). Plaid vous fournit des services réglementés d’information sur les comptes par l’intermédiaire de Expensify Limited en tant que son agent.',
+            assign: 'Assigner',
+            assignCardFailedError: 'L’attribution de la carte a échoué.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Échec de la désaffectation de la carte.',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -5272,6 +5274,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Règles',
                 subtitle: 'Exigez des reçus, signalez les dépenses élevées et bien plus encore.',
             },
+            timeTracking: {title: 'Heure', subtitle: 'Définissez un taux horaire facturable pour que les employés soient rémunérés pour leur temps.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -6240,9 +6243,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             individualExpenseRules: {
                 title: 'Dépenses',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
-                    `<muted-text>Définissez des contrôles de dépenses et des valeurs par défaut pour chaque dépense. Vous pouvez aussi créer des règles pour les <a href="${categoriesPageLink}">catégories</a> et les <a href="${tagsPageLink}">tags</a>.</muted-text>`,
-                receiptRequiredAmount: 'Montant de reçu requis',
-                receiptRequiredAmountDescription: 'Exiger des reçus lorsque la dépense dépasse ce montant, sauf si une règle de catégorie le remplace.',
+                    `<muted-text>Définissez des contrôles de dépenses et des valeurs par défaut pour les dépenses individuelles. Vous pouvez également créer des règles pour les <a href="${categoriesPageLink}">catégories</a> et les <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                receiptRequiredAmount: 'Montant nécessitant un reçu',
+                receiptRequiredAmountDescription: "Exiger des reçus lorsque la dépense dépasse ce montant, sauf si une règle de catégorie l'outrepasse.",
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Le montant ne peut pas être supérieur au montant requis pour les reçus détaillés (${amount})`,
+                itemizedReceiptRequiredAmount: 'Montant requis pour le reçu détaillé',
+                itemizedReceiptRequiredAmountDescription: 'Exiger des reçus détaillés lorsque les dépenses dépassent ce montant, sauf si une règle de catégorie le remplace.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Le montant ne peut pas être inférieur au montant requis pour les reçus réguliers (${amount})`,
                 maxExpenseAmount: 'Montant maximal de la dépense',
                 maxExpenseAmountDescription: 'Signaler les dépenses qui dépassent ce montant, sauf en cas de dérogation par une règle de catégorie.',
                 maxAge: 'Âge maximal',
@@ -6337,7 +6344,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     never: 'Ne jamais exiger de reçus',
                     always: 'Toujours exiger des reçus',
                 },
-                defaultTaxRate: 'Taux d’imposition par défaut',
+                requireItemizedReceiptsOver: 'Exiger des reçus détaillés au-dessus de',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Par défaut`,
+                    never: 'Ne jamais exiger de reçus détaillés',
+                    always: 'Toujours exiger des reçus détaillés',
+                },
+                defaultTaxRate: 'Taux de taxe par défaut',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `Accédez à [Plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez des approbations pour déverrouiller cette fonctionnalité.`,
             },
@@ -6434,6 +6447,282 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `a modifié l’adresse de l’entreprise en « ${newAddress} » (auparavant « ${previousAddress} »)` : `définir l’adresse de l’entreprise sur « ${newAddress} »`,
+        addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
+            `a ajouté ${approverName} (${approverEmail}) comme approbateur pour le ${field} « ${name} »`,
+        deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
+            `a supprimé ${approverName} (${approverEmail}) en tant qu’approbateur pour le/la ${field} « ${name} »`,
+        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+            const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
+            return `a modifié le valideur du ${field} « ${name} » en ${formatApprover(newApproverName, newApproverEmail)} (auparavant ${formatApprover(oldApproverName, oldApproverEmail)})`;
+        },
+        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `a ajouté la catégorie « ${categoryName} »`,
+        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `a supprimé la catégorie « ${categoryName} »`,
+        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'Désactivé' : 'activé'} la catégorie « ${categoryName} »`,
+        updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `a ajouté le code de paie « ${newValue} » à la catégorie « ${categoryName} »`;
+            }
+            if (!newValue && oldValue) {
+                return `a supprimé le code de paie « ${oldValue} » de la catégorie « ${categoryName} »`;
+            }
+            return `a modifié le code de paie de la catégorie « ${categoryName} » en « ${newValue} » (précédemment « ${oldValue} »)`;
+        },
+        updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `a ajouté le code GL « ${newValue} » à la catégorie « ${categoryName} »`;
+            }
+            if (!newValue && oldValue) {
+                return `a supprimé le code GL « ${oldValue} » de la catégorie « ${categoryName} »`;
+            }
+            return `code de GL de la catégorie « ${categoryName} » modifié en « ${newValue} » (auparavant « ${oldValue} »)`;
+        },
+        updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
+            return `a modifié la description de la catégorie « ${categoryName} » en ${!oldValue ? 'Obligatoire' : 'Non requis'} (précédemment ${!oldValue ? 'Non requis' : 'Obligatoire'})`;
+        },
+        updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
+            if (newAmount && !oldAmount) {
+                return `a ajouté un montant maximal de ${newAmount} à la catégorie « ${categoryName} »`;
+            }
+            if (oldAmount && !newAmount) {
+                return `a supprimé le montant maximal de ${oldAmount} de la catégorie « ${categoryName} »`;
+            }
+            return `a modifié le montant maximal de la catégorie « ${categoryName} » à ${newAmount} (auparavant ${oldAmount})`;
+        },
+        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+            if (!oldValue) {
+                return `a ajouté un type de limite de ${newValue} à la catégorie « ${categoryName} »`;
+            }
+            return `a modifié le type de limite de la catégorie « ${categoryName} » en ${newValue} (auparavant ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `a mis à jour la catégorie « ${categoryName} » en modifiant Reçus en ${newValue}`;
+            }
+            return `a modifié la catégorie « ${categoryName} » en ${newValue} (auparavant ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `mis à jour la catégorie "${categoryName}" en changeant Reçus détaillés en ${newValue}`;
+            }
+            return `a changé les Reçus détaillés de la catégorie "${categoryName}" en ${newValue} (précédemment ${oldValue})`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `a renommé la catégorie « ${oldName} » en « ${newName} »`,
+        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
+            if (!newValue) {
+                return `a supprimé l’indication de description « ${oldValue} » de la catégorie « ${categoryName} »`;
+            }
+            return !oldValue
+                ? `a ajouté l’indication de description « ${newValue} » à la catégorie « ${categoryName} »`
+                : `a modifié l’indication de description de la catégorie « ${categoryName} » en « ${newValue} » (auparavant « ${oldValue} »)`;
+        },
+        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `a modifié le nom de la liste de tags en « ${newName} » (précédemment « ${oldName} »)`,
+        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `ajouté le tag « ${tagName} » à la liste « ${tagListName} »`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) =>
+            `a mis à jour la liste de tags « ${tagListName} » en remplaçant le tag « ${oldName} » par « ${newName}`,
+        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'activé' : 'Désactivé'} l’étiquette « ${tagName} » sur la liste « ${tagListName} »`,
+        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `a supprimé la balise « ${tagName} » de la liste « ${tagListName} »`,
+        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `a supprimé les balises « ${count} » de la liste « ${tagListName} »`,
+        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+            if (oldValue) {
+                return `a mis à jour l’étiquette « ${tagName} » dans la liste « ${tagListName} » en changeant ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`;
+            }
+            return `a mis à jour le tag « ${tagName} » dans la liste « ${tagListName} » en ajoutant un(e) ${updatedField} de « ${newValue} »`;
+        },
+        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+            `a modifié le ${customUnitName} ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
+        updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `Suivi fiscal ${newValue ? 'activé' : 'Désactivé'} sur les taux de distance`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté un nouveau tarif « ${customUnitName} » « ${rateName} »`,
+        updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
+            `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
+        updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
+            if (oldTaxPercentage && oldValue) {
+                return `a modifié le taux de taxe sur le tarif de distance « ${customUnitRateName} » en « ${newValue} (${newTaxPercentage}) » (auparavant « ${oldValue} (${oldTaxPercentage}) »)`;
+            }
+            return `a ajouté le taux de taxe « ${newValue} (${newTaxPercentage}) » au tarif de distance « ${customUnitRateName} »`;
+        },
+        updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
+            if (oldValue) {
+                return `a modifié la partie récupérable de la taxe sur le taux de distance « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`;
+            }
+            return `a ajouté une partie de taxe récupérable de « ${newValue} » au tarif de distance « ${customUnitRateName}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'Activé' : 'Désactivé'} le taux de ${customUnitName} « ${customUnitRateName} »`;
+        },
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `a supprimé le taux « ${customUnitName} » « ${rateName} »`,
+        addedReportField: (fieldType: string, fieldName?: string) => `a ajouté le champ de rapport ${fieldType} « ${fieldName} »`,
+        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
+            `définir la valeur par défaut du champ de rapport « ${fieldName} » sur « ${defaultValue} »`,
+        addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `a ajouté l’option « ${optionName} » au champ de rapport « ${fieldName} »`,
+        removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `a supprimé l’option « ${optionName} » du champ de rapport « ${fieldName} »`,
+        updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
+            `${optionEnabled ? 'activé' : 'Désactivé'} l’option « ${optionName} » pour le champ de rapport « ${fieldName} »`,
+        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
+            if (toggledOptionsCount && toggledOptionsCount > 1) {
+                return `${allEnabled ? 'activé' : 'Désactivé'} toutes les options pour le champ de rapport « ${fieldName} »`;
+            }
+            return `${allEnabled ? 'activé' : 'Désactivé'} l'option "${optionName}" pour le champ de rapport "${fieldName}", rendant toutes les options ${allEnabled ? 'activé' : 'Désactivé'}`;
+        },
+        deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType} de rapport "${fieldName}" supprimé`,
+        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+            `mis à jour « Empêcher l’auto-approbation » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
+        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
+            if (!oldValue) {
+                return `définir la date de soumission du rapport mensuel sur « ${newValue} »`;
+            }
+            return `a mis à jour la date de soumission du rapport mensuel en « ${newValue} » (auparavant « ${oldValue} »)`;
+        },
+        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `a mis à jour « Refacturer les dépenses aux clients » en « ${newValue} » (auparavant « ${oldValue} »)`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `« Cash expense default » mis à jour sur « ${newValue} » (auparavant « ${oldValue} »)`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `a activé « Enforce default report titles » ${value ? 'Activé' : 'désactivé'}`,
+        renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `a mis à jour le nom de cet espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
+        updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
+            !oldDescription
+                ? `définir la description de cet espace de travail sur « ${newDescription} »`
+                : `a mis à jour la description de cet espace de travail en « ${newDescription} » (auparavant « ${oldDescription} »)`,
+        removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
+            let joinedNames = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames.at(0) ?? '';
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join('et');
+            } else if (submittersNames.length > 2) {
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames.at(-1)}`;
+            }
+            return {
+                one: `vous a retiré(e) du workflow d’approbation et du chat de dépenses de ${joinedNames}. Les notes de frais déjà soumises resteront disponibles pour approbation dans votre boîte de réception.`,
+                other: `vous a retiré des workflows d’approbation et des discussions de dépenses de ${joinedNames}. Les rapports précédemment soumis resteront disponibles pour approbation dans votre boîte de réception.`,
+            };
+        },
+        demotedFromWorkspace: (policyName: string, oldRole: string) =>
+            `a mis à jour votre rôle dans ${policyName} de ${oldRole} à utilisateur. Vous avez été retiré de toutes les discussions de dépenses des déclarants, à l’exception de la vôtre.`,
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `a mis à jour la devise par défaut en ${newCurrency} (auparavant ${oldCurrency})`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
+            `a mis à jour la fréquence de génération automatique de rapports sur « ${newFrequency} » (auparavant « ${oldFrequency} »)`,
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `a mis à jour le mode d’approbation sur « ${newValue} » (auparavant « ${oldValue} »)`,
+        upgradedWorkspace: 'a mis à niveau cet espace de travail vers l’offre Control',
+        forcedCorporateUpgrade: `Cet espace de travail a été mis à niveau vers l’abonnement Control. Cliquez <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">ici</a> pour plus d’informations.`,
+        downgradedWorkspace: 'a rétrogradé cet espace de travail vers l’offre Collect',
+        updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
+            `a modifié le taux de rapports acheminés aléatoirement pour approbation manuelle à ${Math.round(newAuditRate * 100)} % (auparavant ${Math.round(oldAuditRate * 100)} %)`,
+        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
+            `a modifié le seuil d’approbation manuelle pour toutes les dépenses à ${newLimit} (auparavant ${oldLimit})`,
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `Catégories ${enabled ? 'activé' : 'Désactivé'}`;
+                case 'tags':
+                    return `Étiquettes ${enabled ? 'activé' : 'Désactivé'}`;
+                case 'workflows':
+                    return `${enabled ? 'activé' : 'Désactivé'} flux de travail`;
+                case 'distance rates':
+                    return `Tarifs de distance ${enabled ? 'activé' : 'Désactivé'}`;
+                case 'accounting':
+                    return `${enabled ? 'activé' : 'Désactivé'} comptabilité`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'activé' : 'Désactivé'} Cartes Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'activé' : 'Désactivé'} cartes d’entreprise`;
+                case 'invoicing':
+                    return `Facturation ${enabled ? 'activé' : 'Désactivé'}`;
+                case 'per diem':
+                    return `${enabled ? 'activé' : 'Désactivé'} indemnité journalière`;
+                case 'receipt partners':
+                    return `${enabled ? 'activé' : 'Désactivé'} partenaires de reçus`;
+                case 'rules':
+                    return `${enabled ? 'activé' : 'Désactivé'} règles`;
+                case 'tax tracking':
+                    return `Suivi de la taxe ${enabled ? 'activé' : 'Désactivé'}`;
+                default:
+                    return `${enabled ? 'activé' : 'Désactivé'} ${featureName}`;
+            }
+        },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `suivi des participants ${enabled ? 'activé' : 'Désactivé'}`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'activé' : 'désactivé'} remboursements`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `a ajouté la taxe « ${taxName} »`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `a supprimé la taxe « ${taxName} »`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `a renommé la taxe « ${oldValue} » en « ${newValue} »`;
+                }
+                case 'code': {
+                    return `a modifié le code fiscal « ${taxName} » de « ${oldValue} » à « ${newValue} »`;
+                }
+                case 'rate': {
+                    return `a modifié le taux de taxe pour « ${taxName} » de « ${oldValue} » à « ${newValue} »`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'Désactivé' : 'activé'} la taxe « ${taxName} »`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `a modifié la formule du nom du rapport personnalisé en « ${newValue} » (auparavant « ${oldValue} »)`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `a modifié l'approbateur par défaut pour ${newApprover} (précédemment ${previousApprover})` : `a remplacé l'approbateur par défaut par ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `a modifié le processus d’approbation pour que ${members} soumettent des rapports à ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(ancien approbateur par défaut ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(auparavant approbateur par défaut)';
+            } else if (previousApprover) {
+                text += `(auparavant ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `a modifié le flux d’approbation pour ${members} afin qu’ils soumettent des rapports à l’approbateur par défaut ${approver}`
+                : `a modifié le flux d’approbation pour que ${members} soumettent des rapports à l'approbateur par défaut`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(auparavant approbateur par défaut ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(auparavant approbateur par défaut)';
+            } else if (previousApprover) {
+                text += `(auparavant ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `a modifié le flux d’approbation pour ${approver} afin de transmettre les rapports approuvés à ${forwardsTo} (auparavant transmis à ${previousForwardsTo})`
+                : `a modifié le flux d’approbation pour ${approver} afin de transmettre les rapports approuvés à ${forwardsTo} (auparavant, les rapports approuvés définitivement)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `a modifié le flux d’approbation pour ${approver} afin de ne plus transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
+                : `a modifié le flux d'approbation pour ${approver} afin de ne plus transférer les rapports approuvés`,
         setDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
             `définir le compte bancaire professionnel par défaut sur « ${bankAccountName ? `${bankAccountName}: ` : ''}${maskedBankAccountNumber} »`,
         removedDefaultBankAccount: ({bankAccountName, maskedBankAccountNumber}: {bankAccountName: string; maskedBankAccountNumber: string}) =>
@@ -6936,6 +7225,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
             },
             feed: 'Flux',
             withdrawalType: {
@@ -7433,6 +7723,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             }
             return 'Reçu obligatoire';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Reçu détaillé requis${formattedLimit ? ` au-dessus de ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Dépense interdite :';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7964,6 +8255,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
+        gpsTooltip: '<tooltip>Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',
@@ -8124,7 +8416,6 @@ Voici un *reçu test* pour vous montrer comment ça marche :`,
                 `<comment><muted-text-label>Lorsqu'elle est activée, la personne à contacter principale paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La facturation de domaine consolidée n’a pas pu être modifiée. Veuillez réessayer ultérieurement.',
             addAdmin: 'Ajouter un administrateur',
-            invite: 'Inviter',
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
             revokeAdminAccess: 'Révoquer l’accès administrateur',
             cantRevokeAdminAccess: "Impossible de révoquer l'accès administrateur au contact technique",
@@ -8141,7 +8432,58 @@ Voici un *reçu test* pour vous montrer comment ça marche :`,
         members: {
             title: 'Membres',
             findMember: 'Rechercher un membre',
+            addMember: 'Ajouter un membre',
+            email: 'Adresse e-mail',
+            errors: {addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.'},
         },
+        domainAdmins: 'Administrateurs de domaine',
+    },
+    gps: {
+        disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Touchez Démarrer ci-dessous pour commencer le suivi.',
+        error: {failedToStart: 'Impossible de démarrer le suivi de la localisation.', failedToGetPermissions: 'Échec de l’obtention des autorisations de localisation requises.'},
+        trackingDistance: 'Suivi de la distance...',
+        stopped: 'Arrêté',
+        start: 'Commencer',
+        stop: 'Arrêter',
+        discard: 'Ignorer',
+        stopGpsTrackingModal: {
+            title: 'Arrêter le suivi GPS',
+            prompt: 'Êtes-vous sûr(e) ? Cela mettra fin à votre trajet actuel.',
+            cancel: 'Reprendre le suivi',
+            confirm: 'Arrêter le suivi GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Ignorer le suivi de la distance',
+            prompt: 'Êtes-vous sûr(e) ? Cela annulera votre parcours en cours et ne pourra pas être annulé.',
+            confirm: 'Ignorer le suivi de la distance',
+        },
+        zeroDistanceTripModal: {title: 'Impossible de créer la dépense', prompt: 'Vous ne pouvez pas créer une dépense avec le même lieu de départ et d’arrivée.'},
+        locationRequiredModal: {
+            title: 'Accès à la localisation requis',
+            prompt: 'Veuillez autoriser l’accès à la localisation dans les paramètres de votre appareil pour lancer le suivi de distance GPS.',
+            allow: 'Autoriser',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Accès à la position en arrière-plan requis',
+            prompt: 'Veuillez autoriser l’accès à la localisation en arrière-plan dans les paramètres de votre appareil (option « Autoriser tout le temps ») pour démarrer le suivi de distance par GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Emplacement précis requis',
+            prompt: 'Veuillez activer la « localisation précise » dans les paramètres de votre appareil pour commencer le suivi de distance GPS.',
+        },
+        desktop: {
+            title: 'Suivez la distance sur votre téléphone',
+            subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
+            button: 'Télécharger l’application',
+        },
+        signOutWarningTripInProgress: {title: 'Suivi GPS en cours', prompt: 'Voulez-vous vraiment abandonner le déplacement et vous déconnecter ?', confirm: 'Ignorer et se déconnecter'},
+        notification: {title: 'Suivi GPS en cours', body: 'Aller dans l’application pour terminer'},
+        locationServicesRequiredModal: {
+            title: 'Accès à la localisation requis',
+            confirm: 'Ouvrir les paramètres',
+            prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour lancer le suivi de distance GPS.',
+        },
+        fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

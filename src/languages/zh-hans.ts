@@ -1195,7 +1195,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: '确定要删除这些报销吗？',
         }),
         deleteReport: '删除报表',
-        deleteReportConfirmation: '你确定要删除此报表吗？',
+        deleteReportConfirmation: '您确定要删除此报告吗？',
         settledExpensify: '已支付',
         done: '完成',
         settledElsewhere: '在其他地方支付',
@@ -4800,7 +4800,8 @@ _有关更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             ukRegulation:
                 'Expensify Limited 是 Plaid Financial Ltd. 的代理机构，Plaid Financial Ltd. 是一家根据《2017 年支付服务条例》由金融行为监管局授权并监管的支付机构（公司参考编号：804718）。Plaid 通过其代理 Expensify Limited 向您提供受监管的账户信息服务。',
             assignCardFailedError: '卡片分配失败。',
-            cardAlreadyAssignedError: '此卡片已分配给另一工作区中的一位用户。',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: '卡片取消分配失败。',
         },
         expensifyCard: {
             issueAndManageCards: '发放并管理您的 Expensify 卡',
@@ -5135,6 +5136,7 @@ _有关更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '规则',
                 subtitle: '要求收据、标记高额支出等。',
             },
+            timeTracking: {title: '时间', subtitle: '为员工设置按小时计费的费率，以便根据他们的工作时间获得报酬。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6080,7 +6082,11 @@ ${reportName}
                     `<muted-text>为单笔报销设置支出控制和默认值。您也可以为<a href="${categoriesPageLink}">类别</a>和<a href="${tagsPageLink}">标签</a>创建规则。</muted-text>`,
                 receiptRequiredAmount: '所需收据金额',
                 receiptRequiredAmountDescription: '当支出超过此金额时要求提供收据，除非被类别规则覆盖。',
-                maxExpenseAmount: '最高报销金额',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `金额不能高于明细收据所需金额（${amount}）`,
+                itemizedReceiptRequiredAmount: '明细收据所需金额',
+                itemizedReceiptRequiredAmountDescription: '当支出超过此金额时需要明细收据，除非被类别规则覆盖。',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `金额不能低于常规收据所需金额（${amount}）`,
+                maxExpenseAmount: '最大报销金额',
                 maxExpenseAmountDescription: '标记超过此金额的支出，除非被类别规则覆盖。',
                 maxAge: '最大年龄',
                 maxExpenseAge: '报销最长期限',
@@ -6167,6 +6173,12 @@ ${reportName}
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} 默认`,
                     never: '从不要求收据',
                     always: '始终要求收据',
+                },
+                requireItemizedReceiptsOver: '要求明细收据超过',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} 默认`,
+                    never: '从不要求明细收据',
+                    always: '始终要求明细收据',
                 },
                 defaultTaxRate: '默认税率',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) => `前往 [更多功能](${moreFeaturesLink}) 并启用工作流，然后添加审批以解锁此功能。`,
@@ -6329,11 +6341,17 @@ ${reportName}
         },
         updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
             if (!oldValue) {
-                return `通过将收据更改为 ${newValue} 更新了类别 “${categoryName}”`;
+                return `通过将收据更改为 ${newValue}，已更新类别 "${categoryName}"`;
             }
-            return `将“${categoryName}”类别更改为 ${newValue}（之前为 ${oldValue}）`;
+            return `将"${categoryName}"类别更改为 ${newValue}（之前为 ${oldValue}）`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `已将类别“${oldName}”重命名为“${newName}”`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `通过将明细收据更改为${newValue}来更新类别"${categoryName}"`;
+            }
+            return `将"${categoryName}"类别的明细收据更改为${newValue}（之前为${oldValue}）`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `已将类别"${oldName}"重命名为"${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `已从类别“${categoryName}”中移除描述提示“${oldValue}”`;
@@ -6740,7 +6758,8 @@ ${reportName}
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '发件人',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现编号',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
             },
             feed: '动态',
             withdrawalType: {
@@ -7229,6 +7248,7 @@ ${reportName}
             }
             return '需要收据';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `需要明细收据${formattedLimit ? `超过 ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止报销的费用：';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7742,8 +7762,9 @@ ${reportName}
             confirmation: '<tooltip>现在，<strong>提交你的报销</strong>，见证奇迹发生！</tooltip>',
             tryItOut: '试用一下',
         },
-        outstandingFilter: '<tooltip>筛选<strong>待审批</strong>的报销</tooltip>',
-        scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用！</strong></tooltip>',
+        outstandingFilter: '<tooltip>筛选<strong>需要批准</strong>的报销</tooltip>',
+        scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS 跟踪进行中！完成后，请在下方停止跟踪。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
@@ -7902,7 +7923,6 @@ ${reportName}
                 `<comment><muted-text-label>启用后，主要联系人将为由 <strong>${domainName}</strong> 成员拥有的所有工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '无法更改合并域账单。请稍后重试。',
             addAdmin: '添加管理员',
-            invite: '邀请',
             addAdminError: '无法将此成员添加为管理员。请重试。',
             revokeAdminAccess: '撤销管理员权限',
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员访问权限',
@@ -7920,6 +7940,28 @@ ${reportName}
             title: '成员',
             findMember: '查找成员',
         },
+        members: {title: '成员', findMember: '查找成员', addMember: '添加成员', email: '电子邮箱地址', errors: {addMember: '无法添加此成员。请重试。'}},
+        domainAdmins: '域管理员',
+    },
+    gps: {
+        disclaimer: '使用 GPS 根据您的行程创建报销。点击下方的“开始”以开始跟踪。',
+        error: {failedToStart: '启动位置跟踪失败。', failedToGetPermissions: '获取必需的位置权限失败。'},
+        trackingDistance: '正在跟踪距离…',
+        stopped: '已停止',
+        start: '开始',
+        stop: '停止',
+        discard: '丢弃',
+        stopGpsTrackingModal: {title: '停止 GPS 追踪', prompt: '你确定吗？这将结束你当前的旅程。', cancel: '恢复追踪', confirm: '停止 GPS 追踪'},
+        discardDistanceTrackingModal: {title: '丢弃距离跟踪', prompt: '您确定吗？这将放弃您当前的流程，且无法撤销。', confirm: '丢弃距离跟踪'},
+        zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
+        locationRequiredModal: {title: '需要访问位置信息', prompt: '请在设备设置中允许位置访问以开始 GPS 距离跟踪。', allow: '允许'},
+        androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
+        preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
+        desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
+        signOutWarningTripInProgress: {title: 'GPS 跟踪进行中', prompt: '您确定要放弃此行程并登出吗？', confirm: '放弃并退出'},
+        notification: {title: '正在进行 GPS 跟踪', body: '前往应用完成'},
+        locationServicesRequiredModal: {title: '需要访问位置信息', confirm: '打开设置', prompt: '请在设备设置中允许位置访问，以开始 GPS 距离跟踪。'},
+        fabGpsTripExplained: '前往 GPS 屏幕（悬浮操作）',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
