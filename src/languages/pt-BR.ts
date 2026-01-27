@@ -8028,12 +8028,6 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         members: {
             title: 'Membros',
             findMember: 'Encontrar membro',
-
-            errors: {},
-        },
-        members: {
-            title: 'Membros',
-            findMember: 'Encontrar membro',
             addMember: 'Adicionar membro',
             email: 'Endereço de e-mail',
             closeAccount: 'Encerrar conta',

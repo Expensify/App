@@ -1,17 +1,8 @@
-import {
-    adminAccountIDsSelector,
-    adminPendingActionSelector,
-    defaultSecurityGroupIDSelector,
-    domainEmailSelector,
-    domainSettingsPrimaryContactSelector,
-    isSecurityGroupEntry,
-    memberAccountIDsSelector,
-    selectSecurityGroupsForAccount,
-    technicalContactSettingsSelector,
-} from '@selectors/Domain';
-import type {OnyxEntry} from 'react-native-onyx';
+import { adminAccountIDsSelector, adminPendingActionSelector, defaultSecurityGroupIDSelector, domainEmailSelector, domainSettingsPrimaryContactSelector, isSecurityGroupEntry, memberAccountIDsSelector, selectSecurityGroupsForAccount, technicalContactSettingsSelector } from '@selectors/Domain';
+import type { OnyxEntry } from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
+import type { CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings } from '@src/types/onyx';
+
 
 describe('domainSelectors', () => {
     const userID1 = 123;
@@ -326,12 +317,14 @@ describe('domainSelectors', () => {
                 },
             } as DomainSecurityGroup;
 
-            const domain = {
+            const domain: Domain = {
                 validated: true,
                 accountID: 1,
                 email: 'test@example.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '1',
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: securityGroup,
-            } as Domain;
+            };
 
             const result = selectSecurityGroupsForAccount(123)(domain);
 
@@ -345,14 +338,16 @@ describe('domainSelectors', () => {
             const group2 = {shared: {'123': 'read', '789': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
             const group3 = {shared: {'999': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
 
-            const domain = {
+            const domain: Domain = {
                 validated: true,
                 accountID: 1,
                 email: 'test@example.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '1',
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: group1,
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: group2,
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]: group3,
-            } as Domain;
+            };
 
             const result = selectSecurityGroupsForAccount(123)(domain);
 
