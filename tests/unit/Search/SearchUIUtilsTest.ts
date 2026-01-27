@@ -3019,53 +3019,58 @@ describe('SearchUIUtils', () => {
         });
 
         it('should sort "No tag" alphabetically with other tags (not at the top)', () => {
-            // "No tag" text should sort alphabetically, not first due to empty string
-            const emptyTagDisplayText = translateLocal('search.noTag');
-
-            const tagListItemsWithEmptyTag: TransactionTagGroupListItemType[] = [
-                {
+            // Create raw search results data WITHOUT formattedTag -
+            // this is what comes from the backend. getSections will call getTagSections
+            // which populates formattedTag with the translated "No tag" text for empty tags.
+            const dataWithEmptyTag: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}123456` as const]: {
                     tag: 'Zulu',
                     count: 2,
                     currency: 'USD',
                     total: 100,
-                    groupedBy: CONST.SEARCH.GROUP_BY.TAG,
-                    formattedTag: 'Zulu',
-                    transactions: [],
-                    transactionsQueryJSON: undefined,
                 },
-                {
+                [`${CONST.SEARCH.GROUP_PREFIX}789012` as const]: {
+                    // Empty tag - should become "No tag" in formattedTag
                     tag: '',
                     count: 1,
                     currency: 'USD',
                     total: 50,
-                    groupedBy: CONST.SEARCH.GROUP_BY.TAG,
-                    // formattedTag is the translated "No tag" text, not empty string
-                    formattedTag: emptyTagDisplayText,
-                    transactions: [],
-                    transactionsQueryJSON: undefined,
                 },
-                {
+                [`${CONST.SEARCH.GROUP_PREFIX}345678` as const]: {
                     tag: 'Alpha',
                     count: 3,
                     currency: 'USD',
                     total: 150,
-                    groupedBy: CONST.SEARCH.GROUP_BY.TAG,
-                    formattedTag: 'Alpha',
-                    transactions: [],
-                    transactionsQueryJSON: undefined,
                 },
-            ];
+            };
 
+            // First, call getSections to process raw data through getTagSections.
+            // This is where formattedTag gets populated
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEmptyTag,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            }) as [TransactionTagGroupListItemType[], number];
+
+            // Then sort the sections
             const result = SearchUIUtils.getSortedSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
                 '',
-                tagListItemsWithEmptyTag,
+                sections,
                 localeCompare,
                 translateLocal,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
                 CONST.SEARCH.SORT_ORDER.ASC,
                 CONST.SEARCH.GROUP_BY.TAG,
             ) as TransactionTagGroupListItemType[];
+
+            const emptyTagDisplayText = translateLocal('search.noTag');
 
             // In ascending alphabetical order: Alpha < No tag < Zulu
             // "No tag" should NOT be at the top (that was the bug with empty string sorting)
