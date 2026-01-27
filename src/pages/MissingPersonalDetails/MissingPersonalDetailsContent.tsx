@@ -1,13 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import ActivityIndicator from '@components/ActivityIndicator';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
@@ -47,7 +46,6 @@ const formPages = [
 
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
 
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
@@ -69,20 +67,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     });
 
     if (isRedirecting) {
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID="MissingPersonalDetailsContent"
-            >
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        size="large"
-                        color={theme.spinner}
-                    />
-                </View>
-            </ScreenWrapper>
-        );
+        return <FullScreenLoadingIndicator />;
     }
 
     const handleBackButtonPress = () => {

@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ComponentType} from 'react';
 import {useEffect} from 'react';
-import {InteractionManager} from 'react-native';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
 import type {SubPageProps, UseSubPageProps} from './types';
@@ -28,7 +27,7 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
+        requestAnimationFrame(() => {
             Navigation.navigate(buildRoute(startPageName), {forceReplace: true});
         });
     }, [isRedirecting, startPageName, buildRoute]);
