@@ -57,12 +57,16 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, ContentWr
         return booleanValues.find((value) => booleanValue === value) ?? null;
     }, [formValue]);
 
-    const items = booleanValues.map((value) => ({
-        value,
-        keyForList: value,
-        text: translate(`common.${value}`),
-        isSelected: selectedItem === value,
-    }));
+    const items = useMemo(
+        () =>
+            booleanValues.map((value) => ({
+                value,
+                keyForList: value,
+                text: translate(`common.${value}`),
+                isSelected: selectedItem === value,
+            })),
+        [selectedItem, translate],
+    );
 
     const onSelectItem = (selectedValue: BooleanFilterItem) => {
         const newValue = selectedValue.isSelected ? null : selectedValue.value;
