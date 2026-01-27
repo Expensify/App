@@ -822,7 +822,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
-                const expectedResult = `set the category to "Travel", merchant to "McDonald\'s", marked the expense as "billable", and marked the expense as "reimbursable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+                const expectedResult = `set the category to "Travel", merchant to "McDonald's", marked the expense as "billable", and marked the expense as "reimbursable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
                 expect(result).toEqual(expectedResult);
             });
@@ -842,7 +842,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
-                const expectedResult = `set the category to "Travel", and merchant to "McDonald\'s" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+                const expectedResult = `set the category to "Travel", and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
                 expect(result).toEqual(expectedResult);
             });

@@ -740,12 +740,25 @@ type OriginalMessageModifiedExpense = {
 };
 
 type PolicyRulesModifiedFields = {
+    /** The value that the merchant was changed to */
     merchant?: string;
+
+    /** The value that the amount was changed to */
     category?: string;
+
+    /** The value that the tag was changed to */
     tag?: string;
+
+    /** The value that the description was changed to */
     description?: string;
+
+    /** The value that the billable status was changed to */
     billable?: boolean;
+
+    /** The value that the reimbursable status was changed to */
     reimbursable?: boolean;
+
+    /** The value that the tax was changed to */
     tax?: Record<string, TaxRate>;
 };
 
