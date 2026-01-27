@@ -862,6 +862,9 @@ function Search({
 
             if (isTransactionWeekGroupListItemType(item)) {
                 const weekGroupItem = item as TransactionWeekGroupListItemType;
+                if (!weekGroupItem.week) {
+                    return;
+                }
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroupItem.week);
                 newFlatFilters.push({

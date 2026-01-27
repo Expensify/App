@@ -205,6 +205,21 @@ type SearchMonthGroup = {
     currency: string;
 };
 
+/** Model of week grouped search result */
+type SearchWeekGroup = {
+    /** Week start date in YYYY-MM-DD format */
+    week: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */

@@ -2266,10 +2266,7 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
             let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON && weekGroup.week) {
                 // Create date range for the week (start date to end date of the week)
-                const weekStartDate = new Date(weekGroup.week);
-                const weekEndDate = endOfWeek(weekStartDate, {weekStartsOn: CONST.WEEK_STARTS_ON});
-                const weekStart = format(weekStartDate, 'yyyy-MM-dd');
-                const weekEnd = format(weekEndDate, 'yyyy-MM-dd');
+                const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,

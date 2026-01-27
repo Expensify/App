@@ -934,7 +934,7 @@ function getMonthDateRange(year: number, month: number): {start: string; end: st
  */
 function getWeekDateRange(weekStartDate: string): {start: string; end: string} {
     const weekStart = new Date(weekStartDate);
-    const weekEnd = endOfWeek(weekStart, {weekStartsOn: CONST.WEEK_STARTS_ON});
+    const weekEnd = addDays(weekStart, 6);
     return {
         start: format(weekStart, 'yyyy-MM-dd'),
         end: format(weekEnd, 'yyyy-MM-dd'),
