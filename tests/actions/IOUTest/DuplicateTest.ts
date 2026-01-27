@@ -701,6 +701,7 @@ describe('actions/Duplicate', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 customUnitPolicyID: '',
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
@@ -758,6 +759,7 @@ describe('actions/Duplicate', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
                 customUnitPolicyID: '',
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
@@ -816,6 +818,8 @@ describe('actions/Duplicate', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
@@ -869,6 +873,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 allTransactionDrafts: undefined,
+                isSelfTourViewed: false,
             });
 
             await waitForBatchedUpdates();
@@ -932,6 +937,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 allTransactionDrafts,
+                isSelfTourViewed: false,
             });
 
             await waitForBatchedUpdates();
