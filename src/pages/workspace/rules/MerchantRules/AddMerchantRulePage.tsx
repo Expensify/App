@@ -54,7 +54,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
 function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
@@ -144,7 +144,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                 ],
             },
         ],
-        [areCategoriesEnabled, areTagsEnabled, isTaxTrackingEnabled, trackBillables, form, policyID, translate],
+        [areCategoriesEnabled, areTagsEnabled, isTaxTrackingEnabled, trackBillables, form?.merchantToMatch, form?.merchant, form?.category, form?.tag, form?.tax, form?.comment, form?.reimbursable, form?.billable, policyID, translate],
     );
 
     return (

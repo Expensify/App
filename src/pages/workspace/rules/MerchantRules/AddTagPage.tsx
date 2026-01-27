@@ -20,7 +20,7 @@ type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, type
 function AddTagPage({route}: AddTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params.policyID;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -30,13 +30,14 @@ function AddTagPage({route}: AddTagPageProps) {
     const tagItems = useMemo(() => {
         const tags: Array<{name: string; value: string}> = [];
 
-        Object.values(policyTags ?? {}).forEach((tagList) => {
-            Object.values(tagList?.tags ?? {}).forEach((tag) => {
-                if (tag.enabled) {
-                    tags.push({name: getCleanedTagName(tag.name), value: tag.name});
+        for (const tagList of Object.values(policyTags ?? {})) {
+            for (const tag of Object.values(tagList?.tags ?? {})) {
+                if (!tag.enabled) {
+                    continue;
                 }
-            });
-        });
+                tags.push({name: getCleanedTagName(tag.name), value: tag.name});
+            }
+        }
 
         return tags;
     }, [policyTags]);

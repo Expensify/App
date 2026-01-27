@@ -8,8 +8,6 @@ import MerchantRuleTextBasePage from './MerchantRuleTextBasePage';
 type AddMerchantToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH>;
 
 function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
-    const policyID = route.params?.policyID ?? '-1';
-
     return (
         <MerchantRuleTextBasePage
             fieldID={CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH}
@@ -18,7 +16,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
             titleKey="common.merchant"
             testID="AddMerchantToMatchPage"
             characterLimit={CONST.MERCHANT_NAME_MAX_BYTES}
-            policyID={policyID}
+            policyID={route.params.policyID}
         />
     );
 }

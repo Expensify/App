@@ -19,7 +19,7 @@ type AddTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, type
 function AddTaxPage({route}: AddTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params.policyID;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});

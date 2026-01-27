@@ -20,7 +20,7 @@ type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList,
 function AddCategoryPage({route}: AddCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params.policyID;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});

@@ -8,13 +8,11 @@ import MerchantRuleBooleanBasePage from './MerchantRuleBooleanBasePage';
 type AddReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE>;
 
 function AddReimbursablePage({route}: AddReimbursablePageProps) {
-    const policyID = route.params?.policyID ?? '-1';
-
     return (
         <MerchantRuleBooleanBasePage
             fieldID={CONST.MERCHANT_RULES.FIELDS.REIMBURSABLE}
             titleKey="common.reimbursable"
-            policyID={policyID}
+            policyID={route.params.policyID}
         />
     );
 }

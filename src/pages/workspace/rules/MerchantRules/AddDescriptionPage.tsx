@@ -8,15 +8,13 @@ import MerchantRuleTextBasePage from './MerchantRuleTextBasePage';
 type AddDescriptionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION>;
 
 function AddDescriptionPage({route}: AddDescriptionPageProps) {
-    const policyID = route.params?.policyID ?? '-1';
-
     return (
         <MerchantRuleTextBasePage
             fieldID={CONST.MERCHANT_RULES.FIELDS.DESCRIPTION}
             titleKey="common.description"
             testID="AddDescriptionPage"
             characterLimit={CONST.DESCRIPTION_LIMIT}
-            policyID={policyID}
+            policyID={route.params.policyID}
         />
     );
 }
