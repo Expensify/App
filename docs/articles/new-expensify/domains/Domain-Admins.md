@@ -5,7 +5,7 @@ internalScope: Audience is Domain Admins. Covers adding and removing Domain Admi
 keywords: [New Expensify, domain admins, domain control, domain settings, domain management]
 ---
 
-Domain Admins manage your company’s domain settings in Expensify. They can claim domains, verify domain ownership, manage domain members, and configure domain-level security settings (like SAML).
+Domain Admins manage your company’s domain settings in Expensify. They can claim domains, verify domain ownership, manage domain members, and configure domain-level security settings (like [SAML SSO](https://help.expensify.com/new-expensify/hubs/domains/)).
 
 ---
 
