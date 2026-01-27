@@ -319,12 +319,14 @@ function EmptySearchViewContent({
                     </View>
                 ))}
             </View>
-            <SearchScopeProvider isOnSearch={false}>
-                <BookTravelButton
-                    text={translate('search.searchResults.emptyTripResults.buttonText')}
-                    activePolicyID={activePolicy?.id}
-                />
-            </SearchScopeProvider>
+            {!!activePolicy?.isTravelEnabled && (
+                <SearchScopeProvider isOnSearch={false}>
+                    <BookTravelButton
+                        text={translate('search.searchResults.emptyTripResults.buttonText')}
+                        activePolicyID={activePolicy?.id}
+                    />
+                </SearchScopeProvider>
+            )}
         </>
     );
 
