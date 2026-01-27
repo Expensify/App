@@ -18,6 +18,7 @@ function HomePage() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
+    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const handleGoToSearch = () => {
         Navigation.navigate(
@@ -108,6 +109,7 @@ function HomePage() {
                     />
                 </View>
             </View>
+            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         </ScreenWrapper>
     );
 }

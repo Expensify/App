@@ -7,7 +7,6 @@ import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
 import FloatingGPSButton from '@components/FloatingGPSButton';
 import Icon from '@components/Icon';
-// import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -85,7 +84,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
         | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox', 'MoneySearch', 'Buildings']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings']);
 
     const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
     const paramsDomainAccountID = params && 'domainAccountID' in params ? params.domainAccountID : undefined;
@@ -153,15 +152,8 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
         setChatTabBrickRoad(getChatTabBrickRoad(orderedReportIDs, reportAttributes));
     }, [orderedReportIDs, reportAttributes]);
 
-    const navigateToNewDotHome = useCallback(() => {
-        if (selectedTab === NAVIGATION_TABS.HOME) {
-            return;
-        }
-        Navigation.navigate(ROUTES.HOME);
-    }, [selectedTab]);
-
     const navigateToChats = useCallback(() => {
-        if (selectedTab === NAVIGATION_TABS.INBOX) {
+        if (selectedTab === NAVIGATION_TABS.HOME) {
             return;
         }
 
@@ -254,7 +246,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
         navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
     }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain]);
 
-    const inboxAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.INBOX}), [selectedTab]);
+    const inboxAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.HOME}), [selectedTab]);
     const searchAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.SEARCH}), [selectedTab]);
     const workspacesAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.WORKSPACES}), [selectedTab]);
 
@@ -287,38 +279,6 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                             />
                         </PressableWithFeedback>
                         <PressableWithFeedback
-                            onPress={navigateToNewDotHome}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel="Home"
-                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
-                            sentryLabel="NavigationTabBar.Home"
-                        >
-                            {({hovered}) => (
-                                <>
-                                    <View>
-                                        <Icon
-                                            src={expensifyIcons.Home}
-                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
-                                            width={variables.iconBottomBar}
-                                            height={variables.iconBottomBar}
-                                        />
-                                    </View>
-                                    <Text
-                                        numberOfLines={2}
-                                        style={[
-                                            styles.textSmall,
-                                            styles.textAlignCenter,
-                                            styles.mt1Half,
-                                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
-                                            styles.navigationTabBarLabel,
-                                        ]}
-                                    >
-                                        Home
-                                    </Text>
-                                </>
-                            )}
-                        </PressableWithFeedback>
-                        <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.inbox')}
@@ -331,7 +291,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                                     <View>
                                         <Icon
                                             src={expensifyIcons.Inbox}
-                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.INBOX, hovered)}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
                                         />
@@ -351,7 +311,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                                             styles.textSmall,
                                             styles.textAlignCenter,
                                             styles.mt1Half,
-                                            selectedTab === NAVIGATION_TABS.INBOX ? styles.textBold : styles.textSupporting,
+                                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
                                             styles.navigationTabBarLabel,
                                         ]}
                                     >
@@ -473,7 +433,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                     <View>
                         <Icon
                             src={expensifyIcons.Inbox}
-                            fill={selectedTab === NAVIGATION_TABS.INBOX ? theme.iconMenu : theme.icon}
+                            fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -492,7 +452,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                             styles.textSmall,
                             styles.textAlignCenter,
                             styles.mt1Half,
-                            selectedTab === NAVIGATION_TABS.INBOX ? styles.textBold : styles.textSupporting,
+                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
                             styles.navigationTabBarLabel,
                         ]}
                     >
