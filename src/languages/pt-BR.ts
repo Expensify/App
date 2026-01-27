@@ -761,13 +761,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Revogar',
-            title: 'Reconhecimento facial/digital e passkeys',
+            title: 'Rosto/digital e passkeys',
             explanation:
-                'A verificação por rosto/biometria ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
-            confirmationPrompt: 'Tem certeza? Você precisará de um código mágico para a próxima verificação em qualquer dispositivo',
+                'A verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
+            confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo',
             cta: 'Revogar acesso',
             noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
+            error: 'Falha na solicitação. Tente novamente mais tarde.',
         },
     },
     validateCodeModal: {

@@ -765,10 +765,11 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Riconoscimento facciale/impronta digitale e passkey',
             explanation:
                 'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. Revocare l’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo',
-            confirmationPrompt: 'Sei sicuro? Avrai bisogno di un codice magico per la prossima verifica su qualsiasi dispositivo',
+            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo',
             cta: 'Revoca accesso',
-            noDevices: 'Non hai nessun dispositivo registrato per la verifica tramite volto/impronta digitale o passkey. Se ne registri uno, potrai revocare tale accesso da qui.',
+            noDevices: 'Non hai alcun dispositivo registrato per la verifica tramite volto/impronta digitale o passkey. Se ne registri qualcuno, potrai revocare tale accesso qui.',
             dismiss: 'Ho capito',
+            error: 'Richiesta non riuscita. Riprova più tardi.',
         },
     },
     validateCodeModal: {

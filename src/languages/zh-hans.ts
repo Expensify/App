@@ -757,12 +757,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: '撤销',
-            title: '人脸/指纹与通行密钥',
-            explanation: '一个或多个设备已启用面容/指纹或通行密钥验证。撤销访问权限后，下一次在任何设备上进行验证时都需要输入魔法代码',
-            confirmationPrompt: '你确定吗？在任何设备上的下一次验证中，你都需要一个魔法代码',
+            title: '面容/指纹与通行密钥',
+            explanation: '一个或多个设备已启用面部 / 指纹或通行密钥验证。撤销访问权限后，下次在任何设备上进行验证时都需要输入魔法验证码',
+            confirmationPrompt: '您确定吗？在任何设备上的下一次验证中，您都需要一个魔法验证码',
             cta: '撤销访问权限',
-            noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。注册后，您可以在此撤销这些访问权限。',
+            noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。如果您注册了设备，您将能够在此撤销其访问权限。',
             dismiss: '知道了',
+            error: '请求失败。请稍后再试。',
         },
     },
     validateCodeModal: {

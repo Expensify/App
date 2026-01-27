@@ -764,12 +764,13 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Unieważnij',
             title: 'Rozpoznawanie twarzy/odcisku palca i klucze dostępu',
             explanation:
-                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub więcej urządzeniach. Cofnięcie dostępu spowoduje, że przy kolejnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
-            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na każdym urządzeniu',
+                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub większej liczbie urządzeń. Odwołanie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu będzie wymagany magiczny kod',
+            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na dowolnym urządzeniu',
             cta: 'Cofnij dostęp',
             noDevices:
-                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą/odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł cofnąć ten dostęp tutaj.',
+                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą/odciskiem palca lub kluczem dostępu. Jeśli jakiekolwiek zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
             dismiss: 'Rozumiem',
+            error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
         },
     },
     validateCodeModal: {
