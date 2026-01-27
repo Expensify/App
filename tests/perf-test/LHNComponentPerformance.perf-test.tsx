@@ -1,14 +1,14 @@
-import {screen, waitFor} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxValues} from '@src/ONYXKEYS';
 import type {PersonalDetails, Report, ReportActions, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
-import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -20,10 +20,10 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@libs/Permissions');
 jest.mock('@src/languages/IntlStore');
 jest.mock('@src/libs/Localize', () => ({
-    translate: (_locale: string | undefined, key: string | string[], ..._params: unknown[]) => {
+    translate: (_locale: string | undefined, key: string | string[]) => {
         return Array.isArray(key) ? key.join('.') : key;
     },
-    translateLocal: (key: string | string[], ..._params: unknown[]) => {
+    translateLocal: (key: string | string[]) => {
         return Array.isArray(key) ? key.join('.') : key;
     },
     formatList: (components: string[]) => components.join(', '),
@@ -31,10 +31,10 @@ jest.mock('@src/libs/Localize', () => ({
     getDevicePreferredLocale: () => 'en',
 }));
 jest.mock('@libs/Localize', () => ({
-    translate: (_locale: string | undefined, key: string | string[], ..._params: unknown[]) => {
+    translate: (_locale: string | undefined, key: string | string[]) => {
         return Array.isArray(key) ? key.join('.') : key;
     },
-    translateLocal: (key: string | string[], ..._params: unknown[]) => {
+    translateLocal: (key: string | string[]) => {
         return Array.isArray(key) ? key.join('.') : key;
     },
     formatList: (components: string[]) => components.join(', '),
@@ -74,8 +74,7 @@ const ACTIONS_PER_REPORT = 50;
 const createMockReportActions = (reportID: string, count: number): ReportActions => {
     const actions: ReportActions = {};
     for (let i = 0; i < count; i++) {
-        const action = createRandomReportAction(i);
-        actions[`${reportID}_${i}`] = action;
+        actions[`${reportID}_${i}`] = createRandomReportAction(i);
     }
     return actions;
 };
@@ -97,8 +96,14 @@ const createReportsWithActions = (count: number) => {
 
         const isArchived = i % 10 === 0;
         const reportTypeMod = i % 4;
-        const reportType =
-            reportTypeMod === 0 ? CONST.REPORT.TYPE.IOU : reportTypeMod === 1 ? CONST.REPORT.TYPE.EXPENSE : CONST.REPORT.TYPE.CHAT;
+        let reportType: string;
+        if (reportTypeMod === 0) {
+            reportType = CONST.REPORT.TYPE.IOU;
+        } else if (reportTypeMod === 1) {
+            reportType = CONST.REPORT.TYPE.EXPENSE;
+        } else {
+            reportType = CONST.REPORT.TYPE.CHAT;
+        }
 
         reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
             ...report,
@@ -109,7 +114,7 @@ const createReportsWithActions = (count: number) => {
             private_isArchived: isArchived ? 'true' : 'false',
         };
 
-        const lastActorAccountID = report.lastActorAccountID || i;
+        const lastActorAccountID = report.lastActorAccountID ?? i;
         personalDetails[String(lastActorAccountID)] = createPersonalDetails(lastActorAccountID);
 
         if (i % 5 === 0) {
@@ -166,7 +171,7 @@ describe('LHN Component Performance Baseline', () => {
             ...reportNameValuePairs,
             ...policies,
             ...reportMetadata,
-        } as any);
+        } as Partial<OnyxValues>);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -186,7 +191,7 @@ describe('LHN Component Performance Baseline', () => {
             ...reportNameValuePairs,
             ...policies,
             ...reportMetadata,
-        } as any);
+        } as Partial<OnyxValues>);
 
         await waitForBatchedUpdates();
 
@@ -221,7 +226,7 @@ describe('LHN Component Performance Baseline', () => {
             ...reportNameValuePairs,
             ...policies,
             ...reportMetadata,
-        } as any);
+        } as Partial<OnyxValues>);
 
         await waitForBatchedUpdates();
 
@@ -239,7 +244,7 @@ describe('LHN Component Performance Baseline', () => {
                     };
                 }
             }
-            await Onyx.multiSet(updates);
+            await Onyx.multiSet(updates as Partial<OnyxValues>);
             await waitForBatchedUpdatesWithAct();
         };
 
@@ -259,7 +264,7 @@ describe('LHN Component Performance Baseline', () => {
             ...reportNameValuePairs,
             ...policies,
             ...reportMetadata,
-        } as any);
+        } as Partial<OnyxValues>);
 
         await waitForBatchedUpdates();
 
@@ -268,6 +273,36 @@ describe('LHN Component Performance Baseline', () => {
             const firstReportID = '1';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${firstReportID}`, {
                 lastVisitTime: new Date().toISOString(),
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+    });
+
+    test('[LHN Component] Re-render when report archived status changes', async () => {
+        const {reports, reportActions, reportNameValuePairs, policies, personalDetails, reportMetadata} = createReportsWithActions(REPORTS_COUNT);
+
+        await Onyx.multiSet({
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+            ...reports,
+            ...reportActions,
+            ...reportNameValuePairs,
+            ...policies,
+            ...reportMetadata,
+        } as Partial<OnyxValues>);
+
+        await waitForBatchedUpdates();
+
+        const scenario = async () => {
+            await screen.findByTestId('lhn-options-list');
+            const firstReportID = '1';
+            const currentArchivedStatus = reportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${firstReportID}`]?.private_isArchived;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${firstReportID}`, {
+                private_isArchived: currentArchivedStatus === 'true' ? 'false' : 'true',
             });
             await waitForBatchedUpdatesWithAct();
         };
@@ -292,7 +327,7 @@ describe('LHN Component Performance Baseline', () => {
             ...reportNameValuePairs,
             ...policies,
             ...reportMetadata,
-        } as any);
+        } as Partial<OnyxValues>);
 
         await waitForBatchedUpdatesWithAct();
 
