@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCompanyCards from '@hooks/useCompanyCards';
@@ -31,7 +32,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
-import useCompanyCardFeedErrors from './hooks/useCardFeedErrors';
 
 type CardFeedListItem = ListItem & {
     /** Combined feed key */
@@ -56,20 +56,20 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
-    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID, feedName: selectedFeedName});
+    const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
 
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
         const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
         const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
 
-        const {shouldShowRBR} = getCardFeedErrors(feedName);
+        const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
 
         return {
             value: feedName,
-            feed: feedSettings.feed,
+            feed: feedSettings.feed as CompanyCardFeed,
             alternateText: domainName ?? policy?.name,
-            text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
+            text: getCustomOrFormattedFeedName(translate, feedSettings.feed as CompanyCardFeed, feedSettings.customFeedName),
             keyForList: feedName,
             isSelected: feedName === selectedFeedName,
             isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -83,7 +83,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
             ) : (
                 <Icon
-                    src={getCardFeedIcon(feedSettings.feed, illustrations, companyCardFeedIcons)}
+                    src={getCardFeedIcon(feedSettings.feed as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}
