@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -54,8 +55,7 @@ function openPolicyTravelPage(policyID: string, workspaceAccountID: number) {
  * Updates the paymentBankAccountID in the Travel Invoicing card settings.
  */
 function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountID: number, settlementBankAccountID: number, previousPaymentBankAccountID?: number) {
-    const cardSettingsKey =
-        `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
+    const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -111,19 +111,12 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
  * Also resets the paymentBankAccountID to the previous valid value (or null if none existed).
  */
 function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number, paymentBankAccountID: number | null) {
-    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`,
-            value: {
-                errors: null,
-                pendingAction: null,
-                paymentBankAccountID,
-                previousPaymentBankAccountID: null,
-            },
-        },
-    ];
-    Onyx.update(onyxData);
+    Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
+        errors: null,
+        pendingAction: null,
+        paymentBankAccountID,
+        previousPaymentBankAccountID: null,
+    });
 }
 
 export {openPolicyTravelPage, setTravelInvoicingSettlementAccount, clearTravelInvoicingSettlementAccountErrors};

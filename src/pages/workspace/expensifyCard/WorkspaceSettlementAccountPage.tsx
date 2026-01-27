@@ -1,8 +1,10 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
+import MenuItem from '@components/MenuItem';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -12,15 +14,20 @@ import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+import {setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -34,7 +41,13 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type BankAccountListItem = ListItem & {value: number | undefined};
 
-type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
+type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT | typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT
+> & {
+    /** Whether this component is being used for Travel Invoicing */
+    isTravelInvoicing?: boolean;
+};
 
 function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
     const styles = useThemeStyles();
@@ -52,16 +65,26 @@ function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
     );
 }
 
-function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
+function WorkspaceSettlementAccountPage({route, isTravelInvoicing = false}: WorkspaceSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+
+    // Use separate hooks for each card settings key type to avoid conditional hook issues
+    const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [travelCardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID), {canBeMissing: true});
+
+    // Select the appropriate card settings based on the mode
+    const cardSettings = isTravelInvoicing ? travelCardSettings : expensifyCardSettings;
+
+    // These are only used for Expensify Card (not travel invoicing)
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`, {canBeMissing: true});
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`, {canBeMissing: true});
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
@@ -71,7 +94,16 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const paymentBankAccountAddressName = cardSettings?.paymentBankAccountAddressName;
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
-    const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountsList);
+    // For Travel Invoicing, always use the standard eligible accounts; for Expensify Card, check UK/EU support
+    const eligibleBankAccounts = useMemo(() => {
+        if (isTravelInvoicing) {
+            return getEligibleBankAccountsForCard(bankAccountsList);
+        }
+        if (isUkEuCurrencySupported) {
+            return getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency);
+        }
+        return getEligibleBankAccountsForCard(bankAccountsList);
+    }, [isUkEuCurrencySupported, bankAccountsList, policy?.outputCurrency, isTravelInvoicing]);
 
     const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
 
@@ -85,11 +117,12 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     }, [policyID]);
 
     useEffect(() => {
-        if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation?.value !== undefined || reconciliationConnection !== undefined) {
+        // Only fetch accounting data for Expensify Card flow
+        if (isTravelInvoicing || !cardSettings || !hasActiveAccountingConnection || continuousReconciliation?.value !== undefined || reconciliationConnection !== undefined) {
             return;
         }
         fetchPolicyAccountingData();
-    }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation?.value, reconciliationConnection, fetchPolicyAccountingData]);
+    }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation?.value, reconciliationConnection, fetchPolicyAccountingData, isTravelInvoicing]);
 
     const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts.map((bankAccount) => {
         const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
@@ -106,23 +139,38 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         };
     });
 
-    const fallbackBankAccountOption = {
+    const fallbackBankAccountOption: BankAccountListItem = {
         value: paymentBankAccountID,
-        text: paymentBankAccountAddressName,
+        text: paymentBankAccountAddressName ?? '',
         leftElement: <BankAccountListItemLeftElement bankName={(paymentBankAccountAddressName ?? '') as BankName} />,
         alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
         keyForList: paymentBankAccountID?.toString() ?? '',
         isSelected: true,
     };
 
-    const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [fallbackBankAccountOption];
+    // For Travel Invoicing, don't show fallback if no eligible accounts
+    const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : isTravelInvoicing ? [] : [fallbackBankAccountOption];
 
-    const updateSettlementAccount = (value: number) => {
-        updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
+    const handleSelectAccount = (value: number) => {
+        if (isTravelInvoicing) {
+            const previousPaymentBankAccountID = cardSettings?.previousPaymentBankAccountID ?? cardSettings?.paymentBankAccountID;
+            setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
+        } else {
+            updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
+        }
         Navigation.goBack();
     };
 
-    const customListHeaderContent = useMemo(() => {
+    const handleAddNewBankAccount = () => {
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)));
+    };
+
+    const customListHeaderContent = React.useMemo(() => {
+        // For Travel Invoicing, use a simpler header
+        if (isTravelInvoicing) {
+            return <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>;
+        }
+
         const connectionName = reconciliationConnection ?? '';
         const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
@@ -141,13 +189,24 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 )}
             </>
         );
-    }, [continuousReconciliation?.value, reconciliationConnection, environmentURL, paymentBankAccountNumber, translate, hasActiveAccountingConnection, policyID, styles]);
+    }, [continuousReconciliation?.value, reconciliationConnection, environmentURL, paymentBankAccountNumber, translate, hasActiveAccountingConnection, policyID, styles, isTravelInvoicing]);
+
+    const featureName = isTravelInvoicing ? CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED;
+
+    // Render "Add new bank account" as list footer for Travel Invoicing
+    const listFooterContent = isTravelInvoicing ? (
+        <MenuItem
+            icon={icons.Plus}
+            title={translate('workspace.expensifyCard.addNewBankAccount')}
+            onPress={handleAddNewBankAccount}
+        />
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            featureName={featureName}
         >
             <ScreenWrapper
                 testID="WorkspaceSettlementAccountPage"
@@ -157,22 +216,50 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.settlementAccount')}
                     onBackButtonPress={() => {
-                        if (route.params?.backTo) {
+                        if (isTravelInvoicing) {
+                            Navigation.goBack();
+                            return;
+                        }
+                        if (route.params && 'backTo' in route.params && route.params.backTo) {
                             Navigation.goBack(route.params.backTo);
                             return;
                         }
                         Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
                     }}
                 />
-                <SelectionList
-                    addBottomSafeAreaPadding
-                    data={listOptions}
-                    ListItem={RadioListItem}
-                    onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
-                    shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={paymentBankAccountID?.toString()}
-                    customListHeaderContent={customListHeaderContent}
-                />
+                {isTravelInvoicing ? (
+                    <FullPageOfflineBlockingView addBottomSafeAreaPadding>
+                        <View style={styles.flex1}>
+                            <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                            {listOptions.length > 0 ? (
+                                <SelectionList
+                                    data={listOptions}
+                                    ListItem={RadioListItem}
+                                    onSelectRow={({value}) => handleSelectAccount(value ?? 0)}
+                                    shouldSingleExecuteRowSelect
+                                    initiallyFocusedItemKey={paymentBankAccountID?.toString()}
+                                    listFooterContent={listFooterContent}
+                                />
+                            ) : (
+                                <MenuItem
+                                    icon={icons.Plus}
+                                    title={translate('workspace.expensifyCard.addNewBankAccount')}
+                                    onPress={handleAddNewBankAccount}
+                                />
+                            )}
+                        </View>
+                    </FullPageOfflineBlockingView>
+                ) : (
+                    <SelectionList
+                        addBottomSafeAreaPadding
+                        data={listOptions}
+                        ListItem={RadioListItem}
+                        onSelectRow={({value}) => handleSelectAccount(value ?? 0)}
+                        shouldSingleExecuteRowSelect
+                        initiallyFocusedItemKey={paymentBankAccountID?.toString()}
+                        customListHeaderContent={customListHeaderContent}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
