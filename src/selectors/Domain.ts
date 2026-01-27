@@ -139,6 +139,8 @@ const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActio
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 
+const defaultSecurityGroupIDSelector = (domain: OnyxEntry<Domain>) => domain?.domain_defaultSecurityGroupID;
+
 export {
     domainMemberSamlSettingsSelector,
     domainSettingsPrimaryContactSelector,
@@ -150,6 +152,7 @@ export {
     domainEmailSelector,
     adminPendingActionSelector,
     technicalContactSettingsSelector,
+    defaultSecurityGroupIDSelector,
     selectSecurityGroupsForAccount,
     memberPendingActionSelector,
 };

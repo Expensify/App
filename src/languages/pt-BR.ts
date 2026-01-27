@@ -276,6 +276,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Senha',
         magicCode: 'Código mágico',
+        digits: 'dígitos',
         twoFactorCode: 'Código de autenticação de dois fatores',
         workspaces: 'Workspaces',
         inbox: 'Caixa de entrada',
@@ -634,6 +635,8 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Total não reembolsável',
         originalAmount: 'Valor original',
         insights: 'Insights',
+        duplicateExpense: 'Despesa duplicada',
+        newFeature: 'Novo recurso',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1195,7 +1198,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Tem certeza de que deseja excluir estas despesas?',
         }),
         deleteReport: 'Excluir relatório',
-        deleteReportConfirmation: 'Você tem certeza de que deseja excluir este relatório?',
+        deleteReportConfirmation: 'Tem certeza de que deseja excluir este relatório?',
         settledExpensify: 'Pago',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
@@ -1469,6 +1472,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / hora`,
             amountTooLargeError: 'O valor total é muito alto. Reduza as horas ou diminua a tarifa.',
         },
+        correctDistanceRateError: 'Corrija o erro na taxa de distância e tente novamente.',
     },
     transactionMerge: {
         listPage: {
@@ -2376,9 +2380,30 @@ ${amount} para ${merchant} - ${date}`,
             comment: (value: string) => `Alterar descrição para "${value}"`,
             merchant: (value: string) => `Atualizar comerciante para "${value}"`,
             reimbursable: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
-            report: (value: string) => `Adicione um relatório chamado "${value}"`,
+            report: (value: string) => `Adicionar a um relatório chamado "${value}"`,
             tag: (value: string) => `Atualizar etiqueta para "${value}"`,
             tax: (value: string) => `Atualizar taxa de imposto para ${value}`,
+        },
+        newRule: 'Nova regra',
+        addRule: {
+            title: 'Adicionar regra',
+            expenseContains: 'Se a despesa contiver:',
+            applyUpdates: 'Em seguida, aplique estas atualizações:',
+            merchantHint: 'Digite * para criar uma regra que se aplique a todos os estabelecimentos',
+            addToReport: 'Adicionar a um relatório chamado',
+            createReport: 'Criar relatório se necessário',
+            applyToExistingExpenses: 'Aplicar às despesas correspondentes existentes',
+            confirmError: 'Insira o comerciante e aplique pelo menos uma atualização',
+            confirmErrorMerchant: 'Insira o comerciante',
+            confirmErrorUpdate: 'Por favor, aplique pelo menos uma atualização',
+            saveRule: 'Salvar regra',
+        },
+        editRule: {title: 'Editar regra'},
+        deleteRule: {
+            deleteSingle: 'Excluir regra',
+            deleteMultiple: 'Excluir regras',
+            deleteSinglePrompt: 'Tem certeza de que deseja excluir esta regra?',
+            deleteMultiplePrompt: 'Tem certeza de que deseja excluir estas regras?',
         },
     },
     preferencesPage: {
@@ -4837,6 +4862,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             assign: 'Atribuir',
             assignCardFailedError: 'Falha na atribuição do cartão.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'Falha ao desatribuir o cartão.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir e gerenciar seus Cartões Expensify',
@@ -5079,8 +5105,6 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     `Escolha a conta do ${integration} para a qual as transações devem ser exportadas. Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.`,
                 lastUpdated: 'Última atualização',
                 transactionStartDate: 'Data de início da transação',
-                changeTransactionStartDateWarning:
-                    'Alterar a data de início removerá todas as transações não reportadas ou em rascunho e reimportará todas as transações a partir da nova data de início. Isso pode causar transações duplicadas.',
                 updateCard: 'Atualizar cartão',
                 unassignCard: 'Desatribuir cartão',
                 unassign: 'Desatribuir',
@@ -5180,6 +5204,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 title: 'Regras',
                 subtitle: 'Exigir recibos, sinalizar gastos elevados e muito mais.',
             },
+            timeTracking: {title: 'Hora', subtitle: 'Defina uma taxa horária faturável para que os funcionários sejam pagos pelo tempo trabalhado.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -5487,7 +5512,8 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 giveItNameInstruction: 'Torne-o único o suficiente para diferenciá-lo de outros cartões. Casos de uso específicos são ainda melhores!',
                 cardName: 'Nome do cartão',
                 letsDoubleCheck: 'Vamos conferir se está tudo certo.',
-                willBeReady: 'Este cartão estará pronto para uso imediatamente.',
+                willBeReadyToUse: 'Este cartão estará pronto para uso imediatamente.',
+                willBeReadyToShip: 'Este cartão estará pronto para envio imediato.',
                 cardholder: 'Titular do cartão',
                 cardType: 'Tipo de cartão',
                 limit: 'Limite',
@@ -6146,6 +6172,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     `<muted-text>Defina controles de gastos e padrões para despesas individuais. Você também pode criar regras para <a href="${categoriesPageLink}">categorias</a> e <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Valor que exige recibo',
                 receiptRequiredAmountDescription: 'Exigir recibos quando o gasto exceder este valor, a menos que seja substituído por uma regra de categoria.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `O valor não pode ser maior que o valor necessário para recibos detalhados (${amount})`,
+                itemizedReceiptRequiredAmount: 'Valor necessário do recibo detalhado',
+                itemizedReceiptRequiredAmountDescription: 'Exigir recibos detalhados quando o gasto exceder este valor, a menos que seja substituído por uma regra de categoria.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `O valor não pode ser menor que o valor necessário para recibos regulares (${amount})`,
                 maxExpenseAmount: 'Valor máximo da despesa',
                 maxExpenseAmountDescription: 'Sinalizar gastos que excedam esse valor, a menos que sejam substituídos por uma regra de categoria.',
                 maxAge: 'Idade máxima',
@@ -6238,6 +6268,12 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     never: 'Nunca exigir recibos',
                     always: 'Sempre exigir recibos',
                 },
+                requireItemizedReceiptsOver: 'Exigir recibos detalhados acima de',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Padrão`,
+                    never: 'Nunca exigir recibos detalhados',
+                    always: 'Sempre exigir recibos detalhados',
+                },
                 defaultTaxRate: 'Taxa de imposto padrão',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `Vá para [Mais recursos](${moreFeaturesLink}) e ative os fluxos de trabalho, depois adicione aprovações para desbloquear este recurso.`,
@@ -6245,6 +6281,16 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             customRules: {
                 title: 'Política de despesas',
                 cardSubtitle: 'É aqui que fica a política de despesas da sua equipe, para que todos estejam alinhados sobre o que é coberto.',
+            },
+            merchantRules: {
+                title: 'Estabelecimento',
+                subtitle: 'Defina as regras de comerciante para que as despesas cheguem corretamente categorizadas e exijam menos retrabalho.',
+                addRule: 'Adicionar regra de estabelecimento',
+                ruleSummaryTitle: (merchantName: string) => `Se o comerciante contiver "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Renomear comerciante para "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Atualizar ${fieldName} para "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsável' : 'não reembolsável'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Marcar como "${billable ? 'faturável' : 'não faturável'}"`,
             },
         },
         planTypePage: {
@@ -6388,6 +6434,12 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 return `atualizou a categoria "${categoryName}" alterando Recibos para ${newValue}`;
             }
             return `alterou a categoria "${categoryName}" para ${newValue} (antes ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `atualizou a categoria "${categoryName}" alterando Recibos detalhados para ${newValue}`;
+            }
+            return `alterou os Recibos detalhados da categoria "${categoryName}" para ${newValue} (anteriormente ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renomeou a categoria "${oldName}" para "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6796,6 +6848,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             status: 'Status',
             keyword: 'Palavra-chave',
             keywords: 'Palavras-chave',
+            limit: 'Limite',
             currency: 'Moeda',
             completed: 'Concluído',
             amount: {
@@ -6829,6 +6882,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7266,6 +7320,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             }
             return 'Recibo obrigatório';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Recibo detalhado necessário${formattedLimit ? ` acima de ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Despesa proibida:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7797,6 +7852,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         },
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
+        gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
@@ -7956,7 +8012,6 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
                 `<comment><muted-text-label>Quando ativado, o contato principal pagará por todos os espaços de trabalho pertencentes aos membros de <strong>${domainName}</strong> e receberá todos os recibos de cobrança.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'A cobrança de domínio consolidada não pôde ser alterada. Tente novamente mais tarde.',
             addAdmin: 'Adicionar administrador',
-            invite: 'Convidar',
             addAdminError: 'Não foi possível adicionar este membro como administrador. Tente novamente.',
             revokeAdminAccess: 'Revogar acesso de administrador',
             cantRevokeAdminAccess: 'Não é possível revogar o acesso de administrador do contato técnico',
@@ -7973,18 +8028,28 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         members: {
             title: 'Membros',
             findMember: 'Encontrar membro',
+
+            errors: {},
+        },
+        members: {
+            title: 'Membros',
+            findMember: 'Encontrar membro',
+            addMember: 'Adicionar membro',
+            email: 'Endereço de e-mail',
             closeAccount: 'Encerrar conta',
             closeAccountPrompt: 'Tem certeza? Esta ação é permanente.',
             forceCloseAccount: 'Forçar encerramento da conta',
             safeCloseAccount: 'Fechar conta com segurança',
             closeAccountInfo:
                 'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul> Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
-            error: {removeMember: 'Não foi possível remover este usuário. Tente novamente.'},
+            error: {
+                removeMember: 'Não foi possível remover este usuário. Tente novamente.',
+                addMember: 'Não foi possível adicionar este membro. Tente novamente.'
+                },
         },
         domainAdmins: 'Administradores de domínio',
     },
     gps: {
-        tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',
         disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar o rastreamento.',
         error: {failedToStart: 'Falha ao iniciar o rastreamento de localização.', failedToGetPermissions: 'Falha ao obter as permissões de localização necessárias.'},
         trackingDistance: 'Acompanhando a distância...',
@@ -8022,6 +8087,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             subtitle: 'Registre milhas ou quilômetros automaticamente com o GPS e transforme viagens em despesas instantaneamente.',
             button: 'Baixar o app',
         },
+        signOutWarningTripInProgress: {title: 'Rastreamento por GPS em andamento', prompt: 'Tem certeza de que deseja descartar a viagem e sair?', confirm: 'Descartar e sair'},
         notification: {title: 'Rastreamento por GPS em andamento', body: 'Ir para o app para finalizar'},
         locationServicesRequiredModal: {
             title: 'Acesso à localização obrigatório',

@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
-import {clearDomainErrors, clearDomainMemberError, closeUserAccount, createDomain, resetCreateDomainForm, resetDomain} from '@libs/actions/Domain';
+import {addMemberToDomain, clearAddMemberError, clearDomainErrors, clearDomainMemberError, closeUserAccount, createDomain, resetCreateDomainForm, resetDomain} from '@libs/actions/Domain';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -115,6 +116,109 @@ describe('actions/Domain', () => {
             waitForCollectionCallback: false,
             callback: (pendingActions) => {
                 expect(pendingActions?.pendingAction).toBeFalsy();
+            },
+        });
+    });
+
+    it('addMemberToDomain', () => {
+        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const domainAccountID = 123;
+        const email = 'test@example.com';
+        const defaultSecurityGroupID = '1';
+
+        addMemberToDomain(domainAccountID, email, defaultSecurityGroupID);
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.ADD_DOMAIN_MEMBER,
+            {email, domainAccountID},
+            {
+                optimisticData: [
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        value: expect.any(Object),
+                    }),
+                    expect.objectContaining({
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        value: expect.any(Object),
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                        value: {member: {[email]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}},
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                        value: {memberErrors: {[email]: {errors: null}}},
+                    }),
+                ],
+                successData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                        value: {memberErrors: {[email]: {errors: null}}},
+                    }),
+                ]),
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        value: {memberErrors: {[email]: {errors: expect.any(Object)}}},
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                        value: {member: {[email]: {pendingAction: null}}},
+                    }),
+                ]),
+            },
+        );
+
+        apiWriteSpy.mockRestore();
+    });
+
+    it('clearAddMemberError - clears member errors and optimistic data', async () => {
+        const domainAccountID = 123;
+        const email = 'test@example.com';
+        const optimisticAccountID = generateAccountID(email);
+        const defaultSecurityGroupID = '1';
+        const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
+        const timestamp = 456;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
+            memberErrors: {
+                [email]: {
+                    errors: {[timestamp]: 'error'},
+                },
+            },
+        });
+
+        await Onyx.set(
+            `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const,
+            {
+                [DOMAIN_SECURITY_GROUP]: {
+                    shared: {
+                        [optimisticAccountID]: 'read',
+                    },
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+        );
+
+        clearAddMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID);
+
+        await TestHelper.getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            waitForCollectionCallback: false,
+            callback: (errors) => {
+                expect(errors?.memberErrors?.[email]).toBeFalsy();
+                expect(errors?.memberErrors?.[optimisticAccountID]).toBeFalsy();
+            },
+        });
+
+        await TestHelper.getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            waitForCollectionCallback: false,
+            callback: (domain) => {
+                const securityGroup = domain?.[DOMAIN_SECURITY_GROUP as keyof typeof domain] as {shared?: Record<number, string>} | undefined;
+                expect(securityGroup?.shared?.[optimisticAccountID]).toBeFalsy();
             },
         });
     });
