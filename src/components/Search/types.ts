@@ -3,12 +3,15 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
-import type {ReportAction, SearchResults} from '@src/types/onyx';
+import type {ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
+    /** The transaction itself */
+    transaction: Transaction;
+
     /** Whether the transaction is selected */
     isSelected: boolean;
 
@@ -119,7 +122,8 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -136,6 +140,8 @@ type SearchContextData = {
 
 type SearchContextProps = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
+    /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
+    shouldUseLiveData: boolean;
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
@@ -188,6 +194,7 @@ type SearchTextFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
     | ReportFieldTextKey;
 
 type SearchDateFilterKeys =
@@ -212,7 +219,8 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -243,6 +251,7 @@ type SearchQueryAST = {
     policyID?: string[];
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    limit?: number;
 };
 
 type SearchQueryJSON = {
