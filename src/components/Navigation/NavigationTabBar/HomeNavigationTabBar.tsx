@@ -287,8 +287,8 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                         </PressableWithFeedback>
                         <PressableWithFeedback
                             onPress={navigateToNewDotHome}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel="Home"
+                            role={CONST.ROLE.TAB}
+                            accessibilityLabel={translate('common.home')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel="NavigationTabBar.Home"
                         >
@@ -468,30 +468,26 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                 >
-                    {({hovered}) => (
-                        <>
-                            <View>
-                                <Icon
-                                    src={expensifyIcons.Home}
-                                    fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
-                                    width={variables.iconBottomBar}
-                                    height={variables.iconBottomBar}
-                                />
-                            </View>
-                            <Text
-                                numberOfLines={2}
-                                style={[
-                                    styles.textSmall,
-                                    styles.textAlignCenter,
-                                    styles.mt1Half,
-                                    selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
-                                    styles.navigationTabBarLabel,
-                                ]}
-                            >
-                                {translate('common.home')}
-                            </Text>
-                        </>
-                    )}
+                    <View>
+                        <Icon
+                            src={expensifyIcons.Home}
+                            fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                    <Text
+                        numberOfLines={2}
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            styles.mt1Half,
+                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
+                        ]}
+                    >
+                        {translate('common.home')}
+                    </Text>
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={navigateToSearch}
