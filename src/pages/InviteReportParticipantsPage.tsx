@@ -145,9 +145,9 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             }
             invitedEmailsToAccountIDs[login] = accountID;
         }
-        inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
-    }, [selectedOptions, goBack, reportID, validate, formatPhoneNumber]);
+    }, [selectedOptions, goBack, report, validate, formatPhoneNumber]);
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();
