@@ -9,7 +9,8 @@ import * as NumberUtils from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
-import type {CodingRule} from '@src/types/onyx/Policy';
+import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
@@ -26,14 +27,36 @@ function parseStringBoolean(value: string | undefined): boolean | undefined {
 }
 
 /**
+ * Builds the CodingRuleTax object from a tax key and policy
+ */
+function buildTaxObject(taxKey: string | undefined, policy: Policy | undefined): CodingRuleTax | undefined {
+    if (!taxKey || !policy?.taxRates?.taxes) {
+        return undefined;
+    }
+
+    const tax = policy.taxRates.taxes[taxKey];
+    if (!tax) {
+        return undefined;
+    }
+
+    return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        field_id_TAX: {
+            externalID: taxKey,
+            value: `${tax.name} (${tax.value})`,
+        },
+    };
+}
+
+/**
  * Maps form fields to rule properties
  */
-function mapFormFieldsToRule(form: MerchantRuleForm) {
+function mapFormFieldsToRule(form: MerchantRuleForm, policy: Policy | undefined) {
     return {
         merchant: form.merchant || undefined,
         category: form.category || undefined,
         tag: form.tag || undefined,
-        tax: form.tax || undefined,
+        tax: buildTaxObject(form.tax, policy),
         comment: form.comment || undefined,
         reimbursable: parseStringBoolean(form.reimbursable),
         billable: parseStringBoolean(form.billable),
@@ -58,8 +81,9 @@ function openPolicyRulesPage(policyID: string | undefined) {
  * Creates a new merchant rule for the given policy
  * @param policyID - The ID of the policy to create the rule for
  * @param form - The form data for the merchant rule
+ * @param policy - The policy object (needed to build tax data)
  */
-function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
+function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy: Policy | undefined) {
     if (!policyID || !form.merchantToMatch) {
         Log.warn('Invalid params for setPolicyMerchantRule', {policyID, merchantToMatch: form.merchantToMatch});
         return;
@@ -67,7 +91,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
 
     const optimisticRuleID = NumberUtils.rand64();
 
-    const ruleFields = mapFormFieldsToRule(form);
+    const ruleFields = mapFormFieldsToRule(form, policy);
 
     const optimisticRule: CodingRule = {
         filters: {

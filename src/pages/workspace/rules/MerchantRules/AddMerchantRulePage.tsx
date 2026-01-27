@@ -99,7 +99,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
             return;
         }
 
-        setPolicyMerchantRule(policyID, form);
+        setPolicyMerchantRule(policyID, form, policy);
         Navigation.goBack();
     };
 
