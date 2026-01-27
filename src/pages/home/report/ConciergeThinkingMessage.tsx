@@ -3,12 +3,14 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 
 type ConciergeThinkingMessageProps = {
@@ -73,8 +75,7 @@ function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMess
                                             key={`reasoning-${index}`}
                                             style={styles.mb2}
                                         >
-                                            <Text style={styles.textStrong}>{item.split('\n')[0]}</Text>
-                                            {item.split('\n').length > 1 && <Text>{item.split('\n').slice(1).join('\n')}</Text>}
+                                            <RenderHTML html={Parser.replace(item)} />
                                         </View>
                                     ))}
                                 </View>
