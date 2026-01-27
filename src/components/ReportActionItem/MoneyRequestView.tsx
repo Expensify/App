@@ -243,7 +243,6 @@ function MoneyRequestView({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isZeroExpensesBetaEnabled = isBetaEnabled(CONST.BETAS.ZERO_EXPENSES);
 
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
@@ -279,7 +278,6 @@ function MoneyRequestView({
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
     } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
-    const isZeroTransactionAmount = transactionAmount === 0;
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transactionMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -538,10 +536,6 @@ function MoneyRequestView({
         // Checks applied when creating a new expense
         // NOTE: receipt field can return multiple violations, so we need to handle it separately
         const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
-            amount: {
-                isError: isZeroTransactionAmount && !isZeroExpensesBetaEnabled,
-                translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
-            },
             merchant: {
                 isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
                 translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
