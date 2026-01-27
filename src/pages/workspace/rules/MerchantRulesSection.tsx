@@ -133,8 +133,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                     description={matchDescription}
                                     title={ruleDescription}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor]}
-                                    titleStyle={[styles.textLabelSupporting]}
+                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
+                                    titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                     shouldShowRightIcon
                                 />
                             </View>
