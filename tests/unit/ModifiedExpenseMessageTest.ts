@@ -827,6 +827,32 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
+            it('returns the correct text message with tax rate overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            tax: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                field_id_TAX: {
+                                    externalID: '',
+                                    name: 'New Tax Rate',
+                                    value: '10',
+                                },
+                            },
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the tax rate to "New Tax Rate" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
             it('returns the correct text message with two overrides', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
