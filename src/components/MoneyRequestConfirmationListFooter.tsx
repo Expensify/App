@@ -15,8 +15,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -301,6 +303,8 @@ function MoneyRequestConfirmationListFooter({
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
     const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
@@ -1011,25 +1015,41 @@ function MoneyRequestConfirmationListFooter({
     const receiptSizeStyle = styles.expenseViewImageSmall;
     let receiptHeightStyle: ViewStyle | undefined;
     let receiptResizeMode: ImageResizeMode | undefined;
+    const horizontalPadding = isSmallScreenWidth && typeof styles.ph5.paddingHorizontal === 'number' ? styles.ph5.paddingHorizontal : 0;
     if (shouldRestrictHeight) {
-        const horizontalMargin = typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
-        const availableWidth = receiptContainerWidth ?? variables.receiptPreviewMaxWidth;
+        const flexReceiptStyle = {flexGrow: 1, flexShrink: 1};
+        const horizontalMargin = isSmallScreenWidth && horizontalPadding > 0 ? 0 : typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
+        const containerWidth = receiptContainerWidth ?? windowWidth ?? variables.receiptPreviewMaxWidth;
+        const availableWidth = Math.max(containerWidth - horizontalPadding * 2, 0);
         const fallbackWidth = Math.min(Math.max(availableWidth - horizontalMargin * 2, 0), variables.receiptPreviewMaxWidth);
         if (!receiptContainerWidth || !receiptAspectRatio) {
-            receiptHeightStyle = {width: fallbackWidth, height: variables.receiptPreviewMaxHeight};
+            const widthStyle = isSmallScreenWidth ? {width: '100%', maxWidth: '100%', alignSelf: 'stretch'} : {width: fallbackWidth};
+            receiptHeightStyle = {
+                height: isSmallScreenWidth ? variables.receiptPreviewMaxHeight : Math.min(variables.receiptPreviewMaxHeight, fallbackWidth),
+                ...flexReceiptStyle,
+                ...widthStyle,
+            };
         } else {
-            const effectiveWidth = Math.min(Math.max(receiptContainerWidth - horizontalMargin * 2, 0), variables.receiptPreviewMaxWidth);
+            const effectiveWidth = Math.min(Math.max(availableWidth - horizontalMargin * 2, 0), variables.receiptPreviewMaxWidth);
             const minHeight = effectiveWidth / (16 / 9);
             const calculatedHeight = effectiveWidth / receiptAspectRatio;
             const isWide = calculatedHeight < minHeight;
-            receiptHeightStyle = {width: effectiveWidth, height: Math.max(minHeight, calculatedHeight), flexShrink: 1};
+            const targetHeight = Math.max(minHeight, calculatedHeight);
+            const widthStyle = isSmallScreenWidth ? {width: '100%', maxWidth: '100%', alignSelf: 'stretch'} : {width: effectiveWidth};
+            receiptHeightStyle = {
+                height: isSmallScreenWidth ? targetHeight : Math.min(targetHeight, variables.receiptPreviewMaxHeight),
+                flexShrink: 1,
+                flexGrow: 1,
+                ...widthStyle,
+            };
             receiptResizeMode = isWide ? 'contain' : undefined;
         }
     }
 
     const receiptThumbnailContent = useMemo(() => {
+        const receiptContainerStyle = isSmallScreenWidth ? {marginHorizontal: 0} : undefined;
         return (
-            <View style={[styles.moneyRequestImage, receiptSizeStyle, receiptHeightStyle]}>
+            <View style={[styles.moneyRequestImage, receiptContainerStyle, receiptSizeStyle, receiptHeightStyle]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -1105,6 +1125,7 @@ function MoneyRequestConfirmationListFooter({
         handleReceiptLayout,
         handleReceiptLoad,
         shouldRestrictHeight,
+        isSmallScreenWidth,
         isLocalFile,
         receiptFilename,
         translate,
@@ -1201,7 +1222,13 @@ function MoneyRequestConfirmationListFooter({
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View
                     onLayout={handleReceiptLayout}
-                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight ? {flexShrink: 1} : undefined, styles.overflowHidden, shouldRestrictHeight ? styles.pt10 : undefined]}
+                    style={[
+                        !hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3,
+                        shouldRestrictHeight ? {flexGrow: 1, flexShrink: 1} : undefined,
+                        styles.overflowHidden,
+                        shouldRestrictHeight && isSmallScreenWidth ? styles.pt10 : undefined,
+                        isSmallScreenWidth ? styles.ph5 : undefined,
+                    ]}
                 >
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
