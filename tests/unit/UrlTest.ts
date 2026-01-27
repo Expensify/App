@@ -120,13 +120,13 @@ describe('Url', () => {
             ['returns null for missing param', 'search/hold/search?name=Expenses', 'q', null],
             // cspell:disable-next-line
             ['handles hash fragments', 'search/hold/search?q=type%3aexpense#section', 'q', 'type:expense'],
-            ['truncates decoded ampersand', 'search/hold/search?q=AT%26T', 'q', 'AT'],
+            ['decodes ampersand', 'search/hold/search?q=AT%26T', 'q', 'AT&T'],
             // cspell:disable-next-line
-            ['truncates decoded slash', 'search/hold/search?q=foo%2fbar', 'q', 'foo'],
+            ['decodes slash', 'search/hold/search?q=foo%2fbar', 'q', 'foo/bar'],
             ['decodes encoded percent', 'search/hold/search?q=100%25', 'q', '100%'],
             ['returns raw value when decoding fails', 'search/hold/search?q=100%', 'q', '100%'],
             // cspell:disable-next-line
-            ['double decodes encoded percent', 'search/hold/search?q=foo%252fbar', 'q', 'foo'],
+            ['double decodes encoded percent', 'search/hold/search?q=foo%252fbar', 'q', 'foo/bar'],
             [
                 'reads query from encoded backTo segment',
                 // cspell:disable-next-line

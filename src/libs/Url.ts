@@ -99,14 +99,7 @@ function getSearchParamFromPath(path: string, param: string) {
         }
 
         // Match previous behavior: decode the query value twice and truncate on decoded delimiters.
-        const decodedValue = safeDecode(safeDecode(rawValue));
-        const delimiterIndex = decodedValue.search(/[&/]/);
-
-        if (delimiterIndex === -1) {
-            return decodedValue;
-        }
-
-        return decodedValue.slice(0, delimiterIndex);
+        return safeDecode(safeDecode(rawValue));
     };
 
     if (queryIndex !== -1) {
