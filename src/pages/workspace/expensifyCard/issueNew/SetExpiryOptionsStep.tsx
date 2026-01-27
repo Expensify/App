@@ -115,7 +115,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                             inputID={INPUT_IDS.VALID_FROM}
                             label={translate('workspace.card.issueNewCard.startDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                            minDate={new Date()}
                             defaultValue={issueNewCard?.data?.validFrom}
                         />
                         <InputWrapper
@@ -123,7 +123,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                             inputID={INPUT_IDS.VALID_THRU}
                             label={translate('workspace.card.issueNewCard.endDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                            minDate={new Date()}
                             defaultValue={issueNewCard?.data?.validThru}
                         />
                     </>
