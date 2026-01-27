@@ -3769,6 +3769,18 @@ const CONST = {
             DELETE: 'delete',
         },
     },
+    MERCHANT_RULES: {
+        FIELDS: {
+            BILLABLE: 'billable',
+            CATEGORY: 'category',
+            DESCRIPTION: 'comment',
+            MERCHANT_TO_MATCH: 'merchantToMatch',
+            MERCHANT: 'merchant',
+            REIMBURSABLE: 'reimbursable',
+            TAG: 'tag',
+            TAX: 'tax',
+        },
+    },
 
     get SUBSCRIPTION_PRICES() {
         return {

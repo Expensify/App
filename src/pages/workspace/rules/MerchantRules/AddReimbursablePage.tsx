@@ -1,6 +1,6 @@
 import React from 'react';
 import RuleBooleanBase from '@components/Rule/RuleBooleanBase';
-import {updateDraftRule} from '@libs/actions/User';
+import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -9,31 +9,31 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type AddBillablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_BILLABLE>;
+type AddReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE>;
 
-function AddBillablePage({route}: AddBillablePageProps) {
-    const hash = route.params?.hash;
+function AddReimbursablePage({route}: AddReimbursablePageProps) {
+    const policyID = route.params.policyID;
 
     const goBack = () => {
-        Navigation.goBack(hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute());
+        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
     const onSelect = (fieldID: string, value: boolean | 'true' | 'false' | null) => {
-        updateDraftRule({[fieldID]: value});
+        updateDraftMerchantRule({[fieldID]: value});
         goBack();
     };
 
     return (
         <RuleBooleanBase
-            fieldID={CONST.EXPENSE_RULES.FIELDS.BILLABLE}
-            formID={ONYXKEYS.FORMS.EXPENSE_RULE_FORM}
-            titleKey="common.billable"
+            fieldID={CONST.MERCHANT_RULES.FIELDS.REIMBURSABLE}
+            formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}
+            titleKey="common.reimbursable"
             onSelect={onSelect}
             onBack={goBack}
-            hash={hash}
-            useStringValues
         />
     );
 }
 
-export default AddBillablePage;
+AddReimbursablePage.displayName = 'AddReimbursablePage';
+
+export default AddReimbursablePage;

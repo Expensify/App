@@ -1,7 +1,7 @@
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import RuleTextBase from '@components/Rule/RuleTextBase';
-import {updateDraftRule} from '@libs/actions/User';
+import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -10,32 +10,33 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type AddDescriptionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_DESCRIPTION>;
+type AddDescriptionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION>;
 
 function AddDescriptionPage({route}: AddDescriptionPageProps) {
-    const hash = route.params?.hash;
+    const policyID = route.params.policyID;
 
     const goBack = () => {
-        Navigation.goBack(hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute());
+        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
-    const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXPENSE_RULE_FORM>) => {
-        updateDraftRule(values);
+    const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
+        updateDraftMerchantRule(values);
         goBack();
     };
 
     return (
         <RuleTextBase
-            fieldID={CONST.EXPENSE_RULES.FIELDS.DESCRIPTION}
-            formID={ONYXKEYS.FORMS.EXPENSE_RULE_FORM}
+            fieldID={CONST.MERCHANT_RULES.FIELDS.DESCRIPTION}
+            formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}
             titleKey="common.description"
             testID="AddDescriptionPage"
             characterLimit={CONST.DESCRIPTION_LIMIT}
             onSave={onSave}
             onBack={goBack}
-            hash={hash}
         />
     );
 }
+
+AddDescriptionPage.displayName = 'AddDescriptionPage';
 
 export default AddDescriptionPage;

@@ -1394,6 +1394,33 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_CUSTOM]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_TAG]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
     };
