@@ -63,8 +63,8 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionsFollowupUtils';
 import {
-    containsActionableFollowUps,
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
@@ -164,7 +164,6 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
-    parseFollowupsFromHtml,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';

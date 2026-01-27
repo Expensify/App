@@ -103,6 +103,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportActionsFollowupUtils from '@libs/ReportActionsFollowupUtils';
 import {getLastVisibleAction} from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
@@ -548,7 +549,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
         return null;
     }
     const html = message?.html ?? '';
-    const followups = ReportActionsUtils.parseFollowupsFromHtml(html);
+    const followups = ReportActionsFollowupUtils.parseFollowupsFromHtml(html);
 
     if (!followups || followups.length === 0) {
         return null;
