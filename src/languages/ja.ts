@@ -636,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: '元の金額',
         insights: 'インサイト',
         duplicateExpense: '重複した経費',
+        newFeature: '新機能',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1064,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
         scanFailed: 'この領収書は、店舗名、日付、または金額が欠けているためスキャンできませんでした。',
+        addAReceipt: {
+            phrase1: '領収書を追加',
+            phrase2: 'またはここにドラッグ＆ドロップしてください',
+        },
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -2370,16 +2375,24 @@ ${merchant} への ${amount}（${date}）`,
     expenseRulesPage: {
         title: '経費ルール',
         subtitle: 'これらのルールはあなたの経費に適用されます。ワークスペースに提出する場合、そのワークスペースのルールがこれらより優先されることがあります。',
+        findRule: 'ルールを検索',
         emptyRules: {title: 'ルールがまだ作成されていません', subtitle: '経費報告を自動化するルールを追加する。'},
         changes: {
-            billable: (value: boolean) => `経費 ${value ? '請求対象' : '請求不可'} を更新`,
-            category: (value: string) => `カテゴリを「${value}」に更新`,
-            comment: (value: string) => `説明を「${value}」に変更`,
-            merchant: (value: string) => `支払先を「${value}」に更新`,
-            reimbursable: (value: boolean) => `経費 ${value ? '精算対象' : '非精算'} を更新`,
+            billableUpdate: (value: boolean) => `経費 ${value ? '請求対象' : '請求不可'} を更新`,
+            categoryUpdate: (value: string) => `カテゴリを「${value}」に更新`,
+            commentUpdate: (value: string) => `説明を「${value}」に変更`,
+            merchantUpdate: (value: string) => `支払先を「${value}」に更新`,
+            reimbursableUpdate: (value: boolean) => `経費 ${value ? '精算対象' : '非精算'} を更新`,
+            tagUpdate: (value: string) => `タグを「${value}」に更新`,
+            taxUpdate: (value: string) => `税率を${value}に更新`,
+            billable: (value: boolean) => `経費 ${value ? '請求対象' : '請求不可'}`,
+            category: (value: string) => `カテゴリを「${value}」`,
+            comment: (value: string) => `説明を「${value}」`,
+            merchant: (value: string) => `支払先を「${value}」`,
+            reimbursable: (value: boolean) => `経費 ${value ? '精算対象' : '非精算'}`,
+            tag: (value: string) => `タグを「${value}」`,
+            tax: (value: string) => `税率を「${value}」`,
             report: (value: string) => `"${value}" という名前のレポートに追加`,
-            tag: (value: string) => `タグを「${value}」に更新`,
-            tax: (value: string) => `税率を${value}に更新`,
         },
         newRule: '新しいルール',
         addRule: {
@@ -2596,19 +2609,19 @@ ${merchant} への ${amount}（${date}）`,
                 title: '経費承認を追加',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        チームの支出を確認して管理するには、*経費承認を追加* してください。
+                        チームの支出を確認し、コントロールするために、*経費承認を追加* しましょう。
 
                         手順は次のとおりです：
 
-                        1. *Workspaces* に移動します。
+                        1. *ワークスペース* に移動します。
                         2. ワークスペースを選択します。
-                        3. *More features* をクリックします。
-                        4. *Workflows* を有効にします。
-                        5. ワークスペースエディタで *Workflows* に移動します。
-                        6. *Add approvals* を有効にします。
-                        7. チームを招待すると、あなたが経費承認者として設定されます。これは、任意の管理者に変更できます。
+                        3. *その他の機能* をクリックします。
+                        4. *ワークフロー* を有効にします。
+                        5. ワークスペースエディタ内の *ワークフロー* に移動します。
+                        6. *承認* を有効にします。
+                        7. あなたが経費の承認者として設定されます。チームを招待した後は、任意の管理者に変更できます。
 
-                        [More features へ移動する](${workspaceMoreFeaturesLink})。`),
+                        [その他の機能に移動](${workspaceMoreFeaturesLink})。`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `ワークスペースを[作成](${workspaceConfirmationLink})`,
@@ -4849,6 +4862,14 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
+                workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
+                feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                tryAgain: '再試行',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
@@ -5186,6 +5207,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 title: 'ルール',
                 subtitle: 'レシートの必須化や高額支出のフラグ付けなどを設定できます。',
             },
+            timeTracking: {title: '時間', subtitle: '従業員が作業時間に対して支払いを受けられるよう、時間単位の請求レートを設定します。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6146,6 +6168,10 @@ ${reportName}
                     `<muted-text>個々の経費に対して支出コントロールとデフォルトを設定します。<a href="${categoriesPageLink}">カテゴリ</a>や<a href="${tagsPageLink}">タグ</a>のルールを作成することもできます。</muted-text>`,
                 receiptRequiredAmount: '領収書が必要な金額',
                 receiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、支出がこの金額を超えた場合に領収書を必須にする。',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `金額は明細領収書の必要金額（${amount}）より高くすることはできません`,
+                itemizedReceiptRequiredAmount: '明細領収書の必要金額',
+                itemizedReceiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出には明細領収書が必要です。',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `金額は通常の領収書に必要な金額（${amount}）より低くすることはできません`,
                 maxExpenseAmount: '最大経費金額',
                 maxExpenseAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出にフラグを付けます。',
                 maxAge: '最大年齢',
@@ -6237,6 +6263,12 @@ ${reportName}
                     never: 'レシートを要求しない',
                     always: '常に領収書を必須にする',
                 },
+                requireItemizedReceiptsOver: 'を超える明細領収書を必須にする',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} デフォルト`,
+                    never: '明細領収書を要求しない',
+                    always: '常に明細領収書を要求する',
+                },
                 defaultTaxRate: '既定の税率',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
                     `[その他の機能](${moreFeaturesLink})に移動してワークフローを有効にし、承認を追加してこの機能を有効化してください。`,
@@ -6244,6 +6276,16 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここにはチームの経費ポリシーが保存されています。これにより、何が対象になるかについて全員が同じ認識を持てます。',
+            },
+            merchantRules: {
+                title: '加盟店',
+                subtitle: '取引先ルールを設定して、経費が正しくコード化された状態で届くようにし、後処理を最小限に抑えましょう。',
+                addRule: '店舗ルールを追加',
+                ruleSummaryTitle: (merchantName: string) => `もし取引先に「${merchantName}」が含まれている場合`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `支払先名を「${merchantName}」に変更`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} を「${fieldValue}」に更新`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `「${reimbursable ? '払い戻し対象' : '精算対象外'}」としてマーク`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `「${billable ? '請求可能' : '請求対象外'}」としてマーク`,
             },
         },
         planTypePage: {
@@ -6387,6 +6429,12 @@ ${reportName}
                 return `レシートを${newValue}に変更して、カテゴリ「${categoryName}」を更新しました`;
             }
             return `「${categoryName}」カテゴリを${newValue}に変更しました（以前は${oldValue}）。`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `カテゴリ「${categoryName}」を更新し、明細領収書を${newValue}に変更しました。`;
+            }
+            return `「${categoryName}」カテゴリの明細領収書を${newValue}に変更しました（以前は${oldValue}）`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `カテゴリ名を「${oldName}」から「${newName}」に変更しました`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6761,6 +6809,7 @@ ${reportName}
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
+        topCategories: 'トップカテゴリ',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
             approve: '承認',
@@ -6787,6 +6836,7 @@ ${reportName}
             status: 'ステータス',
             keyword: 'キーワード',
             keywords: 'キーワード',
+            limit: '制限',
             currency: '通貨',
             completed: '完了',
             amount: {
@@ -6820,6 +6870,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -7256,6 +7307,7 @@ ${reportName}
             }
             return '領収書が必要';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `明細領収書が必要です${formattedLimit ? `（${formattedLimit}超）` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止経費:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7788,6 +7840,7 @@ ${reportName}
         },
         outstandingFilter: '<tooltip><strong>承認が必要</strong>な経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
+        gpsTooltip: '<tooltip>GPS 追跡を進行中です！完了したら、下で追跡を停止してください。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
@@ -7942,7 +7995,6 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
                 `<comment><muted-text-label>有効にすると、<strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを代表連絡先が行い、すべての請求書の領収書を受け取ります。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '統合ドメイン請求を変更できませんでした。後でもう一度お試しください。',
             addAdmin: '管理者を追加',
-            invite: '招待',
             addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
             revokeAdminAccess: '管理者アクセスを取り消す',
             cantRevokeAdminAccess: '技術連絡先から管理者アクセス権を取り消すことはできません',
@@ -7956,11 +8008,16 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             enterDomainName: 'ここにドメイン名を入力してください',
             resetDomainInfo: `この操作は<strong>永久的</strong>であり、次のデータが削除されます：<br/> <ul><li>会社カードの接続およびそれらのカードからの未報告の経費</li> <li>SAML とグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：関連付けられているメールアドレスを<a href="#">連絡先方法</a>から削除することで、このドメインをドメイン一覧から消去できます。`,
         },
-        members: {title: 'メンバー', findMember: 'メンバーを検索'},
+        members: {
+            title: 'メンバー',
+            findMember: 'メンバーを検索',
+            addMember: 'メンバーを追加',
+            email: 'メールアドレス',
+            errors: {addMember: 'このメンバーを追加できませんでした。もう一度お試しください。'},
+        },
         domainAdmins: 'ドメイン管理者',
     },
     gps: {
-        tooltip: 'GPS 追跡を進行中です！完了したら、下で追跡を停止してください。',
         disclaimer: '移動中の経路から、GPS を使って経費を作成しましょう。下の「開始」をタップして追跡を始めてください。',
         error: {failedToStart: '位置情報の追跡を開始できませんでした。', failedToGetPermissions: '必要な位置情報の権限を取得できませんでした。'},
         trackingDistance: '距離を追跡中...',
