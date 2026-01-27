@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import type {ImportCSVTransactionsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import * as NumberUtils from '@libs/NumberUtils';
+import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
@@ -188,7 +188,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
  * Creates an optimistic card object for the imported transactions
  */
 function buildOptimisticCard(cardDisplayName: string, currency: string): Card {
-    const cardID = NumberUtils.generateRandomInt64();
+    const cardID = Number(rand64());
     return {
         cardID,
         state: CONST.EXPENSIFY_CARD.STATE.OPEN,
@@ -214,7 +214,7 @@ function buildOptimisticCard(cardDisplayName: string, currency: string): Card {
  */
 function buildOptimisticTransactions(transactionList: TransactionFromCSV[], cardID: number, currency: string, isReimbursable: boolean): Transaction[] {
     return transactionList.map((csvTransaction) => {
-        const transactionID = NumberUtils.generateRandomInt64().toString();
+        const transactionID = rand64();
         return {
             transactionID,
             cardID,

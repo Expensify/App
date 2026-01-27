@@ -103,10 +103,11 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
         },
     ];
 
+    const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     const secondPart = ` (${domainName ?? policy?.name})`;
-    const supportingText = `${firstPart}${secondPart}`;
+    const supportingText = isCsvFeed ? translate('cardPage.csvCardDescription') : `${firstPart}${secondPart}`;
 
     const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 

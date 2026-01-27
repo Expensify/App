@@ -104,18 +104,19 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                             .then((data) => {
                                 return data.text();
                             })
-                            .then((text) => XLSX.read(text, {type: 'string', cellDates: true}));
+                            .then((text) => XLSX.read(text, {type: 'string', raw: true}));
                     }
                     return fetch(fileURI)
                         .then((data) => {
                             return data.arrayBuffer();
                         })
-                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', cellDates: true}));
+                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true}));
                 };
                 readWorkbook()
                     .then((workbook) => {
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, raw: false, dateNF: 'yyyy-mm-dd'}) as string[][] | unknown[][];
+                        // Use raw: true to preserve original string values from CSV (especially dates)
+                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, raw: true}) as string[][] | unknown[][];
                         const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell ?? '')));
                         setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
                             .then(() => {
