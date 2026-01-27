@@ -31,10 +31,12 @@ export default function () {
 
             // Once all migrations are done, resolve the main promise
             .then(() => {
-                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX_MIGRATIONS);
                 const timeElapsed = Date.now() - startTime;
                 Log.info(`[Migrate Onyx] finished in ${timeElapsed}ms`);
                 resolve();
+            })
+            .finally(() => {
+                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX_MIGRATIONS);
             });
     });
 }

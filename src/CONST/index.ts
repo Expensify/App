@@ -1744,7 +1744,6 @@ const CONST = {
         },
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
-            ROOT_READY: 'NavigationRootReady',
             PUSHER_INIT: 'NavigationPusherInit',
             APP_OPEN: 'NavigationAppOpen',
         },
