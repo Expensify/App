@@ -28,7 +28,13 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type {CardFeedErrorsDerivedValue, OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue, VisibleReportActionsDerivedValue} from './DerivedValues';
+import type {
+    CardFeedErrorsDerivedValue,
+    OutstandingReportsByPolicyIDDerivedValue,
+    ReportAttributesDerivedValue,
+    ReportTransactionsAndViolationsDerivedValue,
+    VisibleReportActionsDerivedValue,
+} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
