@@ -414,7 +414,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const footerActionButtons = useMemo(() => {
         if (isCropping) {
             return (
-                <View style={[styles.flexRow, styles.gap4, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
+                <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                     <Button
                         onPress={exitCropMode}
                         text={translate('common.cancel')}
@@ -439,7 +439,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
 
         return (
-            <View style={[styles.flexRow, styles.gap4, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
+            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
                         icon={Expensicons.Rotate}
