@@ -23,6 +23,7 @@ import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -187,6 +188,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+
     const parentReportAction = useParentReportAction(reportOnyx);
 
     const deletedParentAction = isDeletedParentAction(parentReportAction);
@@ -210,7 +213,13 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(
+            !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
+            undefined,
+            undefined,
+            archivedReportsIdSet,
+        )?.reportID;
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
@@ -221,7 +230,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
             navigation.setParams({reportID: lastAccessedReportID});
         });
-    }, [isBetaEnabled, navigation, route.params]);
+    }, [archivedReportsIdSet, isBetaEnabled, navigation, route.params]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
