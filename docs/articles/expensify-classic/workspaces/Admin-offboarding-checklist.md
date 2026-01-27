@@ -1,7 +1,7 @@
 ---
 title: Admin Offboarding Checklist in Expensify
 description: Step-by-step instructions to transition billing, bank access, and admin roles when a Workspace Admin or Domain Admin leaves the company.
-keywords: [admin offboarding, transfer billing, remove admin, Expensify Card, change bank account, Workspace Admin, Domain Admin]
+keywords: [Expensify Classic, admin offboarding, transfer billing, remove admin, Expensify Card, change bank account, Workspace Admin, Domain Admin]
 internalScope: Audience is Workspace Admins and Domain Admins. Covers how to reassign responsibilities when an admin leaves the business. Does not cover individual member removal or account deletion outside admin offboarding.
 ---
 
@@ -55,17 +55,7 @@ If you have access to a verified business bank account in Expensify, [share the 
 
 Once you verify the bank account, [revoke the previous admin’s access](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Share-Verified-Business-Bank-Account#revoke-access-to-a-verified-business-bank-account) to maintain secure control.
 
-## How to update the Expensify Card settlement account
-
-If your company uses Expensify Cards:
-
-1. On web: Go to **Settings > Domains > [Domain Name] > Company Cards**.  
-   - On mobile: Tap the hamburger menu > **Domains > [Domain Name] > Company Cards**.
-2. Select **Expensify Card** under **Imported Cards**.
-3. Click the **Settings** tab.
-4. If the old admin is still listed as the **settlement account owner**, use the green chat bubble to contact Concierge or your Account Manager to update it.
-
-**Note:** The new owner must be a **Domain Admin**.
+**Note:** If you can’t unshare the account because the previous admin is still the Expensify Card settlement account owner, contact Concierge or your Account Manager to update the ownership.
 
 ## How to change the default reimburser on all workspaces
 
