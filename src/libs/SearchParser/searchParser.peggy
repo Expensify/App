@@ -33,7 +33,7 @@
     card: "card",
     "withdrawal-id": "withdrawn",
     category: "category",
-    month: "month",
+    month: "groupmonth",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
