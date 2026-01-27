@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 
 function getHasDevices(data: OnyxEntry<Account>) {
-    return data?.multifactorAuthenticationPublicKeyIDs?.length > 0;
+    return data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
 }
 
 function getIsLoading(data: OnyxEntry<Account>) {
@@ -49,7 +49,6 @@ function MultifactorAuthenticationRevokePage() {
 
         if (result.httpCode === 200) {
             hideConfirmModal();
-            Navigation.goBack();
         } else {
             hideConfirmModal();
             setErrorMessage(translate('multifactorAuthentication.revoke.error'));

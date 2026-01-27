@@ -91,8 +91,7 @@ function SecuritySettingsPage() {
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
 
-    // for this use case, we still want to show the button when multifactorAuthenticationPublicKeyIDs is empty
-    const isRegisteredForMultifactorAuthentication = !!account?.multifactorAuthenticationPublicKeyIDs;
+    const isRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== undefined;
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {

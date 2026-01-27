@@ -82,7 +82,7 @@ async function revokeMultifactorAuthenticationCredentials() {
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to troubleshoot multifactor authentication', {error});
+        Log.hmmm('[MultifactorAuthentication] Failed to revoke multifactor authentication credentials', {error});
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, undefined);
     }
