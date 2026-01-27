@@ -1711,6 +1711,9 @@ type CodingRuleTax = {
 
 /** Policy coding rule data model */
 type CodingRule = {
+    /** Unique identifier for the rule */
+    ruleID?: string;
+
     /** Filter conditions for when this rule applies */
     filters: CodingRuleFilter;
 

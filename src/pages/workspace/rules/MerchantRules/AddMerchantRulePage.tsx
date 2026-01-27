@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setPolicyMerchantRule} from '@libs/actions/Policy/Rules';
+import {setPolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {clearDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -99,7 +99,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
             return;
         }
 
-        setPolicyMerchantRule(policyID, form, policy);
+        setPolicyCodingRule(policyID, form, policy);
         Navigation.goBack();
     };
 

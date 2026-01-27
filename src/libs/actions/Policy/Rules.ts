@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
-import type SetPolicyMerchantRuleParams from '@libs/API/parameters/SetPolicyMerchantRuleParams';
+import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type Policy from '@src/types/onyx/Policy';
-import type {CodingRuleTax} from '@src/types/onyx/Policy';
+import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
 
 /**
  * Converts a string boolean value ('true'/'false') to a boolean or undefined
@@ -75,24 +75,27 @@ function openPolicyRulesPage(policyID: string | undefined) {
 }
 
 /**
- * Creates a new merchant rule for the given policy
- * @param policyID - The ID of the policy to create the rule for
+ * Creates or updates a coding rule for the given policy
+ * @param policyID - The ID of the policy to create/update the rule for
  * @param form - The form data for the merchant rule
  * @param policy - The policy object (needed to build tax data)
+ * @param ruleID - Optional existing rule ID for updates
+ * @param updateMatchingTransactions - Whether to update transactions that match the rule
  */
-function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy: Policy | undefined) {
+function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: Policy | undefined, ruleID?: string, updateMatchingTransactions = false) {
     if (!policyID || !form.merchantToMatch) {
-        Log.warn('Invalid params for setPolicyMerchantRule', {policyID, merchantToMatch: form.merchantToMatch});
+        Log.warn('Invalid params for setPolicyCodingRule', {policyID, merchantToMatch: form.merchantToMatch});
         return;
     }
 
-    const optimisticRuleID = NumberUtils.rand64();
+    const optimisticRuleID = ruleID ?? NumberUtils.rand64();
     const ruleFields = mapFormFieldsToRule(form, policy);
 
-    const optimisticRule = {
+    const optimisticRule: CodingRule = {
+        ruleID: optimisticRuleID,
         filters: {
             left: 'merchant',
-            operator: 'eq',
+            operator: 'contains',
             right: form.merchantToMatch,
         },
         ...ruleFields,
@@ -153,13 +156,14 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
         ],
     };
 
-    const parameters: SetPolicyMerchantRuleParams = {
+    const parameters: SetPolicyCodingRuleParams = {
         policyID,
-        merchantToMatch: form.merchantToMatch,
-        ...ruleFields,
+        ruleID: optimisticRuleID,
+        value: JSON.stringify(optimisticRule),
+        updateMatchingTransactions,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_MERCHANT_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyMerchantRule};
+export {openPolicyRulesPage, setPolicyCodingRule};
