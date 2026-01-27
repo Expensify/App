@@ -913,7 +913,7 @@ const SCREENS = {
         OUTCOME: 'Multifactor_Authentication_Outcome',
         PROMPT: 'Multifactor_Authentication_Prompt',
         NOT_FOUND: 'Multifactor_Authentication_Not_Found',
-        REVOKE: 'Multifactor_Authentication_Revoke'
+        REVOKE: 'Multifactor_Authentication_Revoke',
     },
 } as const;
 

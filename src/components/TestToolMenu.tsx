@@ -7,6 +7,7 @@ import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
@@ -15,7 +16,6 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { revokeMultifactorAuthenticationCredentials } from '@libs/actions/MultifactorAuthentication';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -121,7 +121,9 @@ function TestToolMenu() {
                                 <Button
                                     small
                                     text={translate('multifactorAuthentication.revoke.revoke')}
-                                    onPress={() => {revokeMultifactorAuthenticationCredentials()}}
+                                    onPress={() => {
+                                        revokeMultifactorAuthenticationCredentials();
+                                    }}
                                 />
                             )}
                         </View>

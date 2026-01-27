@@ -754,11 +754,11 @@ const translations = {
             revoke: 'Revoke',
             title: 'Face/fingerprint & passkeys',
             explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device',
-            confirmationPrompt: 'Are you sure? You\'ll need a magic code for the next verification on any device',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device",
             cta: 'Revoke access',
-            noDevices: 'You don\'t have any devices register for face/fingerprint or passkey verification. If you register any, you will be able to revoke that acces here.',
+            noDevices: "You don't have any devices register for face/fingerprint or passkey verification. If you register any, you will be able to revoke that acces here.",
             dismiss: 'Got it',
-        }
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

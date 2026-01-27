@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -7,13 +8,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
+import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Account } from '@src/types/onyx';
-import type { OnyxEntry } from 'react-native-onyx';
-import { revokeMultifactorAuthenticationCredentials } from '@libs/actions/MultifactorAuthentication';
+import type {Account} from '@src/types/onyx';
 
 function getHasDevices(data: OnyxEntry<Account>) {
     return data?.isRegisteredForMultifactorAuthentication === 1;
@@ -27,8 +27,8 @@ function MultifactorAuthenticationRevokePage() {
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
-    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, { selector: getHasDevices });
-    const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, { selector: getIsLoading });
+    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getHasDevices, canBeMissing: true});
+    const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getIsLoading, canBeMissing: true});
 
     const onGoBackPress = () => {
         Navigation.dismissModal();
@@ -86,7 +86,9 @@ function MultifactorAuthenticationRevokePage() {
                 confirmText={translate('multifactorAuthentication.revoke.cta')}
                 cancelText={translate('common.cancel')}
                 isVisible={isConfirmModalVisible}
-                onConfirm={() => {handleRevokeConfirm()}}
+                onConfirm={() => {
+                    handleRevokeConfirm();
+                }}
                 onCancel={hideConfirmModal}
                 shouldShowCancelButton
                 isConfirmLoading={isLoading}

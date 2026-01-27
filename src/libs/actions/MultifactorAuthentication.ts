@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/no-api-side-effects-method */
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
+import Onyx from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -9,7 +10,6 @@ import {parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpe
 import type {ChallengeType} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Onyx from 'react-native-onyx';
 
 /**
  * To keep the code clean and readable, these functions return parsed data in order to:
@@ -74,16 +74,16 @@ async function troubleshootMultifactorAuthentication({signedChallenge}: Multifac
 
 async function revokeMultifactorAuthenticationCredentials() {
     try {
-        Onyx.merge(ONYXKEYS.ACCOUNT, { isLoading: true });
+        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
         const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {});
-        Onyx.merge(ONYXKEYS.ACCOUNT, { isLoading: false });
+        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
 
         const {jsonCode, message} = response ?? {};
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
     } catch (error) {
         Log.hmmm('[MultifactorAuthentication] Failed to troubleshoot multifactor authentication', {error});
-        Onyx.merge(ONYXKEYS.ACCOUNT, { isLoading: false });
+        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, undefined);
     }
 }
