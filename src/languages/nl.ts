@@ -6716,6 +6716,11 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `stel maximale leeftijd uitgave in op "${newValue}" dagen`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale uitgaafleeftijd gewijzigd naar "${newValue}" dagen (voorheen "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale onkostendatum verwijderd (voorheen "${oldValue}" dagen)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'Uitgeschakeld'} automatisch betaalde goedgekeurde rapporten`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `stel de drempel voor automatische betaling van goedgekeurde rapporten in op "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `heeft de drempel voor automatisch betalen van goedgekeurde rapporten gewijzigd naar "${newLimit}" (voorheen "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'drempel voor automatisch betalen van goedgekeurde rapporten verwijderd',
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

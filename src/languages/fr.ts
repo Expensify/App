@@ -6756,6 +6756,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `définir l’ancienneté maximale des dépenses à « ${newValue} » jours`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense modifié à « ${newValue} » jours (auparavant « ${oldValue} »)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense supprimé (auparavant « ${oldValue} » jours)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Activé' : 'Désactivé'} rapports avec paiement automatique approuvé`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `définir le seuil de paiement automatique des rapports approuvés sur « ${newLimit} »`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `a modifié le seuil des rapports approuvés en paiement automatique à « ${newLimit} » (auparavant « ${oldLimit} »)`,
+        removedAutoPayApprovedReportsLimit: 'supprimé le seuil des rapports approuvés pour le paiement automatique',
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

@@ -28,6 +28,8 @@ import {
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
@@ -755,6 +757,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getSubmitsToUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
                     Clipboard.setString(getForwardsToUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
+                    Clipboard.setString(getAutoPayApprovedReportsEnabledMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
+                    Clipboard.setString(getAutoReimbursementMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
                     Clipboard.setString(getInvoiceCompanyNameUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {

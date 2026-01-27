@@ -6298,6 +6298,11 @@ ${amount} para ${merchant} - ${date}`,
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el autopago de informes aprobados`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `estableció el umbral de autopago de informes aprobados en "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `cambió el aprobador predeterminado a ${newApprover} (anteriormente ${previousApprover})` : `cambió el aprobador predeterminado a ${newApprover}`,
         changedSubmitsToApprover: ({

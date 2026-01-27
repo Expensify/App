@@ -6555,6 +6555,10 @@ ${reportName}
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销天数设置为“${newValue}”天`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销单据天数更改为 “${newValue}” 天（之前为 “${oldValue}”）`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除费用最长期限（之前为“${oldValue}”天）`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 份已批准的自动支付报销报告`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `将自动支付已审批报表的阈值设置为 “${newLimit}”`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) => `将自动支付已批准报销单的阈值更改为 “${newLimit}”（此前为 “${oldLimit}”）`,
+        removedAutoPayApprovedReportsLimit: '已移除自动支付已批准报表的阈值',
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

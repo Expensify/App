@@ -6744,6 +6744,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage festlegen`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter entfernt (zuvor „${oldValue}“ Tage)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'Deaktiviert'} automatisch bezahlte genehmigte Berichte`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `Stelle den Schwellenwert für die automatische Zahlung genehmigter Berichte auf „${newLimit}“ ein`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `den Schwellenwert für die automatische Bezahlung genehmigter Berichte auf „${newLimit}“ geändert (zuvor „${oldLimit}“)`,
+        removedAutoPayApprovedReportsLimit: 'den Grenzwert für automatisch bezahlte genehmigte Reports entfernt',
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

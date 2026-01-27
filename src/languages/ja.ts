@@ -6675,6 +6675,11 @@ ${reportName}
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を「${newValue}」日に設定`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を削除（以前は「${oldValue}」日）`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 件の自動支払い承認済みレポート`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `自動支払い承認レポートの閾値を「${newLimit}」に設定`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `自動支払い承認済みレポートのしきい値を「${newLimit}」（以前は「${oldLimit}」）に変更しました`,
+        removedAutoPayApprovedReportsLimit: '自動支払い承認済みレポートのしきい値を削除しました',
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
