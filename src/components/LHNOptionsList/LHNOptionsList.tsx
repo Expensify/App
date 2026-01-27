@@ -252,7 +252,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
                 const actionsArray = getSortedReportActions(Object.values(itemReportActions));
                 const reportActionsForDisplay = actionsArray.filter(
-                    (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    (reportAction) =>
+                        shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction, itemPolicy) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
                 );
                 lastAction = reportActionsForDisplay.at(-1);
             }
