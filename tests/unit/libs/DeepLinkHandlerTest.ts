@@ -91,7 +91,7 @@ describe('DeepLinkHandler', () => {
             expect(mockAddEventListener).toHaveBeenCalledWith('url', expect.any(Function));
         });
 
-        it('should only initialize once (idempotent)', async () => {
+        it('should only initialize once', async () => {
             jest.resetModules();
             setupMocksAfterReset(false);
 
@@ -102,20 +102,30 @@ describe('DeepLinkHandler', () => {
 
             // Should only set up listener once
             expect(mockAddEventListener).toHaveBeenCalledTimes(1);
-            expect(mockGetInitialURL).toHaveBeenCalledTimes(1);
         });
 
-        it('should check for initial URL on module load', async () => {
+        it('should process initial URL when processInitialURL is called', async () => {
             jest.resetModules();
-
-            const testUrl = 'https://new.expensify.com/r/123';
-            mockGetInitialURL.mockReturnValue(Promise.resolve(testUrl));
             setupMocksAfterReset(false);
-
-            await import('@src/libs/DeepLinkHandler');
+        
+            const testUrl = 'https://new.expensify.com/r/123';
+            const DeepLinkHandlerModule = await import('@src/libs/DeepLinkHandler');
+            await waitForBatchedUpdates();
+        
+            // Set up reports in Onyx so the deep link can be processed
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {
+                reportID: '123',
+                type: 'chat',
+            });
             await waitForBatchedUpdates();
 
-            expect(mockGetInitialURL).toHaveBeenCalled();
+            // Process initial URL via the exported function (called by Expensify.tsx)
+            // Properly type the imported module default export and avoid unsafe casts
+            const processInitialURL = (DeepLinkHandlerModule as {default: (url: string) => void}).default;
+            processInitialURL(testUrl);
+            await waitForBatchedUpdates();
+
+            expect(mockOpenReportFromDeepLink).toHaveBeenCalled();
         });
 
         it('should call HybridAppModule.onURLListenerAdded when IS_HYBRID_APP is true', async () => {
