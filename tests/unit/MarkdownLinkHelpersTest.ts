@@ -1,4 +1,4 @@
-import {detectAndRewritePaste, escapeLinkText, isStandaloneURL, sanitizeUrlForMarkdown, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
+import {detectAndRewritePaste, escapeLinkText, isStandaloneURL, normalizeMultilineMarkdownLinks, sanitizeUrlForMarkdown, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 
 describe('markdownLinkHelpers', () => {
     describe('isStandaloneURL', () => {
@@ -125,6 +125,46 @@ describe('markdownLinkHelpers', () => {
             const result = detectAndRewritePaste(prevText, selectionStart, selectionEnd, insertedText);
             expect(result.didReplace).toBe(false);
             expect(result.text).toBe(null);
+        });
+    });
+
+    describe('normalizeMultilineMarkdownLinks', () => {
+        it('collapses newline in link text to space: [text\\nhere](url) -> [text here](url)', () => {
+            expect(normalizeMultilineMarkdownLinks('[text\nhere](https://example.com)')).toBe('[text here](https://example.com)');
+        });
+
+        it('collapses multiple newlines in link text to single space: [text\\n\\nhere](url) -> [text here](url)', () => {
+            expect(normalizeMultilineMarkdownLinks('[text\n\nhere](https://example.com)')).toBe('[text here](https://example.com)');
+        });
+
+        it('collapses newline and spaces in link text: [text\\n  here](url) -> [text here](url)', () => {
+            expect(normalizeMultilineMarkdownLinks('[text\n  here](https://example.com)')).toBe('[text here](https://example.com)');
+        });
+
+        it('handles link text and URL on separate lines: [text]\\n(url) -> [text](url)', () => {
+            expect(normalizeMultilineMarkdownLinks('[text]\n(https://example.com)')).toBe('[text](https://example.com)');
+        });
+
+        it('handles newline between ] and (: [text\\nhere]\\n(url) -> [text here](url)', () => {
+            expect(normalizeMultilineMarkdownLinks('[text\nhere]\n(https://example.com)')).toBe('[text here](https://example.com)');
+        });
+
+        it('returns empty string unchanged', () => {
+            expect(normalizeMultilineMarkdownLinks('')).toBe('');
+        });
+
+        it('returns text without markdown links unchanged', () => {
+            const plain = 'plain text with no links';
+            expect(normalizeMultilineMarkdownLinks(plain)).toBe(plain);
+        });
+
+        it('normalizes multiple links in the same text', () => {
+            const input = 'First [link\none](https://a.com) and second [link\ntwo](https://b.com)';
+            expect(normalizeMultilineMarkdownLinks(input)).toBe('First [link one](https://a.com) and second [link two](https://b.com)');
+        });
+
+        it('handles CRLF newlines in link text', () => {
+            expect(normalizeMultilineMarkdownLinks('[text\r\nhere](https://example.com)')).toBe('[text here](https://example.com)');
         });
     });
 });

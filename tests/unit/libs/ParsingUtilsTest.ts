@@ -221,4 +221,31 @@ describe('getParsedMessageWithShortMentions', () => {
         const result = getParsedMessageWithShortMentions({text: `this is @john.doe's mention`, availableMentionLogins, userEmailDomain: TEST_COMPANY_DOMAIN, parserOptions: {}});
         expect(result).toEqual(`this is <mention-user>@john.doe@myCompany.com</mention-user>&#x27;s mention`);
     });
+
+    test('normalizes multiline markdown links before parsing', () => {
+        const textWithMultilineLink = 'See [click\nhere](https://example.com) for more';
+        const result = getParsedMessageWithShortMentions({
+            text: textWithMultilineLink,
+            availableMentionLogins,
+            userEmailDomain: TEST_COMPANY_DOMAIN,
+            parserOptions: {},
+        });
+        // Multiline link text "click\nhere" is normalized to "click here" before parsing
+        expect(result).toContain('click here');
+        expect(result).toContain('https://example.com');
+        expect(result).not.toMatch(/click\s*\n\s*here/);
+    });
+
+    test('normalizes multiline markdown link and still resolves short mention in same message', () => {
+        const textWithMultilineLinkAndMention = 'Check [this\nlink](https://example.com) and notify @john.doe';
+        const result = getParsedMessageWithShortMentions({
+            text: textWithMultilineLinkAndMention,
+            availableMentionLogins,
+            userEmailDomain: TEST_COMPANY_DOMAIN,
+            parserOptions: {},
+        });
+        expect(result).toContain('this link');
+        expect(result).toContain('https://example.com');
+        expect(result).toContain('<mention-user>@john.doe@myCompany.com</mention-user>');
+    });
 });

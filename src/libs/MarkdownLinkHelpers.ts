@@ -91,5 +91,38 @@ const detectAndRewritePaste = (prevText: string, selectionStart: number, selecti
 
     return {text: newText, didReplace: true};
 };
+/**
+ * Normalizes multiline markdown links by collapsing whitespace and newlines in the link text.
+ * This allows markdown links that span multiple lines to be properly recognized and parsed.
+ *
+ * Examples:
+ *   [text\nhere](url) -> [text here](url)
+ *   [text\n\nhere](url) -> [text here](url)
+ *   [text\n  here](url) -> [text here](url)
+ *   [text]\n(url) -> [text](url)
+ *   [text\nhere]\n(url) -> [text here](url)
+ *
+ * @param text - The markdown text that may contain multiline links
+ * @returns The text with multiline links normalized to single-line format
+ */
+const normalizeMultilineMarkdownLinks = (text: string): string => {
+    if (!text) {
+        return text;
+    }
 
-export {isStandaloneURL, escapeLinkText, sanitizeUrlForMarkdown, toMarkdownLink, detectAndRewritePaste};
+    // Match markdown links that may span multiple lines
+    // Pattern: [ followed by text (possibly with newlines) followed by ]
+    //          followed by optional whitespace/newlines, then ( followed by URL followed by )
+    // We use a non-greedy match to handle multiple links in the same text
+    return text.replaceAll(/\[([^\]]*(?:\r?\n[^\]]*)*)\]\s*\(([^)]+)\)/g, (match, linkText, url) => {
+        // Collapse newlines and whitespace in the link text
+        const normalizedLinkText = linkText
+            .replaceAll(/\r?\n+/g, ' ') // Replace newlines with spaces
+            .replaceAll(/\s+/g, ' ') // Collapse multiple spaces to single space
+            .trim(); // Remove leading/trailing whitespace
+
+        // Return the normalized link
+        return `[${normalizedLinkText}](${url})`;
+    });
+};
+export {isStandaloneURL, escapeLinkText, sanitizeUrlForMarkdown, toMarkdownLink, detectAndRewritePaste, normalizeMultilineMarkdownLinks};
