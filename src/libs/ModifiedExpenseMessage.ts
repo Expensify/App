@@ -496,8 +496,14 @@ function getForReportAction({
         buildMessageFragmentForValue(translateLocal, oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
-    const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage;
+    const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
     if (hasPolicyRulesModifiedFields) {
+        const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
+
+        if (policyRulesModifiedFields && policyID) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return getPolicyRulesModifiedFieldsMessage(translateLocal, policyRulesModifiedFields, policyID);
+        }
     }
 
     const message =
