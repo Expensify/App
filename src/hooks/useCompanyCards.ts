@@ -1,13 +1,14 @@
 import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId, getSelectedFeed} from '@libs/CardUtils';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
-import type {CardFeedsStatusByDomainID, CompanyCardFeed, CompanyCardFeedWithDomainID, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatusByDomainID, CombinedCardFeeds, CompanyCardFeed, CompanyCardFeedWithDomainID, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
-import type {CombinedCardFeed, CombinedCardFeeds} from './useCardFeeds';
+import type {CombinedCardFeed} from './useCardFeeds';
 import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
 
@@ -18,7 +19,7 @@ type UseCompanyCardsProps = {
     feedName?: CompanyCardFeedWithDomainID;
 };
 
-type UsCompanyCardsResult = Partial<{
+type UseCompanyCardsResult = Partial<{
     cardFeedType: CardFeedType;
     bankName: CompanyCardFeed;
     feedName: CompanyCardFeedWithDomainID;
@@ -30,6 +31,11 @@ type UsCompanyCardsResult = Partial<{
     companyCardFeeds: CompanyFeeds;
     selectedFeed: CombinedCardFeed;
 }> & {
+    isInitiallyLoadingFeeds: boolean;
+    isNoFeed: boolean;
+    isFeedPending: boolean;
+    isFeedAdded: boolean;
+
     onyxMetadata: {
         cardListMetadata: ResultMetadata<WorkspaceCardsList>;
         allCardFeedsMetadata: ResultMetadata<OnyxCollection<CardFeeds>>;
@@ -37,8 +43,12 @@ type UsCompanyCardsResult = Partial<{
     };
 };
 
-function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UsCompanyCardsResult {
-    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UseCompanyCardsResult {
+    // If an empty string is passed, we need to use an invalid key to avoid fetching the whole collection.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyIDKey = policyID || CONST.DEFAULT_MISSING_ID;
+
+    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`, {canBeMissing: true});
     const [allCardFeeds, allCardFeedsMetadata, , workspaceCardFeedsStatus] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
@@ -66,11 +76,33 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
         lastSelectedFeedMetadata,
     };
 
+    const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
+    const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
+    const isFeedPending = !!selectedFeed?.pending;
+    const isFeedAdded = !isLoadingOnyxValue(allCardFeedsMetadata) && !isFeedPending && !isNoFeed;
+
     if (!policyID) {
-        return {onyxMetadata};
+        return {onyxMetadata, isInitiallyLoadingFeeds, isNoFeed, isFeedPending, isFeedAdded};
     }
 
-    return {allCardFeeds, feedName, companyCardFeeds, cardList, assignedCards, workspaceCardFeedsStatus, cardNames, selectedFeed, bankName, cardFeedType, onyxMetadata};
+    return {
+        allCardFeeds,
+        feedName,
+        companyCardFeeds,
+        cardList,
+        assignedCards,
+        workspaceCardFeedsStatus,
+        cardNames,
+        selectedFeed,
+        bankName,
+        cardFeedType,
+        onyxMetadata,
+        isInitiallyLoadingFeeds,
+        isNoFeed,
+        isFeedPending,
+        isFeedAdded,
+    };
 }
 
 export default useCompanyCards;
+export type {UseCompanyCardsResult};

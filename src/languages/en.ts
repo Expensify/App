@@ -245,6 +245,7 @@ const translations = {
         in: 'In',
         optional: 'Optional',
         new: 'New',
+        newFeature: 'New feature',
         search: 'Search',
         reports: 'Reports',
         find: 'Find',
@@ -624,6 +625,7 @@ const translations = {
         actionRequired: 'Action required',
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
+        duplicateExpense: 'Duplicate expense',
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
@@ -1061,6 +1063,10 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
+        addAReceipt: {
+            phrase1: 'Add a receipt',
+            phrase2: 'or drag and drop one here',
+        },
     },
     quickAction: {
         scanReceipt: 'Scan receipt',
@@ -1461,6 +1467,7 @@ const translations = {
             ratePreview: (rate: string) => `${rate} / hour`,
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
+        correctDistanceRateError: 'Fix the distance rate error and try again.',
     },
     transactionMerge: {
         listPage: {
@@ -4805,6 +4812,7 @@ const translations = {
             ukRegulation:
                 'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
             assignCardFailedError: 'Card assignment failed.',
+            unassignCardFailedError: 'Card unassignment failed.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
@@ -5143,6 +5151,10 @@ const translations = {
             rules: {
                 title: 'Rules',
                 subtitle: 'Require receipts, flag high spend, and more.',
+            },
+            timeTracking: {
+                title: 'Time',
+                subtitle: 'Set an hourly billable rate for employees to get paid for their time.',
             },
         },
         reports: {
@@ -6093,6 +6105,10 @@ const translations = {
                     `<muted-text>Set spend controls and defaults for individual expenses. You can also create rules for <a href="${categoriesPageLink}">categories</a> and <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Receipt required amount',
                 receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Amount can't be greater than the itemized receipt required amount (${amount})`,
+                itemizedReceiptRequiredAmount: 'Itemized receipt required amount',
+                itemizedReceiptRequiredAmountDescription: 'Require itemized receipts when spend exceeds this amount, unless overridden by a category rule.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Amount can't be lower than the amount required for regular receipts (${amount})`,
                 maxExpenseAmount: 'Max expense amount',
                 maxExpenseAmountDescription: 'Flag spend that exceeds this amount, unless overridden by a category rule.',
                 maxAge: 'Max age',
@@ -6155,6 +6171,16 @@ const translations = {
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
+            merchantRules: {
+                title: 'Merchant',
+                subtitle: 'Set the merchant rules so expenses arrive correctly coded and require less cleanup.',
+                addRule: 'Add merchant rule',
+                ruleSummaryTitle: (merchantName: string) => `If merchant contains "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Rename merchant to "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+            },
             categoryRules: {
                 title: 'Category rules',
                 approver: 'Approver',
@@ -6183,6 +6209,12 @@ const translations = {
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
                     never: 'Never require receipts',
                     always: 'Always require receipts',
+                },
+                requireItemizedReceiptsOver: 'Require itemized receipts over',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
+                    never: 'Never require itemized receipts',
+                    always: 'Always require itemized receipts',
                 },
                 defaultTaxRate: 'Default tax rate',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6354,6 +6386,12 @@ const translations = {
                 return `updated the category "${categoryName}" by changing Receipts to ${newValue}`;
             }
             return `changed the "${categoryName}" category to ${newValue} (previously ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `updated the category "${categoryName}" by changing Itemized receipts to ${newValue}`;
+            }
+            return `changed the "${categoryName}" category Itemized receipts to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6718,6 +6756,7 @@ const translations = {
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
+        topCategories: 'Top categories',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
@@ -6744,6 +6783,7 @@ const translations = {
             status: 'Status',
             keyword: 'Keyword',
             keywords: 'Keywords',
+            limit: 'Limit',
             currency: 'Currency',
             completed: 'Completed',
             amount: {
@@ -6777,6 +6817,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7117,7 +7158,6 @@ const translations = {
         },
     },
     gps: {
-        tooltip: "GPS tracking in progress! When you're done, stop tracking below.",
         disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
         error: {
             failedToStart: 'Failed to start location tracking.',
@@ -7164,6 +7204,11 @@ const translations = {
         notification: {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
+        },
+        signOutWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to discard the trip and sign out?',
+            confirm: 'Discard and sign out',
         },
         locationServicesRequiredModal: {
             title: 'Location access required',
@@ -7274,6 +7319,7 @@ const translations = {
 
             return 'Receipt required';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Itemized receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Prohibited expense:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7803,6 +7849,7 @@ const translations = {
         },
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
+        gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
@@ -7959,7 +8006,6 @@ const translations = {
                 `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
             consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
             addAdmin: 'Add admin',
-            invite: 'Invite',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
             revokeAdminAccess: 'Revoke admin access',
             cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
@@ -7976,6 +8022,11 @@ const translations = {
         members: {
             title: 'Members',
             findMember: 'Find member',
+            addMember: 'Add member',
+            email: 'Email address',
+            errors: {
+                addMember: 'Unable to add this member. Please try again.',
+            },
         },
     },
 };

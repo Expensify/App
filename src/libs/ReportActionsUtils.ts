@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
@@ -8,23 +7,12 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
-import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {
-    Card,
-    OnyxInputOrEntry,
-    OriginalMessageIOU,
-    PersonalDetails,
-    Policy,
-    PrivatePersonalDetails,
-    ReportMetadata,
-    ReportNameValuePairs,
-    VisibleReportActionsDerivedValue,
-} from '@src/types/onyx';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
 import type {
     JoinWorkspaceResolution,
     OriginalMessageChangeLog,
@@ -75,6 +63,14 @@ type MemberChangeMessageRoomReferenceElement = {
 } & MessageElementBase;
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
+
+function isPolicyExpenseChat(report: OnyxInputOrEntry<Report>): boolean {
+    return report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || !!(report && typeof report === 'object' && 'isPolicyExpenseChat' in report && report.isPolicyExpenseChat);
+}
+
+function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): boolean {
+    return !!originalID && origin === 'harvest';
+}
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -224,7 +220,7 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
-    return Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
+    return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -389,7 +385,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
         return reportAction?.message ?? reportAction?.originalMessage;
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return reportAction?.originalMessage;
+    return reportAction.originalMessage;
 }
 
 function getMarkedReimbursedMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -1149,61 +1145,6 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
 }
 
 /**
- * Checks if a report action is visible using the pre-computed derived value when available,
- * falling back to runtime calculation if not.
- */
-function isReportActionVisible(
-    reportAction: OnyxEntry<ReportAction>,
-    reportID: string,
-    canUserPerformWriteAction?: boolean,
-    visibleReportActions?: VisibleReportActionsDerivedValue,
-): boolean {
-    if (!reportAction?.reportActionID) {
-        return false;
-    }
-    if (visibleReportActions) {
-        const staticVisibility = visibleReportActions[reportID]?.[reportAction.reportActionID] ?? true;
-        if (!staticVisibility) {
-            return false;
-        }
-        if (!canUserPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
-            return false;
-        }
-        return true;
-    }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
-}
-
-/**
- * Checks if a report action is visible as last action using the pre-computed derived value when available,
- * falling back to runtime calculation if not.
- */
-function isReportActionVisibleAsLastAction(
-    reportAction: OnyxInputOrEntry<ReportAction>,
-    canUserPerformWriteAction?: boolean,
-    visibleReportActions?: VisibleReportActionsDerivedValue,
-): boolean {
-    if (!reportAction) {
-        return false;
-    }
-
-    if (Object.keys(reportAction.errors ?? {}).length > 0) {
-        return false;
-    }
-
-    const reportID = reportAction.reportID;
-    if (!reportID) {
-        return false;
-    }
-
-    return (
-        isReportActionVisible(reportAction, reportID, canUserPerformWriteAction, visibleReportActions) &&
-        (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction) && !isPendingHide(reportAction))
-    );
-}
-
-/**
  * For policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
  */
@@ -1234,7 +1175,6 @@ function getLastVisibleAction(
     canUserPerformWriteAction?: boolean,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
@@ -1242,17 +1182,9 @@ function getLastVisibleAction(
             ReportAction | null | undefined
         >;
     } else {
-        reportActions = Object.values(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+        reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
-    const reportActionsWithReportID = reportActions.map((action) => {
-        if (action && !action.reportID && reportID) {
-            return {...action, reportID};
-        }
-        return action;
-    });
-    const visibleReportActions = reportActionsWithReportID.filter((action): action is ReportAction =>
-        isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData),
-    );
+    const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return undefined;
@@ -1280,9 +1212,8 @@ function getLastVisibleMessage(
     canUserPerformWriteAction?: boolean,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): LastVisibleMessage {
-    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, undefined, visibleReportActionsData);
+    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge);
     const message = getReportActionMessage(lastVisibleAction);
 
     if (message && isReportMessageAttachment(message)) {
@@ -1384,7 +1315,6 @@ function getSortedReportActionsForDisplay(
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     canUserPerformWriteAction?: boolean,
     shouldIncludeInvisibleActions = false,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
@@ -1395,13 +1325,7 @@ function getSortedReportActionsForDisplay(
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
-            .filter(([, reportAction]) => {
-                const reportID = reportAction?.reportID;
-                if (!reportID) {
-                    return false;
-                }
-                return isReportActionVisible(reportAction, reportID, canUserPerformWriteAction, visibleReportActionsData);
-            })
+            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction))
             .map(([, reportAction]) => reportAction);
     }
 
@@ -1700,14 +1624,9 @@ function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransa
  * When we delete certain reports, we want to check whether there are any visible actions left to display.
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
-function doesReportHaveVisibleActions(
-    reportID: string,
-    canUserPerformWriteAction?: boolean,
-    actionsToMerge: ReportActions = {},
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
-): boolean {
+function doesReportHaveVisibleActions(reportID: string, canUserPerformWriteAction?: boolean, actionsToMerge: ReportActions = {}): boolean {
     const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge, true));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
 
     // Exclude the task system message and the created message
     const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter((action) => !isTaskAction(action) && !isCreatedAction(action));
@@ -1870,7 +1789,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
     if (!Array.isArray(legacyAction?.message)) {
         return getReportActionText(legacyAction);
     }
-    if (legacyAction?.message.length !== 0) {
+    if (legacyAction.message.length !== 0) {
         // Sometime html can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return legacyAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
@@ -2356,22 +2275,6 @@ function isActionableCardFraudAlert(reportAction: OnyxInputOrEntry<ReportAction>
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT;
 }
 
-/**
- * Checks if a report action is an actionable whisper that requires write permission to be visible.
- */
-function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<ReportAction>): boolean {
-    if (!reportAction) {
-        return false;
-    }
-
-    return (
-        isActionableReportMentionWhisper(reportAction) ||
-        isActionableJoinRequestPendingReportAction(reportAction) ||
-        isActionableMentionWhisper(reportAction) ||
-        isActionableCardFraudAlert(reportAction)
-    );
-}
-
 function getExportIntegrationLastMessageText(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     const fragments = getExportIntegrationActionFragments(translate, reportAction);
     return fragments.reduce((acc, fragment) => `${acc} ${fragment.text}`, '');
@@ -2714,6 +2617,26 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
                 return translate('workspace.rules.categoryRules.requireReceiptsOverList.default', formatAmount());
             };
             return translate('workspaceActions.updateCategoryMaxAmountNoReceipt', {
+                categoryName: decodedOptionName,
+                oldValue: getTranslation(oldValue),
+                newValue: getTranslation(newValue),
+            });
+        }
+
+        if (updatedField === 'maxAmountNoItemizedReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
+            const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoItemizedReceipt;
+
+            const formatAmount = () => convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+            const getTranslation = (value?: number | string) => {
+                if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                    return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never');
+                }
+                if (value === 0) {
+                    return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.always');
+                }
+                return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.default', formatAmount());
+            };
+            return translate('workspaceActions.updateCategoryMaxAmountNoItemizedReceipt', {
                 categoryName: decodedOptionName,
                 oldValue: getTranslation(oldValue),
                 newValue: getTranslation(newValue),
@@ -3855,7 +3778,6 @@ export {
     isActionableWhisper,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
-    isActionableJoinRequestPendingReportAction,
     isActionableMentionWhisper,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableReportMentionWhisper,
@@ -3910,7 +3832,6 @@ export {
     isTrackExpenseAction,
     isTransactionThread,
     isTripPreview,
-    isTravelUpdate,
     isHoldAction,
     isWhisperAction,
     isSubmittedAction,
@@ -3928,18 +3849,14 @@ export {
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
-    isVisiblePreviewOrMoneyRequest,
     isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
-    isReportActionVisible,
-    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
-    isActionableWhisperRequiringWritePermission,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
