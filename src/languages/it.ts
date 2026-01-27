@@ -782,7 +782,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori
+            Autenticazione a due fattori  
             richiesta
         `),
         tfaRequiredDescription: dedent(`
@@ -883,6 +883,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Sei sicuro di voler eliminare questo ${type}?`;
         },
         onlyVisible: 'Visibile solo a',
+        explain: 'Spiega',
+        explainMessage: 'Per favore, spiegami questo.',
         replyInThread: 'Rispondi nel thread',
         joinThread: 'Unisciti al thread',
         leaveThread: 'Abbandona conversazione',
@@ -1481,6 +1483,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'L’importo totale è troppo elevato. Riduci le ore o diminuisci la tariffa.',
         },
         correctDistanceRateError: "Correggi l'errore nella tariffa della distanza e riprova.",
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -4890,14 +4893,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
-                workspaceFeedsCouldNotBeLoadedMessage:
-                    'Si è verificato un errore durante il caricamento dei feed della scheda dell’area di lavoro. Riprova o contatta il tuo amministratore.',
-                feedCouldNotBeLoadedTitle: 'Impossibile caricare questo feed',
-                feedCouldNotBeLoadedMessage: 'Si è verificato un errore durante il caricamento di questo feed. Riprova o contatta il tuo amministratore.',
-                tryAgain: 'Riprova',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -6734,6 +6729,11 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta età massima della spesa a "${newValue}" giorni`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima della spesa cambiata a "${newValue}" giorni (in precedenza "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima spesa rimossa (precedentemente "${oldValue}" giorni)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} report approvati con pagamento automatico`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `imposta la soglia per il pagamento automatico dei report approvati su "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `ha modificato la soglia per il pagamento automatico dei report approvati in "${newLimit}" (in precedenza "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: "rimosso la soglia per l'approvazione automatica dei report di pagamento",
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -8121,6 +8121,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             title: 'Tieni traccia della distanza sul tuo telefono',
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
+        },
+        continueGpsTripModal: {
+            title: 'Continuare la registrazione del viaggio GPS?',
+            prompt: 'Sembra che l’app si sia chiusa durante il tuo ultimo viaggio GPS. Vuoi continuare a registrare da quel viaggio?',
+            confirm: 'Continua viaggio',
+            cancel: 'Visualizza viaggio',
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
         signOutWarningTripInProgress: {title: 'Tracciamento GPS in corso', prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?', confirm: 'Annulla e disconnettiti'},
