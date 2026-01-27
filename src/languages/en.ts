@@ -4752,13 +4752,6 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
-                workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
-                feedCouldNotBeLoadedTitle: "Couldn't load this feed",
-                feedCouldNotBeLoadedMessage: 'An error occurred while loading this feed. Please try again or contact your administrator.',
-                tryAgain: 'Try again',
-            },
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
@@ -7255,6 +7248,12 @@ const translations = {
         notification: {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
+        },
+        continueGpsTripModal: {
+            title: 'Continue GPS trip recording?',
+            prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',
+            confirm: 'Continue trip',
+            cancel: 'View trip',
         },
         signOutWarningTripInProgress: {
             title: 'GPS tracking in progress',

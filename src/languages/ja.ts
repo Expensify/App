@@ -4894,13 +4894,6 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
-                workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
-                feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
-                feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',
-                tryAgain: '再試行',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
@@ -8073,6 +8066,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
         signOutWarningTripInProgress: {title: 'GPS追跡を実行中', prompt: 'この出張を破棄してサインアウトしてもよろしいですか？', confirm: '破棄してサインアウト'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        continueGpsTripModal: {
+            title: 'GPS の走行記録を続けますか？',
+            prompt: '前回のGPS移動中にアプリが終了したようです。その移動の記録を続けますか？',
+            confirm: '出張を続ける',
+            cancel: '出張を表示',
+        },
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
             confirm: '設定を開く',
