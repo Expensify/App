@@ -15,9 +15,13 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
         if (typeof window === 'undefined') {
             return {
                 usedMemoryBytes: null,
+                usedMemoryMB: null,
                 totalMemoryBytes: null,
                 maxMemoryBytes: null,
                 usagePercentage: null,
+                freeMemoryBytes: null,
+                freeMemoryMB: null,
+                freeMemoryPercentage: null,
                 platform: Platform.OS,
             };
         }
@@ -66,19 +70,18 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
 
         const memoryInfo: MemoryInfo = {
             usedMemoryBytes,
+            usedMemoryMB: usedMemoryBytes !== null ? Math.round(usedMemoryBytes / BYTES_PER_MB) : null,
             totalMemoryBytes,
             maxMemoryBytes,
             usagePercentage: usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2)) : null,
+            freeMemoryBytes: totalMemoryBytes !== null && usedMemoryBytes !== null ? totalMemoryBytes - usedMemoryBytes : null,
+            freeMemoryMB: totalMemoryBytes !== null && usedMemoryBytes !== null ? Math.round((totalMemoryBytes - usedMemoryBytes) / BYTES_PER_MB) : null,
+            freeMemoryPercentage: totalMemoryBytes !== null && usedMemoryBytes !== null ? parseFloat(((totalMemoryBytes - usedMemoryBytes) / totalMemoryBytes * 100).toFixed(2)) : null,
             platform: Platform.OS,
         };
 
-        const freeMemoryMB = memoryInfo.totalMemoryBytes && memoryInfo.usedMemoryBytes ? Math.round((memoryInfo.totalMemoryBytes - memoryInfo.usedMemoryBytes) / BYTES_PER_MB) : null;
-        const usedMemoryMB = memoryInfo.usedMemoryBytes ? Math.round(memoryInfo.usedMemoryBytes / BYTES_PER_MB) : null;
-
-        Log.info(`[getMemoryInfo] Memory check: ${usedMemoryMB ?? '?'}MB used / ${freeMemoryMB ?? '?'}MB free`, true, {
+        Log.info(`[getMemoryInfo] Memory check: ${memoryInfo.usedMemoryMB ?? '?'}MB used / ${memoryInfo.freeMemoryMB ?? '?'}MB free`, true, {
             ...memoryInfo,
-            freeMemoryMB,
-            usedMemoryMB,
         });
 
         return memoryInfo;
@@ -86,9 +89,13 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
         Log.hmmm('[getMemoryInfo] Failed to get memory info', {error});
         return {
             usedMemoryBytes: null,
+            usedMemoryMB: null,
             totalMemoryBytes: null,
             maxMemoryBytes: null,
             usagePercentage: null,
+            freeMemoryBytes: null,
+            freeMemoryMB: null,
+            freeMemoryPercentage: null,
             platform: Platform.OS,
         };
     }

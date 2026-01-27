@@ -14,9 +14,8 @@ let memoryTrackingListenerCleanup: (() => void) | undefined;
 function sendMemoryContext() {
     getMemoryInfo()
         .then((memoryInfo) => {
-            const freeMemoryMB = memoryInfo.totalMemoryBytes && memoryInfo.usedMemoryBytes ? Math.round((memoryInfo.totalMemoryBytes - memoryInfo.usedMemoryBytes) / (1024 * 1024)) : null;
-            const usedMemoryMB = memoryInfo.usedMemoryBytes ? Math.round(memoryInfo.usedMemoryBytes / (1024 * 1024)) : null;
-
+            const freeMemoryMB = memoryInfo.freeMemoryMB;
+            const usedMemoryMB = memoryInfo.usedMemoryMB;
             let logLevel: Sentry.SeverityLevel = 'info';
             /**
              * Log Level Thresholds (Based on OS resource management):
@@ -32,7 +31,7 @@ function sendMemoryContext() {
                 } else if (freeMemoryMB < CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_WARNING) {
                     logLevel = 'warning';
                 }
-            } else if (memoryInfo.usagePercentage && memoryInfo.usagePercentage > 90) {
+            } else if (memoryInfo.usagePercentage && memoryInfo.usagePercentage > CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_CRITICAL_PERCENTAGE) {
                 logLevel = 'error';
             }
 
@@ -74,9 +73,22 @@ function initializeMemoryTracking() {
 
     sendMemoryContext();
     memoryTrackingListenerCleanup = AppStateMonitor.addBecameActiveListener(sendMemoryContext);
-    memoryTrackingIntervalID = setInterval(sendMemoryContext, 2 * 60 * 1000);
+    memoryTrackingIntervalID = setInterval(sendMemoryContext, CONST.TELEMETRY.CONFIG.MEMORY_TRACKING_INTERVAL);
 }
 
 initializeMemoryTracking();
 
+function cleanupMemoryTracking() {
+    if (memoryTrackingIntervalID) {
+        clearInterval(memoryTrackingIntervalID);
+        memoryTrackingIntervalID = undefined;
+    }
+
+    if (memoryTrackingListenerCleanup) {
+        memoryTrackingListenerCleanup();
+        memoryTrackingListenerCleanup = undefined;
+    }
+}
+
+export {cleanupMemoryTracking, initializeMemoryTracking};
 export default sendMemoryContext;

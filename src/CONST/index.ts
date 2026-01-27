@@ -1745,6 +1745,8 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         CONFIG: {
             SKELETON_MIN_DURATION: 10_000,
+            MEMORY_THRESHOLD_CRITICAL_PERCENTAGE: 90,
+            MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
             // Memory Thresholds (in MB)
             MEMORY_THRESHOLD_WARNING: 120,
             MEMORY_THRESHOLD_CRITICAL: 50,
