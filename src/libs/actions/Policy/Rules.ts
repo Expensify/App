@@ -8,6 +8,7 @@ import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyRuleTaxRate} from '@libs/API/parameters/SetPolicyMerchantRuleParams';
 import type {MerchantRuleForm} from '@src/types/form';
 import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
@@ -27,9 +28,9 @@ function parseStringBoolean(value: string | undefined): boolean | undefined {
 }
 
 /**
- * Builds the CodingRuleTax object from a tax key and policy
+ * Builds the CodingRuleTax object for Onyx optimistic data
  */
-function buildTaxObject(taxKey: string | undefined, policy: Policy | undefined): CodingRuleTax | undefined {
+function buildOnyxTaxObject(taxKey: string | undefined, policy: Policy | undefined): CodingRuleTax | undefined {
     if (!taxKey || !policy?.taxRates?.taxes) {
         return undefined;
     }
@@ -49,14 +50,49 @@ function buildTaxObject(taxKey: string | undefined, policy: Policy | undefined):
 }
 
 /**
- * Maps form fields to rule properties
+ * Builds the PolicyRuleTaxRate object for API request
  */
-function mapFormFieldsToRule(form: MerchantRuleForm, policy: Policy | undefined) {
+function buildApiTaxObject(taxKey: string | undefined, policy: Policy | undefined): PolicyRuleTaxRate | undefined {
+    if (!taxKey || !policy?.taxRates?.taxes) {
+        return undefined;
+    }
+
+    const tax = policy.taxRates.taxes[taxKey];
+    if (!tax) {
+        return undefined;
+    }
+
+    return {
+        externalID: taxKey,
+        value: tax.value,
+        name: tax.name,
+    };
+}
+
+/**
+ * Maps form fields to rule properties for Onyx optimistic data
+ */
+function mapFormFieldsForOnyx(form: MerchantRuleForm, policy: Policy | undefined) {
     return {
         merchant: form.merchant || undefined,
         category: form.category || undefined,
         tag: form.tag || undefined,
-        tax: buildTaxObject(form.tax, policy),
+        tax: buildOnyxTaxObject(form.tax, policy),
+        comment: form.comment || undefined,
+        reimbursable: parseStringBoolean(form.reimbursable),
+        billable: parseStringBoolean(form.billable),
+    };
+}
+
+/**
+ * Maps form fields to rule properties for API request
+ */
+function mapFormFieldsForApi(form: MerchantRuleForm, policy: Policy | undefined) {
+    return {
+        merchant: form.merchant || undefined,
+        category: form.category || undefined,
+        tag: form.tag || undefined,
+        tax: buildApiTaxObject(form.tax, policy),
         comment: form.comment || undefined,
         reimbursable: parseStringBoolean(form.reimbursable),
         billable: parseStringBoolean(form.billable),
@@ -91,7 +127,8 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
 
     const optimisticRuleID = NumberUtils.rand64();
 
-    const ruleFields = mapFormFieldsToRule(form, policy);
+    const onyxFields = mapFormFieldsForOnyx(form, policy);
+    const apiFields = mapFormFieldsForApi(form, policy);
 
     const optimisticRule: CodingRule = {
         filters: {
@@ -99,7 +136,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
             operator: 'eq',
             right: form.merchantToMatch,
         },
-        ...ruleFields,
+        ...onyxFields,
         created: new Date().toISOString(),
     };
 
@@ -158,7 +195,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm, policy:
     const parameters: SetPolicyMerchantRuleParams = {
         policyID,
         merchantToMatch: form.merchantToMatch,
-        ...ruleFields,
+        ...apiFields,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_MERCHANT_RULE, parameters, onyxData);
