@@ -19,7 +19,6 @@ To claim a private domain, you must:
 - Be logged in with an email address from that domain
 - Have verified your contact method with a magic code
 
-## Steps to claim your domain
 1. From the left-hand menu, go to **Workspaces > Domains**.
 2. Click the **Enable** button.
    - If you have already claimed one or more domains, click the **New** button in the upper-right hand corner > **New domain** to add a new domain.
