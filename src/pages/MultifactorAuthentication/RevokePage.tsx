@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 
 function getHasDevices(data: OnyxEntry<Account>) {
-    return data?.isRegisteredForMultifactorAuthentication === 1;
+    return data?.multifactorAuthenticationPublicKeyIDs?.length > 0;
 }
 
 function getIsLoading(data: OnyxEntry<Account>) {
@@ -31,7 +31,7 @@ function MultifactorAuthenticationRevokePage() {
     const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getIsLoading, canBeMissing: true});
 
     const onGoBackPress = () => {
-        Navigation.dismissModal();
+        Navigation.goBack();
     };
 
     const showConfirmModal = () => {

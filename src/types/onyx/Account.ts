@@ -235,12 +235,8 @@ type Account = {
     /** Epoch timestamp (in milliseconds) until which extended access is valid without requiring validateCode */
     validateCodeExtendedAccessExpires?: number;
 
-    /** Whether the user has passkeys or biometrics registered
-     * 1 - devices currently registered
-     * 0 - devices previously registered
-     * -1 - no device ever registered
-     */
-    isRegisteredForMultifactorAuthentication?: number;
+    /** List of registered multifactor authentication public keys. Empty if the user had set up at some point but they have since been revoked. Undefined if the user had never set it up to begin with. */
+    multifactorAuthenticationPublicKeyIDs?: string[];
 };
 
 export default Account;
