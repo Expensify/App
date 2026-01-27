@@ -34,11 +34,11 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {handlePreventSearchAPI, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
@@ -54,7 +54,6 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -209,6 +208,7 @@ function MoneyRequestReportActionsList({
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
         isDeleteModalVisible,
         hideDeleteModal,
     } = useSelectedTransactionsActions({
@@ -724,27 +724,7 @@ function MoneyRequestReportActionsList({
                                 transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
                             if (shouldNavigateBack) {
                                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                                Navigation.goBack(backToRoute);
-
-                                if (!backToRoute && !navigationRef.canGoBack()) {
-                                    handleDeleteTransactions();
-                                    return;
-                                }
-                                // When deleting IOUs on the search route, as soon as Navigation.goBack returns to the search route,
-                                // the search API may be triggered.
-                                // At this point, the transaction has not yet been deleted on the server, which causes the report
-                                // to disappear > reappear > and then disappear again.
-                                // Since the search API above will return data where the transaction has not yet been deleted,
-                                // we temporarily prevent the search API from being triggered until handleDeleteTransactions is completed.
-                                const currentSearchQueryJSON = getCurrentSearchQueryJSON();
-                                const {enableSearchAPIPrevention, disableSearchAPIPrevention} = handlePreventSearchAPI(currentSearchQueryJSON?.hash);
-                                enableSearchAPIPrevention?.();
-
-                                const listener = DeviceEventEmitter.addListener(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER, () => {
-                                    handleDeleteTransactions();
-                                    listener.remove();
-                                    disableSearchAPIPrevention?.();
-                                });
+                                handleDeleteTransactionsWithNavigation(backToRoute);
                             } else {
                                 handleDeleteTransactions();
                             }
