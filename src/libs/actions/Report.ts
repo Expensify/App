@@ -102,8 +102,8 @@ import {
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportActionsFollowupUtils from '@libs/ReportActionsFollowupUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {getLastVisibleAction} from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
