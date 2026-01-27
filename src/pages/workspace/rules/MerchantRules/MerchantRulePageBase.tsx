@@ -261,9 +261,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                         <MenuItem
                             title={translate('workspace.rules.merchantRules.deleteRule')}
                             icon={expensifyIcons.Trashcan}
-                            iconFill={theme.danger}
                             onPress={() => setIsDeleteModalVisible(true)}
-                            style={styles.mt4}
                         />
                     )}
                 </ScrollView>
