@@ -60,7 +60,7 @@ That way, travel expenses are grouped together without needing to sort them manu
 
 Expenses with violations—like missing receipts, incorrect categories, or amounts over Workspace limits—won’t be submitted. They’re removed from the current report and moved to a new open report. Once the violation is fixed, they’ll be submitted on the next scheduled date.
 
-## Why are reports still submitting automatically if I turned off Submissions?
+## Why are reports still submitting automatically after disabling Submissions
 
 If Submissions is disabled or set to **Manually** on the Workspace, check the member’s **Individual Workspace**. Their personal settings may still have Submissions enabled, which will apply by default.
 
@@ -68,7 +68,7 @@ If Submissions is disabled or set to **Manually** on the Workspace, check the me
 
 All scheduled report submissions occur in the **evening (Pacific Time)**, regardless of which frequency you choose.
 
-## Can I create separate reports for each employee credit card?
+## Can separate reports be created automatically for each employee credit card?
 
 No. Expenses from multiple cards are combined into a single report, based on the selected frequency.
 
@@ -80,7 +80,7 @@ To separate them:
 
 No. Once Submissions is enabled on the Workspace, it overrides any individual submission settings members may have in their own Workspaces.
 
-## Can I pause automatic submissions during month-end review?
+## Can automatic submissions be paused during month-end review?
 
 There’s no pause button, but you can temporarily change the Frequency setting to **Manually** to prevent automatic submissions. Just switch it back after your review period.
 
