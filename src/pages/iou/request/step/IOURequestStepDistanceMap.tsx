@@ -49,6 +49,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -91,15 +92,20 @@ function IOURequestStepDistanceMap({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const waypoints = useMemo(
-        () =>
+
+    const transactionWaypoints = transaction?.comment?.waypoints;
+    const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
+    const waypoints = useMemo(() => {
+        return (
             optimisticWaypoints ??
-            transaction?.comment?.waypoints ?? {
-                waypoint0: {keyForList: 'start_waypoint'},
-                waypoint1: {keyForList: 'stop_waypoint'},
-            },
-        [optimisticWaypoints, transaction?.comment?.waypoints],
-    );
+            (areTransactionWaypointsEmpty
+                ? {
+                      waypoint0: {keyForList: 'start_waypoint'},
+                      waypoint1: {keyForList: 'stop_waypoint'},
+                  }
+                : transactionWaypoints)
+        );
+    }, [optimisticWaypoints, transactionWaypoints, areTransactionWaypointsEmpty]);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
@@ -129,6 +135,7 @@ function IOURequestStepDistanceMap({
         const {keyForList, ...waypointWithoutKey} = waypoint;
         return isEmpty(waypointWithoutKey);
     };
+
     const nonEmptyWaypointsCount = useMemo(() => Object.keys(waypoints).filter((key) => !isWaypointEmpty(waypoints[key])).length, [waypoints]);
     const isWaypointsNullIslandError = useMemo(() => Object.values(waypoints).some(isWaypointNullIsland), [waypoints]);
     const duplicateWaypointsError = useMemo(
@@ -362,11 +369,10 @@ function IOURequestStepDistanceMap({
         data: string[];
     };
 
-    const {waypointItems, getWaypoint, getWaypointKey, extractKey, updateWaypointsOrder} = useWaypointItems(waypoints);
+    const {waypointItems, getWaypoint, getWaypointKey, extractKey} = useWaypointItems(waypoints);
 
     const updateWaypoints = useCallback(
         ({data}: DataParams) => {
-            updateWaypointsOrder(data);
             if (deepEqual(waypointItems, data)) {
                 return;
             }
@@ -389,7 +395,7 @@ function IOURequestStepDistanceMap({
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, transaction, waypoints, waypointItems, action, getWaypoint, updateWaypointsOrder],
+        [transactionID, transaction, waypoints, waypointItems, action, getWaypoint],
     );
 
     const submitWaypoints = useCallback(() => {
