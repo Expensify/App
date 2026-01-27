@@ -9,7 +9,7 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 
 ---
 
-# Add a Domain Admin
+## How to add a Domain Admin
 
 **To add a Domain Admin:**
 1. Go to **Workspaces > Domains**.
