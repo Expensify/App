@@ -522,7 +522,12 @@ function MagicCodeInput({
                                 <View style={styles.magicCodeInputValueContainer}>
                                     <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
                                     {isFocused && !isDisableKeyboard && (
-                                        <View style={[styles.magicCodeInputCursorContainer]}>
+                                        <View
+                                            style={[styles.magicCodeInputCursorContainer]}
+                                            accessibilityElementsHidden
+                                            importantForAccessibility="no-hide-descendants"
+                                            accessible={false}
+                                        >
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>
                                             <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle, cursorMargin]}>│</Animated.Text>
