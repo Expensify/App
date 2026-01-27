@@ -882,6 +882,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `この${type}を削除してもよろしいですか？`;
         },
         onlyVisible: 'にのみ表示',
+        explain: '説明する',
+        explainMessage: 'これを説明してください。',
         replyInThread: 'スレッドに返信',
         joinThread: 'スレッドに参加',
         leaveThread: 'スレッドから退出',
@@ -1480,6 +1482,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明する</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2610,19 +2613,19 @@ ${merchant} への ${amount}（${date}）`,
                 title: '経費承認を追加',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        チームの支出を確認して管理するには、*経費承認を追加* してください。
+                        チームの支出を確認し、コントロールするために、*経費承認を追加* しましょう。
 
                         手順は次のとおりです：
 
-                        1. *Workspaces* に移動します。
+                        1. *ワークスペース* に移動します。
                         2. ワークスペースを選択します。
-                        3. *More features* をクリックします。
-                        4. *Workflows* を有効にします。
-                        5. ワークスペースエディタで *Workflows* に移動します。
-                        6. *Add approvals* を有効にします。
-                        7. チームを招待すると、あなたが経費承認者として設定されます。これは、任意の管理者に変更できます。
+                        3. *その他の機能* をクリックします。
+                        4. *ワークフロー* を有効にします。
+                        5. ワークスペースエディタ内の *ワークフロー* に移動します。
+                        6. *承認* を有効にします。
+                        7. あなたが経費の承認者として設定されます。チームを招待した後は、任意の管理者に変更できます。
 
-                        [More features へ移動する](${workspaceMoreFeaturesLink})。`),
+                        [その他の機能に移動](${workspaceMoreFeaturesLink})。`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `ワークスペースを[作成](${workspaceConfirmationLink})`,
@@ -6669,6 +6672,11 @@ ${reportName}
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を「${newValue}」日に設定`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を削除（以前は「${oldValue}」日）`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 件の自動支払い承認済みレポート`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `自動支払い承認レポートの閾値を「${newLimit}」に設定`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `自動支払い承認済みレポートのしきい値を「${newLimit}」（以前は「${oldLimit}」）に変更しました`,
+        removedAutoPayApprovedReportsLimit: '自動支払い承認済みレポートのしきい値を削除しました',
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -8033,6 +8041,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
         signOutWarningTripInProgress: {title: 'GPS追跡を実行中', prompt: 'この出張を破棄してサインアウトしてもよろしいですか？', confirm: '破棄してサインアウト'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        continueGpsTripModal: {
+            title: 'GPS の走行記録を続けますか？',
+            prompt: '前回のGPS移動中にアプリが終了したようです。その移動の記録を続けますか？',
+            confirm: '出張を続ける',
+            cancel: '出張を表示',
+        },
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
             confirm: '設定を開く',
