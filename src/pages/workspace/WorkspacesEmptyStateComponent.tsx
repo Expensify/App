@@ -34,7 +34,7 @@ function WorkspacesEmptyStateComponent() {
                     : [
                           {
                               success: true,
-                              buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                              buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
                               buttonText: translate('workspace.new.newWorkspace'),
                           },
                       ]
