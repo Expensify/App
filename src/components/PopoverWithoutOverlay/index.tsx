@@ -24,7 +24,6 @@ function PopoverWithoutOverlay({
     onClose,
     onModalHide = () => {},
     children,
-    ref,
     shouldDisplayBelowModals = false,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
@@ -105,7 +104,6 @@ function PopoverWithoutOverlay({
                     ...modalContainerStyle,
                     ...modalPaddingStyles,
                 }}
-                ref={ref}
             >
                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>

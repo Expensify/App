@@ -1,14 +1,11 @@
-import type {ForwardedRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {forwardRef, useEffect} from 'react';
-import type {FlatList} from 'react-native';
+import {useEffect} from 'react';
 import {useAnimatedProps, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
 import CONST from '@src/CONST';
 import {useKeyboardDismissibleFlatListActions, useKeyboardDismissibleFlatListState} from './KeyboardDismissibleFlatListContext';
 
-function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
+function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ref, ...restProps}: AnimatedFlatListWithCellRendererProps<T>) {
     const {keyboardHeight, keyboardOffset} = useKeyboardDismissibleFlatListState();
     const {onScroll: onScrollHandleKeyboard, setListBehavior} = useKeyboardDismissibleFlatListActions();
 
@@ -55,4 +52,4 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: 
     );
 }
 
-export default forwardRef(KeyboardDismissibleFlatList);
+export default KeyboardDismissibleFlatList;
