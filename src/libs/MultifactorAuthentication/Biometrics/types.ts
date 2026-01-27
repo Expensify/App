@@ -3,7 +3,7 @@
  */
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
-import type {OutcomePaths} from '@components/MultifactorAuthentication/types';
+import type {MarqetaAuthTypeName, OutcomePaths} from '@components/MultifactorAuthentication/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -96,7 +96,8 @@ type MultifactorAuthenticationKeyType = ValueOf<typeof VALUES.KEY_ALIASES>;
 /**
  * Parameters for a multifactor authentication action with required authentication factor.
  */
-type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationFactors> = T & Pick<AllMultifactorAuthenticationFactors, R>;
+type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationFactors> = T &
+    Pick<AllMultifactorAuthenticationFactors, R> & {authenticationMethod: MarqetaAuthTypeName};
 
 /**
  * Supported key types for multifactor authentication.

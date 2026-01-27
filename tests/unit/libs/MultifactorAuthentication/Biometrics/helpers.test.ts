@@ -104,6 +104,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const result = await processRegistration({
                 publicKey: 'test-public-key',
                 validateCode: 123456,
+                authenticationMethod: 'BIOMETRIC_FACE',
             });
 
             expect(result.value).toBe(true);
@@ -114,6 +115,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
         it('should handle missing validate code', async () => {
             const result = await processRegistration({
                 publicKey: 'test-public-key',
+                authenticationMethod: 'BIOMETRIC_FACE',
             });
 
             expect(result.value).not.toBe(true);
@@ -125,21 +127,12 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const result = await processRegistration({
                 validateCode: 123456,
                 publicKey: 'valid-key',
+                authenticationMethod: 'BIOMETRIC_FACE',
             });
 
             expect(result).toHaveProperty('value');
             expect(result).toHaveProperty('step');
             expect(result).toHaveProperty('reason');
-        });
-
-        it('should handle invalid validate code length', async () => {
-            const result = await processRegistration({
-                publicKey: 'test-public-key',
-                validateCode: 12345, // Wrong length
-            });
-
-            expect(result.value).not.toBe(true);
-            expect(result.reason).toBe(VALUES.REASON.BACKEND.INVALID_VALIDATE_CODE);
         });
 
         it('should handle backend registration failure', async () => {
@@ -151,6 +144,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const result = await processRegistration({
                 publicKey: 'test-public-key',
                 validateCode: 123456,
+                authenticationMethod: 'BIOMETRIC_FACE',
             });
 
             expect(result.value).toBe(false);

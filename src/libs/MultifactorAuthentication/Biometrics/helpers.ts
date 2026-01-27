@@ -8,6 +8,7 @@ import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioConfig,
 } from '@components/MultifactorAuthentication/config/types';
+import type {MarqetaAuthTypeName} from '@components/MultifactorAuthentication/types';
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import type {
@@ -88,7 +89,7 @@ function createKeyInfoObject({publicKey}: {publicKey: string}): MultifactorAuthe
 }
 
 async function processMultifactorAuthenticationRegistration(
-    params: Partial<AllMultifactorAuthenticationFactors> & {publicKey: string},
+    params: Partial<AllMultifactorAuthenticationFactors> & {publicKey: string; authenticationMethod: MarqetaAuthTypeName},
 ): Promise<MultifactorAuthenticationPartialStatus<boolean>> {
     if (!params[VALUES.FACTORS.VALIDATE_CODE]) {
         return {
@@ -107,6 +108,7 @@ async function processMultifactorAuthenticationRegistration(
     const {httpCode, reason} = await registerAuthenticationKey({
         keyInfo,
         validateCode: params.validateCode,
+        authenticationMethod: params.authenticationMethod,
     });
 
     const successful = String(httpCode).startsWith('2');
@@ -127,7 +129,7 @@ async function processMultifactorAuthenticationRegistration(
  */
 async function processMultifactorAuthenticationScenario<T extends MultifactorAuthenticationScenario>(
     scenario: T,
-    params: MultifactorAuthenticationProcessScenarioParameters<T>,
+    params: MultifactorAuthenticationProcessScenarioParameters<T> & {authenticationMethod: MarqetaAuthTypeName},
 ): Promise<MultifactorAuthenticationPartialStatus<number | undefined>> {
     const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] as MultifactorAuthenticationScenarioConfig;
 

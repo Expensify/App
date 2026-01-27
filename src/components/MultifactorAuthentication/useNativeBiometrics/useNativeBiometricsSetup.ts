@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {generateKeyPair} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import {processRegistration} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
+import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 
@@ -127,8 +128,9 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
 
         const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey, {nativePromptTitle});
         const privateKeyExists = privateKeyResult.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.KEY_EXISTS;
+        const marqetaAuthType = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === privateKeyResult.type)?.MQ_VALUE;
 
-        if (!privateKeyResult.value) {
+        if (!privateKeyResult.value || marqetaAuthType === undefined) {
             if (privateKeyExists && !status.value) {
                 await PrivateKeyStore.delete(accountID);
             }
@@ -148,6 +150,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
         }
 
         const publicKeyResult = await PublicKeyStore.set(accountID, publicKey);
+
         if (!publicKeyResult.value) {
             await PrivateKeyStore.delete(accountID);
             return setStatus(
@@ -171,6 +174,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
         } = await processRegistration({
             publicKey,
             validateCode,
+            authenticationMethod: marqetaAuthType,
         });
 
         const successMessage = CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_PAIR_GENERATED;

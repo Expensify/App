@@ -103,6 +103,8 @@ type MultifactorAuthenticationStatusKeyType = ValueOf<typeof CONST.MULTIFACTOR_A
  */
 type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
 
+type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MQ_VALUE'];
+
 type UseMultifactorAuthenticationStatus<T> = [MultifactorAuthenticationStatus<T>, SetMultifactorAuthenticationStatus<T>];
 
 type NoScenarioForStatusReason = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON>;
@@ -122,6 +124,7 @@ export type {
     SetMultifactorAuthenticationStatus,
     MultifactorAuthenticationStatusKeyType,
     AuthTypeName,
+    MarqetaAuthTypeName,
     UseMultifactorAuthenticationStatus,
     UseBiometricsSetup,
     Register,

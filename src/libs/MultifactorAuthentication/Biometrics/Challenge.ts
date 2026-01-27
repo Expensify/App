@@ -8,6 +8,7 @@ import {signToken as signTokenED25519} from './ED25519';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import {isChallengeSigned, processScenario} from './helpers';
 import {PrivateKeyStore, PublicKeyStore} from './KeyStore';
+import {SECURE_STORE_VALUES} from './SecureStore';
 import type {ChallengeType, MultifactorAuthenticationMethodCode, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason, MultifactorKeyStoreOptions} from './types';
 import VALUES from './VALUES';
 
@@ -18,7 +19,7 @@ import VALUES from './VALUES';
 class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScenario> {
     private challenge: MultifactorAuthenticationChallengeObject | SignedChallenge | undefined = undefined;
 
-    private authenticationMethod: MultifactorAuthenticationMethodCode | undefined = undefined;
+    private authenticationMethodCode: MultifactorAuthenticationMethodCode | undefined = undefined;
 
     private publicKeys: string[] = [];
 
@@ -79,7 +80,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         }
 
         this.challenge = signTokenED25519(this.challenge, value, publicKey);
-        this.authenticationMethod = type;
+        this.authenticationMethodCode = type;
 
         return {value: true, reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED, type};
     }
@@ -88,13 +89,16 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
      * Sends the signed challenge to the server for the specific scenario.
      */
     public async send(): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
-        if (!this.challenge || !isChallengeSigned(this.challenge)) {
+        const marqetaAuthType = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === this.authenticationMethodCode)?.MQ_VALUE;
+
+        if (!this.challenge || !isChallengeSigned(this.challenge) || marqetaAuthType === undefined) {
             return this.createErrorReturnValue(VALUES.REASON.GENERIC.SIGNATURE_MISSING);
         }
 
         const authorizationResult = processScenario(this.scenario, {
             ...this.params,
             signedChallenge: this.challenge,
+            authenticationMethod: marqetaAuthType,
         });
 
         const {
@@ -109,7 +113,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         return {
             value: true,
             reason: VALUES.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
-            type: this.authenticationMethod,
+            type: this.authenticationMethodCode,
         };
     }
 }
