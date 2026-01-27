@@ -3755,6 +3755,14 @@ function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONS
     return mentionedUsers?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
 }
 
+/**
+ * Checks if an action has reasoning.
+ */
+function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(action);
+    return !!originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && !!originalMessage.reasoning;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3799,6 +3807,7 @@ export {
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
     getWhisperedTo,
+    hasReasoning,
     hasRequestFromCurrentAccount,
     isActionOfType,
     isActionableWhisper,

@@ -881,6 +881,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `この${type}を削除してもよろしいですか？`;
         },
         onlyVisible: 'にのみ表示',
+        explain: '説明する',
+        explainMessage: 'これを説明してください。',
         replyInThread: 'スレッドに返信',
         joinThread: 'スレッドに参加',
         leaveThread: 'スレッドから退出',
@@ -1479,6 +1481,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明する</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {

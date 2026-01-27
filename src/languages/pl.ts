@@ -882,6 +882,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Czy na pewno chcesz usunąć ten element typu ${type}?`;
         },
         onlyVisible: 'Widoczne tylko dla',
+        explain: 'Wyjaśnij',
+        explainMessage: 'Proszę, wyjaśnij mi to.',
         replyInThread: 'Odpowiedz w wątku',
         joinThread: 'Dołącz do wątku',
         leaveThread: 'Opuść wątek',
@@ -1479,6 +1481,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Całkowita kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
         correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {

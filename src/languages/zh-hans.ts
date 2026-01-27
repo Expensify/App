@@ -876,6 +876,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `您确定要删除此${type}吗？`;
         },
         onlyVisible: '仅对…可见',
+        explain: '解释',
+        explainMessage: '请为我解释一下。',
         replyInThread: '在线程中回复',
         joinThread: '加入话题',
         leaveThread: '离开会话',
@@ -1456,6 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         correctDistanceRateError: '修复里程费率错误后请重试。',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>解释</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {

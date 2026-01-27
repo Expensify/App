@@ -883,6 +883,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Weet je zeker dat je dit ${type} wilt verwijderen?`;
         },
         onlyVisible: 'Alleen zichtbaar voor',
+        explain: 'Uitleggen',
+        explainMessage: 'Leg dit alstublieft aan mij uit.',
         replyInThread: 'Antwoord in thread',
         joinThread: 'Deelnemen aan thread',
         leaveThread: 'Thread verlaten',
@@ -1480,6 +1482,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
         correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {

@@ -882,6 +882,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Tem certeza de que deseja excluir este(a) ${type}?`;
         },
         onlyVisible: 'Visível apenas para',
+        explain: 'Explicar',
+        explainMessage: 'Por favor, explique isso para mim.',
         replyInThread: 'Responder na conversa',
         joinThread: 'Participar da conversa',
         leaveThread: 'Sair da conversa',
@@ -1477,6 +1479,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Reduza as horas ou diminua a tarifa.',
         },
         correctDistanceRateError: 'Corrija o erro na taxa de distância e tente novamente.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {

@@ -870,6 +870,8 @@ const translations = {
             return `Are you sure you want to delete this ${type}?`;
         },
         onlyVisible: 'Only visible to',
+        explain: 'Explain',
+        explainMessage: 'Please explain this to me.',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
@@ -1468,6 +1470,7 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctDistanceRateError: 'Fix the distance rate error and try again.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
