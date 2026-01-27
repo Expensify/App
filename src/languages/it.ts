@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valore',
         downloadFailedTitle: 'Download non riuscito',
         downloadFailedDescription: 'Il download non può essere completato. Riprova più tardi.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Non puoi esportare un rapporto vuoto.',
-            other: () => 'Non puoi esportare rapporti vuoti.',
-        }),
         filterLogs: 'Filtra registri',
         network: 'Rete',
         reportID: 'ID rapporto',
@@ -1202,14 +1198,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: () => ({
-            one: 'Elimina rapporto',
-            other: 'Elimina rapporti',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Sei sicuro di voler eliminare questo report?',
-            other: 'Sei sicuro di voler eliminare questi report?',
-        }),
+        deleteReport: 'Elimina report',
+        deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
         settledExpensify: 'Pagato',
         done: 'Fatto',
         settledElsewhere: 'Pagato altrove',
@@ -6201,6 +6191,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     `<muted-text>Imposta controlli di spesa e valori predefiniti per le singole spese. Puoi anche creare regole per le <a href="${categoriesPageLink}">categorie</a> e per i <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 receiptRequiredAmount: 'Importo richiesto della ricevuta',
                 receiptRequiredAmountDescription: 'Richiedi ricevute quando la spesa supera questo importo, a meno che non venga sostituito da una regola della categoria.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `L'importo non può essere superiore all'importo richiesto per le ricevute dettagliate (${amount})`,
+                itemizedReceiptRequiredAmount: 'Importo richiesto per ricevuta dettagliata',
+                itemizedReceiptRequiredAmountDescription: 'Richiedi ricevute dettagliate quando la spesa supera questo importo, a meno che non sia derogato da una regola di categoria.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `L'importo non può essere inferiore all'importo richiesto per le ricevute normali (${amount})`,
                 maxExpenseAmount: 'Importo massimo spesa',
                 maxExpenseAmountDescription: 'Segnala le spese che superano questo importo, a meno che non siano sostituite da una regola di categoria.',
                 maxAge: 'Età massima',
@@ -6292,6 +6286,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predefinito`,
                     never: 'Non richiedere mai ricevute',
                     always: 'Richiedi sempre le ricevute',
+                },
+                requireItemizedReceiptsOver: 'Richiedi ricevute dettagliate superiori a',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predefinito`,
+                    never: 'Non richiedere mai ricevute dettagliate',
+                    always: 'Richiedi sempre ricevute dettagliate',
                 },
                 defaultTaxRate: 'Aliquota fiscale predefinita',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6464,6 +6464,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 return `ha aggiornato la categoria "${categoryName}" cambiando Ricevute in ${newValue}`;
             }
             return `ha modificato la categoria "${categoryName}" in ${newValue} (precedentemente ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `aggiornata la categoria "${categoryName}" cambiando Ricevute dettagliate in ${newValue}`;
+            }
+            return `ha cambiato le Ricevute dettagliate della categoria "${categoryName}" in ${newValue} (precedentemente ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `ha rinominato la categoria da "${oldName}" a "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
@@ -6910,6 +6916,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7348,6 +7355,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
             return 'Ricevuta richiesta';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Ricevuta dettagliata richiesta${formattedLimit ? ` superiore a ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Spesa vietata:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -8040,7 +8048,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 `<comment><muted-text-label>Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La fatturazione dominio consolidata non può essere modificata. Riprova più tardi.',
             addAdmin: 'Aggiungi amministratore',
-            invite: 'Invita',
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
             revokeAdminAccess: 'Revoca accesso amministratore',
             cantRevokeAdminAccess: 'Impossibile revocare i privilegi di amministratore dal referente tecnico',
@@ -8054,7 +8061,13 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             enterDomainName: 'Inserisci qui il tuo nome di dominio',
             resetDomainInfo: `Questa azione è <strong>permanente</strong> e i seguenti dati verranno eliminati: <br/> <ul><li>Connessioni alle carte aziendali e tutte le spese non riportate da tali carte</li> <li>Impostazioni SAML e di gruppo</li> </ul> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall'elenco dei tuoi domini eliminando l'email associata dalle tue <a href="#">modalità di contatto</a>.`,
         },
-        members: {title: 'Membri', findMember: 'Trova membro'},
+        members: {
+            title: 'Membri',
+            findMember: 'Trova membro',
+            addMember: 'Aggiungi membro',
+            email: 'Indirizzo email',
+            errors: {addMember: 'Impossibile aggiungere questo membro. Riprova.'},
+        },
         domainAdmins: 'Amministratori di dominio',
     },
     gps: {

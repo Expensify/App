@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Nie możesz eksportować pustego raportu.',
-            other: () => 'Nie możesz eksportować pustych raportów.',
-        }),
         filterLogs: 'Filtruj logi',
         network: 'Sieć',
         reportID: 'ID raportu',
@@ -1202,14 +1198,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Czy na pewno chcesz usunąć ten wydatek?',
             other: 'Czy na pewno chcesz usunąć te wydatki?',
         }),
-        deleteReport: () => ({
-            one: 'Usuń raport',
-            other: 'Usuń raporty',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Czy na pewno chcesz usunąć ten raport?',
-            other: 'Czy na pewno chcesz usunąć te raporty?',
-        }),
+        deleteReport: 'Usuń raport',
+        deleteReportConfirmation: 'Czy na pewno chcesz usunąć ten raport?',
         settledExpensify: 'Opłacone',
         done: 'Gotowe',
         settledElsewhere: 'Opłacone gdzie indziej',
@@ -6181,6 +6171,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     `<muted-text>Ustaw limity wydatków i domyślne ustawienia dla poszczególnych wydatków. Możesz też utworzyć reguły dla <a href="${categoriesPageLink}">kategorii</a> i <a href="${tagsPageLink}">tagów</a>.</muted-text>`,
                 receiptRequiredAmount: 'Wymagana kwota paragonu',
                 receiptRequiredAmountDescription: 'Wymagaj paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to nadpisane przez regułę kategorii.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być wyższa niż kwota wymagana dla szczegółowych paragonów (${amount})`,
+                itemizedReceiptRequiredAmount: 'Wymagana kwota szczegółowego paragonu',
+                itemizedReceiptRequiredAmountDescription: 'Wymagaj szczegółowych paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to zmienione przez regułę kategorii.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być niższa niż kwota wymagana dla zwykłych paragonów (${amount})`,
                 maxExpenseAmount: 'Maksymalna kwota wydatku',
                 maxExpenseAmountDescription: 'Oznacz wydatki przekraczające tę kwotę, chyba że zostanie to nadpisane przez regułę kategorii.',
                 maxAge: 'Maksymalny wiek',
@@ -6272,6 +6266,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślne`,
                     never: 'Nigdy nie wymagaj paragonów',
                     always: 'Zawsze wymagaj rachunków',
+                },
+                requireItemizedReceiptsOver: 'Wymagaj szczegółowych paragonów powyżej',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślny`,
+                    never: 'Nigdy nie wymagaj szczegółowych paragonów',
+                    always: 'Zawsze wymagaj szczegółowych paragonów',
                 },
                 defaultTaxRate: 'Domyślna stawka podatku',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6443,7 +6443,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return `zmienił kategorię „${categoryName}” na ${newValue} (wcześniej ${oldValue})`;
         },
-        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `zmienił(a) nazwę kategorii z „${oldName}” na „${newName}”`,
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `zaktualizowano kategorię "${categoryName}", zmieniając Szczegółowe paragony na ${newValue}`;
+            }
+            return `zmieniono Szczegółowe paragony kategorii "${categoryName}" na ${newValue} (wcześniej ${oldValue})`;
+        },
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `zmienił(a) nazwę kategorii z „${oldName}" na „${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `usunął podpowiedź opisu „${oldValue}” z kategorii „${categoryName}”`;
@@ -6881,6 +6887,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
             },
             feed: 'Kanał',
             withdrawalType: {
@@ -7318,6 +7325,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return 'Wymagany paragon';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Wymagany szczegółowy paragon${formattedLimit ? ` powyżej ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -8006,7 +8014,6 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
                 `<comment><muted-text-label>Gdy ta opcja jest włączona, główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Nie udało się zmienić zbiorczego rozliczania domeny. Spróbuj ponownie później.',
             addAdmin: 'Dodaj administratora',
-            invite: 'Zaproś',
             addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
             revokeAdminAccess: 'Cofnij uprawnienia administratora',
             cantRevokeAdminAccess: 'Nie można odebrać uprawnień administratora kontaktowi technicznemu',
@@ -8020,7 +8027,13 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             enterDomainName: 'Wpisz tutaj swoją nazwę domeny',
             resetDomainInfo: `Ta akcja jest <strong>trwała</strong> i następujące dane zostaną usunięte: <br/> <ul><li>Połączenia kart firmowych i wszystkie nierozliczone wydatki z tych kart</li> <li>Ustawienia SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
-        members: {title: 'Członkowie', findMember: 'Znajdź członka'},
+        members: {
+            title: 'Członkowie',
+            findMember: 'Znajdź członka',
+            addMember: 'Dodaj członka',
+            email: 'Adres e-mail',
+            errors: {addMember: 'Nie można dodać tego członka. Spróbuj ponownie.'},
+        },
         domainAdmins: 'Administratorzy domeny',
     },
     gps: {
