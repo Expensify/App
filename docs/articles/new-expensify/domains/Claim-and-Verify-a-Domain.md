@@ -26,7 +26,7 @@ To claim a private domain, you must:
 3. Enter the name of your private domain (e.g., `yourcompany.com`) in the form.
 4. Click **Continue**.
 
-# Where to find Domain settings
+## Where to find Domain settings
 
 From the left-hand menu, select **Workspaces > Domains**.
 
