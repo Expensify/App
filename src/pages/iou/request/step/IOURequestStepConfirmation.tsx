@@ -31,6 +31,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionDrafts from '@hooks/useTransactionDrafts';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -40,6 +41,7 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {
+    getExistingTransactionID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
     shouldShowReceiptEmptyState,
@@ -133,6 +135,7 @@ function IOURequestStepConfirmation({
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
+    const {allTransactionDrafts, draftTransactionIDs} = useTransactionDrafts();
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -580,6 +583,9 @@ function IOURequestStepConfirmation({
                     );
                 }
 
+                const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
+                const existingTransactionDraft = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`];
+
                 const {iouReport} = requestMoneyIOUActions({
                     report,
                     existingIOUReport,
@@ -637,12 +643,16 @@ function IOURequestStepConfirmation({
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    existingTransactionDraft,
+                    draftTransactionIDs,
                     isSelfTourViewed,
                 });
                 existingIOUReport = iouReport;
             }
         },
         [
+            allTransactionDrafts,
+            draftTransactionIDs,
             transactions,
             receiptFiles,
             privateIsArchivedMap,

@@ -466,7 +466,8 @@ type DuplicateExpenseTransactionParams = {
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
+    existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    draftTransactionIDs: string[];
 };
 
 function duplicateExpenseTransaction({
@@ -483,7 +484,8 @@ function duplicateExpenseTransaction({
     targetPolicy,
     targetPolicyCategories,
     targetReport,
-    allTransactionDrafts,
+    existingTransactionDraft,
+    draftTransactionIDs,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -535,7 +537,8 @@ function duplicateExpenseTransaction({
         transactionViolations: {},
         policyRecentlyUsedCurrencies,
         quickAction,
-        allTransactionDrafts,
+        existingTransactionDraft,
+        draftTransactionIDs,
         isSelfTourViewed,
     };
 

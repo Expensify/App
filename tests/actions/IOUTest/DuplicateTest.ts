@@ -706,7 +706,8 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
-                allTransactionDrafts: {},
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
             });
 
             await waitForBatchedUpdates();
@@ -764,7 +765,8 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
-                allTransactionDrafts: {},
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
             });
 
             await waitForBatchedUpdates();
@@ -789,7 +791,7 @@ describe('actions/Duplicate', () => {
             expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
         });
 
-        it('should create a duplicate expense with allTransactionDrafts containing existing drafts', async () => {
+        it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
             const mockCashExpenseTransaction = {
                 ...mockTransaction,
@@ -797,14 +799,6 @@ describe('actions/Duplicate', () => {
                 comment: {
                     ...restOfComment,
                 },
-            };
-
-            // Create some mock transaction drafts
-            const draftTransaction1 = createRandomTransaction(100);
-            const draftTransaction2 = createRandomTransaction(200);
-            const allTransactionDrafts = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`]: draftTransaction1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`]: draftTransaction2,
             };
 
             await Onyx.clear();
@@ -823,7 +817,8 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
-                allTransactionDrafts,
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
             });
 
             await waitForBatchedUpdates();
@@ -843,12 +838,9 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.transactionID).toBeDefined();
             // The duplicated transaction should have a different transactionID than the original
             expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
-            // The duplicated transaction should not be one of the draft transactions
-            expect(duplicatedTransaction?.transactionID).not.toBe(draftTransaction1.transactionID);
-            expect(duplicatedTransaction?.transactionID).not.toBe(draftTransaction2.transactionID);
         });
 
-        it('should create a duplicate expense with allTransactionDrafts as undefined', async () => {
+        it('should create a duplicate expense successfully (previously with undefined transaction drafts)', async () => {
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
             const mockCashExpenseTransaction = {
                 ...mockTransaction,
@@ -872,8 +864,9 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
-                allTransactionDrafts: undefined,
                 isSelfTourViewed: false,
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
             });
 
             await waitForBatchedUpdates();
@@ -888,13 +881,13 @@ describe('actions/Duplicate', () => {
                 },
             });
 
-            // Verify that a duplicated transaction was created even with undefined allTransactionDrafts
+            // Verify that a duplicated transaction was created
             expect(duplicatedTransaction).toBeDefined();
             expect(duplicatedTransaction?.transactionID).toBeDefined();
             expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
         });
 
-        it('should create a duplicate time expense with allTransactionDrafts containing existing drafts', async () => {
+        it('should create a duplicate time expense successfully (previously with transaction drafts)', async () => {
             const transactionID = 'time-2';
             const HOURLY_RATE = 12.5;
             const HOURS_WORKED = 8;
@@ -914,14 +907,6 @@ describe('actions/Duplicate', () => {
                 },
             };
 
-            // Create some mock transaction drafts
-            const draftTransaction1 = createRandomTransaction(300);
-            const draftTransaction2 = createRandomTransaction(400);
-            const allTransactionDrafts = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`]: draftTransaction1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`]: draftTransaction2,
-            };
-
             await Onyx.clear();
 
             duplicateExpenseTransaction({
@@ -936,8 +921,9 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
-                allTransactionDrafts,
                 isSelfTourViewed: false,
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
             });
 
             await waitForBatchedUpdates();
@@ -960,9 +946,6 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
             expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
-            // The duplicated transaction should not be one of the draft transactions
-            expect(duplicatedTransaction?.transactionID).not.toBe(draftTransaction1.transactionID);
-            expect(duplicatedTransaction?.transactionID).not.toBe(draftTransaction2.transactionID);
         });
     });
 

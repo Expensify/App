@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
@@ -10,6 +10,7 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
+import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
@@ -357,10 +358,22 @@ function navigateToConfirmationPage(
     }
 }
 
+/**
+ * Get the existing transaction ID from a linked tracked expense report action.
+ * This is used when moving a transaction from track expense to submit.
+ */
+function getExistingTransactionID(linkedTrackedExpenseReportAction: ReportAction | undefined): string | undefined {
+    if (!linkedTrackedExpenseReportAction || !isMoneyRequestAction(linkedTrackedExpenseReportAction)) {
+        return undefined;
+    }
+    return getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID;
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
     calculateSplitPercentagesFromAmounts,
+    getExistingTransactionID,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,

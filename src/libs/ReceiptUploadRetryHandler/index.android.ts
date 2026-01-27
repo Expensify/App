@@ -1,15 +1,8 @@
 import RNFS from 'react-native-fs';
-import type {OnyxCollection} from 'react-native-onyx';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import handleFileRetry from './handleFileRetry';
 
-export default function handleRetryPress(
-    message: ReceiptError,
-    dismissError: () => void,
-    setShouldShowErrorModal: (value: boolean) => void,
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>,
-) {
+export default function handleRetryPress(message: ReceiptError, dismissError: () => void, setShouldShowErrorModal: (value: boolean) => void) {
     if (!message.source) {
         return;
     }
@@ -20,7 +13,7 @@ export default function handleRetryPress(
             const file = new File([fileContent], message.filename, {type: 'image/jpeg'});
             file.uri = message.source;
             file.source = message.source;
-            handleFileRetry(message, file, dismissError, setShouldShowErrorModal, allTransactionDrafts);
+            handleFileRetry(message, file, dismissError, setShouldShowErrorModal);
         })
         .catch(() => {
             setShouldShowErrorModal(true);
