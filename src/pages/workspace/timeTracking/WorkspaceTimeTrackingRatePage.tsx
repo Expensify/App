@@ -57,7 +57,6 @@ function WorkspaceTimeTrackingRatePage({
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
                     validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE])}
-                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         label={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
