@@ -637,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Insights',
         duplicateExpense: 'Despesa duplicada',
         newFeature: 'Novo recurso',
+        month: 'Mês',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -758,6 +759,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: 'Habilite a verificação rápida e segura usando seu rosto ou impressão digital. Sem senhas ou códigos necessários.',
+        },
+        revoke: {
+            revoke: 'Revogar',
+            title: 'Rosto/digital & chaves de acesso',
+            explanation:
+                'Verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
+            confirmationPrompt: 'Tem certeza? Você precisará de um código mágico para a próxima verificação em qualquer dispositivo',
+            cta: 'Revogar acesso',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação com rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            dismiss: 'Entendi',
+            error: 'A solicitação falhou. Tente novamente mais tarde.',
         },
     },
     validateCodeModal: {
@@ -882,6 +894,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Tem certeza de que deseja excluir este(a) ${type}?`;
         },
         onlyVisible: 'Visível apenas para',
+        explain: 'Explicar',
+        explainMessage: 'Por favor, explique isso para mim.',
         replyInThread: 'Responder na conversa',
         joinThread: 'Participar da conversa',
         leaveThread: 'Sair da conversa',
@@ -1477,6 +1491,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Reduza as horas ou diminua a tarifa.',
         },
         correctDistanceRateError: 'Corrija o erro na taxa de distância e tente novamente.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2377,16 +2392,24 @@ ${amount} para ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Regras de despesas',
         subtitle: 'Essas regras serão aplicadas às suas despesas. Se você enviar para um workspace, as regras do workspace poderão substituí-las.',
+        findRule: 'Encontrar regra',
         emptyRules: {title: 'Você não criou nenhuma regra', subtitle: 'Adicione uma regra para automatizar o relatório de despesas.'},
         changes: {
-            billable: (value: boolean) => `Atualizar despesa ${value ? 'cobrável' : 'não faturável'}`,
-            category: (value: string) => `Atualizar categoria para "${value}"`,
-            comment: (value: string) => `Alterar descrição para "${value}"`,
-            merchant: (value: string) => `Atualizar comerciante para "${value}"`,
-            reimbursable: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
-            report: (value: string) => `Adicionar a um relatório chamado "${value}"`,
-            tag: (value: string) => `Atualizar etiqueta para "${value}"`,
-            tax: (value: string) => `Atualizar taxa de imposto para ${value}`,
+            billableUpdate: (value: boolean) => `Atualizar despesa ${value ? 'cobrável' : 'não faturável'}`,
+            categoryUpdate: (value: string) => `Atualizar categoria para "${value}"`,
+            commentUpdate: (value: string) => `Alterar descrição para "${value}"`,
+            merchantUpdate: (value: string) => `Atualizar comerciante para "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
+            tagUpdate: (value: string) => `Atualizar etiqueta para "${value}"`,
+            taxUpdate: (value: string) => `Atualizar taxa de imposto para ${value}`,
+            billable: (value: boolean) => `despesa ${value ? 'cobrável' : 'não faturável'}`,
+            category: (value: string) => `categoria para "${value}"`,
+            comment: (value: string) => `descrição para "${value}"`,
+            merchant: (value: string) => `comerciante para "${value}"`,
+            reimbursable: (value: boolean) => `despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
+            tag: (value: string) => `etiqueta para "${value}"`,
+            tax: (value: string) => `taxa de imposto para ${value}`,
+            report: (value: string) => `adicionar a um relatório chamado "${value}"`,
         },
         newRule: 'Nova regra',
         addRule: {
@@ -2605,15 +2628,15 @@ ${amount} para ${merchant} - ${date}`,
 
                         Veja como:
 
-                        1. Vá para *Workspaces*.
-                        2. Selecione seu workspace.
-                        3. Clique em *More features*.
+                        1. Vá para *Espaços de trabalho*.
+                        2. Selecione seu espaço de trabalho.
+                        3. Clique em *Mais recursos*.
                         4. Ative *Workflows*.
-                        5. Acesse *Workflows* no editor do workspace.
-                        6. Ative *Add approvals*.
-                        7. Você será definido como aprovador de despesas. Você pode alterar isso para qualquer administrador depois de convidar sua equipe.
+                        5. Acesse *Workflows* no editor do espaço de trabalho.
+                        6. Ative *Approvals*.
+                        7. Você será definido como o aprovador de despesas. Você pode alterar isso para qualquer administrador depois de convidar sua equipe.
 
-                        [Levar-me para mais recursos](${workspaceMoreFeaturesLink}).`),
+                        [Leve-me para mais recursos](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um workspace`,
@@ -6691,6 +6714,11 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `definir idade máxima da despesa como "${newValue}" dias`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `alterou a idade máxima da despesa para "${newValue}" dias (antes "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `removeu a idade máxima de despesa (anteriormente "${oldValue}" dias)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} relatórios com pagamento automático aprovado`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `definir o limite de relatórios aprovados para pagamento automático como "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `alterou o limite de relatórios aprovados com pagamento automático para "${newLimit}" (anteriormente "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'removeu o limite de relatórios aprovados para pagamento automático',
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -6848,6 +6876,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mês passado',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mês',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Ano até a data',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extrato',
                 },
             },
@@ -6887,9 +6916,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -8078,6 +8108,12 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             title: 'Controle a distância no seu telefone',
             subtitle: 'Registre milhas ou quilômetros automaticamente com o GPS e transforme viagens em despesas instantaneamente.',
             button: 'Baixar o app',
+        },
+        continueGpsTripModal: {
+            title: 'Continuar gravação da viagem por GPS?',
+            prompt: 'Parece que o app foi fechado durante sua última viagem com GPS. Você gostaria de continuar a gravação dessa viagem?',
+            confirm: 'Continuar viagem',
+            cancel: 'Ver viagem',
         },
         signOutWarningTripInProgress: {title: 'Rastreamento por GPS em andamento', prompt: 'Tem certeza de que deseja descartar a viagem e sair?', confirm: 'Descartar e sair'},
         notification: {title: 'Rastreamento por GPS em andamento', body: 'Ir para o app para finalizar'},

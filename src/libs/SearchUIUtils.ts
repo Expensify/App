@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -37,6 +38,7 @@ import type {
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
@@ -152,6 +154,7 @@ type TransactionCardGroupSorting = ColumnSortMapping<TransactionCardGroupListIte
 type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdrawalIDGroupListItemType>;
 type TransactionCategoryGroupSorting = ColumnSortMapping<TransactionCategoryGroupListItemType>;
 type TransactionMerchantGroupSorting = ColumnSortMapping<TransactionMerchantGroupListItemType>;
+type TransactionMonthGroupSorting = ColumnSortMapping<TransactionMonthGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -249,6 +252,12 @@ const transactionCategoryGroupColumnNamesToSortingProperty: TransactionCategoryG
 const transactionMerchantGroupColumnNamesToSortingProperty: TransactionMerchantGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+};
+
+const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'sortKey' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
@@ -949,6 +958,13 @@ function isTransactionMerchantGroupListItemType(item: ListItem): item is Transac
 }
 
 /**
+ * Type guard that checks if something is a TransactionMonthGroupListItemType
+ */
+function isTransactionMonthGroupListItemType(item: ListItem): item is TransactionMonthGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH;
+}
+
+/**
  * Type guard that checks if something is a TransactionListItemType
  */
 function isTransactionListItemType(item: SearchListItem): item is TransactionListItemType {
@@ -1450,9 +1466,18 @@ function getTransactionsSections(
 
  */
 function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportID: string): OnyxTypes.Transaction[] {
-    return Object.entries(data)
-        .filter(([key, value]) => isTransactionEntry(key) && (value as OnyxTypes.Transaction)?.reportID === reportID)
-        .map(([, value]) => value as OnyxTypes.Transaction);
+    const transactions: OnyxTypes.Transaction[] = [];
+
+    for (const key in data) {
+        if (isTransactionEntry(key)) {
+            const transaction = data[key];
+            if (transaction?.reportID === reportID) {
+                transactions.push(transaction);
+            }
+        }
+    }
+
+    return transactions;
 }
 
 /**
@@ -2241,6 +2266,57 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
 }
 
 /**
+ * @private
+ * Organizes data into List Sections grouped by month for display, for the TransactionGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
+    const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const monthGroup = data[key];
+            // Check if this is a month group by checking for year and month properties
+            if (!('year' in monthGroup) || !('month' in monthGroup)) {
+                continue;
+            }
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
+            if (queryJSON && monthGroup.year && monthGroup.month) {
+                // Create date range for the month (first day to last day of the month)
+                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month);
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: monthStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: monthEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+
+            // Format month display: "January 2026"
+            const monthDate = new Date(monthGroup.year, monthGroup.month - 1, 1);
+            const formattedMonth = format(monthDate, 'MMMM yyyy');
+
+            monthSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+                transactions: [],
+                transactionsQueryJSON,
+                ...monthGroup,
+                formattedMonth,
+                sortKey: monthGroup.year * 100 + monthGroup.month,
+            };
+        }
+    }
+
+    const monthSectionsValues = Object.values(monthSections);
+    return [monthSectionsValues, monthSectionsValues.length];
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -2317,6 +2393,8 @@ function getSections({
                 return getCategorySections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.MERCHANT:
                 return getMerchantSections(data, queryJSON);
+            case CONST.SEARCH.GROUP_BY.MONTH:
+                return getMonthSections(data, queryJSON);
         }
     }
 
@@ -2360,6 +2438,8 @@ function getSortedSections(
                 return getSortedCategoryData(data as TransactionCategoryGroupListItemType[], localeCompare, sortBy, sortOrder);
             case CONST.SEARCH.GROUP_BY.MERCHANT:
                 return getSortedMerchantData(data as TransactionMerchantGroupListItemType[], localeCompare, sortBy, sortOrder);
+            case CONST.SEARCH.GROUP_BY.MONTH:
+                return getSortedMonthData(data as TransactionMonthGroupListItemType[], localeCompare, sortBy, sortOrder);
         }
     }
 
@@ -2748,6 +2828,14 @@ function getSortedMerchantData(data: TransactionMerchantGroupListItemType[], loc
 
 /**
  * @private
+ * Sorts month sections based on a specified column and sort order.
+ */
+function getSortedMonthData(data: TransactionMonthGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    return getSortedData(data, localeCompare, transactionMonthGroupColumnNamesToSortingProperty, (a, b) => a.sortKey - b.sortKey, sortBy, sortOrder);
+}
+
+/**
+ * @private
  * Sorts report actions sections based on a specified column and sort order.
  */
 function getSortedReportActionData(data: ReportActionListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
@@ -2801,6 +2889,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY);
         case CONST.SEARCH.GROUP_BY.MERCHANT:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT);
+        case CONST.SEARCH.GROUP_BY.MONTH:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
         default:
             return [];
     }
@@ -2830,6 +2920,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY;
         case CONST.SEARCH.GROUP_BY.MERCHANT:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MERCHANT;
+        case CONST.SEARCH.GROUP_BY.MONTH:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH;
         default:
             return [];
     }
@@ -2908,6 +3000,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
+            return 'common.month';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -3289,7 +3383,7 @@ function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurren
     );
 }
 
-function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList | undefined) {
     return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
         value: cardFeed.id,
@@ -3307,7 +3401,7 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
-            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE];
         default:
             return defaultPresets;
     }
@@ -3394,6 +3488,7 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY,
             [CONST.SEARCH.GROUP_BY.MERCHANT]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT,
+            [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH,
         }[groupBy];
 
         const defaultCustomColumns = {
@@ -3402,6 +3497,7 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY,
             [CONST.SEARCH.GROUP_BY.MERCHANT]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MERCHANT,
+            [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH,
         }[groupBy];
 
         const filteredVisibleColumns = visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>));
@@ -3477,6 +3573,23 @@ function getColumnsToShow(
 
         if (groupBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
             const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]);
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
@@ -3775,6 +3888,7 @@ export {
     isTransactionWithdrawalIDGroupListItemType,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
+    isTransactionMonthGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

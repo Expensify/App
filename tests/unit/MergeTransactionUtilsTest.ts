@@ -423,7 +423,6 @@ describe('MergeTransactionUtils', () => {
         it('should keep split expense when merging split and cash expenses', () => {
             const targetTransaction = {
                 ...createRandomTransaction(1),
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 amount: 1000,
                 currency: CONST.CURRENCY.USD,
                 comment: {
