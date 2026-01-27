@@ -25,6 +25,7 @@ function LanguagePage() {
         return orderedLocales.map((locale) => ({
             value: locale,
             text: LOCALE_TO_LANGUAGE_STRING[locale],
+            accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
         }));
