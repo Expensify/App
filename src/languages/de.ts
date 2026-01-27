@@ -761,15 +761,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Widerrufen',
-            title: 'Gesicht/Fingerabdruck & Passkeys',
+            title: 'Gesichts-/Fingerabdruck & Passkeys',
             explanation:
-                'Die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Durch das Widerrufen des Zugriffs ist für die nächste Verifizierung auf jedem Gerät ein magischer Code erforderlich',
-            confirmationPrompt: 'Bist du sicher? Du benötigst einen magischen Code für die nächste Verifizierung auf jedem Gerät',
+                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert für die nächste Verifizierung auf jedem Gerät einen magischen Code',
+            confirmationPrompt: 'Bist du sicher? Du brauchst einen magischen Code für die nächste Verifizierung auf jedem Gerät',
             cta: 'Zugriff widerrufen',
-            noDevices:
-                'Sie haben keine Geräte für die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier widerrufen.',
+            noDevices: 'Du hast keine Geräte für die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn du welche registrierst, kannst du deren Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
-            error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
+            error: 'Anfrage fehlgeschlagen. Versuchen Sie es später erneut.',
         },
     },
     validateCodeModal: {
