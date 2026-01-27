@@ -1,5 +1,12 @@
 import Onyx from 'react-native-onyx';
-import {arePersonalDetailsMissing, createDisplayName, getAccountIDsByLogins, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {
+    arePersonalDetailsMissing,
+    createDisplayName,
+    getAccountIDsByLogins,
+    getEffectiveDisplayName,
+    getPersonalDetailByEmail,
+    getPersonalDetailsOnyxDataForOptimisticUsers,
+} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
