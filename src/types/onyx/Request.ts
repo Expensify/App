@@ -59,46 +59,34 @@ type GenericOnyxUpdate<TKey extends OnyxKey = any> = {
 };
 
 /** Model of onyx requests sent to the API */
-type GenericOnyxData = {
+type OnyxDataBase<TOnyxUpdate> = {
     /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
-    successData?: GenericOnyxUpdate[];
+    successData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: GenericOnyxUpdate[];
+    failureData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed after getting any response from server */
-    finallyData?: GenericOnyxUpdate[];
+    finallyData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed before request is made to the server */
-    optimisticData?: GenericOnyxUpdate[];
+    optimisticData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed when Onyx queue is flushed */
-    queueFlushedData?: GenericOnyxUpdate[];
+    queueFlushedData?: TOnyxUpdate[];
 };
 
 /** Model of onyx requests sent to the API */
-type OnyxData<TKey extends OnyxKey> = {
-    /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
-    successData?: Array<OnyxUpdate<TKey>>;
+type OnyxData<TKey extends OnyxKey> = OnyxDataBase<OnyxUpdate<TKey>>;
 
-    /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: Array<OnyxUpdate<TKey>>;
-
-    /** Onyx instructions that are executed after getting any response from server */
-    finallyData?: Array<OnyxUpdate<TKey>>;
-
-    /** Onyx instructions that are executed before request is made to the server */
-    optimisticData?: Array<OnyxUpdate<TKey>>;
-
-    /** Onyx instructions that are executed when Onyx queue is flushed */
-    queueFlushedData?: Array<OnyxUpdate<TKey>>;
-};
+/** Model of onyx requests sent to the API */
+type GenericOnyxData = OnyxDataBase<GenericOnyxUpdate>;
 
 /** HTTP request method names */
 type RequestType = 'get' | 'post';
 
 /** Model of overall requests sent to the API */
-type GenericRequestData = {
+type RequestDataBase<TKey extends OnyxKey = OnyxKey> = {
     /** Name of the API command */
     command: string;
 
@@ -114,17 +102,8 @@ type GenericRequestData = {
     /** Whether the app should connect to the secure API endpoints */
     shouldUseSecure?: boolean;
 
-    /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
-    successData?: GenericOnyxUpdate[];
-
-    /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: GenericOnyxUpdate[];
-
-    /** Onyx instructions that are executed after getting any response from server */
-    finallyData?: GenericOnyxUpdate[];
-
     /** Promise resolve handler */
-    resolve?: (value: Response) => void;
+    resolve?: (value: Response<TKey>) => void;
 
     /** Promise reject handler */
     reject?: (value?: unknown) => void;
@@ -147,53 +126,10 @@ type GenericRequestData = {
 };
 
 /** Model of overall requests sent to the API */
-type RequestData<TKey extends OnyxKey> = {
-    /** Name of the API command */
-    command: string;
+type RequestData<TKey extends OnyxKey> = RequestDataBase<TKey> & OnyxData<TKey>;
 
-    /** Command name for logging purposes */
-    commandName?: string;
-
-    /** Additional parameters that can be sent with the request */
-    data?: Record<string, unknown>;
-
-    /** The HTTP request method name */
-    type?: RequestType;
-
-    /** Whether the app should connect to the secure API endpoints */
-    shouldUseSecure?: boolean;
-
-    /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
-    successData?: Array<OnyxUpdate<TKey>>;
-
-    /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: Array<OnyxUpdate<TKey>>;
-
-    /** Onyx instructions that are executed after getting any response from server */
-    finallyData?: Array<OnyxUpdate<TKey>>;
-
-    /** Promise resolve handler */
-    resolve?: (value: Response) => void;
-
-    /** Promise reject handler */
-    reject?: (value?: unknown) => void;
-
-    /** Whether the app should skip the web proxy to connect to API endpoints */
-    shouldSkipWebProxy?: boolean;
-
-    /**
-     * Whether the request is initiated offline.
-     *
-     * This field is used to indicate if the app initiates the request while offline.
-     * It is particularly useful for scenarios such as receipts recreating, where
-     * the app needs to regenerate a blob once the user gets back online.
-     * More info https://github.com/Expensify/App/issues/51761
-     */
-    initiatedOffline?: boolean;
-
-    /** The unique ID of the request */
-    requestID?: number;
-};
+/** Model of overall requests sent to the API */
+type GenericRequestData = RequestDataBase & GenericOnyxData;
 
 /**
  * Represents the possible actions to take in case of a conflict in the request queue.
@@ -279,11 +215,12 @@ type ConflictActionData = {
  * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
-type GenericRequestConflictResolver = {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+interface RequestConflictResolverBase<TRequest> {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?(persistedRequest: GenericRequest[]): ConflictActionData;
+    checkAndFixConflictingRequest?(persistedRequest: TRequest[]): ConflictActionData;
 
     /**
      * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
@@ -295,29 +232,19 @@ type GenericRequestConflictResolver = {
      * A boolean flag to mark a request as rollback, if set to true it means the request failed and was added back into the queue.
      */
     isRollback?: boolean;
-};
+}
 
 /**
  * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
-type RequestConflictResolver<TKey extends OnyxKey> = {
-    /**
-     * A function that checks if a new request conflicts with any existing requests in the queue.
-     */
-    checkAndFixConflictingRequest?(persistedRequest: Array<Request<TKey>>): ConflictActionData;
+type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase<Request<TKey>>;
 
-    /**
-     * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
-     * the ongoing request, it will be removed from the persisted request queue.
-     */
-    persistWhenOngoing?: boolean;
-
-    /**
-     * A boolean flag to mark a request as rollback, if set to true it means the request failed and was added back into the queue.
-     */
-    isRollback?: boolean;
-};
+/**
+ * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * and how to resolve those conflicts.
+ */
+type GenericRequestConflictResolver = RequestConflictResolverBase<GenericRequest>;
 
 /** Model of requests sent to the API */
 type GenericRequest = GenericRequestData & GenericOnyxData & GenericRequestConflictResolver;

@@ -187,6 +187,7 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     BankAccountList,
+    GenericRequest,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -2310,7 +2311,7 @@ function editReportComment(
                 if (addCommentIndex > -1) {
                     return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
                 }
-                return resolveDuplicationConflictAction(persistedRequests, createUpdateCommentMatcher(reportActionID));
+                return resolveDuplicationConflictAction(persistedRequests as GenericRequest[], createUpdateCommentMatcher(reportActionID));
             },
         },
     );

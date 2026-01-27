@@ -5,7 +5,7 @@ import {getAll, getLength, getOngoingRequest} from '@userActions/PersistedReques
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import type Request from '../../src/types/onyx/Request';
-import type {ConflictActionData} from '../../src/types/onyx/Request';
+import type {ConflictActionData, GenericRequest} from '../../src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -248,7 +248,7 @@ describe('SequentialQueue', () => {
 
     it('should get the ongoing request from onyx and start processing it', async () => {
         const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
-        Onyx.set<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, persistedRequest);
+        Onyx.set<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, persistedRequest as GenericRequest);
         SequentialQueue.push({command: 'OpenReport'});
 
         await Promise.resolve();

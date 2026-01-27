@@ -7,7 +7,7 @@ import PaginationUtils from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
-import type {PaginatedRequest} from '@src/types/onyx/Request';
+import type {GenericOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
 
 type PagedResource<TResourceKey extends OnyxCollectionKey> = OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never;
@@ -125,7 +125,7 @@ const Pagination: Middleware = (requestResponse, request) => {
         const existingPages = pagesCollections[pageKey] ?? [];
         const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
 
-        response.onyxData.push({
+        (response.onyxData as GenericOnyxUpdate[]).push({
             key: pageKey,
             onyxMethod: Onyx.METHOD.SET,
             value: mergedPages,

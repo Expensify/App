@@ -88,8 +88,8 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>) {
 
     // If the command is not in the keepLastInstance array, add the new request as usual
     const requests = [...persistedRequests, requestToPersist];
-    persistedRequests = requests;
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)
+    persistedRequests = requests as GenericRequest[];
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests as GenericRequest[])
         .then(() => {
             Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
         })
@@ -138,17 +138,17 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     const requests = [...persistedRequests];
     const oldRequest = requests.at(oldRequestIndex);
     Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
-    requests.splice(oldRequestIndex, 1, newRequest);
+    requests.splice(oldRequestIndex, 1, newRequest as GenericRequest);
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
-    ongoingRequest = newRequest;
+    ongoingRequest = newRequest as GenericRequest;
 
     if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as GenericRequest);
     }
 }
 

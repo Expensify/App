@@ -18,7 +18,7 @@ function canMakeRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>): boole
 }
 
 function push<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
-    networkRequestQueue.push(request);
+    networkRequestQueue.push(request as GenericRequest);
 }
 
 function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
@@ -75,7 +75,7 @@ function clear() {
     networkRequestQueue = networkRequestQueue.filter((request) => !request.data?.canCancel);
 }
 
-function getAll(): Array<OnyxRequest<any>> {
+function getAll(): GenericRequest[] {
     return networkRequestQueue;
 }
 
