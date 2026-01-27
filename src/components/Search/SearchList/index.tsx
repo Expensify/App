@@ -26,6 +26,7 @@ import type {
     ReportActionListItemType,
     TaskListItemType,
     TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
 } from '@components/SelectionListWithSections/types';
@@ -42,7 +43,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getTableMinWidth, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -153,6 +154,9 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
         return !!transaction.transactionID;
     }
+    if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
+        return (transaction.category ?? '') === ((groupItem as TransactionCategoryGroupListItemType).category ?? '');
+    }
     return false;
 }
 
@@ -200,51 +204,16 @@ function SearchList({
         }
         return data;
     }, [data, groupBy, type]);
-    const emptyReports = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            return data.filter((item) => item.transactions.length === 0);
-        }
-        return [];
-    }, [data, type]);
+    const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
     const selectedItemsLength = useMemo(() => {
-        const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
-            const isTransactionSelected = !!(item?.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-            return acc + (isTransactionSelected ? 1 : 0);
-        }, 0);
-
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            const selectedEmptyReports = emptyReports.reduce((acc, item) => {
-                const isEmptyReportSelected = !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-                return acc + (isEmptyReportSelected ? 1 : 0);
-            }, 0);
-
-            return selectedEmptyReports + selectedTransactionsCount;
-        }
-
-        return selectedTransactionsCount;
-    }, [flattenedItems, type, data, emptyReports, selectedTransactions]);
-
-    const totalItems = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            const selectableEmptyReports = emptyReports.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            const selectableTransactions = flattenedItems.filter((item) => {
-                if ('pendingAction' in item) {
-                    return item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                }
-                return true;
-            });
-            return selectableEmptyReports.length + selectableTransactions.length;
-        }
-
-        const selectableTransactions = flattenedItems.filter((item) => {
-            if ('pendingAction' in item) {
-                return item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        return flattenedItemsWithoutPendingDelete.reduce((acc, item) => {
+            if (item.keyForList && selectedTransactions[item.keyForList]?.isSelected) {
+                return acc + 1;
             }
-            return true;
-        });
-        return selectableTransactions.length;
-    }, [data, type, flattenedItems, emptyReports]);
+            return acc;
+        }, 0);
+    }, [flattenedItemsWithoutPendingDelete, selectedTransactions]);
 
     const itemsWithSelection = useMemo(() => {
         return data.map((item) => {
@@ -255,16 +224,10 @@ function SearchList({
                 if (!canSelectMultiple) {
                     itemWithSelection = {...item, isSelected: false};
                 } else {
-                    const isEmptyReportSelected =
-                        item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-
-                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected) || isEmptyReportSelected;
+                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected);
 
                     if (!hasAnySelected) {
                         itemWithSelection = {...item, isSelected: false};
-                    } else if (isEmptyReportSelected) {
-                        isSelected = true;
-                        itemWithSelection = {...item, isSelected};
                     } else {
                         let allNonDeletedSelected = true;
                         let hasNonDeletedTransactions = false;
@@ -357,7 +320,10 @@ function SearchList({
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
                 return;
             }
-
+            // disable long press for empty expense reports
+            if ('transactions' in item && item.transactions.length === 0 && !groupBy) {
+                return;
+            }
             if (isMobileSelectionModeEnabled) {
                 onCheckboxPress(item, itemTransactions);
                 return;
@@ -366,7 +332,7 @@ function SearchList({
             setLongPressedItemTransactions(itemTransactions);
             setIsModalVisible(true);
         },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -495,7 +461,7 @@ function SearchList({
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length && hasLoadedAllTransactions;
 
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -505,11 +471,11 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
+                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== flattenedItemsWithoutPendingDelete.length || !hasLoadedAllTransactions)}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
-                            disabled={totalItems === 0}
+                            disabled={flattenedItems.length === 0}
                         />
                     )}
 

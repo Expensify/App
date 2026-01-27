@@ -30,22 +30,22 @@ const mockedConfigFailure = {
     description: 'multifactorAuthentication.biometricsTest.yourAttemptWasUnsuccessful',
 } as const satisfies Record<string, TranslationPaths>;
 
-type MultifactorAuthenticationNotificationPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION>;
+type MultifactorAuthenticationOutcomePageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME>;
 
-function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthenticationNotificationPageProps) {
+function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthenticationOutcomePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onGoBackPress = () => {
         Navigation.dismissModal();
     };
 
-    const isSuccessNotification = route.params.notificationType === CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE.SUCCESS;
+    const isSuccessOutcome = route.params.outcomeType === CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE.SUCCESS;
 
     let headerTitle = translate(mockedConfigFailure.headerTitle);
     let title = translate(mockedConfigFailure.title);
     let description = translate(mockedConfigFailure.description);
 
-    if (isSuccessNotification) {
+    if (isSuccessOutcome) {
         headerTitle = translate(mockedConfigSuccess.headerTitle);
         title = translate(mockedConfigSuccess.title);
         // TODO: Replace hardcoded 'FaceID' with the actual authentication type (e.g., 'FaceID', 'TouchID', 'Fingerprint')
@@ -53,10 +53,10 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
         description = translate(mockedConfigSuccess.description, {authType: 'FaceID'});
     }
 
-    const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(isSuccessNotification ? 'OpenPadlock' : 'HumptyDumpty'));
+    const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(isSuccessOutcome ? 'OpenPadlock' : 'HumptyDumpty'));
 
     return (
-        <ScreenWrapper testID={MultifactorAuthenticationNotificationPage.displayName}>
+        <ScreenWrapper testID={MultifactorAuthenticationOutcomePage.displayName}>
             <HeaderWithBackButton
                 title={headerTitle}
                 onBackButtonPress={onGoBackPress}
@@ -66,14 +66,14 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
                 <BlockingView
                     icon={icon}
                     contentFitImage="fill"
-                    iconWidth={isSuccessNotification ? variables.openPadlockWidth : variables.humptyDumptyWidth}
-                    iconHeight={isSuccessNotification ? variables.openPadlockHeight : variables.humptyDumptyHeight}
+                    iconWidth={isSuccessOutcome ? variables.openPadlockWidth : variables.humptyDumptyWidth}
+                    iconHeight={isSuccessOutcome ? variables.openPadlockHeight : variables.humptyDumptyHeight}
                     title={title}
                     titleStyles={styles.mb2}
                     subtitle={description}
                     subtitleStyle={styles.textSupporting}
                     containerStyle={styles.ph5}
-                    testID={MultifactorAuthenticationNotificationPage.displayName}
+                    testID={MultifactorAuthenticationOutcomePage.displayName}
                 />
             </View>
             <View style={[styles.flexRow, styles.m5, styles.mt0]}>
@@ -88,6 +88,6 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
     );
 }
 
-MultifactorAuthenticationNotificationPage.displayName = 'MultifactorAuthenticationNotificationPage';
+MultifactorAuthenticationOutcomePage.displayName = 'MultifactorAuthenticationOutcomePage';
 
-export default MultifactorAuthenticationNotificationPage;
+export default MultifactorAuthenticationOutcomePage;

@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +34,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
-const XERO_PARTNER_LINK = 'https://xero5440.partnerlinks.io/uzfjy4uegog2-v0pj1v';
+const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
@@ -422,6 +423,8 @@ const CONST = {
         MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
+
+    MULTIFACTOR_AUTHENTICATION: MULTIFACTOR_AUTHENTICATION_VALUES,
 
     DESKTOP_SHORTCUT_ACCELERATOR: {
         PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
@@ -992,6 +995,7 @@ const CONST = {
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
+    CONCIERGE_EXPLAIN_LINK_PATH: '/concierge/explain',
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
@@ -1348,6 +1352,7 @@ const CONST = {
                     UPDATE_AUDIT_RATE: 'POLICYCHANGELOG_UPDATE_AUDIT_RATE',
                     UPDATE_AUTO_HARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
                     UPDATE_AUTO_REIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
+                    UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED: 'POLICYCHANGELOG_UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED',
                     UPDATE_AUTO_REPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
                     UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
@@ -1722,12 +1727,27 @@ const CONST = {
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
+        SPAN_NAVIGATION_ROOT_READY: 'NavigationRootReady',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
-            NAVIGATION: 'BootsplashVisibleNavigation',
             ONYX: 'BootsplashVisibleOnyx',
+            ONYX_MIGRATIONS: 'BootsplashVisibleOnyxMigrations',
+            PUBLIC_ROOM_CHECK: 'BootsplashVisiblePublicRoomCheck',
+            PUBLIC_ROOM_API: 'BootsplashVisiblePublicRoomAPI',
+            NAVIGATION: 'BootsplashVisibleNavigation',
             LOCALE: 'BootsplashVisibleLocale',
+            DEEP_LINK: 'BootsplashVisibleDeepLink',
             SPLASH_HIDER: 'BootsplashVisibleHider',
+        },
+        SPAN_LOCALE: {
+            ROOT: 'BootsplashVisibleLocale',
+            TRANSLATIONS_LOAD: 'LocaleTranslationsLoad',
+            EMOJI_IMPORT: 'LocaleEmojiImport',
+        },
+        SPAN_NAVIGATION: {
+            ROOT: 'BootsplashVisibleNavigation',
+            PUSHER_INIT: 'NavigationPusherInit',
+            APP_OPEN: 'NavigationAppOpen',
         },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
@@ -3364,6 +3384,7 @@ const CONST = {
         DISABLED_MAX_EXPENSE_AGE: 10000000000,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
+        DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',
@@ -5501,7 +5522,7 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
-    MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE: {
+    MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE: {
         SUCCESS: 'success',
         FAILURE: 'failure',
     },
@@ -5768,14 +5789,17 @@ const CONST = {
     },
 
     /**
-     * Feature flag to disable the missingAttendees violation feature.
-     * Set to true to disable the feature if regressions are found.
+     * Feature flag to enable the missingAttendees violation feature.
+     * Currently enabled only on staging for testing.
      * When true:
-     * - Prevents new missingAttendees violations from being created
-     * - Removes existing missingAttendees violations from transaction lists
-     * - Hides "Require attendees" toggle in category settings
+     * - Enables new missingAttendees violations to be created
+     * - Shows existing missingAttendees violations in transaction lists
+     * - Shows "Require attendees" toggle in category settings
+     * Note: Config?.ENVIRONMENT is undefined in local dev when .env doesn't set it, so we treat undefined as dev
      */
-    IS_ATTENDEES_REQUIRED_FEATURE_DISABLED: true,
+    // We can't use nullish coalescing for boolean comparison
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    IS_ATTENDEES_REQUIRED_ENABLED: !Config?.ENVIRONMENT || Config?.ENVIRONMENT === 'staging' || Config?.ENVIRONMENT === 'development',
 
     /**
      * Constants for types of violation.
@@ -5832,6 +5856,7 @@ const CONST = {
         PER_DAY_LIMIT: 'perDayLimit',
         RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
         RECEIPT_REQUIRED: 'receiptRequired',
+        ITEMIZED_RECEIPT_REQUIRED: 'itemizedReceiptRequired',
         CUSTOM_RULES: 'customRules',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
@@ -6833,6 +6858,7 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+            CATEGORY: 'category',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6909,6 +6935,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                CATEGORY: {
+                    CATEGORY: this.TABLE_COLUMNS.GROUP_CATEGORY,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -6950,6 +6981,7 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_EXPENSES,
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
+                CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7045,6 +7077,7 @@ const CONST = {
             GROUP_BANK_ACCOUNT: 'groupBankAccount',
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
+            GROUP_CATEGORY: 'groupCategory',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7061,8 +7094,14 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
+            VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LIMIT: 'limit',
+        },
+        VIEW: {
+            TABLE: 'table',
+            BAR: 'bar',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7172,6 +7211,7 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             COLUMNS: 'columns',
+            LIMIT: 'limit',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -7225,6 +7265,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'group-bank-account',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
+                [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
             };
         },
         NOT_MODIFIER: 'Not',
@@ -7266,12 +7307,14 @@ const CONST = {
             UNAPPROVED_CARD: 'unapprovedCard',
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
+            TOP_CATEGORIES: 'topCategories',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 200,
         },
         TODO_BADGE_MAX_COUNT: 50,
+        TOP_SEARCH_LIMIT: 10,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -7995,6 +8038,7 @@ const CONST = {
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
+            EXPLAIN: 'ContextMenu-Explain',
         },
         MORE_MENU: {
             MORE_BUTTON: 'MoreMenu-MoreButton',

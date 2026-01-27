@@ -69,6 +69,7 @@ exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
 withdrawn = "withdrawn"i { return "withdrawn"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
+limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
@@ -79,10 +80,11 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
-columns = "columns"i { 
+columns = "columns"i {
   isColumnsContext = true;
   return "columns";
 }
+view = "view"i {return "view"}
 
 // Value transformation rules
 values
@@ -111,6 +113,7 @@ columnsValues
   / groupBankAccount
   / groupWithdrawn
   / groupWithdrawalId
+  / groupCategory
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -134,6 +137,7 @@ groupFeed               = "group-feed"i &wordBoundary               { return "gr
 groupBankAccount        = "group-bank-account"i &wordBoundary       { return "groupBankAccount"; }
 groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
+groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 
 
 operator "operator"

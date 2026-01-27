@@ -245,6 +245,7 @@ const translations = {
         in: 'In',
         optional: 'Optional',
         new: 'New',
+        newFeature: 'New feature',
         search: 'Search',
         reports: 'Reports',
         find: 'Find',
@@ -525,10 +526,6 @@ const translations = {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
-        downloadFailedEmptyReportDescription: () => ({
-            one: "You can't export an empty report.",
-            other: () => `You can't export empty reports.`,
-        }),
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
@@ -873,6 +870,8 @@ const translations = {
             return `Are you sure you want to delete this ${type}?`;
         },
         onlyVisible: 'Only visible to',
+        explain: 'Explain',
+        explainMessage: 'Please explain this to me.',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
@@ -1066,6 +1065,10 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
+        addAReceipt: {
+            phrase1: 'Add a receipt',
+            phrase2: 'or drag and drop one here',
+        },
     },
     quickAction: {
         scanReceipt: 'Scan receipt',
@@ -1199,14 +1202,8 @@ const translations = {
             one: 'Are you sure that you want to delete this expense?',
             other: 'Are you sure that you want to delete these expenses?',
         }),
-        deleteReport: () => ({
-            one: 'Delete report',
-            other: 'Delete reports',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Are you sure that you want to delete this report?',
-            other: 'Are you sure that you want to delete these reports?',
-        }),
+        deleteReport: 'Delete report',
+        deleteReportConfirmation: 'Are you sure that you want to delete this report?',
         settledExpensify: 'Paid',
         done: 'Done',
         settledElsewhere: 'Paid elsewhere',
@@ -1473,6 +1470,7 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctDistanceRateError: 'Fix the distance rate error and try again.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2368,19 +2366,27 @@ const translations = {
     expenseRulesPage: {
         title: 'Expense rules',
         subtitle: 'These rules will apply to your expenses. If you submit to a workspace, then the workspace rules may override them.',
+        findRule: 'Find rule',
         emptyRules: {
             title: "You haven't created any rules",
             subtitle: 'Add a rule to automate expense reporting.',
         },
         changes: {
-            billable: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
-            category: (value: string) => `Update category to "${value}"`,
-            comment: (value: string) => `Change description to "${value}"`,
-            merchant: (value: string) => `Update merchant to "${value}"`,
-            reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
-            report: (value: string) => `Add to a report named "${value}"`,
-            tag: (value: string) => `Update tag to "${value}"`,
-            tax: (value: string) => `Update tax rate to "${value}"`,
+            billableUpdate: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
+            categoryUpdate: (value: string) => `Update category to "${value}"`,
+            commentUpdate: (value: string) => `Update description to "${value}"`,
+            merchantUpdate: (value: string) => `Update merchant to "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            tagUpdate: (value: string) => `Update tag to "${value}"`,
+            taxUpdate: (value: string) => `Update tax rate to "${value}"`,
+            billable: (value: boolean) => `expense ${value ? 'billable' : 'non-billable'}`,
+            category: (value: string) => `category to "${value}"`,
+            comment: (value: string) => `description to "${value}"`,
+            merchant: (value: string) => `merchant to "${value}"`,
+            reimbursable: (value: boolean) => `expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            tag: (value: string) => `tag to "${value}"`,
+            tax: (value: string) => `tax rate to "${value}"`,
+            report: (value: string) => `add to a report named "${value}"`,
         },
         newRule: 'New rule',
         addRule: {
@@ -2605,7 +2611,7 @@ const translations = {
                         3. Click *More features*.
                         4. Enable *Workflows*.
                         5. Navigate to *Workflows* in the workspace editor.
-                        6. Enable *Add approvals*.
+                        6. Enable *Approvals*.
                         7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
@@ -6103,6 +6109,10 @@ const translations = {
                     `<muted-text>Set spend controls and defaults for individual expenses. You can also create rules for <a href="${categoriesPageLink}">categories</a> and <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Receipt required amount',
                 receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Amount can't be greater than the itemized receipt required amount (${amount})`,
+                itemizedReceiptRequiredAmount: 'Itemized receipt required amount',
+                itemizedReceiptRequiredAmountDescription: 'Require itemized receipts when spend exceeds this amount, unless overridden by a category rule.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Amount can't be lower than the amount required for regular receipts (${amount})`,
                 maxExpenseAmount: 'Max expense amount',
                 maxExpenseAmountDescription: 'Flag spend that exceeds this amount, unless overridden by a category rule.',
                 maxAge: 'Max age',
@@ -6165,6 +6175,16 @@ const translations = {
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
+            merchantRules: {
+                title: 'Merchant',
+                subtitle: 'Set the merchant rules so expenses arrive correctly coded and require less cleanup.',
+                addRule: 'Add merchant rule',
+                ruleSummaryTitle: (merchantName: string) => `If merchant contains "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Rename merchant to "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+            },
             categoryRules: {
                 title: 'Category rules',
                 approver: 'Approver',
@@ -6193,6 +6213,12 @@ const translations = {
                     default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
                     never: 'Never require receipts',
                     always: 'Always require receipts',
+                },
+                requireItemizedReceiptsOver: 'Require itemized receipts over',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
+                    never: 'Never require itemized receipts',
+                    always: 'Always require itemized receipts',
                 },
                 defaultTaxRate: 'Default tax rate',
                 enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
@@ -6365,6 +6391,12 @@ const translations = {
             }
             return `changed the "${categoryName}" category to ${newValue} (previously ${oldValue})`;
         },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `updated the category "${categoryName}" by changing Itemized receipts to ${newValue}`;
+            }
+            return `changed the "${categoryName}" category Itemized receipts to ${newValue} (previously ${oldValue})`;
+        },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
@@ -6498,6 +6530,11 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} auto-pay approved reports`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the auto-pay approved reports threshold to "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `changed the auto-pay approved reports threshold to "${newLimit}" (previously "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'removed the auto-pay approved reports threshold',
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -6728,6 +6765,7 @@ const translations = {
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
+        topCategories: 'Top categories',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
@@ -6754,6 +6792,7 @@ const translations = {
             status: 'Status',
             keyword: 'Keyword',
             keywords: 'Keywords',
+            limit: 'Limit',
             currency: 'Currency',
             completed: 'Completed',
             amount: {
@@ -6787,6 +6826,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7174,6 +7214,12 @@ const translations = {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
         },
+        continueGpsTripModal: {
+            title: 'Continue GPS trip recording?',
+            prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',
+            confirm: 'Continue trip',
+            cancel: 'View trip',
+        },
         signOutWarningTripInProgress: {
             title: 'GPS tracking in progress',
             prompt: 'Are you sure you want to discard the trip and sign out?',
@@ -7288,6 +7334,7 @@ const translations = {
 
             return 'Receipt required';
         },
+        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Itemized receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Prohibited expense:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7974,7 +8021,6 @@ const translations = {
                 `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
             consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
             addAdmin: 'Add admin',
-            invite: 'Invite',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
             revokeAdminAccess: 'Revoke admin access',
             cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
@@ -7991,6 +8037,11 @@ const translations = {
         members: {
             title: 'Members',
             findMember: 'Find member',
+            addMember: 'Add member',
+            email: 'Email address',
+            errors: {
+                addMember: 'Unable to add this member. Please try again.',
+            },
         },
     },
 };
