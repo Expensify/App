@@ -12062,8 +12062,11 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            // Set initial recent waypoints in Onyx (with both pending and non-pending waypoints)
+            await Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, recentWaypoints);
 
-            mockFetch?.pause?.();
+            // Simulate a failed request - this will cause failureData to be applied
+            mockFetch?.fail?.();
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
@@ -12085,14 +12088,21 @@ describe('actions/IOU', () => {
                 parentReportNextStep: undefined,
             });
 
-            mockFetch?.resume?.();
-
             await waitForBatchedUpdates();
 
-            // Then the recent waypoints should be updated, filtering out pending waypoints
-            // This is tested indirectly by checking if the update was processed
+            // Then the recent waypoints should be updated via failureData, filtering out pending waypoints
             const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.transactionID).toBe(transactionID);
+
+            // On failure, recent waypoints should be reset to only non-pending waypoints
+            const updatedRecentWaypoints = await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+            expect(updatedRecentWaypoints).toBeDefined();
+            // The pending waypoint should have been filtered out
+            const hasPendingWaypoint = updatedRecentWaypoints?.some((wp) => wp.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(hasPendingWaypoint).toBeFalsy();
+            // Only the validated waypoint should remain
+            expect(updatedRecentWaypoints?.length).toBe(1);
+            expect(updatedRecentWaypoints?.[0]?.keyForList).toBe('waypoint_validated');
         });
 
         it('should handle complete distance expense workflow with multiple waypoint updates', async () => {
