@@ -930,6 +930,7 @@ const limitTests = [
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
+            view: 'table',
             limit: '10',
             filters: null,
         },
@@ -942,6 +943,7 @@ const limitTests = [
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
+            view: 'table',
             limit: '50',
             filters: {
                 operator: 'eq',
@@ -958,6 +960,7 @@ const limitTests = [
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
+            view: 'table',
             limit: '25',
             filters: null,
         },
@@ -970,6 +973,7 @@ const limitTests = [
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
+            view: 'table',
             limit: '100',
             filters: {
                 operator: 'eq',
