@@ -1,11 +1,12 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import { Str } from 'expensify-common';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { InteractionManager, View } from 'react-native';
 import Badge from '@components/Badge';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Hourglass} from '@components/Icon/Expensicons';
+import { Hourglass } from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -17,29 +18,30 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAllCardsForWorkspace, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import { getAllCardsForWorkspace, getTranslationKeyForLimitType, maskCard } from '@libs/CardUtils';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
+import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
+import { buildCannedSearchQuery } from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import {deactivateCard as deactivateCardAction, openCardDetailsPage} from '@userActions/Card';
+import { deactivateCard as deactivateCardAction, openCardDetailsPage } from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
 
 type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -240,14 +242,20 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         onModalHide={() => shouldGoBack.current && Navigation.goBack()}
                     />
                     <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
                         onClose={() => setIsOfflineModalVisible(false)}
-                    />
+                        isSmallScreenWidth={isSmallScreenWidth}
+                    >
+                        <DecisionModal.Header title={translate('common.youAppearToBeOffline')} />
+                        <Text>{translate('common.offlinePrompt')}</Text>
+                        <DecisionModal.Footer>
+                            <Button
+                                text={translate('common.buttonConfirm')}
+                                onPress={() => setIsOfflineModalVisible(false)}
+                                large
+                            />
+                        </DecisionModal.Footer>
+                    </DecisionModal>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

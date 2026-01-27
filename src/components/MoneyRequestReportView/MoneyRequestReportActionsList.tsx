@@ -1,26 +1,27 @@
 /* eslint-disable rulesdir/prefer-early-return */
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
+import type { ListRenderItemInfo } from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import { useIsFocused, useRoute } from '@react-navigation/native';
+import { isUserValidatedSelector } from '@selectors/Account';
+import { tierNameSelector } from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { DeviceEventEmitter, InteractionManager, View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {PressableWithFeedback} from '@components/Pressable';
+import { usePersonalDetails } from '@components/OnyxListItemProvider';
+import { PressableWithFeedback } from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import { useSearchContext } from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
+import { AUTOSCROLL_TO_TOP_THRESHOLD } from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -34,28 +35,17 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {queueExportSearchWithTemplate} from '@libs/actions/Search';
+import { queueExportSearchWithTemplate } from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
+import { isActionVisibleOnMoneyRequestReport } from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {
-    getFirstVisibleReportActionID,
-    getMostRecentIOURequestActionID,
-    getOneTransactionThreadReportID,
-    hasNextActionMadeBySameActor,
-    isConsecutiveChronosAutomaticTimerAction,
-    isCurrentActionUnread,
-    isDeletedParentAction,
-    isIOUActionMatchingTransactionList,
-    shouldReportActionBeVisible,
-    wasMessageReceivedWhileOffline,
-} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import type { PlatformStackRouteProp } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { ReportsSplitNavigatorParamList } from '@libs/Navigation/types';
+import { getFirstVisibleReportActionID, getMostRecentIOURequestActionID, getOneTransactionThreadReportID, hasNextActionMadeBySameActor, isConsecutiveChronosAutomaticTimerAction, isCurrentActionUnread, isDeletedParentAction, isIOUActionMatchingTransactionList, shouldReportActionBeVisible, wasMessageReceivedWhileOffline } from '@libs/ReportActionsUtils';
+import { canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
+import { isTransactionPendingDelete } from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
@@ -64,17 +54,18 @@ import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListI
 import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import variables from '@styles/variables';
-import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
+import { openReport, readNewestAction, subscribeToNewActionEvent } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type { PendingAction } from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
+
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -799,23 +790,35 @@ function MoneyRequestReportActionsList({
                 )}
             </View>
             <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
                 isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
+            >
+                <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                <Text>{translate('common.downloadFailedDescription')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setIsDownloadErrorModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
+            <DecisionModal
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
-            />
+                isSmallScreenWidth={shouldUseNarrowLayout}
+            >
+                <DecisionModal.Header title={translate('common.youAppearToBeOffline')} />
+                <Text>{translate('common.offlinePrompt')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setOfflineModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
             <ConfirmModal
                 onConfirm={() => {
                     setIsExportWithTemplateModalVisible(false);

@@ -1798,23 +1798,35 @@ function MoneyReportHeader({
                 />
             )}
             <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
                 isVisible={downloadErrorModalVisible}
                 onClose={() => setDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
                 isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
+            >
+                <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                <Text>{translate('common.downloadFailedDescription')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setDownloadErrorModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
+            <DecisionModal
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
+                isSmallScreenWidth={isSmallScreenWidth}
+            >
+                <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                <Text>{translate('common.downloadFailedDescription')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setIsDownloadErrorModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
             <ConfirmModal
                 title={translate('common.duplicateExpense')}
                 isVisible={duplicateDistanceErrorModalVisible}
@@ -1837,14 +1849,20 @@ function MoneyReportHeader({
                 />
             )}
             <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
-            />
+                isSmallScreenWidth={isSmallScreenWidth}
+            >
+                <DecisionModal.Header title={translate('common.youAppearToBeOffline')} />
+                <Text>{translate('common.offlinePrompt')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setOfflineModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
             <Modal
                 onClose={() => {
                     setIsPDFModalVisible(false);

@@ -570,14 +570,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             )}
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
                 isVisible={downloadErrorModalVisible}
                 onClose={() => setDownloadErrorModalVisible(false)}
-            />
+                isSmallScreenWidth={isSmallScreenWidth}
+            >
+                <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                <Text>{translate('common.downloadFailedDescription')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setDownloadErrorModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
             <ConfirmModal
                 title={translate('iou.deleteExpense', {count: 1})}
                 isVisible={isDeleteModalVisible}

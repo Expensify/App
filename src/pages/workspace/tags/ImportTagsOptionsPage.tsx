@@ -1,6 +1,7 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,26 +9,19 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {close} from '@libs/actions/Modal';
-import {cleanPolicyTags, downloadMultiLevelTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import { close } from '@libs/actions/Modal';
+import { cleanPolicyTags, downloadMultiLevelTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags } from '@libs/actions/Policy/Tag';
+import { canUseTouchScreen } from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {
-    getTagLists,
-    goBackFromInvalidPolicy,
-    hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
-    hasDependentTags as hasDependentTagsPolicyUtils,
-    isControlPolicy,
-    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
-} from '@libs/PolicyUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { SettingsNavigatorParamList } from '@libs/Navigation/types';
+import { getTagLists, goBackFromInvalidPolicy, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, hasDependentTags as hasDependentTagsPolicyUtils, isControlPolicy, isMultiLevelTags as isMultiLevelTagsPolicyUtils } from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -230,14 +224,20 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
             <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadFailureModalVisible}
                 onClose={() => setIsDownloadFailureModalVisible(false)}
-            />
+                isSmallScreenWidth={isSmallScreenWidth}
+            >
+                <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                <Text>{translate('common.downloadFailedDescription')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setIsDownloadFailureModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
             <ConfirmModal
                 isVisible={isSwitchSingleToMultipleLevelTagWarningModalVisible}
                 onConfirm={() => {

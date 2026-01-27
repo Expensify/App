@@ -1,12 +1,14 @@
 import React from 'react';
 import AttachmentPicker from '@components/AttachmentPicker';
+import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {FileObject} from '@src/types/utils/Attachment';
+
 
 function BaseImportOnyxState({
     onFileRead,
@@ -48,14 +50,20 @@ function BaseImportOnyxState({
                 }}
             </AttachmentPicker>
             <DecisionModal
-                title={translate('initialSettingsPage.troubleshoot.invalidFile')}
-                prompt={translate('initialSettingsPage.troubleshoot.invalidFileDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsErrorModalVisible(false)}
-                secondOptionText={translate('common.ok')}
                 isVisible={isErrorModalVisible}
                 onClose={() => setIsErrorModalVisible(false)}
-            />
+                isSmallScreenWidth={isSmallScreenWidth}
+            >
+                <DecisionModal.Header title={translate('initialSettingsPage.troubleshoot.invalidFile')} />
+                <Text>{translate('initialSettingsPage.troubleshoot.invalidFileDescription')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.ok')}
+                        onPress={() => setIsErrorModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
         </>
     );
 }

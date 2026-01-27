@@ -1,31 +1,32 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type { ValueOf } from 'type-fest';
+import Button from '@components/Button';
+import type { DropdownOption } from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import { DelegateNoAccessContext } from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
-import type {PaymentMethodType} from '@components/KYCWall/types';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {PaymentData, SearchParams} from '@components/Search/types';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import type { PaymentMethodType } from '@components/KYCWall/types';
+import { ModalActions } from '@components/Modal/Global/ModalContext';
+import type { PopoverMenuItem } from '@components/PopoverMenu';
+import { ScrollOffsetContext } from '@components/ScrollOffsetContextProvider';
+import { useSearchContext } from '@components/Search/SearchContext';
+import type { SearchHeaderOptionValue } from '@components/Search/SearchPageHeader/SearchPageHeader';
+import type { PaymentData, SearchParams } from '@components/Search/types';
+import { usePlaybackContext } from '@components/VideoPlayerContexts/PlaybackContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useFilterFormValues from '@hooks/useFilterFormValues';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -35,64 +36,35 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
-import {
-    approveMoneyRequestOnSearch,
-    deleteMoneyRequestOnSearch,
-    exportSearchItemsToCSV,
-    getExportTemplates,
-    getLastPolicyBankAccountID,
-    getLastPolicyPaymentMethod,
-    getPayMoneyOnSearchInvoiceParams,
-    getPayOption,
-    getReportType,
-    getTotalFormattedAmount,
-    isCurrencySupportWalletBulkPay,
-    payMoneyRequestOnSearch,
-    queueExportSearchItemsToCSV,
-    queueExportSearchWithTemplate,
-    search,
-    submitMoneyRequestOnSearch,
-    unholdMoneyRequestOnSearch,
-    updateAdvancedFilters,
-} from '@libs/actions/Search';
-import {setTransactionReport} from '@libs/actions/Transaction';
-import {setNameValuePair} from '@libs/actions/User';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
-import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
+import { confirmReadyToOpenApp } from '@libs/actions/App';
+import { setupMergeTransactionDataAndNavigate } from '@libs/actions/MergeTransaction';
+import { moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer } from '@libs/actions/Report';
+import { approveMoneyRequestOnSearch, deleteMoneyRequestOnSearch, exportSearchItemsToCSV, getExportTemplates, getLastPolicyBankAccountID, getLastPolicyPaymentMethod, getPayMoneyOnSearchInvoiceParams, getPayOption, getReportType, getTotalFormattedAmount, isCurrencySupportWalletBulkPay, payMoneyRequestOnSearch, queueExportSearchItemsToCSV, queueExportSearchWithTemplate, search, submitMoneyRequestOnSearch, unholdMoneyRequestOnSearch, updateAdvancedFilters } from '@libs/actions/Search';
+import { setTransactionReport } from '@libs/actions/Transaction';
+import { setNameValuePair } from '@libs/actions/User';
+import { navigateToParticipantPage } from '@libs/IOUUtils';
+import { getTransactionsAndReportsFromSearch } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
-import {
-    canDeleteMoneyRequestReport,
-    generateReportID,
-    getPolicyExpenseChat,
-    getReportOrDraftReport,
-    isBusinessInvoiceRoom,
-    isCurrentUserSubmitter,
-    isExpenseReport as isExpenseReportUtil,
-    isInvoiceReport,
-    isIOUReport as isIOUReportUtil,
-} from '@libs/ReportUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { SearchFullscreenNavigatorParamList } from '@libs/Navigation/types';
+import { getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy } from '@libs/PolicyUtils';
+import { getOriginalMessage, isMoneyRequestAction } from '@libs/ReportActionsUtils';
+import { isMergeActionForSelectedTransactions } from '@libs/ReportSecondaryActionUtils';
+import { canDeleteMoneyRequestReport, generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isBusinessInvoiceRoom, isCurrentUserSubmitter, isExpenseReport as isExpenseReportUtil, isInvoiceReport, isIOUReport as isIOUReportUtil } from '@libs/ReportUtils';
+import { buildSearchQueryJSON } from '@libs/SearchQueryUtils';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
+import { hasTransactionBeenRejected } from '@libs/TransactionUtils';
+import type { ReceiptFile } from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import {canIOUBePaid, dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
-import {openOldDotLink} from '@userActions/Link';
-import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
+import { canIOUBePaid, dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt } from '@userActions/IOU';
+import { openOldDotLink } from '@userActions/Link';
+import { buildOptimisticTransactionAndCreateDraft } from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
-import type {FileObject} from '@src/types/utils/Attachment';
+import type { Policy, Report, SearchResults, Transaction } from '@src/types/onyx';
+import type { FileObject } from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -1253,23 +1225,35 @@ function SearchPage({route}: SearchPageProps) {
             {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
                 <View>
                     <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={handleOfflineModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
                         onClose={handleOfflineModalClose}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
                         isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={handleDownloadErrorModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
+                    >
+                        <DecisionModal.Header title={translate('common.youAppearToBeOffline')} />
+                        <Text>{translate('common.offlinePrompt')}</Text>
+                        <DecisionModal.Footer>
+                            <Button
+                                text={translate('common.buttonConfirm')}
+                                onPress={handleOfflineModalClose}
+                                large
+                            />
+                        </DecisionModal.Footer>
+                    </DecisionModal>
+                    <DecisionModal
                         isVisible={isDownloadErrorModalVisible}
                         onClose={handleDownloadErrorModalClose}
-                    />
+                        isSmallScreenWidth={isSmallScreenWidth}
+                    >
+                        <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                        <Text>{translate('common.downloadFailedDescription')}</Text>
+                        <DecisionModal.Footer>
+                            <Button
+                                text={translate('common.buttonConfirm')}
+                                onPress={handleDownloadErrorModalClose}
+                                large
+                            />
+                        </DecisionModal.Footer>
+                    </DecisionModal>
                     {!!rejectModalAction && (
                         <HoldOrRejectEducationalModal
                             onClose={dismissRejectModalBasedOnAction}
