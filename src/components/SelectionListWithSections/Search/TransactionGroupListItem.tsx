@@ -46,8 +46,8 @@ import CategoryListItemHeader from './CategoryListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
-import WeekListItemHeader from './WeekListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 
 function TransactionGroupListItem<TItem extends ListItem>({
