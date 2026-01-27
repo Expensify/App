@@ -2202,7 +2202,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionTagGroupListItemType[], number] {
+function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionTagGroupListItemType[], number] {
     const tagSections: Record<string, TransactionTagGroupListItemType> = {};
 
     for (const key in data) {
@@ -2224,9 +2224,10 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
 
-            // Format the tag name - keep empty/none values as-is
+            // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
-            const formattedTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE ? rawTag : rawTag;
+            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
+            const formattedTag = isEmptyTag ? translate('search.noTag') : rawTag;
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
@@ -2318,7 +2319,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.CATEGORY:
                 return getCategorySections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.TAG:
-                return getTagSections(data, queryJSON);
+                return getTagSections(data, queryJSON, translate);
         }
     }
 
