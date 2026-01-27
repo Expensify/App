@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {TupleToUnion} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
-import {PopoverMenuItem} from '@components/PopoverMenu';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Section from '@components/Section';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
