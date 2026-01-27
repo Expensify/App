@@ -930,11 +930,31 @@ function createOption(
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        result.lastMessageText = getLastMessageTextForReport({translate: translateLocal, report, lastActorDetails, isReportArchived: !!result.private_isArchived, currentUserAccountID, reportAttributesDerived});
+        result.lastMessageText = getLastMessageTextForReport({
+            translate: translateLocal,
+            report,
+            lastActorDetails,
+            isReportArchived: !!result.private_isArchived,
+            currentUserAccountID,
+            reportAttributesDerived,
+        });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, currentUserAccountID, lastActorDetails, reportAttributesDerived);
+
+        const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
+        const computedReportName = computeReportName(
+            report,
+            allReports,
+            allPolicies,
+            undefined,
+            undefined,
+            personalDetailsForCompute,
+            allReportActions,
+            currentUserAccountID,
+            result.private_isArchived,
+        );
 
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
@@ -2465,7 +2485,7 @@ function getSearchOptions({
     loginList,
     currentUserAccountID,
     currentUserEmail,
-    reportAttributesDerived
+    reportAttributesDerived,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);

@@ -1869,7 +1869,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman'); // '2022-11-22 03:26:02.019'
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man'); // '2022-11-22 03:26:02.016'
             expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow'); // This is a personal detail, which has no lastVisibleActionCreated, but matches the login
-            expect(filteredOptions.recentReports.at(3)?.text).toBe('Iron Man, Mister Fantastic, Invisible Woman'); // This again is a report with '2022-11-22 03:26:02.015'
+            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic, Invisible Woman'); // This again is a report with '2022-11-22 03:26:02.015'
         });
 
         it('should filter users by email', () => {
@@ -1892,7 +1892,7 @@ describe('OptionsListUtils', () => {
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
             // Then the returned report should match the search text
-            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Sinister');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mr Sinister');
         });
 
         it('should find archived chats', () => {
@@ -2016,9 +2016,15 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             const searchText = 'fantastic';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED, draftComments: {}, nvpDismissedProductTraining, loginList,
+            const options = getSearchOptions({
+                options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,});
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
@@ -2027,15 +2033,21 @@ describe('OptionsListUtils', () => {
             // Then the first report should match the search text
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
             // Then the second report should match the search text
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Iron Man, Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED, draftComments: {}, loginList, nvpDismissedProductTraining,
+            const options = getSearchOptions({
+                options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                draftComments: {},
+                loginList,
+                nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,});
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
@@ -2070,8 +2082,15 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email and the user is not excluded', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED, draftComments: {}, loginList, nvpDismissedProductTraining,currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,});
+            const options = getSearchOptions({
+                options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                draftComments: {},
+                loginList,
+                nvpDismissedProductTraining,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -2084,8 +2103,15 @@ describe('OptionsListUtils', () => {
         it('should return limited amount of recent reports if the limit is set', () => {
             const searchText = '';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED, draftComments: {}, loginList, nvpDismissedProductTraining,currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,});
+            const options = getSearchOptions({
+                options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                draftComments: {},
+                loginList,
+                nvpDismissedProductTraining,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
                 maxRecentReportsToShow: 2,
@@ -2529,14 +2555,21 @@ describe('OptionsListUtils', () => {
             // Then there should be 5 matching recent reports
             expect(filteredOptions.recentReports.length).toBe(5);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Sinister');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mr Sinister');
             expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Panther');
         });
 
         it('should return matching option when searching (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED, draftComments: {}, nvpDismissedProductTraining, loginList,currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,});
+            const options = getSearchOptions({
+                options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
@@ -2548,8 +2581,15 @@ describe('OptionsListUtils', () => {
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED, draftComments: {}, nvpDismissedProductTraining, loginList,currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,});
+            const options = getSearchOptions({
+                options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+            });
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
@@ -2558,7 +2598,7 @@ describe('OptionsListUtils', () => {
             // Then the first report should match the search text
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
             // Then the second report should match the search text
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Iron Man, Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))

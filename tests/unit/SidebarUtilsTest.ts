@@ -1393,7 +1393,8 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
-                    currentUserAccountID: 0,                    reportAttributesDerived: undefined,
+                    currentUserAccountID: 0,
+                    reportAttributesDerived: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
