@@ -90,7 +90,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`type:expense sortBy:date sortOrder:desc groupBy:reports view:table from:12345`);
+            expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
         });
 
         test('deduplicates conflicting type filters keeping the last occurrence', () => {

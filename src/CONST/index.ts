@@ -7074,9 +7074,9 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
+            VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
-            VIEW: 'view',
         },
         VIEW: {
             TABLE: 'table',
