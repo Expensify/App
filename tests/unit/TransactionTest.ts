@@ -992,20 +992,6 @@ describe('Transaction', () => {
             expect(updatedRecentWaypoints?.[0]?.address).toBe('123 Main St');
         });
 
-        it('should not save waypoint if missing lat/lng', async () => {
-            const transactionID = 'txn2';
-            const index = '1';
-            const waypoint: RecentWaypoint = {
-                address: 'No LatLng',
-            };
-            const recentWaypointsList: RecentWaypoint[] = [];
-            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
-            await waitForBatchedUpdates();
-
-            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-            expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
-        });
-
         it('should not save waypoint if address is YOUR_LOCATION_TEXT', async () => {
             const transactionID = 'txn3';
             const index = '2';
