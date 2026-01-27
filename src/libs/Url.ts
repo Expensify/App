@@ -118,7 +118,7 @@ function getSearchParamFromPath(path: string, param: string) {
         }
     }
 
-    // Fallback: extract params from encoded backTo segment (e.g., ".../search/%2Fsearch%3Fq=.../amount")
+    // Fallback: extract params from encoded backTo segment (e.g., ".../search/<encoded>/amount")
     const encodedBackToMatch = pathWithoutHash.match(/\/search\/([^/]+)/);
     const encodedBackTo = encodedBackToMatch?.[1];
     if (!encodedBackTo) {

@@ -115,14 +115,25 @@ describe('Url', () => {
     describe('getSearchParamFromPath', () => {
         it.each([
             ['returns null when no query string', 'search/hold/search', 'q', null],
-            ['reads query param from path', 'search/hold/search?q=type%3Aexpense&name=Expenses', 'q', 'type:expense'],
+            // cspell:disable-next-line
+            ['reads query param from path', 'search/hold/search?q=type%3aexpense&name=Expenses', 'q', 'type:expense'],
             ['returns null for missing param', 'search/hold/search?name=Expenses', 'q', null],
-            ['handles hash fragments', 'search/hold/search?q=type%3Aexpense#section', 'q', 'type:expense'],
+            // cspell:disable-next-line
+            ['handles hash fragments', 'search/hold/search?q=type%3aexpense#section', 'q', 'type:expense'],
             ['truncates decoded ampersand', 'search/hold/search?q=AT%26T', 'q', 'AT'],
-            ['truncates decoded slash', 'search/hold/search?q=foo%2Fbar', 'q', 'foo'],
+            // cspell:disable-next-line
+            ['truncates decoded slash', 'search/hold/search?q=foo%2fbar', 'q', 'foo'],
             ['decodes encoded percent', 'search/hold/search?q=100%25', 'q', '100%'],
             ['returns raw value when decoding fails', 'search/hold/search?q=100%', 'q', '100%'],
-            ['double decodes encoded percent', 'search/hold/search?q=foo%252Fbar', 'q', 'foo'],
+            // cspell:disable-next-line
+            ['double decodes encoded percent', 'search/hold/search?q=foo%252fbar', 'q', 'foo'],
+            [
+                'reads query from encoded backTo segment',
+                // cspell:disable-next-line
+                'create/split-expense/overview/4936432564974252/324399768798079300/0/search/%2Fsearch%3Fq=type%253Aexpense-report%2520sortBy%253Adate%2520sortOrder%253Adesc%2520action%253Asubmit%2520from%253A21227763/amount',
+                'q',
+                'type:expense-report sortBy:date sortOrder:desc action:submit from:21227763',
+            ],
         ])('%s', (_, path, param, expected) => {
             expect(Url.getSearchParamFromPath(path, param)).toBe(expected);
         });
