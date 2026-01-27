@@ -4,20 +4,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateDraftRule} from '@libs/actions/User';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {InputID} from '@src/types/form/ExpenseRuleForm';
-import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 import TextBase from './TextBase';
 
-// Text-based field IDs that accept string input
-type RuleTextBaseProps = {
+type RuleTextBaseProps<TFormID extends OnyxFormKey> = {
     /** The key from text-based InputID */
-    fieldID: InputID;
+    fieldID: string;
 
     /** The translation key for the page title and input label if labelKey is missing */
     titleKey: TranslationPaths;
@@ -37,48 +31,65 @@ type RuleTextBaseProps = {
     /** The character limit for the input */
     characterLimit?: number;
 
-    /** The rule identifier */
-    hash?: string;
+    /** The form ID to read from Onyx */
+    formID: TFormID;
+
+    /** Callback when the form is saved */
+    onSave: (values: FormOnyxValues<TFormID>) => void;
+
+    /** Callback to go back */
+    onBack: () => void;
+
+    /** Optional wrapper component for the content */
+    ContentWrapper?: React.ComponentType<{children: React.ReactNode}>;
 };
 
-function RuleTextBase({fieldID, hintKey, isRequired, titleKey, labelKey, testID, hash, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: RuleTextBaseProps) {
+function RuleTextBase<TFormID extends OnyxFormKey>({
+    fieldID,
+    hintKey,
+    isRequired,
+    titleKey,
+    labelKey,
+    testID,
+    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
+    formID,
+    onSave,
+    onBack,
+    ContentWrapper,
+}: RuleTextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const goBack = () => {
-        Navigation.goBack(hash ? ROUTES.SETTINGS_RULES_EDIT.getRoute(hash) : ROUTES.SETTINGS_RULES_ADD.getRoute());
-    };
-
-    const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXPENSE_RULE_FORM>) => {
-        updateDraftRule(values);
-        goBack();
-    };
-
-    return (
-        <RuleNotFoundPageWrapper hash={hash}>
-            <ScreenWrapper
-                testID={testID}
-                shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
-                includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight
-            >
-                <HeaderWithBackButton
-                    title={translate(titleKey)}
-                    onBackButtonPress={goBack}
-                />
-                <TextBase
-                    fieldID={fieldID}
-                    hint={hintKey ? translate(hintKey) : undefined}
-                    isRequired={isRequired}
-                    label={translate(labelKey ?? titleKey)}
-                    onSubmit={onSave}
-                    title={translate(titleKey)}
-                    characterLimit={characterLimit}
-                />
-            </ScreenWrapper>
-        </RuleNotFoundPageWrapper>
+    const content = (
+        <ScreenWrapper
+            testID={testID}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={translate(titleKey)}
+                onBackButtonPress={onBack}
+            />
+            <TextBase
+                fieldID={fieldID}
+                formID={formID}
+                hint={hintKey ? translate(hintKey) : undefined}
+                isRequired={isRequired}
+                label={translate(labelKey ?? titleKey)}
+                onSubmit={onSave}
+                title={translate(titleKey)}
+                characterLimit={characterLimit}
+            />
+        </ScreenWrapper>
     );
+
+    if (ContentWrapper) {
+        return <ContentWrapper>{content}</ContentWrapper>;
+    }
+
+    return content;
 }
 
 export default RuleTextBase;
