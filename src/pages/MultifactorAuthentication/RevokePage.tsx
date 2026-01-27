@@ -47,10 +47,8 @@ function MultifactorAuthenticationRevokePage() {
     const handleRevokeConfirm = async () => {
         const result = await revokeMultifactorAuthenticationCredentials();
 
-        if (result.httpCode === 200) {
-            hideConfirmModal();
-        } else {
-            hideConfirmModal();
+        hideConfirmModal();
+        if (result.httpCode !== 200) {
             setErrorMessage(translate('multifactorAuthentication.revoke.error'));
         }
     };
