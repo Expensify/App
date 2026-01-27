@@ -7629,6 +7629,9 @@ const CONST = {
         ENABLED: 'enabled',
         IGNORE: 'ignore',
         DESTINATION: 'destination',
+        CARD_NUMBER: 'cardNumber',
+        DATE: 'date',
+        MERCHANT: 'merchant',
     },
 
     IMPORT_SPREADSHEET: {

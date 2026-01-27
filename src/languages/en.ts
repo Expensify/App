@@ -4784,6 +4784,14 @@ const translations = {
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
                 },
+                csvColumns: {
+                    cardNumber: 'Card number',
+                    date: 'Date',
+                    merchant: 'Merchant',
+                    amount: 'Amount',
+                    currency: 'Currency',
+                    ignore: 'Ignore',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Last day of the month',

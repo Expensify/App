@@ -622,6 +622,7 @@ const SCREENS = {
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
         COMPANY_CARDS_IMPORT_SPREADSHEET: 'Workspace_CompanyCards_Import_Spreadsheet',
+        COMPANY_CARDS_IMPORTED: 'Workspace_CompanyCards_Imported',
         COMPANY_CARDS_TYPE: 'Workspace_CompanyCards_Type',
         COMPANY_CARDS_INSTRUCTIONS: 'Workspace_CompanyCards_Instructions',
         COMPANY_CARDS_NAME: 'Workspace_CompanyCards_Name',

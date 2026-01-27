@@ -2300,6 +2300,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/add-card-feed/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/import` as const,
     },
+    WORKSPACE_COMPANY_CARDS_IMPORTED: {
+        route: 'workspaces/:policyID/company-cards/add-card-feed/import/mapping',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/import/mapping` as const,
+    },
     WORKSPACE_COMPANY_CARDS_LAYOUT_NAME: {
         route: 'workspaces/:policyID/company-cards/add-card-feed/layout-name',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/layout-name` as const,

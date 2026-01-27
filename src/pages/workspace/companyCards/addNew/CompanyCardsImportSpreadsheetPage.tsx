@@ -15,6 +15,7 @@ type CompanyCardsImportSpreadsheetPageProps = PlatformStackScreenProps<
 function CompanyCardsImportSpreadsheetPage({route}: CompanyCardsImportSpreadsheetPageProps) {
     const {policyID} = route.params;
     const backTo = ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID);
+    const goTo = ROUTES.WORKSPACE_COMPANY_CARDS_IMPORTED.getRoute(policyID);
 
     return (
         <AccessOrNotFoundWrapper
@@ -23,7 +24,7 @@ function CompanyCardsImportSpreadsheetPage({route}: CompanyCardsImportSpreadshee
         >
             <ImportSpreadsheet
                 backTo={backTo}
-                goTo={backTo}
+                goTo={goTo}
             />
         </AccessOrNotFoundWrapper>
     );

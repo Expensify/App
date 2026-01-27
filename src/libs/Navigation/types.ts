@@ -2489,6 +2489,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_LAYOUT_NAME]: {
         policyID: string;
     };
