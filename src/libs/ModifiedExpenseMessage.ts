@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
-import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -199,39 +198,6 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
         const originReportName = getReportName(movedFromReport);
         return translate('iou.movedFromReport', {reportName: originReportName ?? ''});
     }
-}
-
-function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, policyRulesModifiedFields: PolicyRulesModifiedFields, policyID: string): string {
-    const entries = Object.entries(policyRulesModifiedFields) as Array<[keyof PolicyRulesModifiedFields, ValueOf<PolicyRulesModifiedFields>]>;
-
-    const fragments = entries.map(([key, value], i) => {
-        const isFirst = i === 0;
-
-        if (key === 'reimbursable') {
-            return value ? translate('iou.markedAsReimbursable') : translate('iou.markedAsNonReimbursable');
-        }
-
-        if (key === 'billable') {
-            return value ? translate('iou.markedAsBillable') : translate('iou.markedAsNonBillable');
-        }
-
-        if (key === 'tax') {
-            const taxEntry = value as PolicyRulesModifiedFields['tax'];
-            const taxRateName = taxEntry?.field_id_TAX.name ?? '';
-            return translate('iou.updatedFieldTo', {key: translate('workspace.taxes.taxRate').toLowerCase(), value: taxRateName, first: isFirst});
-        }
-
-        const updatedValue = value as string | boolean;
-        return translate('iou.updatedFieldTo', {key: translate(`common.${key}`).toLowerCase(), value: updatedValue, first: isFirst});
-    });
-
-    if (fragments.length > 1) {
-        const lastIndex = fragments.length - 1;
-        fragments[lastIndex] = `${translate('common.and')} ${fragments.at(lastIndex)}`;
-    }
-
-    const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
-    return `${fragments.join(', ')} ${translate('iou.viaWorkspaceRules', {route: policyRulesRoute})}`;
 }
 
 /**
@@ -510,7 +476,7 @@ function getForReportAction({
 
         if (policyRulesModifiedFields && rulePolicyID) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return getPolicyRulesModifiedFieldsMessage(translateLocal, policyRulesModifiedFields, rulePolicyID);
+            return translateLocal('iou.policyRulesModifiedFields', policyRulesModifiedFields, rulePolicyID, environmentURL);
         }
     }
 
@@ -763,7 +729,7 @@ function getForReportActionTemp({
         const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
 
         if (policyRulesModifiedFields && policyID) {
-            return getPolicyRulesModifiedFieldsMessage(translate, policyRulesModifiedFields, policyID);
+            return translate('iou.policyRulesModifiedFields', policyRulesModifiedFields, policyID, environmentURL);
         }
     }
 

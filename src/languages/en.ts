@@ -1,11 +1,14 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
@@ -1471,6 +1474,38 @@ const translations = {
         },
         correctDistanceRateError: 'Fix the distance rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyID: string, environmentURL: string) => {
+            const entries = Object.entries(policyRulesModifiedFields) as Array<[keyof PolicyRulesModifiedFields, ValueOf<PolicyRulesModifiedFields>]>;
+
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+
+                if (key === 'reimbursable') {
+                    return value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"';
+                }
+
+                if (key === 'billable') {
+                    return value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"';
+                }
+
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    return `${isFirst ? 'set the ' : ''} tax rate to "${taxRateName}"`;
+                }
+
+                const updatedValue = value as string | boolean;
+                return `${isFirst ? 'set the ' : ''} ${translations.common[key]} to "${updatedValue}"`;
+            });
+
+            if (fragments.length > 1) {
+                const lastIndex = fragments.length - 1;
+                fragments[lastIndex] = `and ${fragments.at(lastIndex)}`;
+            }
+
+            const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+            return `${fragments.join(', ')} via <a href="${policyRulesRoute}">workspace rules</a>`;
+        },
     },
     transactionMerge: {
         listPage: {

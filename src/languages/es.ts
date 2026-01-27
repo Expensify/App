@@ -1,6 +1,9 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
+import {ValueOf} from 'type-fest';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
@@ -1216,6 +1219,38 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Corrige el error de la tasa de distancia y vuelve a intentarlo.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyID: string, environmentURL: string) => {
+            const entries = Object.entries(policyRulesModifiedFields) as Array<[keyof PolicyRulesModifiedFields, ValueOf<PolicyRulesModifiedFields>]>;
+
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+
+                if (key === 'reimbursable') {
+                    return value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"';
+                }
+
+                if (key === 'billable') {
+                    return value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"';
+                }
+
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    return `${isFirst ? 'estableció el ' : ''} tasa de impuesto a "${taxRateName}"`;
+                }
+
+                const updatedValue = value as string | boolean;
+                return `${isFirst ? 'estableció el ' : ''} ${translations.common[key]} a "${updatedValue}"`;
+            });
+
+            if (fragments.length > 1) {
+                const lastIndex = fragments.length - 1;
+                fragments[lastIndex] = `y ${fragments.at(lastIndex)}`;
+            }
+
+            const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+            return `${fragments.join(', ')} a través de <a href="${policyRulesRoute}">reglas del espacio de trabajo</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
