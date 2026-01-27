@@ -84,25 +84,26 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 
     // When editing, use the existing rule and merge updated fields; when adding, create a new rule
     const targetRuleID = ruleID ?? NumberUtils.rand64();
-    const ruleForOptimisticUpdate: CodingRule = isEditing && existingRule
-        ? {
-            ...existingRule,
-            ...ruleFields,
-            filters: {
-                ...existingRule.filters,
-                right: form.merchantToMatch,
-            },
-        }
-        : {
-            ruleID: targetRuleID,
-            filters: {
-                left: 'merchant',
-                operator: 'eq',
-                right: form.merchantToMatch,
-            },
-            ...ruleFields,
-            created: new Date().toISOString(),
-        };
+    const ruleForOptimisticUpdate: CodingRule =
+        isEditing && existingRule
+            ? {
+                  ...existingRule,
+                  ...ruleFields,
+                  filters: {
+                      ...existingRule.filters,
+                      right: form.merchantToMatch,
+                  },
+              }
+            : {
+                  ruleID: targetRuleID,
+                  filters: {
+                      left: 'merchant',
+                      operator: 'eq',
+                      right: form.merchantToMatch,
+                  },
+                  ...ruleFields,
+                  created: new Date().toISOString(),
+              };
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
