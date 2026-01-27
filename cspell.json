@@ -828,7 +828,6 @@
         "src/languages/pt-BR.ts",
         "src/languages/zh-hans.ts",
         "prompts/translation/fr.ts",
-        "prompts/translation/Glossary.ts",
         "android/app/BUCK",
         "android/app/build_defs.bzl",
         "android/app/build.gradle",
