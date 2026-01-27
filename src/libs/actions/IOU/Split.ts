@@ -1025,7 +1025,7 @@ function updateSplitTransactions({
     const customUnitRateID = originalTransaction?.comment?.customUnit?.customUnitRateID;
     const isPerDiem = isPerDiemRequestTransactionUtils(originalTransaction);
 
-    if (customUnitRateID && policy && !isPerDiem) {
+    if (customUnitRateID && policy && !isPerDiem && isCreationOfSplits) {
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
 
         // If the rate doesn't exist or is disabled, show an error and return early
