@@ -167,6 +167,7 @@ import {
     isSelfDM,
     isUnread,
     isValidReportIDFromPath,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -5578,10 +5579,10 @@ function convertIOUReportToExpenseReport(
         expenseReport.managerID = nextApproverAccountID;
     }
 
-    // Only compute optimistic report name if the user is on the CUSTOM_REPORT_NAMES beta
-    if (isCustomReportNamesBetaEnabled) {
-        const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-        if (!!titleReportField && isPaidGroupPolicy(policy)) {
+    // Compute optimistic report name using the new compute function for beta users, or fallback to populateOptimisticReportFormula for non-beta users
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    if (!!titleReportField && isPaidGroupPolicy(policy)) {
+        if (isCustomReportNamesBetaEnabled) {
             // Convert transactions array to Record<string, Transaction> for FormulaContext
             const transactionsRecord: Record<string, Transaction> = {};
             for (const transaction of reportTransactions) {
@@ -5598,6 +5599,10 @@ function convertIOUReportToExpenseReport(
                 allTransactions: transactionsRecord,
             });
             expenseReport.reportName = computedName ?? expenseReport.reportName;
+        } else {
+            // Fallback to the old populateOptimisticReportFormula for users not on the beta
+            const optimisticReportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
+            expenseReport.reportName = optimisticReportName ?? expenseReport.reportName;
         }
     }
 
