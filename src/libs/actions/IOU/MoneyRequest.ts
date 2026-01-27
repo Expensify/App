@@ -32,9 +32,9 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
     setMultipleMoneyRequestParticipantsFromReport,
-    trackExpense,
 } from './index';
 import {startSplitBill} from './Split';
+import {trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {
     transactions: Transaction[];

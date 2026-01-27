@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
+import type {CreateDistanceRequestInformation, RequestMoneyInformation} from '.';
 import {
     createDistanceRequest,
     getAllReportActionsFromIOU,
@@ -36,8 +36,9 @@ import {
     getMoneyRequestParticipantsFromReport,
     getUserAccountID,
     requestMoney,
-    trackExpense,
 } from '.';
+import type {CreateTrackExpenseParams} from './TrackExpense';
+import {trackExpense} from './TrackExpense';
 
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();

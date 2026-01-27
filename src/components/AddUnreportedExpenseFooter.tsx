@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU';
+import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU/TrackExpense';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
