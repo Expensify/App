@@ -7,8 +7,8 @@ import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigat
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
+import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
