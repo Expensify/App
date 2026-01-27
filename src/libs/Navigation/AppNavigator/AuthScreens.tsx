@@ -43,6 +43,7 @@ import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -226,8 +227,18 @@ function AuthScreens() {
 
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => handleNetworkReconnect());
+
+        // Pusher initialization span
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
+        });
         PusherConnectionManager.init();
-        initializePusher();
+        initializePusher().finally(() => {
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
+        });
+
         // Sometimes when we transition from old dot to new dot, the client is not the leader
         // so we need to initialize the client again
         if (!isClientTheLeader() && isTransitioning) {
