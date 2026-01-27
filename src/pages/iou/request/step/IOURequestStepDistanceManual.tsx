@@ -232,6 +232,7 @@ function IOURequestStepDistanceManual({
             personalPolicy?.autoReporting,
             reportID,
             recentWaypoints,
+            currentUserPersonalDetails.accountID,
         ],
     );
 
