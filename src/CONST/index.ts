@@ -7075,7 +7075,7 @@ const CONST = {
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
             GROUP_CATEGORY: 'groupCategory',
-            GROUP_MONTH: 'groupMonth',
+            GROUP_MONTH: 'groupmonth',
             GROUP_WEEK: 'groupWeek',
         },
         SYNTAX_OPERATORS: {
