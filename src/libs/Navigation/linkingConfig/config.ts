@@ -311,6 +311,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT,
                             exact: true,

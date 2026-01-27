@@ -144,6 +144,7 @@ export type {default as FlagCommentParams} from './FlagCommentParams';
 export type {default as UpdateReportPrivateNoteParams} from './UpdateReportPrivateNoteParams';
 export type {default as UpdateCompanyInformationForBankAccountParams} from './UpdateCompanyInformationForBankAccountParams';
 export type {default as UpdatePersonalDetailsForWalletParams} from './UpdatePersonalDetailsForWalletParams';
+export type {default as UpdatePersonalBankAccountInfoParams} from './UpdatePersonalBankAccountInfoParams';
 export type {default as VerifyIdentityParams} from './VerifyIdentityParams';
 export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams';
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';

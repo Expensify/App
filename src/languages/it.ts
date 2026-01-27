@@ -3138,6 +3138,11 @@ ${
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
         toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o abilitare il portafoglio Expensify.',
+        updatePersonalInfo: 'Aggiorna conto bancario',
+        updatePersonalInfoFailure: 'Impossibile aggiornare le informazioni del conto bancario. Riprova più tardi.',
+        updateSuccessTitle: 'Conto bancario aggiornato!',
+        updateSuccessHeader: 'Conto bancario aggiornato',
+        updateSuccessMessage: 'Complimenti, il tuo conto bancario è configurato e pronto a ricevere rimborsi.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',

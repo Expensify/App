@@ -37,6 +37,8 @@ type PaymentMethodItem = PaymentMethod & {
     cardID?: number;
     plaidUrl?: string;
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    /** Whether the personal bank account is missing required personal info (name, address, phone) */
+    isMissingPersonalInfo?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -89,6 +91,13 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
 }
 
+/**
+ * Returns true if the account needs action - either partially setup or missing personal info
+ */
+function isAccountNeedingAction(account: PaymentMethodItem) {
+    return isAccountInSetupState(account) || !!account.isMissingPersonalInfo;
+}
+
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const styles = useThemeStyles();
@@ -96,7 +105,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isAccountInSetupState(item) || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (isAccountNeedingAction(item) || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
@@ -105,7 +114,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     const getBadgeText = useCallback(
         (listItem: PaymentMethodItem) => {
-            if (isAccountInSetupState(listItem)) {
+            if (isAccountNeedingAction(listItem)) {
                 return translate('common.actionRequired');
             }
             return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
@@ -134,8 +143,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
                 badgeText={getBadgeText(item)}
-                badgeIcon={isAccountInSetupState(item) ? icons.DotIndicator : undefined}
-                badgeSuccess={isAccountInSetupState(item) ? true : undefined}
+                badgeIcon={isAccountNeedingAction(item) ? icons.DotIndicator : undefined}
+                badgeSuccess={isAccountNeedingAction(item) ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={item.iconRight}
                 shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}

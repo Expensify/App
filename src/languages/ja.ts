@@ -3128,6 +3128,11 @@ ${
         confirmationStepHeader: '情報を確認してください。',
         confirmationStepSubHeader: '以下の詳細を再確認し、確認するには利用規約のチェックボックスをオンにしてください。',
         toGetStarted: '払い戻しを受け取ったり、請求書を支払ったり、Expensify Wallet を有効にしたりするには、個人の銀行口座を追加します。',
+        updatePersonalInfo: '銀行口座を更新',
+        updatePersonalInfoFailure: '銀行口座情報を更新できませんでした。後でもう一度お試しください。',
+        updateSuccessTitle: '銀行口座が更新されました！',
+        updateSuccessHeader: '銀行口座が更新されました',
+        updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',

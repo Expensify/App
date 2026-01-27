@@ -30,6 +30,7 @@ import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {filterPersonalCards, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,6 +64,7 @@ function WalletPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -151,6 +153,11 @@ function WalletPage() {
     };
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
+        if (isPersonalBankAccountMissingInfo(accountData, privatePersonalDetails)) {
+            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT);
+            return;
+        }
+
         const accountPolicyID = accountData?.additionalData?.policyID;
 
         if (accountPolicyID) {

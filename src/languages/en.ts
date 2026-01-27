@@ -3133,6 +3133,11 @@ const translations = {
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
         toGetStarted: 'Add a personal bank account to receive reimbursements, pay invoices, or enable the Expensify Wallet.',
+        updatePersonalInfo: 'Update bank account',
+        updatePersonalInfoFailure: 'Unable to update bank account information. Please try again later.',
+        updateSuccessTitle: 'Bank account updated!',
+        updateSuccessHeader: 'Bank account updated',
+        updateSuccessMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
