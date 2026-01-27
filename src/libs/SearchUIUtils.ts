@@ -3613,22 +3613,22 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
-function shouldShowDeleteOption(selectedTransactions: Record<string, SelectedTransactionInfo>, currentSearchResults: SearchResults | undefined, isOffline: boolean) {
+function shouldShowDeleteOption(selectedTransactions: Record<string, SelectedTransactionInfo>, currentSearchResults: SearchResults['data'] | undefined, isOffline: boolean) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
     return (
         !isOffline &&
         selectedTransactionsKeys.every((id) => {
-            const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id];
+            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id];
             if (!transaction) {
                 return false;
             }
             const parentReportID = transaction.reportID;
-            const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
+            const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
             if (!parentReport) {
                 return false;
             }
-            const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+            const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
             const parentReportAction =
                 Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                 selectedTransactions[id].reportAction;

@@ -922,7 +922,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        if (shouldShowDeleteOption(selectedTransactions, currentSearchResults, isOffline)) {
+        if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, isOffline)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),

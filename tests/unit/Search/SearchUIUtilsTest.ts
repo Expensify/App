@@ -3813,35 +3813,24 @@ describe('SearchUIUtils', () => {
             const TEST_DISTANCE = 341.38;
 
             const currentSearchResults = {
-                data: {
-                    [TEST_GROUP_KEY]: {
+                [TEST_GROUP_KEY]: {
+                    accountID: TEST_ACCOUNT_ID,
+                    count: 1,
+                    currency: 'USD',
+                    total: TEST_AMOUNT,
+                },
+                personalDetailsList: {
+                    [TEST_ACCOUNT_ID]: {
                         accountID: TEST_ACCOUNT_ID,
-                        count: 1,
-                        currency: 'USD',
-                        total: TEST_AMOUNT,
-                    },
-                    personalDetailsList: {
-                        [TEST_ACCOUNT_ID]: {
-                            accountID: TEST_ACCOUNT_ID,
-                            avatar: '',
-                            displayName: 'Test User',
-                            email: 'test@example.com',
-                            firstName: 'Test',
-                            lastName: 'User',
-                            login: 'test@example.com',
-                        },
+                        avatar: '',
+                        displayName: 'Test User',
+                        email: 'test@example.com',
+                        firstName: 'Test',
+                        lastName: 'User',
+                        login: 'test@example.com',
                     },
                 },
-                search: {
-                    hasMoreResults: false,
-                    hasResults: true,
-                    nextOffset: 18446744073709552000,
-                    offset: 0,
-                    status: '',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            } as OnyxTypes.SearchResults;
+            } as OnyxTypes.SearchResults['data'];
 
             const selectedTransactions = {
                 [TEST_TRANSACTION_ID]: {
