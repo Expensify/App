@@ -8083,6 +8083,12 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',
             button: 'Pobierz aplikację',
         },
+        continueGpsTripModal: {
+            title: 'Kontynuować rejestrowanie trasy GPS?',
+            prompt: 'Wygląda na to, że aplikacja została zamknięta podczas Twojej ostatniej trasy GPS. Czy chcesz kontynuować rejestrowanie z tamtej trasy?',
+            confirm: 'Kontynuuj podróż',
+            cancel: 'Zobacz podróż',
+        },
         notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby dokończyć'},
         signOutWarningTripInProgress: {title: 'Śledzenie GPS w toku', prompt: 'Czy na pewno chcesz porzucić podróż i się wylogować?', confirm: 'Odrzuć i wyloguj się'},
         locationServicesRequiredModal: {

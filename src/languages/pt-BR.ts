@@ -8093,6 +8093,12 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             subtitle: 'Registre milhas ou quilômetros automaticamente com o GPS e transforme viagens em despesas instantaneamente.',
             button: 'Baixar o app',
         },
+        continueGpsTripModal: {
+            title: 'Continuar gravação da viagem por GPS?',
+            prompt: 'Parece que o app foi fechado durante sua última viagem com GPS. Você gostaria de continuar a gravação dessa viagem?',
+            confirm: 'Continuar viagem',
+            cancel: 'Ver viagem',
+        },
         signOutWarningTripInProgress: {title: 'Rastreamento por GPS em andamento', prompt: 'Tem certeza de que deseja descartar a viagem e sair?', confirm: 'Descartar e sair'},
         notification: {title: 'Rastreamento por GPS em andamento', body: 'Ir para o app para finalizar'},
         locationServicesRequiredModal: {

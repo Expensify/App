@@ -8122,6 +8122,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
         },
+        continueGpsTripModal: {
+            title: 'Continuare la registrazione del viaggio GPS?',
+            prompt: 'Sembra che l’app si sia chiusa durante il tuo ultimo viaggio GPS. Vuoi continuare a registrare da quel viaggio?',
+            confirm: 'Continua viaggio',
+            cancel: 'Visualizza viaggio',
+        },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
         signOutWarningTripInProgress: {title: 'Tracciamento GPS in corso', prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?', confirm: 'Annulla e disconnettiti'},
         locationServicesRequiredModal: {

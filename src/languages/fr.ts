@@ -8140,6 +8140,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
             button: 'Télécharger l’application',
         },
+        continueGpsTripModal: {
+            title: 'Continuer l’enregistrement du trajet GPS ?',
+            prompt: 'Il semble que l’application se soit fermée pendant votre dernier trajet GPS. Souhaitez-vous continuer l’enregistrement à partir de ce trajet ?',
+            confirm: 'Continuer le voyage',
+            cancel: 'Afficher le voyage',
+        },
         signOutWarningTripInProgress: {title: 'Suivi GPS en cours', prompt: 'Voulez-vous vraiment abandonner le déplacement et vous déconnecter ?', confirm: 'Ignorer et se déconnecter'},
         notification: {title: 'Suivi GPS en cours', body: 'Aller dans l’application pour terminer'},
         locationServicesRequiredModal: {

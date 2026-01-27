@@ -8038,6 +8038,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
         signOutWarningTripInProgress: {title: 'GPS追跡を実行中', prompt: 'この出張を破棄してサインアウトしてもよろしいですか？', confirm: '破棄してサインアウト'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        continueGpsTripModal: {
+            title: 'GPS の走行記録を続けますか？',
+            prompt: '前回のGPS移動中にアプリが終了したようです。その移動の記録を続けますか？',
+            confirm: '出張を続ける',
+            cancel: '出張を表示',
+        },
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
             confirm: '設定を開く',

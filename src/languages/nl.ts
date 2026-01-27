@@ -8098,6 +8098,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
         notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
+        continueGpsTripModal: {
+            title: 'GPS-reisregistratie voortzetten?',
+            prompt: 'Het lijkt erop dat de app is afgesloten tijdens je laatste GPS-rit. Wil je de opname van die rit hervatten?',
+            confirm: 'Reis voortzetten',
+            cancel: 'Reis bekijken',
+        },
         signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',

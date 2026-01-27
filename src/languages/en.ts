@@ -7214,6 +7214,12 @@ const translations = {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
         },
+        continueGpsTripModal: {
+            title: 'Continue GPS trip recording?',
+            prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',
+            confirm: 'Continue trip',
+            cancel: 'View trip',
+        },
         signOutWarningTripInProgress: {
             title: 'GPS tracking in progress',
             prompt: 'Are you sure you want to discard the trip and sign out?',
