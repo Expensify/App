@@ -1710,6 +1710,7 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
+    searchInputValue,
     loginsToExclude = {},
     selectedOptions = [],
     showChatPreviewLine = false,
@@ -1729,6 +1730,9 @@ function getUserToInviteOption({
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude = loginsToExclude[addSMSDomainIfPhoneNumber(searchValue).toLowerCase()];
+    const trimmedSearchInputValue = searchInputValue?.trim();
+    const shouldUseSearchInputValue = shouldAcceptName && !!trimmedSearchInputValue && !isValidEmail && !isValidPhoneNumber;
+    const displayValue = shouldUseSearchInputValue ? trimmedSearchInputValue : searchValue;
 
     // Angle brackets are not valid characters for user names
     const hasInvalidCharacters = shouldAcceptName && (searchValue.includes('<') || searchValue.includes('>'));
@@ -1752,9 +1756,11 @@ function getUserToInviteOption({
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    userToInvite.text = userToInvite.text || searchValue;
+    userToInvite.text = userToInvite.text || displayValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    userToInvite.alternateText = userToInvite.alternateText || searchValue;
+    userToInvite.displayName = userToInvite.displayName || displayValue;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    userToInvite.alternateText = userToInvite.alternateText || displayValue;
 
     // If user doesn't exist, use a fallback avatar
     userToInvite.icons = [
@@ -2178,6 +2184,7 @@ function getValidOptions(
         excludeHiddenThreads = false,
         canShowManagerMcTest = false,
         searchString,
+        searchInputValue,
         maxElements,
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
@@ -2378,6 +2385,7 @@ function getValidOptions(
             {
                 excludeLogins: loginsToExclude,
                 shouldAcceptName,
+                searchInputValue,
             },
         );
     }
@@ -2522,11 +2530,24 @@ function getFilteredRecentAttendees(
         });
     }
 
-    const filteredRecentAttendees = recentAttendees
+    // Deduplicate recentAttendees: use email for regular users, displayName for name-only attendees
+    const seenAttendees = new Set<string>();
+    const deduplicatedRecentAttendees = recentAttendees.filter((attendee) => {
+        const key = attendee.email || attendee.displayName || '';
+        if (seenAttendees.has(key)) {
+            return false;
+        }
+        seenAttendees.add(key);
+        return true;
+    });
+
+    const filteredRecentAttendees = deduplicatedRecentAttendees
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
             ...attendee,
-            login: attendee.email ? attendee.email : attendee.displayName,
+            // Use || instead of ?? to handle empty string email for name-only attendees
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            login: attendee.email || attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetails));
@@ -2903,6 +2924,7 @@ function filterOptions(
     config?: FilterUserToInviteConfig,
 ): Options {
     const trimmedSearchInput = searchInputValue.trim();
+    const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
@@ -2923,7 +2945,10 @@ function filterOptions(
         currentUserEmail,
         currentUserAccountID,
         countryCode,
-        config,
+        {
+            ...config,
+            searchInputValue: searchInputValueForInvite,
+        },
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 
