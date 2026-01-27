@@ -2248,19 +2248,10 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Verify the tag was created
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
-                    callback: (policyTags) => {
-                        Onyx.disconnect(connection);
-                        const tagList = Object.values(policyTags ?? {}).at(0);
-                        const newTag = tagList?.tags?.[newTagName];
-                        expect(newTag?.name).toBe(newTagName);
-                        resolve();
-                    },
-                });
-            });
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            const tagList = Object.values(policyTags ?? {}).at(0);
+            const newTag = tagList?.tags?.[newTagName];
+            expect(newTag?.name).toBe(newTagName);
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -2290,19 +2281,10 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Verify the tag was created
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
-                    callback: (policyTags) => {
-                        Onyx.disconnect(connection);
-                        const tagList = Object.values(policyTags ?? {}).at(0);
-                        const newTag = tagList?.tags?.[newTagName];
-                        expect(newTag?.name).toBe(newTagName);
-                        resolve();
-                    },
-                });
-            });
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            const tagList = Object.values(policyTags ?? {}).at(0);
+            const newTag = tagList?.tags?.[newTagName];
+            expect(newTag?.name).toBe(newTagName);
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -2332,19 +2314,10 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Verify the tag was created
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
-                    callback: (policyTags) => {
-                        Onyx.disconnect(connection);
-                        const tagList = Object.values(policyTags ?? {}).at(0);
-                        const newTag = tagList?.tags?.[newTagName];
-                        expect(newTag?.name).toBe(newTagName);
-                        resolve();
-                    },
-                });
-            });
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            const tagList = Object.values(policyTags ?? {}).at(0);
+            const newTag = tagList?.tags?.[newTagName];
+            expect(newTag?.name).toBe(newTagName);
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
