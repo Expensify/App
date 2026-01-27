@@ -1065,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
         scanFailed: 'De bon kon niet worden gescand, omdat er een handelaar, datum of bedrag ontbreekt.',
+        addAReceipt: {
+            phrase1: 'Bon toevoegen',
+            phrase2: 'of sleep hem hierheen',
+        },
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
