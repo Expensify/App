@@ -6874,22 +6874,19 @@ function buildOptimisticExpenseReport(
         expenseReport.managerID = submitToAccountID;
     }
 
-    // Only compute optimistic report name if the user is on the CUSTOM_REPORT_NAMES beta
-    if (Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, allBetas)) {
-        const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-        if (!!titleReportField && isGroupPolicy(policy?.type ?? '')) {
-            const formulaContext: FormulaContext = {
-                report: expenseReport,
-                policy,
-                allTransactions: reportTransactions ?? {},
-            };
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    if (!!titleReportField && isGroupPolicy(policy?.type ?? '')) {
+        const formulaContext: FormulaContext = {
+            report: expenseReport,
+            policy,
+            allTransactions: reportTransactions ?? {},
+        };
 
-            // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
-            // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-            const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
-            const computedName = Formula.compute(titleReportField.defaultValue, formulaContext);
-            expenseReport.reportName = computedName ?? expenseReport.reportName;
-        }
+        // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+        const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
+        const computedName = Formula.compute(titleReportField.defaultValue, formulaContext);
+        expenseReport.reportName = computedName ?? expenseReport.reportName;
     }
 
     expenseReport.fieldList = policy?.fieldList;
@@ -6921,20 +6918,17 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         managerID: getManagerAccountID(policy, {ownerAccountID: accountID}),
     };
 
-    // Only compute optimistic report name if the user is on the CUSTOM_REPORT_NAMES beta
-    if (Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, allBetas)) {
-        const formulaContext: FormulaContext = {
-            report: optimisticEmptyReport as Report,
-            policy,
-            allTransactions: {},
-        };
+    const formulaContext: FormulaContext = {
+        report: optimisticEmptyReport as Report,
+        policy,
+        allTransactions: {},
+    };
 
-        // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-        const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
-        const optimisticReportName = Formula.compute(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, formulaContext);
-        optimisticEmptyReport.reportName = optimisticReportName ?? '';
-    }
+    // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
+    const optimisticReportName = Formula.compute(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, formulaContext);
+    optimisticEmptyReport.reportName = optimisticReportName ?? '';
 
     optimisticEmptyReport.participants = accountID
         ? {
