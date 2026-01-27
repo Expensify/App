@@ -3017,6 +3017,62 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.total).toBe(250);
             expect(result.at(1)?.total).toBe(75);
         });
+
+        it('should sort "No tag" alphabetically with other tags (not at the top)', () => {
+            // "No tag" text should sort alphabetically, not first due to empty string
+            const emptyTagDisplayText = translateLocal('search.noTag');
+
+            const tagListItemsWithEmptyTag: TransactionTagGroupListItemType[] = [
+                {
+                    tag: 'Zulu',
+                    count: 2,
+                    currency: 'USD',
+                    total: 100,
+                    groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                    formattedTag: 'Zulu',
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    tag: '',
+                    count: 1,
+                    currency: 'USD',
+                    total: 50,
+                    groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                    // formattedTag is the translated "No tag" text, not empty string
+                    formattedTag: emptyTagDisplayText,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    tag: 'Alpha',
+                    count: 3,
+                    currency: 'USD',
+                    total: 150,
+                    groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                    formattedTag: 'Alpha',
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                tagListItemsWithEmptyTag,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                CONST.SEARCH.GROUP_BY.TAG,
+            ) as TransactionTagGroupListItemType[];
+
+            // In ascending alphabetical order: Alpha < No tag < Zulu
+            // "No tag" should NOT be at the top (that was the bug with empty string sorting)
+            expect(result.at(0)?.formattedTag).toBe('Alpha');
+            expect(result.at(1)?.formattedTag).toBe(emptyTagDisplayText);
+            expect(result.at(2)?.formattedTag).toBe('Zulu');
+        });
     });
 
     describe('Test createTypeMenuItems', () => {
