@@ -80,9 +80,9 @@ function openPolicyRulesPage(policyID: string | undefined) {
  * @param form - The form data for the merchant rule
  * @param policy - The policy object (needed to build tax data)
  * @param ruleID - Optional existing rule ID for updates
- * @param updateMatchingTransactions - Whether to update transactions that match the rule
+ * @param shouldUpdateMatchingTransactions - Whether to update transactions that match the rule
  */
-function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: Policy | undefined, ruleID?: string, updateMatchingTransactions = false) {
+function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: Policy | undefined, ruleID?: string, shouldUpdateMatchingTransactions = false) {
     if (!policyID || !form.merchantToMatch) {
         Log.warn('Invalid params for setPolicyCodingRule', {policyID, merchantToMatch: form.merchantToMatch});
         return;
@@ -160,7 +160,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
         policyID,
         ruleID: optimisticRuleID,
         value: JSON.stringify(optimisticRule),
-        updateMatchingTransactions,
+        shouldUpdateMatchingTransactions,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
