@@ -29,7 +29,6 @@ import type {
     AddNewCardFeedStep,
     CardFeedData,
     CardFeedDetails,
-    CardFeedWithNumber,
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
@@ -322,6 +321,10 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 
+    if (!bankName) {
+        return;
+    }
+
     const failedCardAssignment: FailedCardAssignment = {
         domainOrWorkspaceAccountID,
         bankName,
@@ -338,7 +341,7 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
     const parameters: AssignCompanyCardParams = {
         domainAccountID: domainOrWorkspaceAccountID,
         policyID: policy.id,
-        bankName: (bankName ?? '') as CardFeedWithNumber,
+        bankName,
         encryptedCardNumber,
         cardName: customCardName,
         email,

@@ -319,10 +319,10 @@ const cardFeedsCollection: OnyxCollection<CardFeeds> = {
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const allCardsList = {
-    'cards_11111111_oauth.capitalone.com': directFeedCardsMultipleList,
-    cards_11111111_vcf1: customFeedCardsList,
-    'cards_22222222_oauth.chase.com': directFeedCardsSingleList,
-    'cards_11111111_Expensify Card': {
+    [`cards_11111111_${CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE}`]: directFeedCardsMultipleList,
+    [`cards_11111111_${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`]: customFeedCardsList,
+    [`cards_22222222_${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}`]: directFeedCardsSingleList,
+    [`cards_11111111_${CONST.EXPENSIFY_CARD.BANK}`]: {
         '21570657': {
             accountID: 18439984,
             bank: CONST.EXPENSIFY_CARD.BANK,
@@ -336,7 +336,7 @@ const allCardsList = {
             state: 2,
         },
     },
-    'cards_10101_Expensify Card': {
+    [`cards_10101_${CONST.EXPENSIFY_CARD.BANK}`]: {
         '21570657': {
             accountID: 18439984,
             bank: CONST.EXPENSIFY_CARD.BANK,
@@ -649,13 +649,13 @@ describe('CardUtils', () => {
         });
 
         it('Should return a valid name if an OldDot feed variation was provided', () => {
-            const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeed;
+            const feed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 2003` as CompanyCardFeed;
             const feedName = getBankName(feed);
             expect(feedName).toBe('American Express');
         });
 
         it('Should return a valid name if a CSV imported feed variation was provided', () => {
-            const feed = 'cards_2267989_ccupload666' as CompanyCardFeed;
+            const feed = `cards_10101_${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}666` as CompanyCardFeed;
             const feedName = getBankName(feed);
             expect(feedName).toBe('CSV');
         });
@@ -935,7 +935,7 @@ describe('CardUtils', () => {
                 },
                 '21570655': {
                     accountID: 18439984,
-                    bank: 'oauth.capitalone.com',
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
                     cardID: 21570655,
                     cardName: 'CREDIT CARD...5678',
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
@@ -949,7 +949,7 @@ describe('CardUtils', () => {
                 },
                 '21570656': {
                     accountID: 18439984,
-                    bank: 'oauth.capitalone.com',
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
                     cardID: 21570656,
                     cardName: 'CREDIT CARD...4444',
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
@@ -963,7 +963,7 @@ describe('CardUtils', () => {
                 },
                 '21570657': {
                     accountID: 18439984,
-                    bank: 'Expensify Card',
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     cardID: 21570657,
                     cardName: 'CREDIT CARD...5644',
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
@@ -1051,7 +1051,7 @@ describe('CardUtils', () => {
                 cardID: 1,
                 accountID: 1,
                 cardName: 'Card 1',
-                bank: 'Expensify Card',
+                bank: CONST.EXPENSIFY_CARD.BANK,
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
                 lastFourPAN: '',
@@ -1062,7 +1062,7 @@ describe('CardUtils', () => {
             '2': {
                 cardID: 2,
                 accountID: 2,
-                bank: 'Expensify Card',
+                bank: CONST.EXPENSIFY_CARD.BANK,
                 cardName: 'Card 2',
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
@@ -1074,7 +1074,7 @@ describe('CardUtils', () => {
             '3': {
                 cardID: 3,
                 accountID: 3,
-                bank: 'Expensify Card',
+                bank: CONST.EXPENSIFY_CARD.BANK,
                 cardName: 'Card 3',
                 domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                 fraud: 'none',
@@ -1132,7 +1132,7 @@ describe('CardUtils', () => {
                     cardID: 1,
                     accountID: 1,
                     cardName: 'Card 1',
-                    bank: 'Expensify Card',
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                     fraud: 'none',
                     lastFourPAN: '',
@@ -1143,7 +1143,7 @@ describe('CardUtils', () => {
                 '2': {
                     cardID: 2,
                     cardName: 'Card 2',
-                    bank: 'Expensify Card',
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
                     fraud: 'none',
                     lastFourPAN: '',
@@ -1195,7 +1195,7 @@ describe('CardUtils', () => {
                 state: 2,
             };
             const description = getCardDescription(card, translateLocal);
-            expect(description).toBe('Expensify Card');
+            expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
         });
     });
 
@@ -1316,9 +1316,14 @@ describe('CardUtils', () => {
     describe('splitCompanyCardFeedWithDomainID', () => {
         it('should split the feed name and domain ID', () => {
             const feedName = 'vcf#11111111';
-            const {feedName: splitFeedName, domainID} = splitCompanyCardFeedWithDomainID(feedName);
-            expect(splitFeedName).toBe('vcf');
-            expect(domainID).toBe(11111111);
+
+            const splitFeedName = splitCompanyCardFeedWithDomainID(feedName);
+            if (!splitFeedName) {
+                throw new Error('Failed to split feed name');
+            }
+
+            expect(splitFeedName.feedName).toBe('vcf');
+            expect(splitFeedName.domainID).toBe(11111111);
         });
     });
 

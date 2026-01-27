@@ -563,18 +563,28 @@ function getCompanyCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: 
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
 
-function splitCompanyCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber | undefined; domainID: number | undefined} {
+function splitCompanyCardFeedWithDomainID(
+    feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined,
+): {feedName: CardFeedWithNumber | undefined; domainID: number | undefined} | undefined {
     if (!feedName) {
-        return {feedName: undefined, domainID: undefined};
+        return;
     }
 
     const feedNameParts = feedName.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
 
     if (feedNameParts.length !== 2) {
-        return {feedName: feedName as CardFeedWithNumber, domainID: undefined};
+        return;
     }
 
-    return {feedName: feedNameParts.at(0) as CardFeedWithNumber, domainID: Number(feedNameParts.at(1))};
+    const feedNamePart = feedNameParts.at(0);
+    const domainIDPart = feedNameParts.at(1);
+    const domainID = Number(domainIDPart);
+
+    if (!feedNamePart || Number.isNaN(domainID)) {
+        return;
+    }
+
+    return {feedName: feedNamePart as CardFeedWithNumber, domainID};
 }
 
 function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
@@ -857,7 +867,12 @@ function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithD
         return fallbackFeed;
     }
 
-    return (splitCompanyCardFeedWithDomainID(feedWithDomainID).feedName ?? fallbackFeed) as CompanyCardFeedWithNumber;
+    const splitFeedName = splitCompanyCardFeedWithDomainID(feedWithDomainID);
+    if (!splitFeedName?.feedName) {
+        return fallbackFeed;
+    }
+
+    return (splitFeedName.feedName as CompanyCardFeedWithNumber) ?? fallbackFeed;
 }
 
 /**
