@@ -254,6 +254,7 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         isSelfTourViewed,
+                        personalDetails,
                     });
                     return;
                 }

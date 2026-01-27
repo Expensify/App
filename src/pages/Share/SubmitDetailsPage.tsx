@@ -195,6 +195,7 @@ function SubmitDetailsPage({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 isSelfTourViewed,
+                personalDetails,
             });
         }
     };
