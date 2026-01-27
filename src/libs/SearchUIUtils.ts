@@ -1177,7 +1177,15 @@ function shouldShowYear(
  * Extracts all transaction violations from the search data.
  */
 function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.TransactionViolation[]> {
-    return Object.fromEntries(Object.entries(data).filter(([key]) => isViolationEntry(key))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    const violations: OnyxCollection<OnyxTypes.TransactionViolation[]> = {};
+
+    for (const key in data) {
+        if (isViolationEntry(key)) {
+            violations[key] = data[key] as OnyxTypes.TransactionViolation[];
+        }
+    }
+
+    return violations;
 }
 
 /**

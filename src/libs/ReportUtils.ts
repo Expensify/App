@@ -11528,7 +11528,7 @@ function prepareOnboardingOnyxData({
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
-    const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
+    const assignedGuidePersonalDetail = getPersonalDetailByEmail(assignedGuideEmail);
     let assignedGuideAccountID: number;
     let isOptimisticAssignedGuide = false;
     if (assignedGuidePersonalDetail && assignedGuidePersonalDetail.accountID) {

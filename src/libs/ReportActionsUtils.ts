@@ -1683,8 +1683,14 @@ function getMemberChangeMessageElements(
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
     const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
 
+    // Create a lookup map for O(1) access instead of O(n) .find() on each iteration
+    const personalDetailsMap: Record<number, PersonalDetails> = {};
+    for (const detail of personalDetails) {
+        personalDetailsMap[detail.accountID] = detail;
+    }
+
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
-        const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
+        const personalDetail = personalDetailsMap[accountID];
         const handleText = getEffectiveDisplayName(formatPhoneNumber, personalDetail) ?? translate('common.hidden');
 
         return {
@@ -2108,8 +2114,15 @@ function getActionableMentionWhisperMessage(translate: LocalizedTranslate, repor
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.inviteeAccountIDs ?? [];
     const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
+
+    // Create a lookup map for O(1) access instead of O(n) .find() on each iteration
+    const personalDetailsMap: Record<number, PersonalDetails> = {};
+    for (const detail of personalDetails) {
+        personalDetailsMap[detail.accountID] = detail;
+    }
+
     const mentionElements = targetAccountIDs.map((accountID): string => {
-        const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
+        const personalDetail = personalDetailsMap[accountID];
         const displayName = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
         const handleText = isEmpty(displayName) ? translate('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
