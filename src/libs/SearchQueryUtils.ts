@@ -17,8 +17,8 @@ import type {
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
-    SingularSearchStatus,
     SearchWithdrawalType,
+    SingularSearchStatus,
     UserFriendlyKey,
     UserFriendlyValue,
 } from '@components/Search/types';
@@ -435,7 +435,7 @@ function normalizeStatusValue(value: string, translate: LocaleContextProps['tran
 
 function normalizeStatusValues(status: SearchStatus, translate: LocaleContextProps['translate'], type: SearchDataTypes): SearchStatus {
     if (Array.isArray(status)) {
-        return status.map((value) => normalizeStatusValue(value, translate, type)) as SingularSearchStatus[];
+        return status.map((value) => normalizeStatusValue(value, translate, type));
     }
 
     return normalizeStatusValue(status, translate, type);
