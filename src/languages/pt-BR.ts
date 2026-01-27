@@ -761,14 +761,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Revogar',
-            title: 'Rosto/digital e passkeys',
+            title: 'Reconhecimento facial/digital & chaves de acesso',
             explanation:
-                'A verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
-            confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo',
+                'Verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
+            confirmationPrompt: 'Tem certeza? Você precisará de um código mágico para a próxima verificação em qualquer dispositivo',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação com rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
-            error: 'Falha na solicitação. Tente novamente mais tarde.',
+            error: 'A solicitação falhou. Tente novamente mais tarde.',
         },
     },
     validateCodeModal: {
@@ -4887,8 +4887,8 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
             error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',
-                workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou entre em contato com o administrador.',
+                workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds de cartão',
+                workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do espaço de trabalho. Tente novamente ou entre em contato com o seu administrador.',
                 feedCouldNotBeLoadedTitle: 'Não foi possível carregar este feed',
                 feedCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar este feed. Tente novamente ou entre em contato com o seu administrador.',
                 tryAgain: 'Tentar novamente',

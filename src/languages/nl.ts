@@ -762,12 +762,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Intrekken',
-            title: 'Gezichts-/vingerafdrukherkenning & passkeys',
+            title: 'Gezichtsherkenning/vingerafdruk & passkeys',
             explanation:
-                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op een of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
+                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
             confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat',
             cta: 'Toegang intrekken',
-            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkey-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
+            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkeys-verificatie. Als je er een registreert, kun je hier die toegang intrekken.',
             dismiss: 'Begrepen',
             error: 'Aanvraag mislukt. Probeer het later opnieuw.',
         },
@@ -4898,12 +4898,12 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
             error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
+                workspaceFeedsCouldNotBeLoadedTitle: 'Kaartfeeds konden niet worden geladen',
                 workspaceFeedsCouldNotBeLoadedMessage:
                     'Er is een fout opgetreden bij het laden van de kaartfeeds van de werkruimte. Probeer het opnieuw of neem contact op met uw beheerder.',
                 feedCouldNotBeLoadedTitle: 'Kon deze feed niet laden',
                 feedCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van deze feed. Probeer het opnieuw of neem contact op met uw beheerder.',
-                tryAgain: 'Opnieuw proberen',
+                tryAgain: 'Probeer het opnieuw',
             },
         },
         expensifyCard: {
