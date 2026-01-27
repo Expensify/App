@@ -8049,8 +8049,8 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
                 'We raden aan om de account veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <ul><li>Openstaande goedkeuringen</li><li>Actieve terugbetalingen</li><li>Geen alternatieve inlogmethoden</li></ul> Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde account geforceerd sluiten.',
             error: {
                 removeMember: 'Kan deze gebruiker niet verwijderen. Probeer het opnieuw.',
-                addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.'
-                },
+                addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.',
+            },
         },
         domainAdmins: 'Domeinbeheerders',
     },

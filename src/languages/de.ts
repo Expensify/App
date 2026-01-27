@@ -8080,8 +8080,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 'Wir empfehlen, das Konto sicher zu schließen, um das Schließen zu überspringen, falls Folgendes vorliegt: <ul><li>Ausstehende Genehmigungen</li><li>Aktive Erstattungen</li><li>Keine alternativen Anmeldemethoden</li></ul> Andernfalls können Sie die oben genannten Sicherheitsvorkehrungen ignorieren und das ausgewählte Konto zwangsweise schließen.',
             error: {
                 removeMember: 'Dieser Benutzer kann nicht entfernt werden. Bitte versuche es erneut.',
-                addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.'
-                },
+                addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
+            },
         },
         domainAdmins: 'Domain-Admins',
     },
