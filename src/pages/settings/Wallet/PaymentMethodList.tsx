@@ -220,13 +220,16 @@ function PaymentMethodList({
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
+                    const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl,
                         title: maskCardNumber(card.cardName, card.bank),
-                        description: lastFourPAN
-                            ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                            : getDescriptionForPolicyDomainCard(card.domainName),
+                        description: isCSVImportCard
+                            ? translate('cardPage.csvCardDescription')
+                            : lastFourPAN
+                                ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
+                                : getDescriptionForPolicyDomainCard(card.domainName),
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
