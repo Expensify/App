@@ -3589,6 +3589,7 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             OTHER: 'Other',
+            CSV_IMPORT: 'Import transactions from file',
         },
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
