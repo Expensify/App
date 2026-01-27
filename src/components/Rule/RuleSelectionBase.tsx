@@ -6,6 +6,7 @@ import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectio
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
+import type {Route} from '@src/ROUTES';
 
 type SelectionItem = {
     name: string;
@@ -32,7 +33,7 @@ type RuleSelectionBaseProps = {
     onBack: () => void;
 
     /** The route to navigate back to */
-    backToRoute: string;
+    backToRoute: Route;
 
     /** Optional wrapper component for the content */
     ContentWrapper?: React.ComponentType<{children: React.ReactNode}>;
