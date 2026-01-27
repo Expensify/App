@@ -309,49 +309,48 @@ type WorkspaceCardsList = CardList & {
 };
 
 /**
+ *
+ */
+type CardAssignmentData = {
+    /**
+     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
+     */
+    cardName: string;
+
+    /**
+     * The card identifier sent to backend.
+     * For direct feeds (Plaid/OAuth): equals cardName
+     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
+     */
+    encryptedCardNumber: string;
+
+    /** User-defined name for the card (e.g., "John's card") */
+    customCardName?: string;
+
+    /** Cardholder personal details */
+    cardholder?: PersonalDetails | null;
+
+    /** Errors */
+    errors?: OnyxCommon.Errors;
+
+    /**
+     *
+     */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /** Pending action */
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+/**
  * Pending action for a company card assignment
  */
-type FailedCardAssignment = {
+type FailedCardAssignment = CardAssignmentData & {
     /** The domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
     /** The name of the feed */
-    feed: CardFeedWithNumber | undefined;
-
-    /** Cardholder personal details */
-    cardholder?: PersonalDetails;
-
-    /** The name of the card */
-    cardName: string;
-
-    /** Custom card name */
-    customCardName?: string;
-
-    /** Failed company card assignment */
-    hasFailedCardAssignment: boolean;
-
-    /** Encrypted card number */
-    encryptedCardNumber: string;
-
-    /** Card related error messages */
-    errors?: OnyxCommon.Errors;
-
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-
-    /** Whether the card is deleted */
-    isCardDeleted: boolean;
-
-    /** Whether the card is assigned */
-    isAssigned: boolean;
-
-    /** Assigned card */
-    assignedCard: Card | undefined;
-
-    /**
-     * The type of action that's pending
-     */
-    pendingAction?: OnyxCommon.PendingAction;
+    bankName: CardFeedWithNumber | undefined;
 };
 
 /** Pending action for a company card assignment */

@@ -143,83 +143,6 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ---
 
-### [PERF-4] Memoize objects (including arrays) and functions passed as props
-
-- **Search patterns**: `prop={{`, `prop={[`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
-
-- **Applies ONLY to**: Objects (including arrays)/functions passed directly as JSX props. Does NOT apply to:
-  - Code inside callbacks (`.then()`, event handlers)
-  - Code inside `useEffect`/`useMemo`/`useCallback` bodies
-  - Primitives (strings, numbers, booleans)
-  - Already memoized values (`useMemo`/`useCallback`)
-
-- **Reasoning**: New object/function references break memoization of child components. Only matters when child IS memoized AND parent is NOT optimized by React Compiler.
-
-#### Before flagging: Run optimization check
-
-**YOU MUST call `checkReactCompilerOptimization.ts` (available in PATH from `.claude/scripts/`) on EVERY .tsx file from the diff.**
-
-**Call the script ONCE per file, separately. DO NOT use loops or batch processing.**
-
-Example usage:
-```bash
-checkReactCompilerOptimization.ts src/components/File1.tsx
-checkReactCompilerOptimization.ts src/components/File2.tsx
-```
-
-**NEVER use absolute or relative paths for this script. Call it by name only:**
-- ✅ `checkReactCompilerOptimization.ts src/components/Example.tsx`
-- ❌ `/home/runner/work/App/App/.claude/scripts/checkReactCompilerOptimization.ts ...`
-- ❌ `./.claude/scripts/checkReactCompilerOptimization.ts ...`
-
-**"File not found"** → Assume parent is optimized and skip PERF-4.
-
-#### Decision flow
-
-1. **Parent in `parentOptimized`?** → YES = **Skip** (compiler auto-memoizes)
-
-2. **Child has custom memo comparator that PREVENTS re-render for this prop?**
-   → Use `sourcePath` from script output to read child's source file
-   → Grep for `React.memo` or `memo(`
-   → If custom comparator prevents re-render despite new reference for this prop → **Skip**
-
-3. **Child is memoized?** (`optimized: true` OR `React.memo`)
-   - NO → **Skip** (child re-renders anyway)
-   - YES → **Flag PERF-4**
-
-#### Examples
-
-**Flag** (parent NOT optimized, child IS memoized, no custom comparator):
-```tsx
-// Script output: parentOptimized: [], child MemoizedList optimized: true
-// No custom comparator found
-return <MemoizedList options={{ showHeader: true }} />;
-```
-
-**Skip - custom comparator** (comparator prevents re-render for this prop):
-```tsx
-// Script output: sourcePath: "src/components/PopoverMenu.tsx"
-// PopoverMenu.tsx has custom memo comparator that handles anchorPosition
-return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
-```
-
-**Skip - parent optimized**:
-```tsx
-// Script output: parentOptimized: ["MyComponent"]
-// React Compiler auto-memoizes - no manual memoization needed
-return <MemoizedList options={{ showHeader: true }} />;
-```
-
-**Skip - spread props with stable inner values**:
-```tsx
-// Spread is OK when inner values come from memoized sources
-// illustration from useMemoizedLazyIllustrations, illustrationStyle from useThemeStyles
-const illustration = useAboutSectionIllustration();
-return <Section {...illustration} />;
-```
-
----
-
 ### [PERF-5] Use shallow comparisons instead of deep comparisons
 
 - **Search patterns**: `React.memo`, `deepEqual`
@@ -897,6 +820,156 @@ async function submitForm(data: FormData) {
   await API.submit(data);
   // No error handling - failures are silent
   showSuccessMessage('Form submitted successfully');
+}
+```
+
+---
+
+### [CLEAN-REACT-PATTERNS-1] Favor composition over configuration
+
+- **Search patterns**: `shouldShow`, `shouldEnable`, `canSelect`, `enable`, `disable`, configuration props patterns
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A **new feature** is being introduced OR an **existing component's API is being expanded with new props**
+  - The change adds configuration properties (flags, conditional logic)
+  - These configuration options control feature presence or behavior within the component
+  - These features could instead be expressed as composable child components
+
+  **Features that should be expressed as child components:**
+  - Optional UI elements that could be composed in
+  - New behavior that could be introduced as new children
+  - Features that currently require parent component code changes
+
+  **DO NOT flag if:**
+  - Props are narrow, stable values needed for coordination between composed parts (e.g., `reportID`, `data`, `columns`)
+  - The component uses composition and child components for features
+  - Parent components stay stable as features are added
+
+- **Reasoning**: When new features are implemented by adding configuration (props, flags, conditional logic) to existing components, if requirements change, then those components must be repeatedly modified, increasing coupling, surface area, and regression risk. Composition ensures features scale horizontally, limits the scope of changes, and prevents components from becoming configuration-driven "mega components".
+
+Good (composition):
+
+- Features expressed as composable children
+- Parent stays stable; add features by adding children
+
+```tsx
+<Table data={items} columns={columns}>
+  <Table.SearchBar />
+  <Table.Header />
+  <Table.Body />
+</Table>
+```
+
+```tsx
+<SelectionList data={items}>
+  <SelectionList.TextInput />
+  <SelectionList.Body />
+</SelectionList>
+```
+
+Bad (configuration):
+
+- Features controlled by boolean flags
+- Adding a new feature requires modifying the Table component's API
+
+```tsx
+<Table
+  data={items}
+  columns={columns}
+  shouldShowSearchBar
+  shouldShowHeader
+  shouldEnableSorting
+  shouldShowPagination
+  shouldHighlightOnHover
+/>
+
+type TableProps = {
+  data: Item[];
+  columns: Column[];
+  shouldShowSearchBar?: boolean;    // ❌ Could be <Table.SearchBar />
+  shouldShowHeader?: boolean;       // ❌ Could be <Table.Header />
+  shouldEnableSorting?: boolean;    // ❌ Configuration for header behavior
+  shouldShowPagination?: boolean;   // ❌ Could be <Table.Pagination />
+  shouldHighlightOnHover?: boolean; // ❌ Configuration for styling behavior
+};
+```
+
+```tsx
+<SelectionList
+  data={items}
+  shouldShowTextInput
+  shouldShowTooltips
+  shouldScrollToFocusedIndex
+  shouldDebounceScrolling
+  shouldUpdateFocusedIndex
+  canSelectMultiple
+  disableKeyboardShortcuts
+/>
+
+type SelectionListProps = {
+  shouldShowTextInput?: boolean;      // ❌ Could be <SelectionList.TextInput />
+  shouldShowConfirmButton?: boolean;  // ❌ Could be <SelectionList.ConfirmButton />
+  textInputOptions?: {...};           // ❌ Configuration object for the above
+};
+```
+
+Good (children manage their own state):
+
+```tsx
+// Children are self-contained and manage their own state
+// Parent only passes minimal data (IDs)
+// Adding new features doesn't require changing the parent
+function ReportScreen({ params: { reportID }}) {
+  return (
+    <>
+      <ReportActionsView reportID={reportID} />
+      // other features
+      <Composer />
+    </>
+  );
+}
+
+// Component accesses stores and calculates its own state
+// Parent doesn't know the internals
+function ReportActionsView({ reportID }) {
+  const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+  const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+  // ...
+}
+```
+
+Bad (parent manages child state):
+
+```tsx
+// Parent fetches and manages state for its children
+// Parent has to know child implementation details
+function ReportScreen({ params: { reportID }}) {
+  const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true, canBeMissing: true});
+  const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+  const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
+  const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+  const parentReportAction = useParentReportAction(reportOnyx);
+  const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+  const isTransactionThreadView = isReportTransactionThread(report);
+  // other onyx connections etc
+  
+  return (
+    <>
+      <ReportActionsView
+        report={report}
+        reportActions={reportActions}
+        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+        hasNewerActions={hasNewerActions}
+        hasOlderActions={hasOlderActions}
+        parentReportAction={parentReportAction}
+        transactionThreadReportID={transactionThreadReportID}
+        isReportTransactionThread={isTransactionThreadView}
+      />
+      // other features
+      <Composer />
+    </>
+  );
 }
 ```
 
