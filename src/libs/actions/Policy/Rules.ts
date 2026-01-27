@@ -5,6 +5,7 @@ import type SetPolicyMerchantRuleParams from '@libs/API/parameters/SetPolicyMerc
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import * as NumberUtils from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
@@ -49,14 +50,14 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
         return;
     }
 
-    // Generate a temporary rule ID for optimistic update
-    const tempRuleID = `temp_${Date.now()}`;
+    // Generate a random client-side ID for optimistic update
+    const optimisticRuleID = NumberUtils.rand64();
 
     // Create the optimistic coding rule
     const optimisticRule: CodingRule = {
         filters: {
             left: 'merchant',
-            operator: 'contains',
+            operator: 'eq',
             right: form.merchantToMatch,
         },
         merchant: form.merchant || undefined,
@@ -76,7 +77,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
                 value: {
                     rules: {
                         codingRules: {
-                            [tempRuleID]: optimisticRule,
+                            [optimisticRuleID]: optimisticRule,
                         },
                     },
                     pendingFields: {
@@ -106,7 +107,7 @@ function setPolicyMerchantRule(policyID: string, form: MerchantRuleForm) {
                 value: {
                     rules: {
                         codingRules: {
-                            [tempRuleID]: null,
+                            [optimisticRuleID]: null,
                         },
                     },
                     pendingFields: {
