@@ -759,6 +759,16 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: '顔または指紋を使用して、パスワードやコード不要の迅速かつ安全な認証を有効にしてください。',
         },
+        revoke: {
+            revoke: '取り消す',
+            title: '顔認証／指紋認証 & パスキー',
+            explanation: '1 台以上のデバイスで、顔認証／指紋認証またはパスキー認証が有効になっています。アクセスを取り消すと、次回以降どのデバイスでも認証時にマジックコードが必要になります',
+            confirmationPrompt: '本当に実行してもよろしいですか？今後、どのデバイスでの認証にもマジックコードが必要になります',
+            cta: 'アクセスを取り消す',
+            noDevices: '顔／指紋認証またはパスキー認証用に登録されたデバイスがありません。デバイスを登録すると、そのアクセスをここで取り消せるようになります。',
+            dismiss: '了解しました',
+            error: 'リクエストに失敗しました。後でもう一度お試しください。',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
