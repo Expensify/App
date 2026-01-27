@@ -68,6 +68,7 @@ class ChatGPTTranslator extends Translator {
 
                 if (attempt === ChatGPTTranslator.MAX_RETRIES) {
                     console.error(`❌ Final attempt failed placeholder validation. Falling back to original.`);
+                    this.failedTranslations.push({text, targetLang, error: 'Failed placeholder/HTML validation after all retries'});
                     return text;
                 }
             } catch (error) {
