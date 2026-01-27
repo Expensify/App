@@ -36,11 +36,11 @@ type MissingPersonalDetailsContentProps = {
 };
 
 const formPages = [
-    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME, component: LegalName},
-    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH, component: DateOfBirth},
-    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.ADDRESS, component: Address},
-    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
-    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation},
+    {pageName: CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME, component: LegalName},
+    {pageName: CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH, component: DateOfBirth},
+    {pageName: CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.ADDRESS, component: Address},
+    {pageName: CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
+    {pageName: CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation},
 ];
 
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
@@ -67,12 +67,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
+            Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
             return;
         }
 
         // Clicking back on the first screen should dismiss the modal
-        if (currentPageName === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME) {
+        if (currentPageName === CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME) {
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.closeRHPFlow();
             return;
@@ -92,7 +92,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubPageHeader
-                    stepNames={CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST}
+                    stepNames={CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST}
                     currentStepIndex={pageIndex}
                     onStepSelected={moveTo}
                 />

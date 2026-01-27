@@ -25,10 +25,10 @@ function getSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetai
 
 function getInitialSubPage(values: PersonalDetailsForm) {
     if (values[INPUT_IDS.LEGAL_FIRST_NAME] === '' || values[INPUT_IDS.LEGAL_LAST_NAME] === '') {
-        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME;
+        return CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME;
     }
     if (values[INPUT_IDS.DATE_OF_BIRTH] === '') {
-        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH;
+        return CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH;
     }
     if (
         values[INPUT_IDS.ADDRESS_LINE_1] === '' ||
@@ -37,12 +37,12 @@ function getInitialSubPage(values: PersonalDetailsForm) {
         values[INPUT_IDS.ZIP_POST_CODE] === '' ||
         values[INPUT_IDS.COUNTRY] === ''
     ) {
-        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.ADDRESS;
+        return CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.ADDRESS;
     }
     if (values[INPUT_IDS.PHONE_NUMBER] === '') {
-        return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER;
+        return CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER;
     }
-    return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM;
+    return CONST.SUB_PAGE.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM;
 }
 
 export {getSubPageValues, getInitialSubPage};
