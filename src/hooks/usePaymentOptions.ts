@@ -180,13 +180,14 @@ function usePaymentOptions({
                         text: formattedPaymentMethod?.title ?? '',
                         description: formattedPaymentMethod?.description ?? '',
                         icon: formattedPaymentMethod?.icon,
-                        onSelected: () => onPress({
-                            paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                            payAsBusiness,
-                            methodID: formattedPaymentMethod.methodID,
-                            paymentMethod: formattedPaymentMethod.accountType,
-                            isSelectedTransactionAction,
-                        }),
+                        onSelected: () =>
+                            onPress({
+                                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                                payAsBusiness,
+                                methodID: formattedPaymentMethod.methodID,
+                                paymentMethod: formattedPaymentMethod.accountType,
+                                isSelectedTransactionAction,
+                            }),
                         iconStyles: formattedPaymentMethod?.iconStyles,
                         iconHeight: formattedPaymentMethod?.iconSize,
                         iconWidth: formattedPaymentMethod?.iconSize,
