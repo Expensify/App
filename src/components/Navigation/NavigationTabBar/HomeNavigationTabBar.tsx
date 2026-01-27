@@ -319,6 +319,39 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                             )}
                         </PressableWithFeedback>
                         <PressableWithFeedback
+                            onPress={navigateToSearch}
+                            role={CONST.ROLE.TAB}
+                            accessibilityLabel={translate('common.reports')}
+                            accessibilityState={searchAccessibilityState}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                        >
+                            {({hovered}) => (
+                                <>
+                                    <View>
+                                        <Icon
+                                            src={expensifyIcons.MoneySearch}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.SEARCH, hovered)}
+                                            width={variables.iconBottomBar}
+                                            height={variables.iconBottomBar}
+                                        />
+                                    </View>
+                                    <Text
+                                        numberOfLines={2}
+                                        style={[
+                                            styles.textSmall,
+                                            styles.textAlignCenter,
+                                            styles.mt1Half,
+                                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                                            styles.navigationTabBarLabel,
+                                        ]}
+                                    >
+                                        {translate('common.reports')}
+                                    </Text>
+                                </>
+                            )}
+                        </PressableWithFeedback>
+                        <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.inbox')}
@@ -356,39 +389,6 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                                         ]}
                                     >
                                         {translate('common.inbox')}
-                                    </Text>
-                                </>
-                            )}
-                        </PressableWithFeedback>
-                        <PressableWithFeedback
-                            onPress={navigateToSearch}
-                            role={CONST.ROLE.TAB}
-                            accessibilityLabel={translate('common.reports')}
-                            accessibilityState={searchAccessibilityState}
-                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
-                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
-                        >
-                            {({hovered}) => (
-                                <>
-                                    <View>
-                                        <Icon
-                                            src={expensifyIcons.MoneySearch}
-                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.SEARCH, hovered)}
-                                            width={variables.iconBottomBar}
-                                            height={variables.iconBottomBar}
-                                        />
-                                    </View>
-                                    <Text
-                                        numberOfLines={2}
-                                        style={[
-                                            styles.textSmall,
-                                            styles.textAlignCenter,
-                                            styles.mt1Half,
-                                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
-                                            styles.navigationTabBarLabel,
-                                        ]}
-                                    >
-                                        {translate('common.reports')}
                                     </Text>
                                 </>
                             )}
@@ -462,6 +462,39 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                 testID="NavigationTabBar"
             >
                 <PressableWithFeedback
+                    onPress={navigateToNewDotHome}
+                    role={CONST.ROLE.TAB}
+                    accessibilityLabel="Home"
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                >
+                    {({hovered}) => (
+                        <>
+                            <View>
+                                <Icon
+                                    src={expensifyIcons.Home}
+                                    fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
+                                    width={variables.iconBottomBar}
+                                    height={variables.iconBottomBar}
+                                />
+                            </View>
+                            <Text
+                                numberOfLines={2}
+                                style={[
+                                    styles.textSmall,
+                                    styles.textAlignCenter,
+                                    styles.mt1Half,
+                                    selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                    styles.navigationTabBarLabel,
+                                ]}
+                            >
+                                Home
+                            </Text>
+                        </>
+                    )}
+                </PressableWithFeedback>
+                <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.inbox')}
@@ -529,9 +562,6 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                         {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
-                <View style={[styles.flex1, styles.navigationTabBarItem]}>
-                    <NavigationTabBarFloatingActionButton />
-                </View>
                 <PressableWithFeedback
                     onPress={showWorkspaces}
                     role={CONST.ROLE.TAB}
@@ -569,6 +599,10 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                     onPress={navigateToSettings}
                 />
             </View>
+            <View style={[styles.navigationTabBarFAB, styles.floatingActionButtonPosition]}>
+                <NavigationTabBarFloatingActionButton />
+            </View>
+
             {shouldShowFloatingButtons && (
                 <>
                     <FloatingGPSButton />
