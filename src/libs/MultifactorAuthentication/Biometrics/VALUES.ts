@@ -120,14 +120,6 @@ const API_RESPONSE_MAP = {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 /**
- * Factor origin types for multifactor authentication.
- */
-const MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN = {
-    BIOMETRICS: 'Biometrics',
-    ADDITIONAL: 'Additional',
-} as const;
-
-/**
  * Available multifactor authentication factors.
  */
 const MULTIFACTOR_AUTHENTICATION_FACTORS = {
@@ -224,14 +216,12 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
             name: 'Signed Challenge',
             parameter: 'signedChallenge',
             length: undefined,
-            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.BIOMETRICS,
         },
         VALIDATE_CODE: {
             id: MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE,
             name: 'Email One-Time Password',
             parameter: 'validateCode',
             length: 6,
-            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.ADDITIONAL,
         },
     },
 
@@ -242,11 +232,6 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         REGISTRATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE],
         BIOMETRICS_AUTHENTICATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE],
     },
-
-    /**
-     * Factor origin classifications.
-     */
-    FACTORS_ORIGIN: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN,
 
     /**
      * Scenario name mappings.

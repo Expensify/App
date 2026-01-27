@@ -1,20 +1,12 @@
 /**
  * Type definitions for multifactor authentication biometrics operations.
  */
-import type {EmptyObject, Simplify, ValueOf} from 'type-fest';
+import type {EmptyObject, ValueOf} from 'type-fest';
 import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import type {OutcomePaths} from '@components/MultifactorAuthentication/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
-
-/**
- * Basic authentication requirement types for signed challenge and validation code.
- */
-type BasicMultifactorAuthenticationRequirementTypes = {
-    [VALUES.FACTORS.SIGNED_CHALLENGE]: SignedChallenge;
-    [VALUES.FACTORS.VALIDATE_CODE]: number;
-};
 
 type MultifactorAuthenticationMethodCode = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
 
@@ -68,41 +60,17 @@ type MultifactorAuthenticationStatus<T, OmitStep = false> = MultifactorAuthentic
 };
 
 /**
- * Factors requirements configuration.
- */
-type MultifactorAuthenticationFactorsRequirements = ValueOf<typeof VALUES.FACTORS_REQUIREMENTS>;
-
-/**
  * Individual authentication factor types.
  */
 type MultifactorAuthenticationFactor = ValueOf<typeof VALUES.FACTORS>;
 
 /**
- * Main authentication factors excluding additional factors.
- */
-type MultifactorAuthenticationFactors = {
-    [K in MultifactorAuthenticationFactorsRequirements as K extends {
-        origin: typeof VALUES.FACTORS_ORIGIN.ADDITIONAL;
-    }
-        ? never
-        : K['parameter']]: BasicMultifactorAuthenticationRequirementTypes[K['id']];
-};
-
-/**
- * Maps scenarios to their additional factors
- */
-type MultifactorAuthorizationAdditionalFactors = {
-    [K in MultifactorAuthenticationFactorsRequirements as K extends {
-        origin: typeof VALUES.FACTORS_ORIGIN.ADDITIONAL;
-    }
-        ? K['parameter']
-        : never]?: BasicMultifactorAuthenticationRequirementTypes[K['id']];
-};
-
-/**
  * Combined type representing all possible authentication factors (required and additional).
  */
-type AllMultifactorAuthenticationFactors = Simplify<MultifactorAuthenticationFactors & MultifactorAuthorizationAdditionalFactors>;
+type AllMultifactorAuthenticationFactors = {
+    signedChallenge: SignedChallenge;
+    validateCode?: number | undefined;
+};
 
 /**
  * Represents the state of a step in the multifactor authentication flow.
