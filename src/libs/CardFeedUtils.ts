@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedsStatus, CardFeedsStatusByDomainID, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
@@ -432,7 +432,7 @@ const generateSelectedCards = (
  *
  * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
  */
-function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
+function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList | undefined): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
@@ -460,7 +460,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
         }
     }
 
-    for (const card of Object.values(allCards)) {
+    for (const card of Object.values(allCards ?? {})) {
         if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
             continue;
         }
@@ -515,21 +515,6 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
     return cardFeedsForDisplayPerPolicy;
 }
 
-function getCardFeedStatus(feed: CardFeeds | undefined): CardFeedsStatus {
-    return {
-        errors: feed?.errors,
-        isLoading: feed?.isLoading,
-    };
-}
-
-function getWorkspaceCardFeedsStatus(allFeeds: OnyxCollection<CardFeeds> | undefined): CardFeedsStatusByDomainID {
-    return Object.entries(allFeeds ?? {}).reduce<CardFeedsStatusByDomainID>((acc, [onyxKey, feeds]) => {
-        const domainID = Number(onyxKey.split('_').at(-1));
-        acc[domainID] = getCardFeedStatus(feeds);
-        return acc;
-    }, {} as CardFeedsStatusByDomainID);
-}
-
 function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | undefined, includeFeedPredicate?: (feed: CombinedCardFeed) => boolean): CombinedCardFeeds {
     return Object.entries(allFeeds ?? {}).reduce<CombinedCardFeeds>((acc, [onyxKey, feeds]) => {
         const domainID = Number(onyxKey.split('_').at(-1));
@@ -545,19 +530,17 @@ function getCombinedCardFeedsFromAllFeeds(allFeeds: OnyxCollection<CardFeeds> | 
             const feedSettings = companyCards?.[feedName];
             const oAuthAccountDetails = workspaceFeedsSettings?.oAuthAccountDetails?.[feedName];
             const customFeedName = workspaceFeedsSettings?.companyCardNicknames?.[feedName];
-            const status = workspaceFeedsSettings?.cardFeedsStatus?.[feedName];
 
             if (!domainID) {
                 continue;
             }
 
-            const combinedCardFeed: CombinedCardFeed = {
+            const combinedCardFeed = {
                 ...feedSettings,
                 ...oAuthAccountDetails,
                 customFeedName,
                 domainID,
                 feed: feedName,
-                status,
             };
 
             if (includeFeedPredicate && !includeFeedPredicate(combinedCardFeed)) {
@@ -588,6 +571,4 @@ export {
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
-    getCardFeedStatus,
-    getWorkspaceCardFeedsStatus,
 };

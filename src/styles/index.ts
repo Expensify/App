@@ -2553,16 +2553,10 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        searchBlockingErrorViewContainer: {
+        blockingErrorViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 475,
             alignSelf: 'center',
-        },
-
-        companyCardsBlockingErrorViewContainer: {
-            maxWidth: 475,
-            alignSelf: 'center',
-            flex: undefined,
         },
 
         forcedBlockingViewContainer: {
