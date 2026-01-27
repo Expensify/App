@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valore',
         downloadFailedTitle: 'Download non riuscito',
         downloadFailedDescription: 'Il download non può essere completato. Riprova più tardi.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Non puoi esportare un rapporto vuoto.',
-            other: () => 'Non puoi esportare rapporti vuoti.',
-        }),
         filterLogs: 'Filtra registri',
         network: 'Rete',
         reportID: 'ID rapporto',
@@ -1201,14 +1197,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: () => ({
-            one: 'Elimina rapporto',
-            other: 'Elimina rapporti',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Sei sicuro di voler eliminare questo report?',
-            other: 'Sei sicuro di voler eliminare questi report?',
-        }),
+        deleteReport: 'Elimina report',
+        deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
         settledExpensify: 'Pagato',
         done: 'Fatto',
         settledElsewhere: 'Pagato altrove',
