@@ -3430,6 +3430,23 @@ function getColumnsToShow(
             return result;
         }
 
+        if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
         if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
             const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]);
             const result: SearchColumnType[] = [];
