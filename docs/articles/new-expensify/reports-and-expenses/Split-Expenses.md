@@ -1,36 +1,37 @@
 ---
 title: Split Expenses 
 description: Learn how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking in Expensify.
-keywords: split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, New Expensify
+keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split]
 internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature. Does not cover Classic behavior.
+---
+
+# How to split, edit, and revert expenses in New Expensify
 
 Expensify makes it easy to split expenses by dividing a single transaction across multiple expense details like categories, tags, and dates. You can split evenly, by percentage, or by day, helping you stay accurate and compliant with workspace rules.
 
+
+## Who can split expenses
+
+- **Submitters** can split any posted, editable expense they've created
+- **Approvers** can split expenses assigned to them for approval
+- **Admins** can split any expense that hasn't been fully approved
+
 ---
 
-# Who can split expenses in New Expensify
+## How to split an expense by amount
 
-- Submitters can split any posted, editable expense they've created
-- Approvers can split expenses assigned to them for approval
-- Admins can split any expense that hasn't been fully approved
-
----
-
-# Split an expense
-
-## Option 1: Split by amount (default)
+This is the default split method.
 
 1. Open an expense and tap **More > Split**.
 2. The split table appears with two equal rows.
 3. Tap **Add split** to insert more rows.
 4. Tap a row to update category, tag, date, or description, or remove the split.
-5. Tap **More > Split evenly** to recalculate all editable rows equally. (If some splits are already submitted or approved, only editable rows are updated.
-)
+5. Tap **More > Split evenly** to recalculate all editable rows equally. (If some splits are already submitted or approved, only editable rows are updated).
 6. Tap **Save**.
 
 ---
 
-## Option 2: Split an expense by percentage
+## How to split an expense by percentage
 
 1. Open the expense and tap **More > Split**.
 2. The split table appears with two equal rows.
@@ -41,7 +42,7 @@ Expensify makes it easy to split expenses by dividing a single transaction acros
 
 ---
 
-## Option 3: Split an expense across multiple days
+## How to split an expense across multiple days
 
 1. Open the expense and tap **More > Split**.
 2. Tap **More > Split by days**.
@@ -54,30 +55,28 @@ Expensify makes it easy to split expenses by dividing a single transaction acros
 
 ---
 
-# Validation rules
+## Validation rules for Split Expenses in New Expensify
 
 Validation rules ensure your splits match the original expense amount based on the expense type. These rules apply whether you're splitting by amount, percentage or date.
 
-## Company card and per diem expenses
+**Company card and per diem expenses**
 
 - Total of all splits **must match the original expense exactly**.
 - You **cannot save** if the splits sum to less or more than the original.
 - Validation is strict to ensure full traceability for company-paid and company-defined amounts.
 
-## Cash and distance expenses
+**Cash and distance expenses**
 
 - Total of all splits **can be less than or equal to** the original expense.
 - You **can save** if the splits sum to less than the original amount.
 - You **cannot save** if the splits total more than the original.
 - This validation allows flexibility for submitters to exclude part of the expense.
 
-# Modify or remove splits
-
-## Edit a split allocation
+## How to edit a split expense
 
 1. Open a split expense.
-2. Tap ** More > Edit splits**.
-3. Change the amount directly in the table
+2. Tap **More > Edit splits**.
+3. Change the amount directly in the table.
 4. Tap a row to update category, tag, date, or description or remove the split.
 5. Tap **Save**.
 
@@ -85,7 +84,7 @@ Validation rules ensure your splits match the original expense amount based on t
 
 ---
 
-## Remove a split row
+## How to remove a split row
 
 1. Tap a split row to open its edit screen.
 2. Tap **Remove split**.
@@ -95,7 +94,7 @@ Validation rules ensure your splits match the original expense amount based on t
 
 ---
 
-## Revert split to a single expense
+## How to revert a split expense to a single expense
 
 1. Remove all but one split row.
 2. Tap **Save**.
@@ -113,3 +112,13 @@ Splits are locked if they're on a report that’s approved, reimbursed, or close
 ## Will workspace rules apply to split expenses?
 
 Yes. Each split is treated as a regular expense and follows all workspace requirements.
+
+## Can I split a distance or mileage expense?
+
+Yes. You can split distance expenses just like any other expense. However, total distance must not exceed the original value, and rows cannot be split by percentage or date.
+
+## Can I assign different tags or categories to each split?
+
+Yes. Each split row can have its own category, tag, date, and description.
+
+
