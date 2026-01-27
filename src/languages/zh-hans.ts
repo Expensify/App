@@ -2220,7 +2220,7 @@ ${amount}，商户：${merchant} - ${date}`,
             expensesFromSubtitle: '所有工作区成员已属于现有的审批流程。',
             approverSubtitle: '所有审批人都属于一个现有的工作流程。',
         },
-        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `来自${members}的报销，以及审批人${approvers}`,
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `来自${members}的费用，审批人是${approvers}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '无法更改提交频率。请重试或联系支持。',

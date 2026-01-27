@@ -2251,7 +2251,7 @@ ${amount} dla ${merchant} - ${date}`,
             expensesFromSubtitle: 'Wszyscy członkowie przestrzeni roboczej należą już do istniejącego obiegu zatwierdzania.',
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
         },
-        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `wydatki od ${members} oraz zatwierdzający ${approvers}`,
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `wydatki od ${members}, a zatwierdzającym jest ${approvers}`, //_/\__/_/  \_,_/\__/\__/\_,_/
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
