@@ -130,17 +130,20 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 {
                     title: undefined,
                     data: filteredOptions,
+                    sectionIndex: 0,
                 },
             ];
         }
 
         sectionsArray.push({
             data: formattedAuthorizedPayer,
+            sectionIndex: 1,
         });
 
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
+            sectionIndex: 2,
         });
         return sectionsArray;
     }, [searchTerm, formattedAuthorizedPayer, translate, formattedPolicyAdmins, countryCode]);
