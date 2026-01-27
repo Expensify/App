@@ -63,7 +63,7 @@ function MonthListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH)}
             >
                 <View style={[styles.gap1, styles.flexShrink1]}>
                     <TextWithTooltip
