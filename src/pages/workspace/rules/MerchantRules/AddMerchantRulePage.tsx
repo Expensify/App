@@ -65,7 +65,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
     const areTagsEnabled = !!policy?.areTagsEnabled;
     const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
-    const trackBillables = policy?.disabledFields?.defaultBillable !== true;
+    const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
     const errorMessage = getErrorMessage(translate, form);
 
@@ -134,7 +134,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                         title: form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : '',
                         onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID)),
                     },
-                    trackBillables
+                    isBillableEnabled
                         ? {
                               descriptionTranslationKey: 'common.billable',
                               title: form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : '',
@@ -148,7 +148,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
             areCategoriesEnabled,
             areTagsEnabled,
             isTaxTrackingEnabled,
-            trackBillables,
+            isBillableEnabled,
             form?.merchantToMatch,
             form?.merchant,
             form?.category,
