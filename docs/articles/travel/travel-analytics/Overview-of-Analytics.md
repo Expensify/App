@@ -69,6 +69,39 @@ Most reports include a visual graph highlighting key metrics over time. Tile sum
 
 ---
 
+## Favorites
+
+Admins can favorite specific Company Reports to make them easier to access in the future.
+
+Once a report is configured, click the **star** icon on the far right of the Report Filters. This adds the report to a **Favorites** category, visible in the left-hand menu.
+
+To remove a report from Favorites:
+1. Select the report under the **Favorites** category.
+2. Click the star icon again to unfavorite it.
+
+---
+
+## Scheduling Reports
+
+Admins can schedule Company Reports to be automatically delivered on a recurring basis.
+
+Once a report is configured, click the **calendar** icon on the far right of the Report Filters and select **Create new schedule**.
+
+To set up a report schedule, fill in the following fields:
+- **Schedule name** – A descriptive name for easy identification.
+- **Schedule description** – A short paragraph describing the report.
+- **Format** – Choose one: CSV, PDF, PNG, or XLSX.
+- **Delivery method** – Currently only email is supported.
+- **Report date range** – Choose from a list of preset date ranges.
+- **(Optional) Timestamp format** – Add a timestamp suffix to the report filename.
+- **Frequency** – Set how often the report is delivered.
+- **Specify user for data filtering** – Enter an org-based email address. This ensures the user can only see data belonging to their organization.
+- **Email recipients** – Add the email addresses of those who should receive the scheduled report.
+
+To manage existing schedules, click the **calendar** icon and select **View Report Schedules**.
+
+---
+
 # FAQ
 
 **Can I see my team's travel activity if I’m not an admin?**  
