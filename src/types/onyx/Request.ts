@@ -22,24 +22,19 @@ type TypeOptions = Merge<
     CustomTypeOptions
 >;
 
-/**
- *
- */
+/** Represents a string union of all Onyx collection keys. */
 type CollectionKeyBase = TypeOptions['collectionKeys'];
 
-/**
- *
- */
+/** Expands an Onyx key, allowing template patterns for collections or enforcing literals otherwise. */
 type ExpandOnyxKeys<TKey extends OnyxKey> = TKey extends CollectionKeyBase ? NoInfer<`${TKey}${string}`> : TKey;
 
 /**
- *
+ * Represents an OnyxUpdate type without strict type checks on the value.
+ * Useful for contexts where the specific Onyx key is not known ahead of time.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
-    /**
-     *
-     */
+    /** The Onyx method to perform */
     onyxMethod:
         | typeof OnyxUtils.METHOD.SET
         | typeof OnyxUtils.METHOD.MULTI_SET
@@ -47,18 +42,14 @@ type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
         | typeof OnyxUtils.METHOD.CLEAR
         | typeof OnyxUtils.METHOD.MERGE_COLLECTION
         | typeof OnyxUtils.METHOD.SET_COLLECTION;
-    /**
-     *
-     */
+    /** The Onyx key to update */
     key: ExpandOnyxKeys<TKey>;
-    /**
-     *
-     */
+    /** The data to be written to Onyx. Typed as `any` to allow flexibility */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value?: any;
 };
 
-/** Model of onyx requests sent to the API */
+/** Generic base for types of onyx requests model sent to the API */
 type OnyxDataBase<TOnyxUpdate> = {
     /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
     successData?: TOnyxUpdate[];
@@ -79,13 +70,13 @@ type OnyxDataBase<TOnyxUpdate> = {
 /** Model of onyx requests sent to the API */
 type OnyxData<TKey extends OnyxKey> = OnyxDataBase<OnyxUpdate<TKey>>;
 
-/** Model of onyx requests sent to the API */
+/** Loosely typed model of onyx requests sent to the API */
 type AnyOnyxData = OnyxDataBase<AnyOnyxUpdate>;
 
 /** HTTP request method names */
 type RequestType = 'get' | 'post';
 
-/** Model of overall requests sent to the API */
+/** Base model for API requests containing common metadata and handlers */
 type RequestDataBase<TKey extends OnyxKey = OnyxKey> = {
     /** Name of the API command */
     command: string;
@@ -128,7 +119,7 @@ type RequestDataBase<TKey extends OnyxKey = OnyxKey> = {
 /** Model of overall requests sent to the API */
 type RequestData<TKey extends OnyxKey> = RequestDataBase<TKey> & OnyxData<TKey>;
 
-/** Model of overall requests sent to the API */
+/** Loosely typed model of overall requests sent to the API */
 type AnyRequestData = RequestDataBase & AnyOnyxData;
 
 /**
