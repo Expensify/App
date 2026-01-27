@@ -6,8 +6,9 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {Policy, PolicyTagLists, Report, ReportAction, TaxRate} from '@src/types/onyx';
+import {PolicyRuleTaxRate} from '@src/types/onyx/ExpenseRule';
+import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -202,7 +203,7 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
 }
 
 function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, policyRulesModifiedFields: PolicyRulesModifiedFields, policyID: string): string {
-    const entries = Object.entries(policyRulesModifiedFields) as [keyof PolicyRulesModifiedFields, string | boolean][];
+    const entries = Object.entries(policyRulesModifiedFields) as Array<[keyof PolicyRulesModifiedFields, string | boolean | PolicyRuleTaxRate]>;
 
     const fragments = entries.map(([key, value], i) => {
         const isFirst = i === 0;
@@ -215,12 +216,18 @@ function getPolicyRulesModifiedFieldsMessage(translate: LocalizedTranslate, poli
             return value ? translate('iou.markedAsBillable') : translate('iou.markedAsNonBillable');
         }
 
-        return translate('iou.updatedFieldTo', {key: translate(`common.${key}`).toLowerCase(), value, first: isFirst});
+        if (key === 'tax') {
+            const taxRate = value as PolicyRuleTaxRate;
+            return translate('iou.updatedFieldTo', {key: translate('common.tax').toLowerCase(), value: taxRate.name, first: isFirst});
+        }
+
+        const updatedValue = value as string | boolean;
+        return translate('iou.updatedFieldTo', {key: translate(`common.${key}`).toLowerCase(), value: updatedValue, first: isFirst});
     });
 
     if (fragments.length > 1) {
         const lastIndex = fragments.length - 1;
-        fragments[lastIndex] = `${translate('common.and')} ${fragments[lastIndex]}`;
+        fragments[lastIndex] = `${translate('common.and')} ${fragments.at(lastIndex)}`;
     }
 
     const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
@@ -498,7 +505,8 @@ function getForReportAction({
 
     const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
     if (hasPolicyRulesModifiedFields) {
-        const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
+        const rulePolicyID = reportActionOriginalMessage.policyID;
+        const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
         if (policyRulesModifiedFields && policyID) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
