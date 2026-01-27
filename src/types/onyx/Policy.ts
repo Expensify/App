@@ -2081,7 +2081,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */

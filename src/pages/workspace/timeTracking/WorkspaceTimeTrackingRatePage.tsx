@@ -2,7 +2,6 @@ import React from 'react';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,7 +9,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updatePolicyTimeTrackingDefaultRate} from '@libs/actions/Policy/Policy';
+import {setPolicyTimeTrackingDefaultRate} from '@libs/actions/Policy/Policy';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
@@ -25,16 +24,16 @@ import INPUT_IDS from '@src/types/form/WorkspaceTimeTrackingRateForm';
 
 type WorkspaceTimeTrackingRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TIME_TRACKING_RATE>;
 
-function WorkspaceTimeTrackingRatePage({route}: WorkspaceTimeTrackingRatePageProps) {
-    const {policyID} = route.params;
-
+function WorkspaceTimeTrackingRatePage({
+    route: {
+        params: {policyID},
+    },
+}: WorkspaceTimeTrackingRatePageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_RATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_RATE_FORM> =>
-        getFieldRequiredErrors(values, [INPUT_IDS.RATE]);
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy) {
         return <FullScreenLoadingIndicator />;
@@ -52,21 +51,20 @@ function WorkspaceTimeTrackingRatePage({route}: WorkspaceTimeTrackingRatePagePro
                     formID={ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_RATE_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={(values) => {
-                        updatePolicyTimeTrackingDefaultRate(policyID, Number.parseFloat(values[INPUT_IDS.RATE]));
+                        setPolicyTimeTrackingDefaultRate(policyID, Number.parseFloat(values[INPUT_IDS.RATE]));
                         Navigation.dismissModal();
                     }}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
-                    validate={validate}
-                    shouldHideFixErrorsAlert
+                    validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE])}
                     addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         label={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.RATE}
-                        currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
-                        defaultValue={convertToFrontendAmountAsString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                        currency={currency}
+                        defaultValue={convertToFrontendAmountAsString(getDefaultTimeTrackingRate(policy), currency)}
                         isCurrencyPressable={false}
                         ref={inputCallbackRef}
                         displayAsTextInput

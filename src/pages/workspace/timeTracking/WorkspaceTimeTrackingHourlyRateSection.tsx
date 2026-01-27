@@ -1,5 +1,6 @@
 import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,7 +14,6 @@ import ROUTES from '@src/ROUTES';
 function WorkspaceTimeTrackingHourlyRateSection({policyID}: {policyID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
     return (
@@ -21,19 +21,21 @@ function WorkspaceTimeTrackingHourlyRateSection({policyID}: {policyID: string}) 
             title={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
             subtitle={translate('workspace.moreFeatures.timeTracking.defaultHourlyRateSubtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
-            childrenStyles={[styles.gap6, styles.pt6]}
+            childrenStyles={styles.pt6}
             subtitleMuted
             isCentralPane
         >
-            <MenuItemWithTopDescription
-                shouldShowLoadingSpinnerIcon={!policy}
-                key={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                shouldShowRightIcon
-                title={policy ? convertAmountToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
-                description={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_RATE.getRoute(policyID))}
-                style={styles.sectionMenuItemTopDescription}
-            />
+            <OfflineWithFeedback pendingAction={policy?.pendingFields?.timeTrackingDefaultRate}>
+                <MenuItemWithTopDescription
+                    shouldShowLoadingSpinnerIcon={!policy}
+                    key={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
+                    shouldShowRightIcon
+                    title={policy ? convertAmountToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
+                    description={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_RATE.getRoute(policyID))}
+                    style={styles.sectionMenuItemTopDescription}
+                />
+            </OfflineWithFeedback>
         </Section>
     );
 }
