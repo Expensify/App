@@ -50,7 +50,7 @@ type ValidateCodeActionFormProps = {
     shouldSkipInitialValidation?: boolean;
 
     /** Ref for validate code form */
-    ref: ForwardedRef<ValidateCodeFormHandle>;
+    ref?: ForwardedRef<ValidateCodeFormHandle>;
 };
 
 // eslint-disable-next-line import/prefer-default-export
