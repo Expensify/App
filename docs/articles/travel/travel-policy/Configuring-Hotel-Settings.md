@@ -45,18 +45,42 @@ Block specific rate types from being available to travelers.
 
 You can also add a custom message explaining the restriction to travelers during the booking process.
 
+---
+
+**Add Property type**  
+Configure hotel restrictions by property type.
+
+When setting this up, customers will set:
+
+- **Property types to restrict** – Properties matching these types will be marked out-of-policy.  
+  *Note: This is a dropdown with options like Apartment, Castle, Health Spa, and Boatel.*
+
+- **Restricted properties can have their own Out of Policy action** – Choose how to handle bookings that violate this restriction.  
+  *Note: Use this to require special approval for specific property types.*
+
+- **Tier exception** – Allow preferred properties to bypass type restrictions.  
+  *Note: Preferred hotels are set under* Program > Company > Supplier > Supplier Management.
+
+---
+
 **Only consider cheapest rate as in-policy**
 Flags the lowest-priced rate at each hotel as **in policy**.
 - All other rates for that property will be **out of policy**.
+
+---
 
 **Maximum price**
 Set a global nightly price cap for hotel stays.
 - Customize rates further by city or country/region.
 - Choose whether the limit includes taxes and fees.
 
+---
+
 **Booking window**
 Define how many days before check-in a booking becomes out of policy.
     - Example: If set to 5 days, any booking made less than 5 days in advance is flagged as out of policy.
+
+---
 
 **Cancellation policy**
 Determine what refund options you want travelers to book:
@@ -64,13 +88,30 @@ Determine what refund options you want travelers to book:
   - Fully refundable rooms only
   - Partially or fully refundable rooms only
 
+---
+
 **Experience**
 Set minimum and maximum star ratings to define acceptable hotel experiences.
 - Helps maintain booking quality while controlling costs.
 
+---
+
+**Nightly median rate**  
+Configure parameters to calculate the median hotel rate based on the traveler's search results. The median rate represents the midpoint price where half the hotels cost more and half cost less. 
+
+To configure:
+- **Search radius** – The radius (in miles) around a traveler’s search location used to calculate the median.
+- **Rating range (number of stars)** – Minimum and maximum star ratings considered when calculating the median.
+
+**Note:** This feature is informational only. It does not determine in-policy or out-of-policy status, but helps travelers understand the context of their options.
+
+---
+
 **Out of policy reason codes**
 Enable travelers to create or select a reason when selecting an out-of-policy hotel.
 - Click **Manage Reason Codes** to create, edit, or delete available reason options.
+
+---
 
 # FAQ
 
