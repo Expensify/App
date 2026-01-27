@@ -34,7 +34,7 @@ type UseChartInteractionsProps = {
      */
     checkIsOver: (args: HitTestArgs) => boolean;
     /** Optional shared value containing bar dimensions used for hit-testing in bar charts */
-    barGeometry?: SharedValue<{barWidth: number; chartBottom: number}>;
+    barGeometry?: SharedValue<{barWidth: number; chartBottom: number; yZero: number}>;
 };
 
 /**
@@ -179,12 +179,18 @@ function useChartInteractions({handlePress, checkIsOver, barGeometry}: UseChartI
     /**
      * Animated style for positioning a tooltip relative to the matched data point.
      * Automatically applies vertical offset and centering.
+     * For negative bars, positions tooltip at yZero (top of bar) instead of targetY (bottom of bar).
      */
     const tooltipStyle = useAnimatedStyle(() => {
+        const targetY = chartInteractionState.y.y.position.get();
+        const yZero = barGeometry?.get().yZero ?? targetY;
+        // Position tooltip at the top of the bar (min of targetY and yZero)
+        const barTopY = Math.min(targetY, yZero);
+
         return {
             position: 'absolute',
             left: chartInteractionState.x.position.get(),
-            top: chartInteractionState.y.y.position.get() - TOOLTIP_BAR_GAP,
+            top: barTopY - TOOLTIP_BAR_GAP,
             transform: [{translateX: '-50%'}, {translateY: '-100%'}],
             opacity: chartInteractionState.isActive.get() ? 1 : 0,
         };

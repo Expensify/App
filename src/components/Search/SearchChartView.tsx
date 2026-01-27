@@ -1,9 +1,54 @@
 import React, {useCallback} from 'react';
-import type {TransactionGroupListItemType} from '@components/SelectionListWithSections/types';
+import * as Expensicons from '@components/Icon/Expensicons';
+import type {
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+} from '@components/SelectionListWithSections/types';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import SearchBarChart from './SearchBarChart';
 import type {SearchGroupBy, SearchParams, SearchQueryJSON, SearchView} from './types';
+
+type GroupedItem =
+    | TransactionMemberGroupListItemType
+    | TransactionCardGroupListItemType
+    | TransactionWithdrawalIDGroupListItemType
+    | TransactionCategoryGroupListItemType;
+
+/**
+ * Chart-specific configuration for each groupBy type - defines how to extract label and build filter query
+ * for displaying grouped transaction data in charts
+ */
+const CHART_GROUP_BY_CONFIG = {
+    [CONST.SEARCH.GROUP_BY.FROM]: {
+        title: 'Submitters',
+        titleIcon: Expensicons.Users,
+        getLabel: (item: GroupedItem) => (item as TransactionMemberGroupListItemType).formattedFrom ?? '',
+        getFilterQuery: (item: GroupedItem) => `from:${(item as TransactionMemberGroupListItemType).accountID}`,
+    },
+    [CONST.SEARCH.GROUP_BY.CARD]: {
+        title: 'Cards',
+        titleIcon: Expensicons.CreditCard,
+        getLabel: (item: GroupedItem) => (item as TransactionCardGroupListItemType).formattedCardName ?? '',
+        getFilterQuery: (item: GroupedItem) => `cardID:${(item as TransactionCardGroupListItemType).cardID}`,
+    },
+    [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: {
+        title: 'Exports',
+        titleIcon: Expensicons.Send,
+        getLabel: (item: GroupedItem) => (item as TransactionWithdrawalIDGroupListItemType).formattedWithdrawalID ?? '',
+        getFilterQuery: (item: GroupedItem) => `withdrawalID:${(item as TransactionWithdrawalIDGroupListItemType).entryID}`,
+    },
+    [CONST.SEARCH.GROUP_BY.CATEGORY]: {
+        title: 'Categories',
+        titleIcon: Expensicons.Folder,
+        getLabel: (item: GroupedItem) => (item as TransactionCategoryGroupListItemType).formattedCategory ?? '',
+        getFilterQuery: (item: GroupedItem) => `category:"${(item as TransactionCategoryGroupListItemType).category}"`,
+    },
+} as const;
 
 type SearchChartViewProps = {
     /** The current search query JSON */
@@ -22,10 +67,17 @@ type SearchChartViewProps = {
     handleSearch: (params: SearchParams) => void;
 
     /** Search key for the current search */
-    searchKey: string | undefined;
+    searchKey: SearchKey | undefined;
 
     /** Whether data is loading */
     isLoading?: boolean;
+};
+
+/**
+ * Map of chart view types to their corresponding chart components
+ */
+const CHART_VIEW_TO_COMPONENT = {
+    [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
 };
 
 /**
@@ -47,20 +99,24 @@ function SearchChartView({queryJSON, view, groupBy, data, handleSearch, searchKe
         [queryJSON, handleSearch, searchKey],
     );
 
-    // Dispatch to appropriate chart based on view type
-    switch (view) {
-        case CONST.SEARCH.VIEW.BAR:
-            return (
-                <SearchBarChart
-                    data={data}
-                    groupBy={groupBy}
-                    onBarPress={handleBarPress}
-                    isLoading={isLoading}
-                />
-            );
-        default:
-            return null;
+    const config = CHART_GROUP_BY_CONFIG[groupBy];
+    const ChartComponent = CHART_VIEW_TO_COMPONENT[view as keyof typeof CHART_VIEW_TO_COMPONENT];
+
+    if (!config || !ChartComponent) {
+        return null;
     }
+
+    return (
+        <ChartComponent
+            data={data}
+            title={config.title}
+            titleIcon={config.titleIcon}
+            getLabel={config.getLabel}
+            getFilterQuery={config.getFilterQuery}
+            onBarPress={handleBarPress}
+            isLoading={isLoading}
+        />
+    );
 }
 
 SearchChartView.displayName = 'SearchChartView';

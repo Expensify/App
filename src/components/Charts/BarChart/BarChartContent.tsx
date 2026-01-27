@@ -19,7 +19,6 @@ import {
     EXPENSIFY_NEUE_FONT_URL,
     FRAME_LINE_WIDTH,
     X_AXIS_LINE_WIDTH,
-    Y_AXIS_DOMAIN,
     Y_AXIS_LABEL_OFFSET,
     Y_AXIS_LINE_WIDTH,
     Y_AXIS_TICK_COUNT,
@@ -107,13 +106,14 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, useSingl
     });
 
     // Store bar geometry for hit-testing (only constants, no arrays)
-    const barGeometry = useSharedValue({barWidth: 0, chartBottom: 0});
+    const barGeometry = useSharedValue({barWidth: 0, chartBottom: 0, yZero: 0});
 
     const handleChartBoundsChange = useCallback(
         (bounds: ChartBounds) => {
             const domainWidth = bounds.right - bounds.left;
             const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
             barGeometry.set({
+                ...barGeometry.get(),
                 barWidth: calculatedBarWidth,
                 chartBottom: bounds.bottom,
             });
@@ -121,18 +121,30 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, useSingl
         [data.length, barGeometry],
     );
 
+    const handleScaleChange = useCallback(
+        (_xScale: unknown, yScale: (value: number) => number) => {
+            barGeometry.set({
+                ...barGeometry.get(),
+                yZero: yScale(0),
+            });
+        },
+        [barGeometry],
+    );
+
     const checkIsOverBar = useCallback(
         (args: HitTestArgs) => {
             'worklet';
 
-            const width = barGeometry.get().barWidth;
-            if (width === 0) {
+            const {barWidth, yZero} = barGeometry.get();
+            if (barWidth === 0) {
                 return false;
             }
-            const barLeft = args.targetX - width / 2;
-            const barRight = args.targetX + width / 2;
-            const barTop = args.targetY;
-            const barBottom = args.chartBottom;
+            const barLeft = args.targetX - barWidth / 2;
+            const barRight = args.targetX + barWidth / 2;
+            // For positive bars: targetY < yZero, bar goes from targetY (top) to yZero (bottom)
+            // For negative bars: targetY > yZero, bar goes from yZero (top) to targetY (bottom)
+            const barTop = Math.min(args.targetY, yZero);
+            const barBottom = Math.max(args.targetY, yZero);
 
             return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
         },
@@ -220,6 +232,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, useSingl
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
+                        onScaleChange={handleScaleChange}
                         xAxis={{
                             font,
                             tickCount: data.length,
@@ -237,7 +250,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, useSingl
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,
                                 labelOffset: Y_AXIS_LABEL_OFFSET,
-                                domain: Y_AXIS_DOMAIN,
                             },
                         ]}
                         frame={{lineWidth: FRAME_LINE_WIDTH}}

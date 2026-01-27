@@ -1146,6 +1146,9 @@ function Search({
 
     const shouldShowChartView = view !== CONST.SEARCH.VIEW.TABLE && !!validGroupBy;
 
+    // eslint-disable-next-line no-console
+    console.log('DEBUG Chart:', {view, validGroupBy, groupBy, shouldShowChartView, TABLE: CONST.SEARCH.VIEW.TABLE});
+
     if (shouldShowChartView) {
         return (
             <SearchScopeProvider>
