@@ -112,6 +112,7 @@ type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
 type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
+type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
@@ -247,6 +248,7 @@ type SearchQueryAST = {
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
+    view: SearchView;
     filters: ASTNode;
     policyID?: string[];
     rawFilterList?: RawQueryFilter[];
@@ -327,6 +329,7 @@ export type {
     SearchParams,
     TableColumnSize,
     SearchGroupBy,
+    SearchView,
     SingularSearchStatus,
     SearchDatePreset,
     SearchWithdrawalType,
