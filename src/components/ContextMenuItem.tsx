@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {useImperativeHandle} from 'react';
+import React from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,13 +61,6 @@ type ContextMenuItemProps = WithSentryLabel & {
 
     /** Whether the menu item should show loading icon */
     shouldShowLoadingSpinnerIcon?: boolean;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<ContextMenuItemHandle>;
-};
-
-type ContextMenuItemHandle = {
-    triggerPressAndUpdateSuccess?: () => void;
 };
 
 function ContextMenuItem({
@@ -89,7 +81,6 @@ function ContextMenuItem({
     onBlur = () => {},
     disabled = false,
     shouldShowLoadingSpinnerIcon = false,
-    ref,
     sentryLabel,
 }: ContextMenuItemProps) {
     const styles = useThemeStyles();
@@ -109,8 +100,6 @@ function ContextMenuItem({
             setThrottledButtonInactive();
         }
     };
-
-    useImperativeHandle(ref, () => ({triggerPressAndUpdateSuccess}));
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
@@ -155,4 +144,3 @@ function ContextMenuItem({
 }
 
 export default ContextMenuItem;
-export type {ContextMenuItemHandle};

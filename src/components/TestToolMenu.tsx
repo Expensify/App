@@ -1,21 +1,29 @@
 import React from 'react';
+import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
+
+// Temporary hardcoded value until MultifactorAuthenticationContext is implemented
+const TEMP_BIOMETRICS_REGISTERED_STATUS = false;
 
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -26,8 +34,24 @@ function TestToolMenu() {
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReports();
 
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
+
+    /**
+     * The wrapper is needed to prevent rapid double‑taps on native from triggering multiple navigations.
+     * Context: https://github.com/Expensify/App/pull/79475#discussion_r2708230681
+     */
+    const navigateToBiometricsTestPage = singleExecution(
+        waitForNavigate(() => {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
+        }),
+    );
+
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: TEMP_BIOMETRICS_REGISTERED_STATUS});
 
     return (
         <>
@@ -82,6 +106,17 @@ function TestToolMenu() {
                             text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
                             onPress={clearLHNCache}
                         />
+                    </TestToolRow>
+
+                    {/* Allows testing the biometric multifactor authentication flow */}
+                    <TestToolRow title={biometricsTitle}>
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            <Button
+                                small
+                                text={translate('multifactorAuthentication.biometricsTest.test')}
+                                onPress={() => navigateToBiometricsTestPage()}
+                            />
+                        </View>
                     </TestToolRow>
                 </>
             )}

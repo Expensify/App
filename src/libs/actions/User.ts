@@ -35,7 +35,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import triggerNotifications from '@libs/Notification/triggerNotifications';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
@@ -49,6 +48,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ExpenseRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -60,6 +60,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
+import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
 
@@ -421,7 +422,11 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
             value: {
-                [contactMethod]: null,
+                [contactMethod]: {
+                    errorFields: {
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
+                    },
+                },
             },
         },
     ];
@@ -524,7 +529,16 @@ function validateSecondaryLogin(
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.LOGIN_LIST
+            | typeof ONYXKEYS.ACCOUNT
+            | typeof ONYXKEYS.SESSION
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.VALIDATE_ACTION_CODE
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -614,7 +628,7 @@ function validateSecondaryLogin(
         }
     }
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -670,6 +684,23 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     }
 
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
+}
+
+function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
+    for (const update of onyxUpdates) {
+        if (!update.shouldNotify && !update.shouldShowPushNotification) {
+            continue;
+        }
+
+        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
+
+        for (const action of reportActions) {
+            if (action) {
+                showReportActionNotification(reportID, action);
+            }
+        }
+    }
 }
 
 const isChannelMuted = (reportId: string) =>
@@ -1384,10 +1415,10 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
 function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
-        value,
+        value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof name>> = [
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1397,7 +1428,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
     ];
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureData: OnyxUpdate[] | undefined = shouldRevertValue
+    const failureData: Array<OnyxUpdate<typeof name>> | undefined = shouldRevertValue
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -1586,7 +1617,7 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
  */
 function verifyAddSecondaryLoginCode(validateCode: string) {
     resetValidateActionCodeSent();
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -1600,7 +1631,7 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -1611,7 +1642,7 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -1637,6 +1668,18 @@ function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolea
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         isVerifiedValidateActionCode,
     });
+}
+
+function setDraftRule(ruleData: Partial<ExpenseRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
+}
+
+function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
+}
+
+function clearDraftRule() {
+    Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, null);
 }
 
 export {
@@ -1682,4 +1725,7 @@ export {
     respondToProactiveAppReview,
     verifyAddSecondaryLoginCode,
     updateIsVerifiedValidateActionCode,
+    setDraftRule,
+    updateDraftRule,
+    clearDraftRule,
 };
