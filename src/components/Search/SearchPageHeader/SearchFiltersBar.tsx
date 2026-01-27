@@ -44,7 +44,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
@@ -95,7 +95,7 @@ function SearchFiltersBar({
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, localeCompare, preferredLocale} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();
@@ -237,21 +237,19 @@ function SearchFiltersBar({
             const displayText: string[] = [];
             if (value.On) {
                 displayText.push(
-                    isSearchDatePreset(value.On)
-                        ? translate(`search.filters.date.presets.${value.On}`)
-                        : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On, preferredLocale)}`,
+                    isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
                 );
             }
             if (value.After) {
-                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After, preferredLocale)}`);
+                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
             }
             if (value.Before) {
-                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before, preferredLocale)}`);
+                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
             }
 
             return [value, displayText];
         },
-        [translate, preferredLocale],
+        [translate],
     );
 
     const [date, displayDate] = useMemo(
@@ -310,10 +308,17 @@ function SearchFiltersBar({
             }
 
             // Preserve the current sortBy and sortOrder from queryJSON when updating filters
-            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
+            let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
                 sortBy: queryJSON.sortBy,
                 sortOrder: queryJSON.sortOrder,
             });
+
+            if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
+                queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
+            }
+            if (!queryString) {
+                return;
+            }
 
             close(() => {
                 // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
