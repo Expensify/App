@@ -97,6 +97,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
@@ -683,7 +684,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableExpensifyCardWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableExpensifyCardWarningModalOpen(false);
-                        navigateToConciergeChat();
+                        navigateToConciergeChat(conciergeReportID, false);
                     }}
                     onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
@@ -695,7 +696,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableCompanyCardsWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableCompanyCardsWarningModalOpen(false);
-                        navigateToConciergeChat();
+                        navigateToConciergeChat(conciergeReportID, false);
                     }}
                     onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}

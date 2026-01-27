@@ -4462,8 +4462,9 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
-const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
+const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmountNoItemizedReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
     maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+    maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
     maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
@@ -4506,6 +4507,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
                     ...(!enabled
                         ? {
                               maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt,
+                              maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt,
                               maxExpenseAmount: policy?.maxExpenseAmount,
                               maxExpenseAge: policy?.maxExpenseAge,
                           }
@@ -4928,6 +4930,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
                 maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
                 maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+                maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
                 glCodes: true,
                 eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
                 harvesting: {
@@ -4958,6 +4961,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAge: policy?.maxExpenseAge ?? null,
                 maxExpenseAmount: policy?.maxExpenseAmount ?? null,
                 maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
+                maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
                 harvesting: policy?.harvesting ?? null,
                 isAttendeeTrackingEnabled: null,
@@ -5134,6 +5138,62 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, onyxData);
+}
+
+/**
+ * Call the API to set the itemized receipt required amount for the given policy
+ * @param policyID - id of the policy to set the itemized receipt required amount
+ * @param maxExpenseAmountNoItemizedReceipt - new value of the itemized receipt required amount
+ */
+function setPolicyMaxExpenseAmountNoItemizedReceipt(policyID: string, maxExpenseAmountNoItemizedReceipt: string) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
+    const parsedMaxExpenseAmountNoItemizedReceipt =
+        maxExpenseAmountNoItemizedReceipt === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmountNoItemizedReceipt));
+    const originalMaxExpenseAmountNoItemizedReceipt = policy?.maxExpenseAmountNoItemizedReceipt;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmountNoItemizedReceipt: parsedMaxExpenseAmountNoItemizedReceipt,
+                    pendingFields: {
+                        maxExpenseAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {maxExpenseAmountNoItemizedReceipt: null},
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmountNoItemizedReceipt: originalMaxExpenseAmountNoItemizedReceipt,
+                    pendingFields: {maxExpenseAmountNoItemizedReceipt: null},
+                    errorFields: {maxExpenseAmountNoItemizedReceipt: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        maxExpenseAmountNoItemizedReceipt: parsedMaxExpenseAmountNoItemizedReceipt,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_ITEMIZED_RECEIPT, parameters, onyxData);
 }
 
 /**
@@ -6719,6 +6779,7 @@ export {
     enablePolicyAutoReimbursementLimit,
     enableAutoApprovalOptions,
     setPolicyMaxExpenseAmountNoReceipt,
+    setPolicyMaxExpenseAmountNoItemizedReceipt,
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     updateCustomRules,
