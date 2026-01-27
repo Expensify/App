@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {transactionDraftValuesSelector} from '@src/selectors/TransactionDraft';
@@ -19,12 +18,10 @@ const useOptimisticDraftTransactions = (transaction: OnyxEntry<Transaction>) => 
         canBeMissing: true,
     });
 
-    const optimisticDraftTransactions = useMemo(() => {
-        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [transaction];
-        const transactions = allTransactions.filter((value): value is Transaction => !!value);
+    const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [transaction];
+    const transactions = allTransactions.filter((value): value is Transaction => !!value);
 
-        return [transactions, optimisticTransactions];
-    }, [transaction, optimisticTransactions]);
+    const optimisticDraftTransactions = [transactions, optimisticTransactions];
 
     return optimisticDraftTransactions as [Transaction[], Array<OnyxEntry<Transaction>> | undefined];
 };
