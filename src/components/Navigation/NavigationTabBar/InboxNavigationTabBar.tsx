@@ -153,7 +153,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
     }, [orderedReportIDs, reportAttributes]);
 
     const navigateToChats = useCallback(() => {
-        if (selectedTab === NAVIGATION_TABS.HOME) {
+        if (selectedTab === NAVIGATION_TABS.INBOX) {
             return;
         }
 
@@ -246,7 +246,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
         navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
     }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain]);
 
-    const inboxAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.HOME}), [selectedTab]);
+    const inboxAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.INBOX}), [selectedTab]);
     const searchAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.SEARCH}), [selectedTab]);
     const workspacesAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.WORKSPACES}), [selectedTab]);
 
@@ -291,7 +291,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                                     <View>
                                         <Icon
                                             src={expensifyIcons.Inbox}
-                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.INBOX, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
                                         />
@@ -311,7 +311,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                                             styles.textSmall,
                                             styles.textAlignCenter,
                                             styles.mt1Half,
-                                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                            selectedTab === NAVIGATION_TABS.INBOX ? styles.textBold : styles.textSupporting,
                                             styles.navigationTabBarLabel,
                                         ]}
                                     >
@@ -433,7 +433,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                     <View>
                         <Icon
                             src={expensifyIcons.Inbox}
-                            fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
+                            fill={selectedTab === NAVIGATION_TABS.INBOX ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -452,7 +452,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                             styles.textSmall,
                             styles.textAlignCenter,
                             styles.mt1Half,
-                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                            selectedTab === NAVIGATION_TABS.INBOX ? styles.textBold : styles.textSupporting,
                             styles.navigationTabBarLabel,
                         ]}
                     >
