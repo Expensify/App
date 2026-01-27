@@ -762,12 +762,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Intrekken',
-            title: 'Gezichts-/vingerafdruk & passkeys',
+            title: 'Gezichtsherkenning/vingerafdruk & passkeys',
             explanation:
-                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op een of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
+                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
             confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat',
             cta: 'Toegang intrekken',
-            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkeys-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
+            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkeys-verificatie. Als je er een registreert, kun je hier die toegang intrekken.',
             dismiss: 'Begrepen',
             error: 'Verzoek mislukt. Probeer het later opnieuw.',
         },
@@ -895,7 +895,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         onlyVisible: 'Alleen zichtbaar voor',
         explain: 'Uitleggen',
-        explainMessage: 'Leg dit alsjeblieft aan mij uit.',
+        explainMessage: 'Leg dit alstublieft aan mij uit.',
         replyInThread: 'Antwoord in thread',
         joinThread: 'Deelnemen aan thread',
         leaveThread: 'Thread verlaten',
@@ -1078,7 +1078,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
         scanFailed: 'De bon kon niet worden gescand, omdat er een handelaar, datum of bedrag ontbreekt.',
-        addAReceipt: {phrase1: 'Bon toevoegen', phrase2: 'of sleep hierheen en neerzetten'},
+        addAReceipt: {
+            phrase1: 'Bon toevoegen',
+            phrase2: 'of sleep hem hierheen',
+        },
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -1490,7 +1493,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
         correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleg</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
     },
     transactionMerge: {
         listPage: {
@@ -2394,24 +2397,24 @@ ${amount} voor ${merchant} - ${date}`,
     },
     expenseRulesPage: {
         title: 'Kostenregels',
-        subtitle: 'Deze regels zijn van toepassing op je uitgaven. Als je ze indient bij een werkruimte, kunnen de regels van de werkruimte deze overschrijven.',
+        subtitle: 'Deze regels zijn van toepassing op je uitgaven. Als je ze indient bij een werkruimte, kunnen de regels van de werkruimte deze overschrijven.', //_/\__/_/  \_,_/\__/\__/\_,_/
         findRule: 'Regel zoeken',
         emptyRules: {title: 'Je hebt nog geen regels aangemaakt', subtitle: 'Voeg een regel toe om onkostendeclaraties te automatiseren.'},
         changes: {
-            billableUpdate: (value: boolean) => `Uitgave ${value ? 'factureerbaar' : 'niet-factureerbaar'} bijwerken`,
+            billableUpdate: (value: boolean) => `Uitgave ${value ? 'factureerbaar' : 'niet-declarabel'} bijwerken`,
             categoryUpdate: (value: string) => `Categorie bijwerken naar "${value}"`,
-            commentUpdate: (value: string) => `Beschrijving bijwerken naar "${value}"`,
+            commentUpdate: (value: string) => `Beschrijving wijzigen in "${value}"`,
             merchantUpdate: (value: string) => `Handelaar bijwerken naar "${value}"`,
-            reimbursableUpdate: (value: boolean) => `Declaratie ${value ? 'vergoedbaar' : 'niet-vergoedbaar'} bijwerken`,
+            reimbursableUpdate: (value: boolean) => `Uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`,
             tagUpdate: (value: string) => `Tag bijwerken naar "${value}"`,
-            taxUpdate: (value: string) => `Belastingtarief bijwerken naar "${value}"`,
-            billable: (value: boolean) => `uitgave ${value ? 'factureerbaar' : 'niet-factureerbaar'}`,
+            taxUpdate: (value: string) => `Belastingtarief bijwerken naar ${value}`,
+            billable: (value: boolean) => `uitgave ${value ? 'factureerbaar' : 'niet-declarabel'}`,
             category: (value: string) => `categorie naar "${value}"`,
-            comment: (value: string) => `beschrijving naar "${value}"`,
+            comment: (value: string) => `beschrijving wijzigen in "${value}"`,
             merchant: (value: string) => `handelaar naar "${value}"`,
-            reimbursable: (value: boolean) => `uitgave ${value ? 'vergoedbaar' : 'niet-vergoedbaar'}`,
+            reimbursable: (value: boolean) => `uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'}`,
             tag: (value: string) => `tag naar "${value}"`,
-            tax: (value: string) => `belastingtarief naar "${value}"`,
+            tax: (value: string) => `belastingtarief naar ${value}`,
             report: (value: string) => `toevoegen aan een rapport met de naam "${value}"`,
         },
         newRule: 'Nieuwe regel',
@@ -2627,19 +2630,19 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'Uitgaven goedkeuringen toevoegen',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Voeg onkostengoedkeuringen toe* om de uitgaven van je team te beoordelen en onder controle te houden.
+                        *Voeg uitgavenfiattering toe* om de uitgaven van je team te beoordelen en onder controle te houden.
 
                         Zo doe je dat:
 
                         1. Ga naar *Workspaces*.
                         2. Selecteer je workspace.
-                        3. Klik op *More features*.
+                        3. Klik op *Meer functies*.
                         4. Schakel *Workflows* in.
                         5. Ga naar *Workflows* in de workspace-editor.
-                        6. Schakel *Approvals* in.
-                        7. Jij wordt ingesteld als de onkostengoedkeurder. Je kunt dit wijzigen naar een andere beheerder zodra je je team hebt uitgenodigd.
+                        6. Schakel *Fiatteringen* in.
+                        7. Jij wordt ingesteld als de fiatteur voor uitgaven. Je kunt dit wijzigen naar elke beheerder zodra je je team uitnodigt.
 
-                        [Breng me naar more features](${workspaceMoreFeaturesLink}).`),
+                        [Breng me naar Meer functies](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Maak](${workspaceConfirmationLink}) een workspace`,
@@ -6312,13 +6315,13 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 cardSubtitle: 'Hier staat het onkostebeleid van je team, zodat iedereen goed weet wat wel en niet wordt vergoed.',
             },
             merchantRules: {
-                title: 'Leverancier',
-                subtitle: 'Stel de regels voor handelaren in zodat onkosten correct gecodeerd binnenkomen en minder nabewerking vereisen.',
-                addRule: 'Handelaarsregel toevoegen',
-                ruleSummaryTitle: (merchantName: string) => `Als de handelaar "${merchantName}" bevat`,
-                ruleSummarySubtitleMerchant: (merchantName: string) => `Naam verkoper wijzigen in "${merchantName}"`,
+                title: 'Handelaar',
+                subtitle: 'Stel de merchantregels zo in dat onkosten met de juiste codering binnenkomen en er minder nabewerking nodig is.',
+                addRule: 'Merchantregel toevoegen',
+                ruleSummaryTitle: (merchantName: string) => `Als handelaar "${merchantName}" bevat`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Naam handelaar wijzigen in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Werk ${fieldName} bij naar "${fieldValue}"`,
-                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als "${reimbursable ? 'vergoedbaar' : 'niet-vergoedbaar'}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als  "${reimbursable ? 'Vergoedbaar' : 'niet-vergoedbaar'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Markeren als "${billable ? 'factureerbaar' : 'niet-factureerbaar'}"`,
             },
         },
@@ -6720,7 +6723,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale uitgaafleeftijd gewijzigd naar "${newValue}" dagen (voorheen "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale onkostendatum verwijderd (voorheen "${oldValue}" dagen)`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'Uitgeschakeld'} automatisch betaalde goedgekeurde rapporten`,
-        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `stel de drempel voor automatisch betalen van goedgekeurde rapporten in op "${newLimit}"`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `stel de drempel voor automatische betaling van goedgekeurde rapporten in op "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `heeft de drempel voor automatisch betalen van goedgekeurde rapporten gewijzigd naar "${newLimit}" (voorheen "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'drempel voor automatisch betalen van goedgekeurde rapporten verwijderd',
@@ -8107,7 +8110,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
         notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
         continueGpsTripModal: {
-            title: 'GPS-ritregistratie hervatten?',
+            title: 'GPS-reisregistratie voortzetten?',
             prompt: 'Het lijkt erop dat de app is afgesloten tijdens je laatste GPS-rit. Wil je de opname van die rit hervatten?',
             confirm: 'Reis voortzetten',
             cancel: 'Reis bekijken',

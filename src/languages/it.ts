@@ -762,10 +762,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Revoca',
-            title: 'Riconoscimento facciale/impronta digitale e passkey',
+            title: 'Face/impronta digitale e passkey',
             explanation:
                 'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo',
-            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo',
+            confirmationPrompt: 'Sei sicuro? Avrai bisogno di un codice magico per la prossima verifica su qualsiasi dispositivo',
             cta: 'Revoca accesso',
             noDevices: 'Non hai alcun dispositivo registrato per la verifica con volto/impronta digitale o passkey. Se ne registri uno, potrai revocare tale accesso qui.',
             dismiss: 'Capito',
@@ -895,7 +895,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         onlyVisible: 'Visibile solo a',
         explain: 'Spiega',
-        explainMessage: 'Per favore spiegamelo.',
+        explainMessage: 'Per favore, spiegami questo.',
         replyInThread: 'Rispondi nel thread',
         joinThread: 'Unisciti al thread',
         leaveThread: 'Abbandona conversazione',
@@ -1078,7 +1078,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',
         scanFailed: 'Impossibile acquisire la ricevuta perché mancano l’esercente, la data o l’importo.',
-        addAReceipt: {phrase1: 'Aggiungi una ricevuta', phrase2: 'oppure trascina e rilascia uno qui'},
+        addAReceipt: {
+            phrase1: 'Aggiungi una ricevuta',
+            phrase2: 'o trascinala e rilasciala qui',
+        },
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -2402,19 +2405,19 @@ ${amount} per ${merchant} - ${date}`,
         changes: {
             billableUpdate: (value: boolean) => `Aggiorna spesa ${value ? 'fatturabile' : 'non fatturabile'}`,
             categoryUpdate: (value: string) => `Aggiorna categoria in "${value}"`,
-            commentUpdate: (value: string) => `Aggiorna la descrizione in "${value}"`,
-            merchantUpdate: (value: string) => `Aggiorna commerciante a "${value}"`,
-            reimbursableUpdate: (value: boolean) => `Aggiorna spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
-            tagUpdate: (value: string) => `Aggiorna tag in "${value}"`,
-            taxUpdate: (value: string) => `Aggiorna aliquota fiscale a "${value}"`,
+            commentUpdate: (value: string) => `Modifica la descrizione in "${value}"`,
+            merchantUpdate: (value: string) => `Aggiorna esercente in "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Aggiorna la spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
+            tagUpdate: (value: string) => `Aggiorna etichetta in "${value}"`,
+            taxUpdate: (value: string) => `Aggiorna l’aliquota fiscale a ${value}`,
             billable: (value: boolean) => `spesa ${value ? 'fatturabile' : 'non fatturabile'}`,
             category: (value: string) => `categoria in "${value}"`,
-            comment: (value: string) => `descrizione in "${value}"`,
+            comment: (value: string) => `la descrizione in "${value}"`,
             merchant: (value: string) => `esercente in "${value}"`,
-            reimbursable: (value: boolean) => `spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
-            tag: (value: string) => `tag a "${value}"`,
-            tax: (value: string) => `aliquota fiscale a "${value}"`,
-            report: (value: string) => `aggiungi a un report chiamato "${value}"`,
+            reimbursable: (value: boolean) => `la spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
+            tag: (value: string) => `etichetta in "${value}"`,
+            tax: (value: string) => `l’aliquota fiscale a ${value}`,
+            report: (value: string) => `aggiungi a un report chiamato «${value}»`,
         },
         newRule: 'Nuova regola',
         addRule: {
@@ -2629,19 +2632,19 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Aggiungi approvazioni delle spese',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Aggiungi le approvazioni delle spese* per controllare le spese del tuo team e mantenerle sotto controllo.
+                        *Aggiungi le approvazioni delle spese* per rivedere le spese del tuo team e mantenerle sotto controllo.
 
                         Ecco come fare:
 
-                        1. Vai su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Clicca su *More features*.
-                        4. Abilita *Workflows*.
-                        5. Vai su *Workflows* nell’editor del workspace.
-                        6. Abilita *Approvals*.
-                        7. Verrai impostato come approvatore delle spese. Potrai cambiarlo e assegnarlo a qualsiasi amministratore dopo aver invitato il tuo team.
+                        1. Vai a *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Altre funzionalità*.
+                        4. Abilita *Flussi di lavoro*.
+                        5. Vai a *Flussi di lavoro* nell’editor dello spazio di lavoro.
+                        6. Abilita *Approvazioni*.
+                        7. Verrai impostato come approvatore delle spese. Puoi cambiarlo in qualsiasi amministratore dopo aver invitato il tuo team.
 
-                        [Portami a more features](${workspaceMoreFeaturesLink}).`),
+                        [Portami alle altre funzionalità](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) un workspace`,
@@ -6325,13 +6328,13 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 cardSubtitle: 'Qui è dove si trova la policy di spesa del tuo team, così tutti sono allineati su cosa è coperto.',
             },
             merchantRules: {
-                title: 'Commerciante',
-                subtitle: 'Imposta le regole per i fornitori in modo che le spese arrivino con la codifica corretta e richiedano meno interventi di correzione.',
-                addRule: 'Aggiungi regola commerciante',
-                ruleSummaryTitle: (merchantName: string) => `Se l'esercente contiene "${merchantName}"`,
+                title: 'Esercente',
+                subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
+                addRule: 'Aggiungi regola esercente',
+                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
-                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Contrassegna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Contrassegna come "${billable ? 'fatturabile' : 'non fatturabile'}"`,
             },
         },
@@ -6737,10 +6740,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta età massima della spesa a "${newValue}" giorni`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima della spesa cambiata a "${newValue}" giorni (in precedenza "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima spesa rimossa (precedentemente "${oldValue}" giorni)`,
-        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} report approvati per il pagamento automatico`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} report approvati con pagamento automatico`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `imposta la soglia per il pagamento automatico dei report approvati su "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
-            `ha modificato la soglia per il pagamento automatico dei report approvati a "${newLimit}" (precedentemente "${oldLimit}")`,
+            `ha modificato la soglia per il pagamento automatico dei report approvati in "${newLimit}" (in precedenza "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: "rimosso la soglia per l'approvazione automatica dei report di pagamento",
     },
     roomMembersPage: {
@@ -8132,8 +8135,8 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         },
         continueGpsTripModal: {
             title: 'Continuare la registrazione del viaggio GPS?',
-            prompt: 'Sembra che l’app si sia chiusa durante il tuo ultimo viaggio GPS. Vuoi continuare la registrazione da quel viaggio?',
-            confirm: 'Continua il viaggio',
+            prompt: 'Sembra che l’app si sia chiusa durante il tuo ultimo viaggio GPS. Vuoi continuare a registrare da quel viaggio?',
+            confirm: 'Continua viaggio',
             cancel: 'Visualizza viaggio',
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},

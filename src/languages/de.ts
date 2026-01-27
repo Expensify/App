@@ -763,10 +763,11 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Widerrufen',
             title: 'Gesichts-/Fingerabdruck & Passkeys',
             explanation:
-                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert für die nächste Verifizierung auf jedem Gerät einen magischen Code',
-            confirmationPrompt: 'Bist du sicher? Du brauchst einen magischen Code für die nächste Verifizierung auf jedem Gerät',
+                'Die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert beim nächsten Verifizierungsvorgang auf jedem Gerät einen Magic Code',
+            confirmationPrompt: 'Bist du sicher? Du benötigst einen magischen Code für die nächste Verifizierung auf jedem Gerät',
             cta: 'Zugriff widerrufen',
-            noDevices: 'Du hast keine Geräte für die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn du welche registrierst, kannst du deren Zugriff hier widerrufen.',
+            noDevices:
+                'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier wieder entziehen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuchen Sie es später erneut.',
         },
@@ -895,7 +896,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         onlyVisible: 'Nur sichtbar für',
         explain: 'Erklären',
-        explainMessage: 'Bitte erklären Sie mir das.',
+        explainMessage: 'Bitte erkläre mir das.',
         replyInThread: 'Im Thread antworten',
         joinThread: 'Thread beitreten',
         leaveThread: 'Thread verlassen',
@@ -1081,7 +1082,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
         addReceipt: 'Beleg hinzufügen',
         scanFailed: 'Die Quittung konnte nicht gescannt werden, da der Händler, das Datum oder der Betrag fehlt.',
-        addAReceipt: {phrase1: 'Beleg hinzufügen', phrase2: 'oder ziehe eine hierher und lege sie ab'},
+        addAReceipt: {
+            phrase1: 'Beleg hinzufügen',
+            phrase2: 'oder hierher ziehen und ablegen',
+        },
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -1216,7 +1220,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Sind Sie sicher, dass Sie diese Ausgaben löschen möchten?',
         }),
         deleteReport: 'Bericht löschen',
-        deleteReportConfirmation: 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?',
+        deleteReportConfirmation: 'Möchten Sie diesen Bericht wirklich löschen?',
         settledExpensify: 'Bezahlt',
         done: 'Fertig',
         settledElsewhere: 'Anderswo bezahlt',
@@ -2403,21 +2407,21 @@ ${amount} für ${merchant} – ${date}`,
         findRule: 'Regel finden',
         emptyRules: {title: 'Du hast noch keine Regeln erstellt', subtitle: 'Füge eine Regel hinzu, um Spesenberichte zu automatisieren.'},
         changes: {
-            billableUpdate: (value: boolean) => `Ausgabe ${value ? 'abrechenbar' : 'nicht verrechenbar'} aktualisieren`,
-            categoryUpdate: (value: string) => `Kategorie zu „${value}“ aktualisieren`,
-            commentUpdate: (value: string) => `Beschreibung auf „${value}“ aktualisieren`,
-            merchantUpdate: (value: string) => `Händler auf „${value}“ aktualisieren`,
+            billableUpdate: (value: boolean) => `Ausgabe ${value ? 'verrechenbar' : 'nicht abrechenbar'} aktualisieren`,
+            categoryUpdate: (value: string) => `Kategorie auf „${value}“ aktualisieren`,
+            commentUpdate: (value: string) => `Beschreibung in „${value}“ ändern`,
+            merchantUpdate: (value: string) => `Händler aktualisieren auf „${value}“`,
             reimbursableUpdate: (value: boolean) => `Ausgabe ${value ? 'erstattungsfähig' : 'nicht erstattungsfähig'} aktualisieren`,
             tagUpdate: (value: string) => `Tag auf „${value}“ aktualisieren`,
-            taxUpdate: (value: string) => `Steuersatz auf „${value}“ aktualisieren`,
-            billable: (value: boolean) => `Ausgabe ${value ? 'abrechenbar' : 'nicht verrechenbar'}`,
-            category: (value: string) => `Kategorie zu „${value}“`,
-            comment: (value: string) => `Beschreibung zu „${value}“`,
-            merchant: (value: string) => `Händler auf „${value}“`,
-            reimbursable: (value: boolean) => `Ausgabe ${value ? 'erstattungsfähig' : 'nicht erstattungsfähig'}`,
-            tag: (value: string) => `Tag zu „${value}“`,
-            tax: (value: string) => `Steuersatz auf „${value}“`,
-            report: (value: string) => `zu einem Bericht namens „${value}“ hinzufügen`,
+            taxUpdate: (value: string) => `Steuersatz auf ${value} aktualisieren`,
+            billable: (value: boolean) => `ausgabe ${value ? 'verrechenbar' : 'nicht abrechenbar'}`,
+            category: (value: string) => `kategorie auf „${value}“`,
+            comment: (value: string) => `beschreibung in „${value}“ ändern`,
+            merchant: (value: string) => `händler auf „${value}“`,
+            reimbursable: (value: boolean) => `ausgabe ${value ? 'erstattungsfähig' : 'nicht erstattungsfähig'}`,
+            tag: (value: string) => `tag auf „${value}“`,
+            tax: (value: string) => `steuersatz auf ${value}`,
+            report: (value: string) => `zu einem Bericht mit dem Namen „${value}“ hinzufügen`,
         },
         newRule: 'Neue Regel',
         addRule: {
@@ -2640,13 +2644,13 @@ ${amount} für ${merchant} – ${date}`,
 
                         1. Gehen Sie zu *Workspaces*.
                         2. Wählen Sie Ihren Workspace aus.
-                        3. Klicken Sie auf *Weitere Funktionen*.
+                        3. Klicken Sie auf *More features*.
                         4. Aktivieren Sie *Workflows*.
                         5. Navigieren Sie zu *Workflows* im Workspace-Editor.
-                        6. Aktivieren Sie *Genehmigungen*.
-                        7. Sie werden als Genehmiger für Ausgaben festgelegt. Sie können dies in einen beliebigen Admin ändern, sobald Sie Ihr Team einladen.
+                        6. Aktivieren Sie *Approvals*.
+                        7. Sie werden als Genehmiger für Ausgaben festgelegt. Sie können dies auf einen beliebigen Admin ändern, sobald Sie Ihr Team eingeladen haben.
 
-                        [Zu weiteren Funktionen](${workspaceMoreFeaturesLink}).`),
+                        [Zu More features wechseln](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Arbeitsbereich erstellen](${workspaceConfirmationLink})`,
@@ -6347,9 +6351,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 addRule: 'Händlerregel hinzufügen',
                 ruleSummaryTitle: (merchantName: string) => `Wenn Händler „${merchantName}“ enthält`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Händler in „${merchantName}“ umbenennen`,
-                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} auf „${fieldValue}“ aktualisieren`,
-                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als „${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}“ markieren`,
-                ruleSummarySubtitleBillable: (billable: boolean) => `Als "${billable ? 'abrechenbar' : 'nicht verrechenbar'}" markieren`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Als „${billable ? 'Abrechenbar' : 'nicht abrechenbar'}“ markieren`,
             },
         },
         planTypePage: {
@@ -6747,11 +6751,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage festlegen`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter entfernt (zuvor „${oldValue}“ Tage)`,
-        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'Deaktiviert'} AutoPay-genehmigte Berichte`,
-        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `setze den Schwellenwert für automatisch bezahlte genehmigte Berichte auf „${newLimit}“`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'Deaktiviert'} automatisch bezahlte genehmigte Berichte`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `Stelle den Schwellenwert für die automatische Zahlung genehmigter Berichte auf „${newLimit}“ ein`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
-            `hat den Schwellenwert für die automatische Zahlung genehmigter Berichte auf „${newLimit}“ geändert (zuvor „${oldLimit}“)`,
-        removedAutoPayApprovedReportsLimit: 'Schwellenwert für automatisch bezahlte genehmigte Berichte entfernt',
+            `den Schwellenwert für die automatische Bezahlung genehmigter Berichte auf „${newLimit}“ geändert (zuvor „${oldLimit}“)`,
+        removedAutoPayApprovedReportsLimit: 'den Grenzwert für automatisch bezahlte genehmigte Reports entfernt',
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -8144,7 +8148,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             button: 'App herunterladen',
         },
         continueGpsTripModal: {
-            title: 'GPS-Fahrtaufzeichnung fortsetzen?',
+            title: 'GPS-Aufzeichnung der Fahrt fortsetzen?',
             prompt: 'Es sieht so aus, als ob die App während deiner letzten GPS-Fahrt geschlossen wurde. Möchtest du die Aufzeichnung dieser Fahrt fortsetzen?',
             confirm: 'Reise fortsetzen',
             cancel: 'Reise anzeigen',

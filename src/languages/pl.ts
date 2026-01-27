@@ -762,10 +762,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Unieważnij',
-            title: 'Twarz/odcisk palca i klucze dostępowe',
+            title: 'Rozpoznawanie twarzy/odcisku palca i klucze dostępu',
             explanation:
-                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub większej liczbie urządzeń. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
-            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na dowolnym urządzeniu',
+                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Odwołanie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
+            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do kolejnej weryfikacji na każdym urządzeniu',
             cta: 'Cofnij dostęp',
             noDevices:
                 'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą/odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
@@ -895,7 +895,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         onlyVisible: 'Widoczne tylko dla',
         explain: 'Wyjaśnij',
-        explainMessage: 'Wyjaśnij mi to proszę.',
+        explainMessage: 'Proszę, wyjaśnij mi to.',
         replyInThread: 'Odpowiedz w wątku',
         joinThread: 'Dołącz do wątku',
         leaveThread: 'Opuść wątek',
@@ -1079,7 +1079,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',
         scanFailed: 'Nie można było zeskanować paragonu, ponieważ brakuje na nim sprzedawcy, daty lub kwoty.',
-        addAReceipt: {phrase1: 'Dodaj paragon', phrase2: 'lub przeciągnij i upuść jeden tutaj'},
+        addAReceipt: {
+            phrase1: 'Dodaj paragon',
+            phrase2: 'lub przeciągnij i upuść go tutaj',
+        },
     },
     quickAction: {
         scanReceipt: 'Zeskanuj paragon',
@@ -2392,20 +2395,20 @@ ${amount} dla ${merchant} - ${date}`,
         findRule: 'Znajdź regułę',
         emptyRules: {title: 'Nie utworzyłeś żadnych reguł', subtitle: 'Dodaj regułę, aby zautomatyzować raportowanie wydatków.'},
         changes: {
-            billableUpdate: (value: boolean) => `Zaktualizuj wydatek ${value ? 'Do fakturowania' : 'niepodlegające rozliczeniu'}`,
+            billableUpdate: (value: boolean) => `Zaktualizuj wydatek ${value ? 'Fakturowalne' : 'niefakturowalne'}`,
             categoryUpdate: (value: string) => `Zaktualizuj kategorię na „${value}”`,
-            commentUpdate: (value: string) => `Zaktualizuj opis na „${value}”`,
+            commentUpdate: (value: string) => `Zmień opis na „${value}”`,
             merchantUpdate: (value: string) => `Zaktualizuj sprzedawcę na „${value}”`,
             reimbursableUpdate: (value: boolean) => `Zaktualizuj wydatek ${value ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`,
             tagUpdate: (value: string) => `Zaktualizuj znacznik na „${value}”`,
-            taxUpdate: (value: string) => `Zaktualizuj stawkę podatku na „${value}”`,
-            billable: (value: boolean) => `wydatek ${value ? 'Do fakturowania' : 'niepodlegające rozliczeniu'}`,
-            category: (value: string) => `kategoria na „${value}”`,
-            comment: (value: string) => `opis dla „${value}”`,
-            merchant: (value: string) => `sprzedawca na „${value}”`,
+            taxUpdate: (value: string) => `Zaktualizuj stawkę podatku na ${value}`,
+            billable: (value: boolean) => `wydatek ${value ? 'fakturowalne' : 'niefakturowalne'}`,
+            category: (value: string) => `kategorię na „${value}”`,
+            comment: (value: string) => `opis na „${value}”`,
+            merchant: (value: string) => `sprzedawcę na „${value}”`,
             reimbursable: (value: boolean) => `wydatek ${value ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`,
-            tag: (value: string) => `otaguj jako „${value}”`,
-            tax: (value: string) => `stawka podatku na „${value}”`,
+            tag: (value: string) => `znacznik na „${value}”`,
+            tax: (value: string) => `stawkę podatku na ${value}`,
             report: (value: string) => `dodaj do raportu o nazwie „${value}”`,
         },
         newRule: 'Nowa reguła',
@@ -2621,19 +2624,19 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'Dodaj zatwierdzanie wydatków',
                 description: ({workspaceMoreFeaturesLink}) =>
                     dedent(`
-                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki swojego zespołu i utrzymywać je pod kontrolą.
+                        *Dodaj zatwierdzanie wydatków*, aby przeglądać wydatki zespołu i utrzymać je pod kontrolą.
 
-                        Jak to zrobić:
+                        Oto jak:
 
                         1. Przejdź do *Workspaces*.
-                        2. Wybierz swoją przestrzeń roboczą.
+                        2. Wybierz swój workspace.
                         3. Kliknij *More features*.
                         4. Włącz *Workflows*.
-                        5. Przejdź do *Workflows* w edytorze przestrzeni roboczej.
+                        5. Przejdź do *Workflows* w edytorze workspace.
                         6. Włącz *Approvals*.
-                        7. Zostaniesz ustawiony jako osoba zatwierdzająca wydatki. Możesz zmienić to na dowolnego administratora po zaproszeniu swojego zespołu.
+                        7. Zostaniesz ustawiony jako zatwierdzający wydatki. Po zaproszeniu zespołu możesz zmienić tę osobę na dowolnego administratora.
 
-                        [Przejdź do more features](${workspaceMoreFeaturesLink}).`),
+                        [Przejdź do More features](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Utwórz](${workspaceConfirmationLink}) przestrzeń roboczą`,
@@ -6312,8 +6315,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 ruleSummaryTitle: (merchantName: string) => `Jeśli sprzedawca zawiera „${merchantName}”`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Zmień sprzedawcę na „${merchantName}”`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Zaktualizuj ${fieldName} na „${fieldValue}”`,
-                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako „${reimbursable ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}”`,
-                ruleSummarySubtitleBillable: (billable: boolean) => `Oznacz jako „${billable ? 'Do fakturowania' : 'niepodlegające rozliczeniu'}”`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako "${reimbursable ? 'kwalifikujący się do zwrotu kosztów' : 'niepodlegający zwrotowi'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Oznacz jako „${billable ? 'fakturowalne' : 'poza fakturą'}”`,
             },
         },
         planTypePage: {
@@ -6709,11 +6712,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `ustaw maksymalny wiek wydatku na „${newValue}” dni`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `zmieniono maksymalny wiek wydatku na „${newValue}” dni (wcześniej „${oldValue}”)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `usunięto maksymalny wiek wydatku (wcześniej „${oldValue}” dni)`,
-        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Włączone' : 'Wyłączone'} automatycznie opłaconych zatwierdzonych raportów`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Włączone' : 'wyłączone'} automatycznie opłacone zatwierdzone raporty`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `ustaw próg automatycznej płatności zatwierdzonych raportów na „${newLimit}”`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
-            `zmieniono próg automatycznej płatności zatwierdzonych raportów na „${newLimit}” (wcześniej „${oldLimit}”)`,
-        removedAutoPayApprovedReportsLimit: 'usunięto próg automatycznych płatności dla zatwierdzonych raportów',
+            `zmienił próg automatycznej płatności dla zatwierdzonych raportów na „${newLimit}” (wcześniej „${oldLimit}”)`,
+        removedAutoPayApprovedReportsLimit: 'usunął próg dla automatycznego opłacania zatwierdzonych raportów',
     },
     roomMembersPage: {
         memberNotFound: 'Użytkownik nie został znaleziony.',
@@ -6849,7 +6852,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         deleteSavedSearchConfirm: 'Czy na pewno chcesz usunąć to wyszukiwanie?',
         searchName: 'Wyszukaj nazwę',
         savedSearchesMenuItemTitle: 'Zapisano',
-        topCategories: 'Najpopularniejsze kategorie',
+        topCategories: 'Najlepsze kategorie',
         groupedExpenses: 'pogrupowane wydatki',
         bulkActions: {
             approve: 'Zatwierdź',
@@ -8093,8 +8096,8 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             button: 'Pobierz aplikację',
         },
         continueGpsTripModal: {
-            title: 'Kontynuować nagrywanie trasy GPS?',
-            prompt: 'Wygląda na to, że aplikacja została zamknięta podczas Twojej ostatniej podróży GPS. Czy chcesz kontynuować nagrywanie z tamtej podróży?',
+            title: 'Kontynuować rejestrowanie trasy GPS?',
+            prompt: 'Wygląda na to, że aplikacja została zamknięta podczas Twojej ostatniej trasy GPS. Czy chcesz kontynuować rejestrowanie z tamtej trasy?',
             confirm: 'Kontynuuj podróż',
             cancel: 'Zobacz podróż',
         },
