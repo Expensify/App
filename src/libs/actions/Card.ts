@@ -23,7 +23,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
-import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ReplacementReason = 'damaged' | 'stolen';
@@ -776,7 +775,7 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData, timezone?: SelectedTimezone) {
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -845,8 +844,8 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         {
             ...parameters,
             policyID,
-            validFrom: validFrom && timezone ? DateUtils.formatValidFromDate(validFrom, timezone) : undefined,
-            validThru: validThru && timezone ? DateUtils.formatValidThruDate(validThru, timezone) : undefined,
+            validFrom: validFrom ? DateUtils.formatValidFromDate(validFrom) : undefined,
+            validThru: validThru ? DateUtils.formatValidThruDate(validThru) : undefined,
         },
         {
             optimisticData,

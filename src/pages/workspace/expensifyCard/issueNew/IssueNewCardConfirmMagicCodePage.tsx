@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +32,6 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const {isBetaEnabled} = usePermissions();
     const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
-    const {timezone} = useCurrentUserPersonalDetails();
 
     useEffect(() => {
         if (!isSuccessful) {
@@ -50,9 +48,9 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const handleSubmit = useCallback(
         (validateCode: string) => {
             // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data, timezone?.selected);
+            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
         },
-        [isBetaEnabled, data, defaultFundID, policyID, timezone?.selected],
+        [isBetaEnabled, data, defaultFundID, policyID],
     );
 
     const handleClose = useCallback(() => {

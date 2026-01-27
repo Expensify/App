@@ -920,22 +920,21 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
  * Convert a date to UTC by taking midnight (00:00:00) in the user's local timezone and expressing it as a UTC timestamp
  */
 
-const formatValidFromDate = (fromDate: string, timezone: SelectedTimezone): string => {
-    const localDate = parse(fromDate, 'yyyy-MM-dd', new Date());
+const formatValidFromDate = (fromDate: string): string => {
+    const localDate = parse(fromDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
     const midnightLocal = startOfDay(localDate);
-    const midnightUTC = fromZonedTime(midnightLocal, timezone);
-    return midnightUTC.toISOString();
+    return getDBTime(midnightLocal.valueOf());
 };
 
 /**
  * Convert a date to UTC by taking end of day (23:59:59) in the user's local timezone and expressing it as a UTC timestamp
  */
-const formatValidThruDate = (thruDate: string, timezone: SelectedTimezone): string => {
-    const localDate = parse(thruDate, 'yyyy-MM-dd', new Date());
+const formatValidThruDate = (thruDate: string): string => {
+    const localDate = parse(thruDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
     const endOfDayLocal = endOfDay(localDate);
-    const endOfDayUTC = fromZonedTime(endOfDayLocal, timezone);
-    return endOfDayUTC.toISOString();
+    return getDBTime(endOfDayLocal.valueOf());
 };
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
