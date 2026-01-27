@@ -420,23 +420,25 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             return;
         }
         console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-        getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-            const params: ReconnectAppParams = policyParams;
+        getPolicyParamsForOpenOrReconnect()
+            .then((policyParams) => {
+                const params: ReconnectAppParams = policyParams;
 
-            // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-            // Otherwise, a full set of app data will be returned.
-            if (updateIDFrom) {
-                params.updateIDFrom = updateIDFrom;
-            }
+                // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+                // Otherwise, a full set of app data will be returned.
+                if (updateIDFrom) {
+                    params.updateIDFrom = updateIDFrom;
+                }
 
-            const isFullReconnect = !updateIDFrom;
-            API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
+                const isFullReconnect = !updateIDFrom;
+                return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
+            })
+            .finally(() => {
                 if (!bootsplashSpan) {
                     return;
                 }
                 endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
             });
-        });
     });
 }
 
