@@ -60,6 +60,14 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
             HybridAppModule.signOutFromOldDot();
         }
         clearAllPolicies();
+
+        // When logging out from imported state, reset shouldForceOffline to false and clear the imported state flag
+        // so the user can log back in
+        if (currentIsUsingImportedState) {
+            Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+            Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, false);
+        }
+
         if (!errorMessage) {
             return;
         }
