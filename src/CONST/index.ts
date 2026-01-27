@@ -7094,9 +7094,14 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
+            VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+        },
+        VIEW: {
+            TABLE: 'table',
+            BAR: 'bar',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
