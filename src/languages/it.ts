@@ -762,13 +762,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Revoca',
-            title: 'Face/impronta digitale e passkey',
+            title: 'Riconoscimento facciale/impronta digitale & passkey',
             explanation:
-                'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo',
-            confirmationPrompt: 'Sei sicuro? Avrai bisogno di un codice magico per la prossima verifica su qualsiasi dispositivo',
+                'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo',
+            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo',
             cta: 'Revoca accesso',
-            noDevices: 'Non hai alcun dispositivo registrato per la verifica con volto/impronta digitale o passkey. Se ne registri uno, potrai revocare tale accesso qui.',
-            dismiss: 'Capito',
+            noDevices: 'Non hai alcun dispositivo registrato per la verifica con volto/impronta digitale o passkey. Se ne registri uno, potrai revocare tale accesso da qui.',
+            dismiss: 'Ho capito',
             error: 'Richiesta non riuscita. Riprova più tardi.',
         },
     },
@@ -6344,6 +6344,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
                 confirmErrorMerchant: 'Per favore inserisci l’esercente',
                 confirmErrorUpdate: 'Applica almeno un aggiornamento',
+                editRuleTitle: 'Modifica regola',
+                deleteRule: 'Elimina regola',
+                deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
             },
         },
         planTypePage: {

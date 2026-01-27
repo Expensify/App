@@ -757,13 +757,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: '撤销',
-            title: '面容/指纹和通行密钥',
-            explanation: '在一台或多台设备上已启用面部/指纹或通行密钥验证。撤销访问权限后，下一次在任意设备上进行验证时都需要输入魔法验证码',
+            title: '面部识别/指纹识别与通行密钥',
+            explanation: '在一台或多台设备上已启用面部 / 指纹或通行密钥验证。撤销访问权限后，下次在任何设备上进行验证时都需要使用魔法验证码',
             confirmationPrompt: '你确定吗？在任何设备上进行下一步验证时，你都需要一个魔法代码',
             cta: '撤销访问权限',
             noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。如果您注册了设备，您将可以在此撤销其访问权限。',
-            dismiss: '知道了',
-            error: '请求失败。请稍后再试。',
+            dismiss: '明白了',
+            error: '请求失败。请稍后重试。',
         },
     },
     validateCodeModal: {
@@ -6190,6 +6190,9 @@ ${reportName}
                 confirmError: '输入商家并至少应用一项更新',
                 confirmErrorMerchant: '请输入商家',
                 confirmErrorUpdate: '请至少进行一次更新',
+                editRuleTitle: '编辑规则',
+                deleteRule: '删除规则',
+                deleteRuleConfirmation: '您确定要删除此规则吗？',
             },
         },
         planTypePage: {
