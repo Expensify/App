@@ -4,13 +4,11 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
 import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperContainer';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {isMobileIOS} from '@libs/Browser';
 import CONST from '@src/CONST';
-import SearchRouter from './SearchRouter';
-import {useSearchRouterActions, useSearchRouterState} from './SearchRouterContext';
 
 const isMobileWebIOS = isMobileIOS();
 

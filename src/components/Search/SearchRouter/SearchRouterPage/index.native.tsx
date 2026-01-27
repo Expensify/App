@@ -1,10 +1,11 @@
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 
 function SearchRouterPage() {
-    const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
+    const {closeSearchRouter} = useSearchRouterActions();
+    const {isSearchRouterDisplayed} = useSearchRouterState();
 
     return (
         <ScreenWrapper

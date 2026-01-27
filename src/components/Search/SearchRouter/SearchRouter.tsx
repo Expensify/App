@@ -166,7 +166,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, textInputValue, isSearchRouterDisplayed, isSearchRouterScreen, translate, expensifyIcons.MagnifyingGlass, styles.activeComponentBG, reports, personalDetails, currentUserAccountID],
+        [
+            contextualReportID,
+            textInputValue,
+            isSearchRouterDisplayed,
+            isSearchRouterScreen,
+            translate,
+            expensifyIcons.MagnifyingGlass,
+            styles.activeComponentBG,
+            reports,
+            personalDetails,
+            currentUserAccountID,
+        ],
     );
 
     const searchQueryItem = textInputValue
