@@ -599,7 +599,7 @@ function HomeNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFlo
                     onPress={navigateToSettings}
                 />
             </View>
-            <View style={[styles.navigationTabBarFAB, styles.floatingActionButtonPosition]}>
+            <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
                 <NavigationTabBarFloatingActionButton />
             </View>
 
