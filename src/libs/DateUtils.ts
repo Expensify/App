@@ -938,8 +938,7 @@ function getMonthDateRange(year: number, month: number): {start: string; end: st
  */
 function isDateStringInMonth(dateString: string, year: number, month: number): boolean {
     const datePart = dateString.substring(0, 10);
-    const monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
-    const monthEnd = format(new Date(year, month, 0), 'yyyy-MM-dd');
+    const {start: monthStart, end: monthEnd} = getMonthDateRange(year, month);
 
     // String comparison works because yyyy-MM-dd format is lexicographically sortable
     return datePart >= monthStart && datePart <= monthEnd;
