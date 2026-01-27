@@ -26,7 +26,9 @@ import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getAmount,
+    getExpenseTypeTranslationKey,
     getFormattedCreated,
+    getTransactionType,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -39,9 +41,7 @@ import {
     isMerchantMissing,
     isOnHold,
     isPending,
-    isPerDiemRequest,
     isScanning,
-    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 
@@ -213,7 +213,6 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
-    const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
@@ -276,18 +275,12 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
+    let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
     if (isDistanceRequest(transaction)) {
-        previewHeaderText = [{translationPath: 'common.distance'}];
-
         if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
             RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
         }
-    } else if (isPerDiemRequest(transaction)) {
-        previewHeaderText = [{translationPath: 'common.perDiem'}];
-    } else if (isTimeRequest(transaction)) {
-        previewHeaderText = [{translationPath: 'iou.time'}];
     } else if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
