@@ -12720,7 +12720,6 @@ class OpenAIUtils {
     }
     /**
      * Prompt a pre-defined assistant.
-     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
      */
     async promptAssistant(assistantID, userMessage) {
         // 1. Create a thread
