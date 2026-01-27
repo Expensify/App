@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: '値',
         downloadFailedTitle: 'ダウンロードに失敗しました',
         downloadFailedDescription: 'ダウンロードを完了できませんでした。後でもう一度お試しください。',
-        downloadFailedEmptyReportDescription: () => ({
-            one: '空のレポートはエクスポートできません。',
-            other: () => '空のレポートはエクスポートできません。',
-        }),
         filterLogs: 'ログをフィルター',
         network: 'ネットワーク',
         reportID: 'レポート ID',
@@ -640,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: '元の金額',
         insights: 'インサイト',
         duplicateExpense: '重複した経費',
+        newFeature: '新機能',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1201,14 +1198,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'この経費を削除してもよろしいですか？',
             other: 'これらの経費を削除してもよろしいですか？',
         }),
-        deleteReport: () => ({
-            one: 'レポートを削除',
-            other: 'レポートを削除',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'このレポートを削除してもよろしいですか？',
-            other: 'これらのレポートを削除してもよろしいですか？',
-        }),
+        deleteReport: 'レポートを削除',
+        deleteReportConfirmation: 'このレポートを削除してもよろしいですか？',
         settledExpensify: '支払済み',
         done: '完了',
         settledElsewhere: '他で支払済み',
@@ -6267,6 +6258,16 @@ ${reportName}
                 title: '経費ポリシー',
                 cardSubtitle: 'ここにはチームの経費ポリシーが保存されています。これにより、何が対象になるかについて全員が同じ認識を持てます。',
             },
+            merchantRules: {
+                title: '加盟店',
+                subtitle: '取引先ルールを設定して、経費が正しくコード化された状態で届くようにし、後処理を最小限に抑えましょう。',
+                addRule: '店舗ルールを追加',
+                ruleSummaryTitle: (merchantName: string) => `もし取引先に「${merchantName}」が含まれている場合`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `支払先名を「${merchantName}」に変更`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} を「${fieldValue}」に更新`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `「${reimbursable ? '払い戻し対象' : '精算対象外'}」としてマーク`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `「${billable ? '請求可能' : '請求対象外'}」としてマーク`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6789,6 +6790,7 @@ ${reportName}
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
+        topCategories: 'トップカテゴリ',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
             approve: '承認',
@@ -6815,6 +6817,7 @@ ${reportName}
             status: 'ステータス',
             keyword: 'キーワード',
             keywords: 'キーワード',
+            limit: '制限',
             currency: '通貨',
             completed: '完了',
             amount: {
@@ -6848,6 +6851,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -7972,7 +7976,6 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
                 `<comment><muted-text-label>有効にすると、<strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを代表連絡先が行い、すべての請求書の領収書を受け取ります。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '統合ドメイン請求を変更できませんでした。後でもう一度お試しください。',
             addAdmin: '管理者を追加',
-            invite: '招待',
             addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
             revokeAdminAccess: '管理者アクセスを取り消す',
             cantRevokeAdminAccess: '技術連絡先から管理者アクセス権を取り消すことはできません',
@@ -7986,7 +7989,13 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             enterDomainName: 'ここにドメイン名を入力してください',
             resetDomainInfo: `この操作は<strong>永久的</strong>であり、次のデータが削除されます：<br/> <ul><li>会社カードの接続およびそれらのカードからの未報告の経費</li> <li>SAML とグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：関連付けられているメールアドレスを<a href="#">連絡先方法</a>から削除することで、このドメインをドメイン一覧から消去できます。`,
         },
-        members: {title: 'メンバー', findMember: 'メンバーを検索'},
+        members: {
+            title: 'メンバー',
+            findMember: 'メンバーを検索',
+            addMember: 'メンバーを追加',
+            email: 'メールアドレス',
+            errors: {addMember: 'このメンバーを追加できませんでした。もう一度お試しください。'},
+        },
         domainAdmins: 'ドメイン管理者',
     },
     gps: {

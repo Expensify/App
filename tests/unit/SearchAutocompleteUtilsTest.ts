@@ -218,6 +218,60 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([]);
         });
 
+        describe('limit filter highlighting', () => {
+            it('highlights valid positive integer', () => {
+                const input = 'limit:10';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([{start: 6, type: 'mention-user', length: 2}]);
+            });
+
+            it('does not highlight zero value', () => {
+                const input = 'limit:0';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('does not highlight non-integer value', () => {
+                const input = 'limit:10.5';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('does not highlight negative value', () => {
+                const input = 'limit:-5';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('highlights limit in complex query with other filters', () => {
+                const input = 'type:expense limit:50 currency:USD';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([
+                    {start: 5, type: 'mention-user', length: 7}, // type:expense
+                    {start: 19, type: 'mention-user', length: 2}, // limit:50
+                    {start: 31, type: 'mention-user', length: 3}, // currency:USD
+                ]);
+            });
+
+            it('does not highlight empty limit value', () => {
+                const input = 'limit:';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+        });
+
         it('should handle valid AMOUNT filters but not invalid TOTAL amounts', () => {
             const input = 'amount:-50.25';
 

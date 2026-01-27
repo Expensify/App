@@ -169,6 +169,9 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we want to avoid the safari exception of ignoring shouldCallAfterModalHide  */
     shouldAvoidSafariException?: boolean;
 
+    /** Whether to preserve focus on sub items after selection */
+    shouldMaintainFocusAfterSubItemSelect?: boolean;
+
     /** Used to locate the component in the tests */
     testID?: string;
 
@@ -290,6 +293,7 @@ function BasePopoverMenu({
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
+    shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -458,7 +462,14 @@ function BasePopoverMenu({
 
     const handleModalHide = () => {
         onModalHide?.();
-        setFocusedIndex(currentMenuItemsFocusedIndex);
+        const keyPath = buildKeyPathFromIndexPath(menuItems, enteredSubMenuIndexes);
+        const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
+
+        if (resolved.found) {
+            setFocusedIndex(getSelectedItemIndex(resolved.itemsAtLeaf));
+        } else {
+            setFocusedIndex(currentMenuItemsFocusedIndex);
+        }
     };
 
     // When the menu items are changed, we want to reset the sub-menu to make sure
@@ -485,7 +496,7 @@ function BasePopoverMenu({
 
         const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
 
-        if (resolved.found) {
+        if (resolved.found && shouldPreserveFocusOnSubItems) {
             setEnteredSubMenuIndexes(resolved.indexes);
             setCurrentMenuItems(resolved.itemsAtLeaf);
             if (!isVisible) {

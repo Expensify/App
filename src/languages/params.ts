@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {AuthTypeName} from '@components/MultifactorAuthentication/types';
 import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
@@ -6,7 +7,7 @@ import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageI
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type MultifactorAuthenticationTranslationParams = {
-    authType?: string;
+    authType?: AuthTypeName;
     registered?: boolean;
 };
 

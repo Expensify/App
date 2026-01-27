@@ -234,6 +234,10 @@ function filterOutRangesWithCorrectValue(
             return userFriendlyColumnList.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT: {
+            const num = Number(range.value);
+            return Number.isInteger(num) && num > 0;
+        }
         default:
             return false;
     }
