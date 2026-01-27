@@ -48,7 +48,7 @@ To enable and configure automatic submissions:
    - **By trip** — A report is submitted after two full days without new expenses
    - **Manually** — Expenses are auto-added to reports, but members must submit manually
   
-![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/IMAGE-WIP){:width="100%"}
+![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_Classic.png){:width="100%"}
 
 ---
 
