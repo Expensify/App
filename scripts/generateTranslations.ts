@@ -263,12 +263,10 @@ class TranslationGenerator {
         // Estimate cost and prompt user if needed (respects --yes/--no flags)
         await this.promptForCostApproval(stringsToTranslate);
 
-        // Translate up to 8 locales in parallel
-        const localePool = new PromisePool(8);
-        const localePromises = this.targetLanguages.map((targetLanguage) =>
-            localePool.add(() => this.generateTranslationsForLocale(targetLanguage, stringsToTranslate, translations.get(targetLanguage) ?? new Map<number, string>())),
-        );
-        await Promise.all(localePromises);
+        // Translate locales sequentially (each locale fully translates before the next begins)
+        for (const targetLanguage of this.targetLanguages) {
+            await this.generateTranslationsForLocale(targetLanguage, stringsToTranslate, translations.get(targetLanguage) ?? new Map<number, string>());
+        }
 
         // Print error summary if there were any failures
         this.printErrorSummary();
@@ -316,37 +314,45 @@ class TranslationGenerator {
 
     /**
      * Generates translations for a single locale.
-     * Translations within a locale are processed sequentially to maintain conversation context chain.
+     * Translations within a locale are processed in parallel (up to 8 at a time).
      */
     private async generateTranslationsForLocale(
         targetLanguage: TranslationTargetLocale,
         stringsToTranslate: Map<number, StringWithContext>,
         translationsForLocale: Map<number, string>,
     ): Promise<void> {
-        // Translate strings sequentially to maintain conversation context chain
+        // Translate strings in parallel (up to 8 at a time)
+        const translationPool = new PromisePool<void>(8);
+        const translationPromises: Array<Promise<void>> = [];
+
         for (const [key, {text, context}] of stringsToTranslate) {
             if (translationsForLocale.has(key)) {
                 // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
                 continue;
             }
 
-            // Special handling for dedent strings - preserve leading newline
-            let textToTranslate = text;
-            let hadLeadingNewline = false;
-            if (this.dedentStringKeys.has(key)) {
-                hadLeadingNewline = text.startsWith('\n');
-                textToTranslate = dedent(text);
-            }
+            const translationPromise = translationPool.add(async () => {
+                // Special handling for dedent strings - preserve leading newline
+                let textToTranslate = text;
+                let hadLeadingNewline = false;
+                if (this.dedentStringKeys.has(key)) {
+                    hadLeadingNewline = text.startsWith('\n');
+                    textToTranslate = dedent(text);
+                }
 
-            let result = await this.translator.translate(targetLanguage, textToTranslate, context);
+                let result = await this.translator.translate(targetLanguage, textToTranslate, context);
 
-            // Special handling for dedent strings - add back leading newline if it was removed
-            if (hadLeadingNewline) {
-                result = `\n${result}`;
-            }
+                // Special handling for dedent strings - add back leading newline if it was removed
+                if (hadLeadingNewline) {
+                    result = `\n${result}`;
+                }
 
-            translationsForLocale.set(key, result);
+                translationsForLocale.set(key, result);
+            });
+            translationPromises.push(translationPromise);
         }
+
+        await Promise.all(translationPromises);
 
         // Replace translated strings in the AST
         let transformedSourceFile: ts.SourceFile;
