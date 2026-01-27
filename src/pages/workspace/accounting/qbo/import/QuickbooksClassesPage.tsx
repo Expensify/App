@@ -29,7 +29,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksClassesPage.displayName}
+            displayName="QuickbooksClassesPage"
             headerTitle="workspace.qbo.classes"
             title="workspace.qbo.classesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -68,7 +68,5 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksClassesPage.displayName = 'QuickbooksClassesPage';
 
 export default withPolicyConnections(QuickbooksClassesPage);

@@ -6,41 +6,43 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getFieldRequiredErrors, isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
 import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
-    formID: TFormID;
+type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
+    ForwardedFSClassProps & {
+        /** The ID of the form */
+        formID: TFormID;
 
-    /** The title of the form */
-    formTitle: string;
+        /** The title of the form */
+        formTitle: string;
 
-    /** The validation function to call when the form is submitted */
-    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+        /** The validation function to call when the form is submitted */
+        customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-    /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        /** A function to call when the form is submitted */
+        onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
-    /** Fields list of the form */
-    stepFields: Array<FormOnyxKeys<TFormID>>;
+        /** Fields list of the form */
+        stepFields: Array<FormOnyxKeys<TFormID>>;
 
-    /** The ID of the date of birth input */
-    dobInputID: string;
+        /** The ID of the date of birth input */
+        dobInputID: string;
 
-    /** The default value for the date of birth input */
-    dobDefaultValue: string;
+        /** The default value for the date of birth input */
+        dobDefaultValue: string;
 
-    /** Optional footer component */
-    footerComponent?: React.ReactNode;
+        /** Optional footer component */
+        footerComponent?: React.ReactNode;
 
-    /** Whether to show the Patriot Act help link (EnablePayments-only) */
-    shouldShowPatriotActLink?: boolean;
-};
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
+    };
 
 function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     formID,
@@ -53,6 +55,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     isEditing,
     footerComponent,
     shouldShowPatriotActLink = false,
+    forwardedFSClass,
 }: DateOfBirthStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -102,13 +105,12 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 maxDate={maxDate}
                 shouldSaveDraft={!isEditing}
                 autoFocus
+                forwardedFSClass={forwardedFSClass}
             />
             {footerComponent}
             {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
         </FormProvider>
     );
 }
-
-DateOfBirthStep.displayName = 'DateOfBirthStep';
 
 export default DateOfBirthStep;

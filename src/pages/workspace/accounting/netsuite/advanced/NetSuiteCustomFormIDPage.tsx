@@ -64,7 +64,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteCustomFormIDPage.displayName}
+            displayName="NetSuiteCustomFormIDPage"
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             headerTitle={`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -111,7 +111,5 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-NetSuiteCustomFormIDPage.displayName = 'NetSuiteCustomFormIDPage';
 
 export default withPolicyConnections(NetSuiteCustomFormIDPage);

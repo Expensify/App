@@ -46,15 +46,15 @@ function SearchFiltersReportFieldPage() {
                 const beforeValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}`];
 
                 if (onValue) {
-                    dateValues.push(isSearchDatePreset(onValue) ? translate(`search.filters.date.presets.${onValue}`) : translate('search.filters.date.on', {date: onValue}));
+                    dateValues.push(isSearchDatePreset(onValue) ? translate(`search.filters.date.presets.${onValue}`) : translate('search.filters.date.on', onValue));
                 }
 
                 if (afterValue) {
-                    dateValues.push(translate('search.filters.date.after', {date: afterValue}));
+                    dateValues.push(translate('search.filters.date.after', afterValue));
                 }
 
                 if (beforeValue) {
-                    dateValues.push(translate('search.filters.date.before', {date: beforeValue}));
+                    dateValues.push(translate('search.filters.date.before', beforeValue));
                 }
 
                 return {key: field.fieldID, name: field.name, value: dateValues.join(', '), field};
@@ -97,7 +97,7 @@ function SearchFiltersReportFieldPage() {
 
         return (
             <ScreenWrapper
-                testID={SearchFiltersReportFieldPage.displayName}
+                testID="SearchFiltersReportFieldPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
@@ -113,7 +113,7 @@ function SearchFiltersReportFieldPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersReportFieldPage.displayName}
+            testID="SearchFiltersReportFieldPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -153,7 +153,5 @@ function SearchFiltersReportFieldPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersReportFieldPage.displayName = 'SearchFiltersReportFieldPage';
 
 export default SearchFiltersReportFieldPage;

@@ -1,12 +1,12 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -44,22 +44,18 @@ type AssigneeStepProps = {
 function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {isOffline} = useNetwork();
     const policyID = route.params.policyID;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
-    const excludedUsers = useMemo(() => {
-        const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvites.reduce(
-            (acc, login) => {
-                acc[login] = true;
-                return acc;
-            },
-            {} as Record<string, boolean>,
-        );
-    }, [policy?.employeeList]);
+    const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
+    const excludedUsers: Record<string, boolean> = {};
+    for (const login of ineligibleInvites) {
+        excludedUsers[login] = true;
+    }
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, selectedOptionsForDisplay, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -115,19 +111,15 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         clearIssueNewCardFlow(policyID);
     };
 
-    const membersDetails = useMemo(() => {
-        let membersList: ListItem[] = [];
-        if (!policy?.employeeList) {
-            return membersList;
-        }
-
+    const membersDetails: ListItem[] = [];
+    if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 continue;
             }
 
             const personalDetail = getPersonalDetailByEmail(email);
-            membersList.push({
+            membersDetails.push({
                 keyForList: email,
                 text: personalDetail?.displayName,
                 alternateText: email,
@@ -136,7 +128,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 isSelected: issueNewCard?.data?.assigneeEmail === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -145,101 +137,51 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             });
         }
 
-        membersList = sortAlphabetically(membersList, 'text', localeCompare);
+        sortAlphabetically(membersDetails, 'text', localeCompare);
+    }
 
-        return membersList;
-    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber]);
-
-    const sections = useMemo(() => {
-        if (!debouncedSearchTerm) {
-            return [
-                {
-                    data: membersDetails,
-                    shouldShow: true,
-                },
-            ];
-        }
-
-        const sectionsArr = [];
-
-        if (!areOptionsInitialized) {
-            return [];
-        }
-
+    let assignees = membersDetails;
+    if (debouncedSearchTerm && areOptionsInitialized) {
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        sectionsArr.push({
-            title: undefined,
-            data: filteredOptions,
-            shouldShow: true,
-        });
+        const filteredMembers = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: selectedOptionsForDisplay,
-            });
-        }
+        const options = [
+            ...filteredMembers,
+            ...selectedOptionsForDisplay,
+            ...availableOptions.recentReports,
+            ...availableOptions.personalDetails,
+            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+        ];
 
-        // Recent reports section
-        if (availableOptions.recentReports.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.recentReports,
-            });
-        }
-
-        // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.personalDetails,
-            });
-        }
-
-        // User to invite section
-        if (availableOptions.userToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [availableOptions.userToInvite],
-            });
-        }
-
-        return sectionsArr;
-    }, [
-        debouncedSearchTerm,
-        areOptionsInitialized,
-        countryCode,
-        membersDetails,
-        selectedOptionsForDisplay,
-        availableOptions.recentReports,
-        availableOptions.personalDetails,
-        availableOptions.userToInvite,
-    ]);
+        assignees = options.map((option) => ({
+            ...option,
+            keyForList: option.keyForList ?? option.login ?? '',
+        }));
+    } else if (debouncedSearchTerm) {
+        assignees = [];
+    }
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
-    const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
-        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
-            return translate('messages.errorMessageInvalidEmail');
-        }
-        return getHeaderMessage(
-            sections.some((section) => section.data.length > 0),
-            !!availableOptions.userToInvite,
-            searchValue,
-            countryCode,
-            false,
-        );
-    }, [searchTerm, availableOptions.userToInvite, sections, countryCode, translate]);
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage =
+        !availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]
+            ? translate('messages.errorMessageInvalidEmail')
+            : getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+
+    const textInputOptions = {
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
+            wrapperID="AssigneeStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
@@ -251,22 +193,18 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
-                shouldUpdateFocusedIndex
-                initiallyFocusedOptionKey={issueNewCard?.data?.assigneeEmail}
+                data={assignees}
                 onSelectRow={submit}
-                addBottomSafeAreaPadding
+                ListItem={UserListItem}
+                textInputOptions={textInputOptions}
                 isLoadingNewOptions={!!isSearchingForReports}
+                initiallyFocusedItemKey={issueNewCard?.data?.assigneeEmail}
+                disableMaintainingScrollPosition
+                shouldUpdateFocusedIndex
+                addBottomSafeAreaPadding
             />
         </InteractiveStepWrapper>
     );
 }
-
-AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;

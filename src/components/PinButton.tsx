@@ -38,6 +38,4 @@ function PinButton({report}: PinButtonProps) {
     );
 }
 
-PinButton.displayName = 'PinButton';
-
 export default PinButton;

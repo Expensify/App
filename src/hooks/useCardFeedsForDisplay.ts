@@ -1,11 +1,10 @@
-import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {filterPersonalCards, isCustomFeed, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {CompanyCardFeed, Policy} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -27,33 +26,42 @@ const useCardFeedsForDisplay = () => {
         canBeMissing: true,
     });
 
-    const cardFeedsByPolicy = useMemo(() => getCardFeedsForDisplayPerPolicy(allFeeds), [allFeeds]);
+    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds);
 
-    const defaultCardFeed = useMemo(() => {
-        if (!eligiblePoliciesIDs) {
-            return undefined;
-        }
-
+    let defaultCardFeed;
+    if (eligiblePoliciesIDs) {
         // Prioritize the active policy if eligible
         if (activePolicyID && eligiblePoliciesIDs.has(activePolicyID)) {
             const policyCardFeeds = cardFeedsByPolicy[activePolicyID];
             if (policyCardFeeds?.length) {
-                return policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
+                defaultCardFeed = policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
             }
         }
 
-        // If the active policy doesn't have card feeds, use the first eligible policy that does
-        for (const eligiblePolicyID of eligiblePoliciesIDs) {
-            const policyCardFeeds = cardFeedsByPolicy[eligiblePolicyID];
-            if (policyCardFeeds?.length) {
-                return policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
+        if (!defaultCardFeed) {
+            // If the active policy doesn't have card feeds, use the first eligible policy that does
+            for (const eligiblePolicyID of eligiblePoliciesIDs) {
+                const policyCardFeeds = cardFeedsByPolicy[eligiblePolicyID];
+                if (policyCardFeeds?.length) {
+                    defaultCardFeed = policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
+                    break;
+                }
             }
         }
-    }, [eligiblePoliciesIDs, activePolicyID, cardFeedsByPolicy, localeCompare]);
 
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+        if (!defaultCardFeed) {
+            // Commercial feeds don't have preferred policies, so we need to include these in the list
+            const commercialFeeds = Object.values(cardFeedsByPolicy)
+                .flat()
+                .filter((feed) => !isCustomFeed(feed.name as CompanyCardFeed));
+
+            defaultCardFeed = commercialFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
+        }
+    }
+
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const allCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
     const expensifyCards = getCardFeedsForDisplay({}, allCards);
     const defaultExpensifyCard = Object.values(expensifyCards)?.at(0);
 

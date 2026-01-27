@@ -4,20 +4,23 @@ import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-ht
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat as navigateToConciergeChatAction} from '@userActions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type ConciergeLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
-/**
- * Simple wrapper to create a stable reference without passing event args to navigation function.
- */
-function navigateToConciergeChat() {
-    navigateToConciergeChatAction();
-}
-
 function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+
+    /**
+     * Simple wrapper to create a stable reference without passing event args to navigation function.
+     */
+    const navigateToConciergeChat = () => {
+        navigateToConciergeChatAction(conciergeReportID, false);
+    };
 
     // Define link style based on context
     let linkStyle: StyleProp<TextStyle> = styles.link;
@@ -42,7 +45,5 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
         </Text>
     );
 }
-
-ConciergeLinkRenderer.displayName = 'ConciergeLinkRenderer';
 
 export default ConciergeLinkRenderer;

@@ -13,7 +13,7 @@ type UseConditionalCreateEmptyReportConfirmationParams = {
     /** The display name of the policy/workspace */
     policyName?: string;
     /** Callback executed after the user confirms report creation */
-    onCreateReport: () => void;
+    onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
     /** Optional callback executed when the confirmation modal is cancelled */
     onCancel?: () => void;
     /** Whether the confirmation modal should be bypassed even if an empty report exists */
@@ -46,24 +46,33 @@ export default function useConditionalCreateEmptyReportConfirmation({
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
     });
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
 
     const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, policyID, accountID), [accountID, policyID, reportSummaries]);
+    const shouldSkipConfirmation = useMemo(() => shouldBypassConfirmation || hasDismissedEmptyReportsConfirmation === true, [hasDismissedEmptyReportsConfirmation, shouldBypassConfirmation]);
+
+    const handleReportCreationConfirmed = useCallback(
+        (shouldDismissEmptyReportsConfirmation?: boolean) => {
+            onCreateReport(shouldDismissEmptyReportsConfirmation);
+        },
+        [onCreateReport],
+    );
 
     const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID,
         policyName,
-        onConfirm: onCreateReport,
+        onConfirm: handleReportCreationConfirmed,
         onCancel,
     });
 
     const handleCreateReport = useCallback(() => {
-        if (hasEmptyReport && !shouldBypassConfirmation) {
+        if (hasEmptyReport && !shouldSkipConfirmation) {
             openCreateReportConfirmation();
             return;
         }
 
-        onCreateReport();
-    }, [hasEmptyReport, onCreateReport, openCreateReportConfirmation, shouldBypassConfirmation]);
+        onCreateReport(false);
+    }, [hasEmptyReport, onCreateReport, openCreateReportConfirmation, shouldSkipConfirmation]);
 
     return {
         handleCreateReport,

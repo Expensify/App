@@ -5,7 +5,6 @@ import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDeskt
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -21,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {
     getImportCustomFieldsSettings,
     shouldHideCustomFormIDOptions,
@@ -51,6 +51,7 @@ function getAccountingIntegrationData(
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
+    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare', IconAsset>,
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
@@ -65,7 +66,6 @@ function getAccountingIntegrationData(
         }
         return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID);
     };
-
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
@@ -80,7 +80,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
                 title: translate('workspace.accounting.qbo'),
-                icon: Expensicons.QBOSquare,
+                icon: expensifyIcons?.QBOSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
@@ -127,7 +127,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
                 title: translate('workspace.accounting.xero'),
-                icon: Expensicons.XeroSquare,
+                icon: expensifyIcons?.XeroSquare,
                 setupConnectionFlow: (
                     <ConnectToXeroFlow
                         policyID={policyID}
@@ -158,7 +158,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
                 title: translate('workspace.accounting.netsuite'),
-                icon: Expensicons.NetSuiteSquare,
+                icon: expensifyIcons?.NetSuiteSquare,
                 setupConnectionFlow: (
                     <ConnectToNetSuiteFlow
                         policyID={policyID}
@@ -229,7 +229,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
                 title: translate('workspace.accounting.intacct'),
-                icon: Expensicons.IntacctSquare,
+                icon: expensifyIcons?.IntacctSquare,
                 setupConnectionFlow: (
                     <ConnectToSageIntacctFlow
                         policyID={policyID}
@@ -274,7 +274,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
             return {
                 title: translate('workspace.accounting.qbd'),
-                icon: Expensicons.QBDSquare,
+                icon: expensifyIcons?.QBDSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksDesktopFlow
                         policyID={policyID}
@@ -323,7 +323,7 @@ function getSynchronizationErrorMessage(
     if (isAuthenticationError(policy, connectionName)) {
         return (
             <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', {connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})} </Text>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])} </Text>
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink

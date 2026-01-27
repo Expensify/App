@@ -4,18 +4,19 @@ import {emailSelector} from '@selectors/Session';
 import {useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
-import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -37,7 +38,6 @@ function useOnboardingFlowRouter() {
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
     const startedOnboardingFlowRef = useRef(false);
-    const started2FAFlowRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
         canBeMissing: true,
@@ -47,7 +47,6 @@ function useOnboardingFlowRouter() {
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
-    const {typeMenuSections} = useSearchTypeMenuSections();
     const shouldShowRequire2FAPage = useMemo(
         () => (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboardingValues)),
         [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, account?.twoFactorAuthSetupInProgress, onboardingValues],
@@ -56,7 +55,7 @@ function useOnboardingFlowRouter() {
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
+        const handle = InteractionManager.runAfterInteractions(() => {
             // Prevent starting the onboarding flow if we are logging in as a new user with short lived token
             if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                 return;
@@ -79,23 +78,12 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (shouldShowRequire2FAPage) {
-                if (started2FAFlowRef.current) {
-                    startedOnboardingFlowRef.current = false;
-                    return;
-                }
-                started2FAFlowRef.current = true;
-                Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
-                return;
-            }
-
             if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
                 const navigationState = navigationRef.getRootState();
                 const lastRoute = navigationState.routes.at(-1);
                 // Prevent duplicate navigation if the migrated user modal is already shown.
                 if (lastRoute?.name !== NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR) {
-                    const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? buildCannedSearchQuery()}));
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
                     Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
                 }
                 return;
@@ -122,6 +110,7 @@ function useOnboardingFlowRouter() {
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                     startedOnboardingFlowRef.current = true;
+                    Log.info('[Onboarding] Hybrid app onboarding is completed, but NewDot onboarding is not completed, starting NewDot onboarding flow');
                     startOnboardingFlow({
                         onboardingValuesParam: onboardingValues,
                         isUserFromPublicDomain: !!account?.isFromPublicDomain,
@@ -137,6 +126,7 @@ function useOnboardingFlowRouter() {
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                 startedOnboardingFlowRef.current = true;
+                Log.info('[Onboarding] Not a hybrid app, NewDot onboarding is not completed, starting NewDot onboarding flow');
                 startOnboardingFlow({
                     onboardingValuesParam: onboardingValues,
                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
@@ -148,6 +138,10 @@ function useOnboardingFlowRouter() {
                 });
             }
         });
+
+        return () => {
+            handle.cancel();
+        };
     }, [
         isLoadingApp,
         isHybridAppOnboardingCompleted,
@@ -168,8 +162,6 @@ function useOnboardingFlowRouter() {
         currentOnboardingPurposeSelected,
         onboardingInitialPath,
         isOnboardingLoading,
-        typeMenuSections,
-        shouldShowRequire2FAPage,
     ]);
 
     return {

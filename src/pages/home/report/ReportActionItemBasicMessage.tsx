@@ -32,6 +32,4 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
     );
 }
 
-ReportActionItemBasicMessage.displayName = 'ReportActionBasicMessage';
-
 export default ReportActionItemBasicMessage;

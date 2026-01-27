@@ -2,11 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,6 +26,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass']);
 
     const cabinClassMapping: Record<string, string> = {
         UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
@@ -54,12 +55,12 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             {!!layover && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5, styles.mv3, styles.gap2]}>
                     <Icon
-                        src={Expensicons.Hourglass}
+                        src={expensifyIcons.Hourglass}
                         height={variables.iconSizeNormal}
                         width={variables.iconSizeNormal}
                         fill={theme.icon}
                     />
-                    <RenderHTML html={translate('travel.flightDetails.layover', {layover})} />
+                    <RenderHTML html={translate('travel.flightDetails.layover', layover)} />
                 </View>
             )}
             <MenuItemWithTopDescription
@@ -99,14 +100,15 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             />
 
             <View style={[styles.flexRow, styles.flexWrap]}>
-                {!!reservation.route?.number && (
+                {!!reservation.seatNumber && (
                     <View style={styles.w50}>
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.seat')}
-                            title={reservation.route?.number}
+                            title={reservation.seatNumber}
                             interactive={false}
-                            copyValue={reservation.route?.number}
-                            copyable={!!reservation.route?.number?.length}
+                            copyValue={reservation.seatNumber}
+                            copyable={!!reservation.seatNumber?.length}
+                            pressableTestID={CONST.FLIGHT_SEAT_TEST_ID}
                         />
                     </View>
                 )}
@@ -137,7 +139,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 <MenuItem
                     label={translate('travel.flightDetails.passenger')}
                     title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    icon={personalDetails?.avatar ?? expensifyIcons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
@@ -148,7 +150,5 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
         </>
     );
 }
-
-FlightTripDetails.displayName = 'FlightTripDetails';
 
 export default FlightTripDetails;

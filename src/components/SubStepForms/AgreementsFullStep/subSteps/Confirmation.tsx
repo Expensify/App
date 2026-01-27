@@ -62,7 +62,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValue
 
     const stepFields = useMemo(
         () => [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice],
-        [inputIDs],
+        [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice],
     );
 
     const validate = useCallback(
@@ -141,7 +141,5 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValue
         </FormProvider>
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

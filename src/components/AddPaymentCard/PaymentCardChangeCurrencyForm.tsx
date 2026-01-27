@@ -144,6 +144,4 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     );
 }
 
-PaymentCardChangeCurrencyForm.displayName = 'PaymentCardChangeCurrencyForm';
-
 export default PaymentCardChangeCurrencyForm;

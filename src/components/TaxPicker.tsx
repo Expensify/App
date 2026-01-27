@@ -12,8 +12,8 @@ import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionListWithSections';
-import RadioListItem from './SelectionListWithSections/RadioListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SelectionList from './SelectionList/SelectionListWithSections';
 
 type TaxPickerProps = {
     /** The selected tax rate of an expense */
@@ -94,8 +94,6 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         [searchValue, selectedOptions, policy, currentTransaction, localeCompare],
     );
 
-    const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
-
     const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 
     const handleSelectRow = useCallback(
@@ -109,21 +107,24 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         [onSubmit, onDismiss, selectedOptionKey],
     );
 
+    const textInputOptions = {
+        label: translate('common.search'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue),
+    };
+
     return (
         <SelectionList
             sections={sections}
-            headerMessage={headerMessage}
-            textInputValue={searchValue}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            onChangeText={setSearchValue}
+            shouldShowTextInput={shouldShowTextInput}
+            textInputOptions={textInputOptions}
             onSelectRow={handleSelectRow}
             ListItem={RadioListItem}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            initiallyFocusedItemKey={selectedOptionKey ?? undefined}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }
-
-TaxPicker.displayName = 'TaxPicker';
 
 export default TaxPicker;

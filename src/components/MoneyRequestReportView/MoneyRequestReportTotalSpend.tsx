@@ -71,6 +71,4 @@ function MoneyRequestReportTotalSpend({
     );
 }
 
-MoneyRequestReportTotalSpend.displayName = 'MoneyRequestReportTotalSpend';
-
 export default MoneyRequestReportTotalSpend;

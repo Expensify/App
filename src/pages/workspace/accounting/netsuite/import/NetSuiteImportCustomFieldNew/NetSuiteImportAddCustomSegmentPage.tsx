@@ -23,6 +23,4 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
     );
 }
 
-NetSuiteImportAddCustomSegmentPage.displayName = 'NetSuiteImportAddCustomSegmentPage';
-
 export default withPolicyConnections(NetSuiteImportAddCustomSegmentPage);

@@ -32,8 +32,8 @@ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isRepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,7 +63,7 @@ function TransactionPreviewContent({
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
 }: TransactionPreviewContentProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -84,6 +84,8 @@ function TransactionPreviewContent({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserDetails.email ?? '';
+    const currentUserAccountID = currentUserDetails.accountID;
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
@@ -102,14 +104,17 @@ function TransactionPreviewContent({
                 ...transactionPreviewCommonArguments,
                 areThereDuplicates,
                 isReportAPolicyExpenseChat,
-                currentUserEmail: currentUserDetails.email ?? '',
+                currentUserEmail,
+                currentUserAccountID,
+                reportActions,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserDetails.email],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
-    const firstViolation = violations.at(0);
+    const filteredViolations = filterReceiptViolations(violations);
+    const firstViolation = filteredViolations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
@@ -122,10 +127,11 @@ function TransactionPreviewContent({
                 shouldShowRBR,
                 violationMessage,
                 reportActions,
-                currentUserEmail: currentUserDetails.email ?? '',
+                currentUserEmail,
+                currentUserAccountID,
                 originalTransaction,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserDetails.email, originalTransaction],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
@@ -144,7 +150,8 @@ function TransactionPreviewContent({
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
-    const isIOUSettled = isSettled(report?.reportID);
+    const pendingAction = action?.pendingAction;
+    const isIOUSettled = !pendingAction && isSettled(report?.reportID);
     const isSettlementOrApprovalPartial = !!report?.pendingFields?.partial;
     const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
@@ -235,7 +242,7 @@ function TransactionPreviewContent({
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isHovered={isHovered || isTransactionScanning}
                         size={1}
-                        shouldUseAspectRatio={!isMapDistanceRequest(transaction)}
+                        shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
                         <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
@@ -397,7 +404,5 @@ function TransactionPreviewContent({
         </View>
     );
 }
-
-TransactionPreviewContent.displayName = 'TransactionPreviewContent';
 
 export default TransactionPreviewContent;

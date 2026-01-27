@@ -4,8 +4,8 @@ import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +47,7 @@ function MapView({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
@@ -211,7 +212,7 @@ function MapView({
             animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
+    }, [directionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
 
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
@@ -355,7 +356,7 @@ function MapView({
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}
-                        icon={Expensicons.Crosshair}
+                        icon={expensifyIcons.Crosshair}
                         accessibilityLabel={translate('common.center')}
                     />
                 </View>

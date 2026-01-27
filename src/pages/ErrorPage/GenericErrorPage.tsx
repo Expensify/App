@@ -26,7 +26,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const {translate} = useLocalize();
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Bug'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Bug']);
 
     return (
         <SafeAreaConsumer>
@@ -94,7 +94,5 @@ function GenericErrorPage({error}: {error?: Error}) {
         </SafeAreaConsumer>
     );
 }
-
-GenericErrorPage.displayName = 'ErrorPage';
 
 export default GenericErrorPage;

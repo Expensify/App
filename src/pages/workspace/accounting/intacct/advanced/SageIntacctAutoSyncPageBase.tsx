@@ -38,7 +38,7 @@ function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSy
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctAutoSyncPageBase.displayName}
+            displayName="SageIntacctAutoSyncPageBase"
             headerTitle="common.settings"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -79,7 +79,5 @@ function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSy
         </ConnectionLayout>
     );
 }
-
-SageIntacctAutoSyncPageBase.displayName = 'SageIntacctAutoSyncPageBase';
 
 export default SageIntacctAutoSyncPageBase;

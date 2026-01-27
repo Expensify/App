@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
@@ -45,7 +45,7 @@ type Item = {
 function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile']);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {canBeMissing: true});
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
@@ -108,7 +108,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if ((PUBLIC_DOMAINS_SET.has(domain.toLowerCase()) || !Str.isValidEmail(userEmail)) && !isOffline) {
+        if (!Str.isValidEmail(userEmail) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {userEmail, domain});
             addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
         }
@@ -150,6 +150,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             <HeaderWithBackButton
                 progressBarPercentage={10}
                 shouldShowBackButton={false}
+                shouldDisplayHelpButton={false}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -252,7 +253,5 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkEmail.displayName = 'BaseOnboardingWorkEmail';
 
 export default BaseOnboardingWorkEmail;

@@ -89,6 +89,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
          */
         addBottomSafeAreaPadding?: boolean;
+
+        /** Content to be added as modal */
+        modals?: ReactNode;
     };
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
@@ -124,6 +127,7 @@ function WorkspacePageWithSections({
     threeDotsMenuItems,
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
+    modals,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
@@ -154,7 +158,6 @@ function WorkspacePageWithSections({
 
     useEffect(() => {
         fetchData(policyID, shouldSkipVBBACall);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
@@ -168,10 +171,15 @@ function WorkspacePageWithSections({
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
         return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !isPendingDelete && !prevIsPendingDelete);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
+        if (shouldShow) {
+            goBackFromWorkspaceSettingPages();
+            return true;
+        }
+
         if (onBackButtonPress) {
             onBackButtonPress();
             return true;
@@ -193,7 +201,7 @@ function WorkspacePageWithSections({
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={testID ?? WorkspacePageWithSections.displayName}
+            testID={testID ?? 'WorkspacePageWithSections'}
             shouldShowOfflineIndicator={!shouldShow}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
@@ -235,10 +243,9 @@ function WorkspacePageWithSections({
                     </>
                 )}
             </FullPageNotFoundView>
+            {modals}
         </ScreenWrapper>
     );
 }
-
-WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default withPolicyAndFullscreenLoading(WorkspacePageWithSections);

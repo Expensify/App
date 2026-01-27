@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import type {OnyxCollection} from 'react-native-onyx';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -8,6 +9,7 @@ import {
     buildFilterFormValuesFromQuery,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
+    buildUserReadableQueryString,
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
     shouldHighlight,
@@ -15,6 +17,7 @@ import {
 } from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type * as OnyxTypes from '@src/types/onyx';
 import {localeCompare} from '../../utils/TestHelper';
 
 const personalDetailsFakeData = {
@@ -88,6 +91,20 @@ describe('SearchQueryUtils', () => {
             const result = getQueryWithUpdatedValues(userQuery);
 
             expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
+        });
+
+        test('deduplicates conflicting type filters keeping the last occurrence', () => {
+            const userQuery = 'type:expense-report action:submit from:me type:expense';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+            expect(result).toEqual(`${defaultQuery} action:submit from:me`);
+
+            const queryJSON = buildSearchQueryJSON(result ?? '', userQuery);
+            expect(queryJSON?.rawFilterList).toEqual([
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'submit', isDefault: false},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'me', isDefault: false},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATA_TYPES.EXPENSE, isDefault: true},
+            ]);
         });
     });
 
@@ -253,6 +270,92 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('buildUserReadableQueryString', () => {
+        const emptyReports: OnyxCollection<OnyxTypes.Report> = {};
+        const emptyCardList: OnyxTypes.CardList = {};
+        const emptyCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {};
+        const emptyPolicies: OnyxCollection<OnyxTypes.Policy> = {};
+        const emptyTaxRates: Record<string, string[]> = {};
+        const currentUserAccountID = 0;
+
+        test('preserves manual filter order for raw queries', () => {
+            const queryString = 'type:expense date:this-month groupBy:from tag:travel';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+
+            expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
+        });
+
+        test('preserves status all default value from manual query', () => {
+            const queryString = 'type:expense status:all merchant:Uber';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+
+            expect(result).toBe('type:expense status:all merchant:Uber');
+        });
+
+        test('maps workspace names and maintains manual order', () => {
+            const queryString = 'policyID:123 type:expense merchant:Starbucks';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: {
+                    name: 'Team Space',
+                } as OnyxTypes.Policy,
+            };
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, policies, currentUserAccountID);
+
+            expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
+        });
+
+        test('rawQuery overrides canonical filter values when provided', () => {
+            const queryString = 'type:expense merchant:Uber';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const overriddenRawQuery = 'type:expense merchant:Lyft';
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, overriddenRawQuery);
+            const merchantFilter = queryJSON?.rawFilterList?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+
+            expect(merchantFilter?.value).toBe('Lyft');
+        });
+    });
+
     describe('buildFilterFormValuesFromQuery', () => {
         test('category filter includes empty values', () => {
             const policyID = generatePolicyID();
@@ -291,7 +394,7 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                category: ['Maintenance', 'none,Uncategorized'],
+                category: ['Maintenance', 'none'],
             });
         });
 
@@ -333,6 +436,33 @@ describe('SearchQueryUtils', () => {
                 type: 'expense',
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 action: undefined,
+            });
+        });
+
+        test('parses negative backend amounts into filter form values', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            const queryString = 'sortBy:date sortOrder:desc type:expense amount<-12345 amount>-67890 amount:-54321';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                amountLessThan: '-12345',
+                amountGreaterThan: '-67890',
+                amountEqualTo: '-54321',
             });
         });
     });

@@ -42,7 +42,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const {splashScreenState} = useSplashScreenStateContext();
@@ -64,7 +64,5 @@ function BackgroundImage({width}: BackgroundImageProps) {
         </Reanimated.View>
     );
 }
-
-BackgroundImage.displayName = 'BackgroundImage';
 
 export default BackgroundImage;

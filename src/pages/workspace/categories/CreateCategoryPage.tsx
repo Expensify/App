@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {hasTags} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ type CreateCategoryPageProps =
 
 function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
@@ -33,18 +35,38 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const policyHasTags = hasTags(policyTags);
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            createPolicyCategory(
-                route.params.policyID,
-                values.categoryName.trim(),
-                isSetupCategoryTaskParentReportArchived,
+            createPolicyCategory({
+                policyID: route.params.policyID,
+                categoryName: values.categoryName.trim(),
+                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
-                currentUserPersonalDetails.accountID,
-            );
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                setupCategoriesAndTagsTaskReport,
+                setupCategoriesAndTagsTaskParentReport,
+                isSetupCategoriesAndTagsTaskParentReportArchived,
+                setupCategoriesAndTagsHasOutstandingChildTask,
+                setupCategoriesAndTagsParentReportAction,
+                policyHasTags,
+            });
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
         [
@@ -55,6 +77,14 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             currentUserPersonalDetails.accountID,
             isQuickSettingsFlow,
             backTo,
+            hasOutstandingChildTask,
+            parentReportAction,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            policyHasTags,
         ],
     );
 
@@ -67,7 +97,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateCategoryPage.displayName}
+                testID="CreateCategoryPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -82,7 +112,5 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CreateCategoryPage.displayName = 'CreateCategoryPage';
 
 export default CreateCategoryPage;

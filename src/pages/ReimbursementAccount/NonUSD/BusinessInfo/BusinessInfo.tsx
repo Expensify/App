@@ -123,7 +123,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
@@ -143,7 +143,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('businessInfoStep.businessInfoTitle')}
             stepNames={stepNames}
@@ -158,7 +158,5 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         </InteractiveStepWrapper>
     );
 }
-
-BusinessInfo.displayName = 'BusinessInfo';
 
 export default BusinessInfo;

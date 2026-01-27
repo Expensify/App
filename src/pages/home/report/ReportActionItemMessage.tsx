@@ -54,11 +54,13 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`, {canBeMissing: true});
 
-    const fragments = getReportActionMessageFragments(action);
+    const fragments = getReportActionMessageFragments(translate, action);
     const isIOUReport = isMoneyRequestAction(action);
 
     if (isMemberChangeAction(action)) {
-        const fragment = getMemberChangeMessageFragment(action, getReportName);
+        // This will be fixed: https://github.com/Expensify/App/issues/76852
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const fragment = getMemberChangeMessageFragment(translate, action, getReportName);
 
         return (
             <View style={[styles.chatItemMessage, style]}>
@@ -74,7 +76,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-        const fragment = getUpdateRoomDescriptionFragment(action);
+        const fragment = getUpdateRoomDescriptionFragment(translate, action);
         return (
             <View style={[styles.chatItemMessage, style]}>
                 <TextCommentFragment
@@ -109,6 +111,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                     isDisabled={completed}
                     text={translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}
                     onPress={() => handleEnterSignerInfoPress(policyID, bankAccountID, !!completed)}
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO}
                 />
             </View>
         );
@@ -119,7 +122,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? getOriginalMessage(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = getIOUReportActionDisplayMessage(action, transaction, report);
+            iouMessage = getIOUReportActionDisplayMessage(translate, action, transaction, report);
         }
     }
 
@@ -186,6 +189,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                             success
                             text={translate('bankAccount.addBankAccount')}
                             onPress={openWorkspaceInvoicesPage}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_ADD_BANK_ACCOUNT}
                         />
                     )}
                 </>
@@ -195,7 +199,5 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         </View>
     );
 }
-
-ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
 export default ReportActionItemMessage;

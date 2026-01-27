@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,24 +16,14 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
 
     const {transactions, violations} = reportID ? (allReportsTransactionsAndViolations?.[reportID] ?? DEFAULT_RETURN_VALUE) : DEFAULT_RETURN_VALUE;
 
-    const transactionsAndViolations = useMemo<ReportTransactionsAndViolations>(() => {
-        const filteredViolations = Object.keys(violations).reduce(
-            (filteredTransactionViolations, transactionViolationKey) => {
-                const transactionID = transactionViolationKey.split('_').at(1) ?? '';
-                const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const filteredViolations: Record<string, TransactionViolations> = {};
+    for (const transactionViolationKey of Object.keys(violations)) {
+        const transactionID = transactionViolationKey.split('_').at(1) ?? '';
+        const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        filteredViolations[transactionViolationKey] = getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, report, policy) ?? [];
+    }
 
-                // This is our accumulator, it's okay to reassign
-                // eslint-disable-next-line no-param-reassign
-                filteredTransactionViolations[transactionViolationKey] = getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', report, policy) ?? [];
-                return filteredTransactionViolations;
-            },
-            {} as Record<string, TransactionViolations>,
-        );
-
-        return {transactions, violations: filteredViolations};
-    }, [transactions, violations, currentUserDetails?.email, report, policy]);
-
-    return transactionsAndViolations;
+    return {transactions, violations: filteredViolations};
 }
 
 export default useTransactionsAndViolationsForReport;

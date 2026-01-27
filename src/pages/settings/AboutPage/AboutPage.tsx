@@ -4,32 +4,31 @@ import {View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import colors from '@styles/theme/colors';
 import {openExternalLink} from '@userActions/Link';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
+import useAboutSectionIllustration from './useAboutSectionIllustration';
 
 function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();
@@ -52,29 +51,31 @@ type MenuItem = {
 };
 
 function AboutPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
+    const illustrations = useMemoizedLazyIllustrations(['PalmTree']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {asset: PalmTree} = useMemoizedLazyAsset(() => loadIllustration('PalmTree' as IllustrationName));
+    const aboutIllustration = useAboutSectionIllustration();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
-                icon: Expensicons.Link,
+                icon: icons.Link,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
-                icon: Expensicons.Keyboard,
+                icon: icons.Keyboard,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
-                icon: Expensicons.Eye,
+                icon: icons.Eye,
                 iconRight: icons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.GITHUB_URL);
@@ -84,7 +85,7 @@ function AboutPage() {
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
-                icon: Expensicons.MoneyBag,
+                icon: icons.MoneyBag,
                 iconRight: icons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.UPWORK_URL);
@@ -94,8 +95,8 @@ function AboutPage() {
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
-                icon: Expensicons.Bug,
-                action: waitForNavigate(navigateToConciergeChat),
+                icon: icons.Bug,
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, false)),
             },
         ];
 
@@ -119,7 +120,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [icons.NewWindow, styles, translate, waitForNavigate]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID]);
 
     const overlayContent = useCallback(
         () => (
@@ -133,7 +134,7 @@ function AboutPage() {
             </View>
         ),
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -141,14 +142,14 @@ function AboutPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={AboutPage.displayName}
+            testID="AboutPage"
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.about')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 onBackButtonPress={Navigation.popToSidebar}
-                icon={PalmTree}
+                icon={illustrations.PalmTree}
                 shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -158,9 +159,12 @@ function AboutPage() {
                         subtitle={translate('initialSettingsPage.aboutPage.description')}
                         isCentralPane
                         subtitleMuted
-                        illustration={LottieAnimations.Coin}
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                        illustrationBackgroundColor={colors.yellow600}
                         titleStyles={styles.accountSettingsSectionTitle}
                         overlayContent={overlayContent}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...aboutIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <MenuItemList
@@ -177,7 +181,5 @@ function AboutPage() {
         </ScreenWrapper>
     );
 }
-
-AboutPage.displayName = 'AboutPage';
 
 export default AboutPage;

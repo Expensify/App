@@ -62,6 +62,4 @@ function SingleSelectListItem<TItem extends ListItem>({
     );
 }
 
-SingleSelectListItem.displayName = 'SingleSelectListItem';
-
 export default SingleSelectListItem;

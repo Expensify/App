@@ -102,7 +102,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields, reimbursementAccount?.isSuccess, onSubmit]);
 
     const addOwner = (ownerID: string) => {
         const newOwners = [...ownerKeys, ownerID];
@@ -284,7 +284,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BeneficialOwnerInfo.displayName}
+            wrapperID="BeneficialOwnerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('ownershipInfoStep.ownerInfo')}
             stepNames={stepNames}
@@ -293,7 +293,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         >
             {currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.doYouOwn', {companyName})}
+                    title={translate('ownershipInfoStep.doYouOwn', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isUserOwner}
                     onSelectedValue={handleNextSubStep}
@@ -303,7 +303,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
 
             {currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.doesAnyoneOwn', {companyName})}
+                    title={translate('ownershipInfoStep.doesAnyoneOwn', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isAnyoneElseOwner}
                     onSelectedValue={handleNextSubStep}
@@ -326,7 +326,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
 
             {currentSubStep === SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.areThereOther', {companyName})}
+                    title={translate('ownershipInfoStep.areThereOther', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={false}
                     onSelectedValue={handleNextSubStep}
@@ -344,7 +344,5 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         </InteractiveStepWrapper>
     );
 }
-
-BeneficialOwnerInfo.displayName = 'BeneficialOwnerInfo';
 
 export default BeneficialOwnerInfo;

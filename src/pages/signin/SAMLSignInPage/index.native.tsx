@@ -126,7 +126,7 @@ function SAMLSignInPage() {
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={false}
-            testID={SAMLSignInPage.displayName}
+            testID="SAMLSignInPage"
         >
             {showNavigation && (
                 <HeaderWithBackButton
@@ -145,7 +145,5 @@ function SAMLSignInPage() {
         </ScreenWrapper>
     );
 }
-
-SAMLSignInPage.displayName = 'SAMLSignInPage';
 
 export default SAMLSignInPage;

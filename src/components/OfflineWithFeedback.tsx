@@ -1,5 +1,5 @@
-import React, {useCallback} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
 import ErrorMessageRow from './ErrorMessageRow';
 import ImageSVG from './ImageSVG';
@@ -22,7 +22,7 @@ import ImageSVG from './ImageSVG';
  * care of adding the appropriate styles for pending actions and displaying the dismissible error.
  */
 
-type OfflineWithFeedbackProps = ChildrenProps & {
+type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction | null;
 
@@ -41,23 +41,23 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
 
-    /** Additional styles to add after local styles. Applied to the parent container */
+    /** Additional styles to add to the container after local styles. Applied to the parent container */
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles to add after local styles. Applied to the children wrapper container */
+    /** Additional styles to add to the children wrapper container after local styles. Applied to the children wrapper container */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
     /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
+
+    /** Additional style object for the error row text */
+    errorRowTextStyles?: StyleProp<TextStyle>;
 
     /** Whether applying strikethrough to the children should be disabled */
     shouldDisableStrikeThrough?: boolean;
 
     /** Whether to apply needsOffscreenAlphaCompositing prop to the children */
     needsOffscreenAlphaCompositing?: boolean;
-
-    /** Whether we can dismiss the error message */
-    canDismissError?: boolean;
 
     /** Whether we should render the error message above the children */
     shouldDisplayErrorAbove?: boolean;
@@ -73,12 +73,11 @@ type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
 
 function OfflineWithFeedback({
     pendingAction,
-    canDismissError = true,
     contentContainerStyle,
     errorRowStyles,
     errors,
     needsOffscreenAlphaCompositing = false,
-    onClose = () => {},
+    onClose: onDismiss,
     shouldDisableOpacity = false,
     shouldDisableStrikeThrough = false,
     shouldHideOnDelete = true,
@@ -87,13 +86,14 @@ function OfflineWithFeedback({
     shouldDisplayErrorAbove = false,
     shouldForceOpacity = false,
     dismissError = () => {},
-    ...rest
+    errorRowTextStyles,
+    ...restProps
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
-    const hasErrors = !isEmptyObject(errors ?? {});
+    const hasErrors = !isEmptyValueObject(errors ?? {});
 
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -101,38 +101,36 @@ function OfflineWithFeedback({
     const needsOpacity = (!shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError)) || shouldForceOpacity;
     const needsStrikeThrough = !shouldDisableStrikeThrough && isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const hideChildren = shouldHideOnDelete && !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
-    let children = rest.children;
+    let children = restProps.children;
+    const hasChildren = !!children;
 
     /**
      * This method applies the strikethrough to all the children passed recursively
      */
-    const applyStrikeThrough = useCallback(
-        (childrenProp: React.ReactNode): React.ReactNode => {
-            const strikeThroughChildren = mapChildrenFlat(childrenProp, (child) => {
-                if (!React.isValidElement(child) || child.type === ImageSVG) {
-                    return child;
-                }
+    const applyStrikeThrough = (childrenProp: React.ReactNode): React.ReactNode => {
+        const strikeThroughChildren = mapChildrenFlat(childrenProp, (child) => {
+            if (!React.isValidElement(child) || child.type === ImageSVG) {
+                return child;
+            }
 
-                type ChildComponentProps = ChildrenProps & {style?: AllStyles};
-                const childProps = child.props as ChildComponentProps;
-                const props: StrikethroughProps = {
-                    style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedbackDeleted, styles.userSelectNone),
-                };
+            type ChildComponentProps = ChildrenProps & {style?: AllStyles};
+            const childProps = child.props as ChildComponentProps;
+            const props: StrikethroughProps = {
+                style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedbackDeleted, styles.userSelectNone),
+            };
 
-                if (childProps.children) {
-                    props.children = applyStrikeThrough(childProps.children);
-                }
+            if (childProps.children) {
+                props.children = applyStrikeThrough(childProps.children);
+            }
 
-                return React.cloneElement(child, props);
-            });
+            return React.cloneElement(child, props);
+        });
 
-            return strikeThroughChildren;
-        },
-        [StyleUtils, styles],
-    );
+        return strikeThroughChildren;
+    };
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
-    if (needsStrikeThrough && !hideChildren) {
+    if (hasChildren && needsStrikeThrough && !hideChildren) {
         children = applyStrikeThrough(children);
     }
     return (
@@ -141,12 +139,12 @@ function OfflineWithFeedback({
                 <ErrorMessageRow
                     errors={errors}
                     errorRowStyles={errorRowStyles}
-                    onClose={onClose}
-                    canDismissError={canDismissError}
+                    onDismiss={onDismiss}
+                    errorRowTextStyles={errorRowTextStyles}
                     dismissError={dismissError}
                 />
             )}
-            {!hideChildren && (
+            {hasChildren && !hideChildren && (
                 <View
                     style={[needsOpacity ? styles.offlineFeedbackPending : styles.offlineFeedbackDefault, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
@@ -158,16 +156,14 @@ function OfflineWithFeedback({
                 <ErrorMessageRow
                     errors={errors}
                     errorRowStyles={errorRowStyles}
-                    onClose={onClose}
-                    canDismissError={canDismissError}
+                    errorRowTextStyles={errorRowTextStyles}
+                    onDismiss={onDismiss}
                     dismissError={dismissError}
                 />
             )}
         </View>
     );
 }
-
-OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default OfflineWithFeedback;
 export type {OfflineWithFeedbackProps};

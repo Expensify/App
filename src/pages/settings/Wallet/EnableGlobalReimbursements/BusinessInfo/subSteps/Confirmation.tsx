@@ -96,6 +96,4 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

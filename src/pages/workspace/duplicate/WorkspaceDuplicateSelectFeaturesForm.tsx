@@ -6,8 +6,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -48,6 +49,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.length;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
@@ -162,6 +164,12 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
                   }
                 : undefined,
+            policy?.isTravelEnabled
+                ? {
+                      translation: translate('workspace.common.travel'),
+                      value: 'travel',
+                  }
+                : undefined,
         ];
 
         return result.filter((item): item is NonNullable<typeof item> => !!item);
@@ -222,14 +230,26 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 perDiem: selectedItems.includes('perDiem'),
                 reimbursements: selectedItems.includes('invoices'),
                 expenses: selectedItems.includes('rules'),
-                customUnits: selectedItems.includes('distanceRates'),
+                distance: selectedItems.includes('distanceRates'),
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
+                overview: selectedItems.includes('overview'),
+                travel: selectedItems.includes('travel'),
             },
             file: duplicatedWorkspaceAvatar,
+            localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? '',
         });
         Navigation.closeRHPFlow();
-    }, [duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyCategories, selectedItems, translate, duplicatedWorkspaceAvatar]);
+    }, [
+        duplicateWorkspace?.name,
+        duplicateWorkspace?.policyID,
+        policy,
+        policyCategories,
+        selectedItems,
+        translate,
+        duplicatedWorkspaceAvatar,
+        currentUserPersonalDetails?.localCurrencyCode,
+    ]);
 
     const confirmDuplicateAndHideModal = useCallback(() => {
         setIsDuplicateModalOpen(false);
@@ -295,19 +315,17 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             return;
         }
         setSelectedItems(items.map((i) => i.value));
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items.length]);
 
     useEffect(() => {
         fetchWorkspaceRelatedData();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const isSelectAllChecked = selectedItems.length > 0 && selectedItems.length === items.length;
 
-    const confirmButtonConfig = useMemo(
+    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = useMemo(
         () => ({
             showButton: true,
             text: translate('common.continue'),
@@ -354,7 +372,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         onSelectRow={updateSelectedItems}
                         alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding
-                        confirmButtonOptions={confirmButtonConfig}
+                        confirmButtonOptions={confirmButtonOptions}
                     />
                 </View>
             </>
@@ -381,7 +399,5 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         </>
     );
 }
-
-WorkspaceDuplicateSelectFeaturesForm.displayName = 'WorkspaceDuplicateSelectFeaturesForm';
 
 export default WorkspaceDuplicateSelectFeaturesForm;

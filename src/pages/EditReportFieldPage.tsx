@@ -43,12 +43,12 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
-    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy);
+    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -62,7 +62,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
-                testID={EditReportFieldPage.displayName}
+                testID="EditReportFieldPage"
             >
                 <FullPageNotFoundView shouldShow />
             </ScreenWrapper>
@@ -130,7 +130,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={EditReportFieldPage.displayName}
+            testID="EditReportFieldPage"
         >
             <HeaderWithBackButton
                 title={fieldName}
@@ -180,10 +180,20 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     onSubmit={handleReportFieldChange}
                 />
             )}
+
+            {reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA && !isReportFieldTitle && (
+                <EditReportFieldText
+                    fieldName={reportField.name}
+                    fieldKey={fieldKey}
+                    fieldValue={fieldValue}
+                    isRequired={!isReportFieldDeletable}
+                    onSubmit={handleReportFieldChange}
+                    fieldList={policy?.fieldList}
+                    disabled
+                />
+            )}
         </ScreenWrapper>
     );
 }
-
-EditReportFieldPage.displayName = 'EditReportFieldPage';
 
 export default EditReportFieldPage;

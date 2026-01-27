@@ -12,7 +12,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 
 function LongTermsForm() {
-    const icons = useMemoizedLazyExpensifyIcons(['Printer'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Printer']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
@@ -61,7 +61,7 @@ function LongTermsForm() {
             subTitle: translate('termsStep.longTermsForm.instant'),
             rightText: `${numberFormat(1.5)}%`,
             subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin', {amount: convertToDisplayString(25, 'USD')}),
-            details: translate('termsStep.longTermsForm.electronicFundsInstantDetails', {percentage: numberFormat(1.5), amount: convertToDisplayString(25, 'USD')}),
+            details: translate('termsStep.longTermsForm.electronicFundsInstantDetails', numberFormat(1.5), convertToDisplayString(25, 'USD')),
         },
     ];
 
@@ -115,5 +115,4 @@ function LongTermsForm() {
     );
 }
 
-LongTermsForm.displayName = 'LongTermsForm';
 export default LongTermsForm;

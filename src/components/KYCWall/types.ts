@@ -39,7 +39,7 @@ type KYCWallProps = {
     /** Route for the KYC enable payments screen for a given navigation stack */
     enablePaymentsRoute: Route;
 
-    /** Listen for window resize event on web and desktop */
+    /** Listen for window resize event on web */
     shouldListenForResize?: boolean;
 
     /** Wrapped components should be disabled, and not in spinner/loading state */
@@ -77,6 +77,9 @@ type KYCWallProps = {
 
     /** Reference to the KYCWall component */
     ref: ForwardedRef<KYCWallRef>;
+
+    /** Currency associated with the payment */
+    currency?: string;
 };
 
 type KYCWallRef = {

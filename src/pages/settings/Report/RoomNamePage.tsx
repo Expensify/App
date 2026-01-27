@@ -67,12 +67,12 @@ function RoomNamePage({report}: RoomNamePageProps) {
                 // The room name can't be set to one that already exists on the policy
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', values.roomName.length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             return errors;
         },
-        [report, reports, translate],
+        [report?.reportName, report?.policyID, reports, translate],
     );
 
     const updatePolicyRoomName = useCallback(
@@ -87,7 +87,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
         <ScreenWrapper
             onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
             includeSafeAreaPaddingBottom
-            testID={RoomNamePage.displayName}
+            testID="RoomNamePage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableRename(report, isReportArchived)}>
                 <HeaderWithBackButton
@@ -117,7 +117,5 @@ function RoomNamePage({report}: RoomNamePageProps) {
         </ScreenWrapper>
     );
 }
-
-RoomNamePage.displayName = 'RoomNamePage';
 
 export default RoomNamePage;

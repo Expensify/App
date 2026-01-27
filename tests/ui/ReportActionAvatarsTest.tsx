@@ -112,6 +112,7 @@ const reportChatDM = {
     chatType: undefined,
     reportID: 'CHAT_REPORT_DM',
     policyID: personalPolicy.id,
+    type: CONST.REPORT.TYPE.CHAT,
 };
 
 const reportPreviewAction = {
@@ -156,6 +157,8 @@ const iouDMReport = {
     chatReportID: reportChatDM.reportID,
     parentReportActionID: reportPreviewDMAction.reportActionID,
     policyID: personalPolicy.id,
+    type: CONST.REPORT.TYPE.IOU,
+    chatType: undefined,
 };
 
 const iouDMSingleExpenseReport = {

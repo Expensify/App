@@ -1,6 +1,7 @@
-import {emailSelector} from '@selectors/Session';
+import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -9,6 +10,7 @@ import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +21,7 @@ import {hasPolicyWithXeroConnection} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function EnabledPage() {
@@ -26,8 +29,15 @@ function EnabledPage() {
     const styles = useThemeStyles();
 
     const [isVisible, setIsVisible] = useState(false);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+    const {login} = useCurrentUserPersonalDetails();
+    const selector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            return activeAdminPoliciesSelector(policies, login ?? '');
+        },
+        [login],
+    );
+    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
     const {translate} = useLocalize();
 
     const closeModal = useCallback(() => {
@@ -53,7 +63,7 @@ function EnabledPage() {
                 <MenuItem
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onPress={() => {
-                        if (hasPolicyWithXeroConnection(currentUserLogin)) {
+                        if (hasPolicyWithXeroConnection(adminPolicies)) {
                             setIsVisible(true);
                             return;
                         }
@@ -76,7 +86,5 @@ function EnabledPage() {
         </TwoFactorAuthWrapper>
     );
 }
-
-EnabledPage.displayName = 'EnabledPage';
 
 export default EnabledPage;

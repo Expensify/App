@@ -12,6 +12,4 @@ function SearchFiltersPurchaseCurrencyPage() {
     );
 }
 
-SearchFiltersPurchaseCurrencyPage.displayName = 'SearchFiltersPurchaseCurrencyPage';
-
 export default SearchFiltersPurchaseCurrencyPage;

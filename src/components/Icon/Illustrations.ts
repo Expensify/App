@@ -1,33 +1,11 @@
-import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
-import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
-import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
-import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capitalone.svg';
-import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
-import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
-import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
-import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
-import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
-import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
-import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
-import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
-import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
-import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
-import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
-import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
-import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
-import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
-import PlaidCompanyCardDetailLarge from '@assets/images/companyCards/large/card-plaid-large.svg';
-import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
-import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
-import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
-import PendingBank from '@assets/images/companyCards/pending-bank.svg';
-import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import Computer from '@assets/images/computer.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+import PendingTravel from '@assets/images/pending-travel.svg';
+import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -35,11 +13,12 @@ import Approval from '@assets/images/simple-illustrations/simple-illustration__a
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
+import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
-import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
+import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBot from '@assets/images/simple-illustrations/simple-illustration__concierge-bot.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
@@ -49,6 +28,7 @@ import EmailAddress from '@assets/images/simple-illustrations/simple-illustratio
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
+import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -67,71 +47,51 @@ import ExpensifyApprovedLogo from '@assets/images/subscription-details__approved
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
-    Encryption,
+    Abacus,
+    Alert,
+    Approval,
+    Binoculars,
+    BlueShield,
+    Buildings,
+    CalendarMonthly,
+    Car,
+    CarIce,
     ChatBubbles,
-    PinkCar,
+    CheckmarkCircle,
+    Clock,
+    CommentBubbles,
     Computer,
+    ConciergeBot,
+    ConciergeBubble,
+    CreditCardEyes,
+    CreditCardsNewGreen,
     EmailAddress,
     EmptyCardState,
+    EmptyShelves,
+    EmptyStateTravel,
+    Encryption,
     EnvelopeReceipt,
+    ExpensifyApprovedLogo,
     ExpensifyCardImage,
-    Mailbox,
-    CreditCardsNewGreen,
+    FastMoney,
+    Filters,
+    Flash,
+    Gears,
+    HeadSet,
+    Hourglass,
+    House,
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
+    Lightbulb,
+    LockClosed,
+    LockClosedOrange,
     LockOpen,
     Luggage,
     MagnifyingGlassReceipt,
-    ConciergeBot,
-    ConciergeBubble,
-    HeadSet,
-    Hourglass,
-    CommentBubbles,
-    Puzzle,
-    LockClosed,
-    Gears,
-    Approval,
-    PendingBank,
-    House,
-    Buildings,
-    Alert,
-    Abacus,
-    Binoculars,
-    Car,
+    Mailbox,
     Pencil,
-    CarIce,
-    Lightbulb,
-    ExpensifyApprovedLogo,
-    CheckmarkCircle,
-    CreditCardEyes,
-    LockClosedOrange,
-    Filters,
-    CompanyCardsPendingState,
-    VisaCompanyCardDetail,
-    MasterCardCompanyCardDetail,
-    AmexCardCompanyCardDetail,
+    PendingTravel,
+    Puzzle,
     TurtleInShell,
-    BankOfAmericaCompanyCardDetail,
-    BrexCompanyCardDetail,
-    CapitalOneCompanyCardDetail,
-    ChaseCompanyCardDetail,
-    CitibankCompanyCardDetail,
-    StripeCompanyCardDetail,
-    WellsFargoCompanyCardDetail,
-    AmexCardCompanyCardDetailLarge,
-    BankOfAmericaCompanyCardDetailLarge,
-    BrexCompanyCardDetailLarge,
-    CapitalOneCompanyCardDetailLarge,
-    ChaseCompanyCardDetailLarge,
-    CitibankCompanyCardDetailLarge,
-    MasterCardCompanyCardDetailLarge,
-    StripeCompanyCardDetailLarge,
-    VisaCompanyCardDetailLarge,
-    WellsFargoCompanyCardDetailLarge,
-    Flash,
-    PlaidCompanyCardDetailLarge,
-    PlaidCompanyCardDetail,
-    EmptyShelves,
-    BlueShield,
 };

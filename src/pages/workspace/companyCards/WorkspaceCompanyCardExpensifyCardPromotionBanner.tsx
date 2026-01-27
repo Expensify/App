@@ -26,7 +26,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
 
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNewGreen'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNewGreen']);
 
     const handleLearnMore = useCallback(() => {
         if (!policyID) {

@@ -64,7 +64,7 @@ function ReportFieldsSettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={ReportFieldsSettingsPage.displayName}
+                testID="ReportFieldsSettingsPage"
             >
                 <HeaderWithBackButton
                     title={reportField.name}
@@ -111,7 +111,7 @@ function ReportFieldsSettingsPage({
                         <MenuItemWithTopDescription
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            title={getReportFieldInitialValue(reportField)}
+                            title={getReportFieldInitialValue(reportField, translate)}
                             description={translate('common.initialValue')}
                             shouldShowRightIcon={!isDateFieldType}
                             interactive={!isDateFieldType}
@@ -132,7 +132,5 @@ function ReportFieldsSettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsSettingsPage.displayName = 'ReportFieldsSettingsPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsSettingsPage);

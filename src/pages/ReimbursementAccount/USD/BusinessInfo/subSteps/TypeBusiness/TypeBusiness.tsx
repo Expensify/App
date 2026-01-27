@@ -63,6 +63,4 @@ function TypeBusiness({onNext, isEditing}: SubStepProps) {
     );
 }
 
-TypeBusiness.displayName = 'TypeBusiness';
-
 export default TypeBusiness;

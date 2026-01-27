@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -16,6 +16,10 @@ const mockReportItemWithHold = {
     allActions: ['approve'],
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
+    submitted: '2024-12-04',
+    approved: undefined,
+    posted: undefined,
+    exported: undefined,
     currency: 'USD',
     isOneTransactionReport: false,
     isPolicyExpenseChat: false,
@@ -64,6 +68,10 @@ const mockReportItemWithHold = {
         validated: false,
     },
     shouldShowYear: false,
+    shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
+    shouldShowYearPosted: false,
+    shouldShowYearExported: false,
     transactions: [
         {
             report: {
@@ -92,7 +100,6 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -1200,
-            canDelete: true,
             category: '',
             comment: {
                 comment: '',
@@ -101,14 +108,17 @@ const mockReportItemWithHold = {
             created: '2024-12-04',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             managerID: 1206,
             merchant: 'Qatar',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
+            submitted: '2024-12-04',
+            approved: undefined,
+            posted: undefined,
+            exported: undefined,
             policyID: '48D7178DE42EE9F9',
             reportID: '1350959062018695',
             reportType: 'expense',
@@ -152,12 +162,16 @@ const mockReportItemWithHold = {
             date: '2024-12-04',
             shouldShowMerchant: true,
             shouldShowYear: false,
+            shouldShowYearSubmitted: false,
+            shouldShowYearApproved: false,
+            shouldShowYearPosted: false,
+            shouldShowYearExported: false,
             keyForList: '1049531721038862176',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
-            convertedAmount: 1200,
-            convertedCurrency: 'USD',
+            groupAmount: 1200,
+            groupCurrency: 'USD',
         },
         {
             report: {
@@ -182,17 +196,19 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -12300,
-            canDelete: true,
             category: '',
             comment: {
                 comment: '',
             },
             created: '2024-12-04',
+            submitted: '2024-12-04',
+            approved: undefined,
+            posted: undefined,
+            exported: undefined,
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: 'Forbes',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -201,7 +217,6 @@ const mockReportItemWithHold = {
             reportID: '1350959062018695',
             tag: '',
             transactionID: '5345995386715609966',
-            transactionThreadReportID: '740282333335072',
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
@@ -220,12 +235,16 @@ const mockReportItemWithHold = {
             date: '2024-12-04',
             shouldShowMerchant: true,
             shouldShowYear: false,
+            shouldShowYearSubmitted: false,
+            shouldShowYearApproved: false,
+            shouldShowYearPosted: false,
+            shouldShowYearExported: false,
             keyForList: '5345995386715609966',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
-            convertedAmount: 1200,
-            convertedCurrency: 'USD',
+            groupAmount: 1200,
+            groupCurrency: 'USD',
         },
     ],
     isSelected: false,
@@ -286,15 +305,29 @@ describe('handleActionButtonPress', () => {
 
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        handleActionButtonPress({
+            hash: searchHash,
+            item: mockReportItemWithHold,
+            goToItem,
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+        });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        // @ts-expect-error: Allow partial record in snapshot update for testing
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        handleActionButtonPress({
+            hash: searchHash,
+            item: updatedMockReportItem,
+            goToItem,
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+        });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
 });

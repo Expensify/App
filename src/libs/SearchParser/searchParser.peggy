@@ -27,23 +27,54 @@
 }}
 
 // per-parser initializer (code executed before every parse)
-{
+{  
+  const GROUP_BY_DEFAULT_SORT = {
+    from: "from",
+    card: "card",
+    "withdrawal-id": "withdrawn",
+    category: "category",
+  };
+
+  const GROUP_BY_DEFAULT_SORT_ORDER = {
+    from: "asc",
+    card: "asc",
+    "withdrawal-id": "desc",
+    category: "asc",
+  };
+
+  const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
+
   const defaultValues = {
     type: "expense",
     status: "",
     sortBy: "date",
     sortOrder: "desc",
   };
+  let rawFilterList = [];
+  let userProvidedSortBy = false;
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy"
+    "type", "keyword", "groupCurrency", "groupBy", "columns"
   ]);
+
+  function isDefaultSortValue(sortBy) {
+    return DEFAULT_SORT_BY_VALUES.has(sortBy);
+  }
+
+  function getDefaultSortByForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT[groupBy];
+  }
+
+  function getDefaultSortOrderForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT_ORDER[groupBy];
+  }
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
       filters,
+      rawFilterList,
     };
   }
 
@@ -52,7 +83,50 @@
       defaultValues[field] = "";
       return;
     }
+
+    // Track if user explicitly provided a custom (non-default) sortBy
+    if (field === "sortBy" && !isDefaultSortValue(value)) {
+      userProvidedSortBy = true;
+    }
+
+    // Auto-update sortBy and sortOrder when groupBy changes
+    // Only reset sortOrder if sortBy actually changes (to avoid resetting on every parse)
+    if (field === "groupBy" && value) {
+      if (!userProvidedSortBy) {
+        const defaultSortBy = getDefaultSortByForGroupBy(value);
+        // Check if sortBy is actually changing
+        if (defaultSortBy && defaultValues.sortBy !== defaultSortBy) {
+          defaultValues.sortBy = defaultSortBy;
+          // When sortBy changes, reset the sortOrder flag and apply new default
+          const defaultSortOrder = getDefaultSortOrderForGroupBy(value);
+          if (defaultSortOrder) {
+            defaultValues.sortOrder = defaultSortOrder;
+          }
+        }
+      }
+    }
+
     defaultValues[field] = value;
+  }
+
+  function createRawFilter(filter) {
+    if (!filter || !filter.right) {
+      return null;
+    }
+
+    if (typeof filter.left !== "string") {
+      return null;
+    }
+
+    const key = filter.left;
+    const value = Array.isArray(filter.right) ? [...filter.right] : filter.right;
+
+    return {
+      key,
+      operator: filter.operator,
+      value,
+      isDefault: !!filter.isDefault,
+    };
   }
 }
 
@@ -63,15 +137,19 @@ filterList
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
         .filter(Boolean)
         .filter((filter) => filter.right);
-      if (!allFilters.length) {
+      rawFilterList = allFilters.map(createRawFilter).filter(Boolean);
+
+      const filtersWithoutDefaults = allFilters.filter((filter) => !filter.isDefault);
+
+      if (!filtersWithoutDefaults.length) {
         return null;
       }
 
-      const keywords = allFilters.filter(
+      const keywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left === "keyword" || filter.right?.left === "keyword"
       );
-      const nonKeywords = allFilters.filter(
+      const nonKeywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left !== "keyword" && filter.right?.left !== "keyword"
       );
@@ -96,6 +174,7 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
       updateDefaultValues(key, value);
+      return {...buildFilter(op, key, value), isDefault: true};
     }
 
 freeTextFilter
@@ -183,7 +262,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

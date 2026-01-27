@@ -12,10 +12,10 @@ import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -63,7 +63,7 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -75,7 +75,7 @@ function PolicyDistanceRatesPage({
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const {asset: CarIce} = useMemoizedLazyAsset(() => loadIllustration('CarIce' as IllustrationName));
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
-    const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
+    const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit?.rates]);
 
     const selectableRates = useMemo(
         () =>
@@ -133,7 +133,7 @@ function PolicyDistanceRatesPage({
                 {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
             );
         },
-        [customUnit, rateIDs, policyReports],
+        [customUnit?.customUnitID, rateIDs, policyReports],
     );
 
     const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -184,7 +184,6 @@ function PolicyDistanceRatesPage({
 
     useEffect(() => {
         fetchDistanceRates();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -250,7 +249,7 @@ function PolicyDistanceRatesPage({
                     />
                 ),
             })),
-        [canDisableOrDeleteRate, customUnitRates, translate, customUnit, policy?.pendingAction, updateDistanceRateEnabled],
+        [canDisableOrDeleteRate, customUnitRates, translate, customUnit?.attributes?.unit, customUnit?.pendingFields?.attributes, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
     const filterRate = useCallback((rate: RateForList, searchInput: string) => {
@@ -469,7 +468,7 @@ function PolicyDistanceRatesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRatesPage.displayName}
+                testID="PolicyDistanceRatesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -497,24 +496,24 @@ function PolicyDistanceRatesPage({
                 )}
                 {Object.values(customUnitRates).length > 0 && (
                     <SelectionListWithModal
-                        addBottomSafeAreaPadding
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                        sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        selectedItems={selectedDistanceRates}
-                        onCheckboxPress={toggleRate}
-                        onSelectRow={openRateDetails}
-                        onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
-                        onDismissError={dismissError}
+                        data={filteredDistanceRatesList}
                         ListItem={TableListItem}
-                        listHeaderContent={headerContent}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        onSelectRow={openRateDetails}
+                        onCheckboxPress={toggleRate}
+                        selectedItems={selectedDistanceRates}
                         customListHeader={getCustomListHeader()}
-                        shouldShowListEmptyContent={false}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
+                        onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        customListHeaderContent={headerContent}
+                        canSelectMultiple={canSelectMultiple}
+                        onDismissError={dismissError}
+                        showListEmptyContent={false}
                         showScrollIndicator={false}
+                        turnOnSelectionModeOnLongPress
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}
@@ -541,7 +540,5 @@ function PolicyDistanceRatesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRatesPage.displayName = 'PolicyDistanceRatesPage';
 
 export default PolicyDistanceRatesPage;

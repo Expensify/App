@@ -62,6 +62,4 @@ function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-AddressBusiness.displayName = 'AddressBusiness';
-
 export default AddressBusiness;

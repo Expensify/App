@@ -7,10 +7,13 @@ import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -43,13 +46,11 @@ Onyx.connectWithoutView({
 });
 
 let currentUserEmail = '';
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -117,7 +118,7 @@ function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLo
 
     const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
-    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${encodeURIComponent(Url.addLeadingForwardSlash(postLoginPath))}` : '';
 
     const paramsArray = [authCode, tmcIDParam, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');
@@ -186,11 +187,39 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
+/**
+ * Normalizes a route by replacing route path variables with a generic placeholder(:id). For example /report/12345 becomes /report/:id
+ */
+function getNormalizedRoute(route: string) {
+    const routeWithoutParams = route.split('?').at(0) ?? '';
+    const segments = routeWithoutParams.split('/').filter((segment) => segment !== '');
+    const normalizedSegments = segments.map((segment) => {
+        // Check if segment is a number, UUID, or likely a dynamic ID and return :id for that
+        if (/^[\d]+$/.test(segment) || /^[a-f0-9-]{20,}$/i.test(segment) || /^[A-Z0-9]{8,}$/i.test(segment)) {
+            return ':id';
+        }
+        return segment;
+    });
+
+    return normalizedSegments.join('/');
+}
+
 function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);
+
+    const isNarrowLayout = getIsNarrowLayout();
+    const currentState = navigationRef.getRootState();
+    const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    let shouldCloseRHP = false;
+    if (!isNarrowLayout && isRHPOpen) {
+        const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+        const currentRoute = Navigation.getActiveRoute();
+        const willOpenSameRoute = getNormalizedRoute(currentRoute) === getNormalizedRoute(internalNewExpensifyPath);
+        shouldCloseRHP = !willOpenInRHP || !willOpenSameRoute;
+    }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
@@ -200,6 +229,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        if (shouldCloseRHP) {
+            Navigation.closeRHPFlow();
+        }
         Navigation.navigate(reportRoute);
         return;
     }
@@ -210,6 +242,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
+        }
+        if (shouldCloseRHP) {
+            Navigation.closeRHPFlow();
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
@@ -232,6 +267,7 @@ function openReportFromDeepLink(
     onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
     isAuthenticated: boolean,
+    conciergeReportID: string | undefined,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -320,10 +356,10 @@ function openReportFromDeepLink(
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute);
+                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, false, () => true);
                                     return;
                                 }
 
@@ -343,7 +379,7 @@ function openReportFromDeepLink(
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        if (report?.errorFields?.notFound || report?.reportID) {
+                                        if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);
                                         }
@@ -360,7 +396,8 @@ function openReportFromDeepLink(
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () =>
+                            onNotCompleted: () => {
+                                Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from deep link');
                                 startOnboardingFlow({
                                     onboardingValuesParam: val,
                                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
@@ -369,7 +406,8 @@ function openReportFromDeepLink(
                                     currentOnboardingCompanySize,
                                     onboardingInitialPath,
                                     onboardingValues: val,
-                                }),
+                                });
+                            },
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
@@ -378,32 +416,6 @@ function openReportFromDeepLink(
             });
         });
     });
-}
-
-function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
-    const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
-    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-    const exitTo = `exitTo=${encodeURIComponent(url)}`;
-    const accountID = `accountID=${currentUserAccountID}`;
-    const referrer = 'referrer=desktop';
-    const paramsArray = [accountID, emailParam, authTokenParam, exitTo, referrer];
-    const params = paramsArray.filter(Boolean).join('&');
-
-    return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;
-}
-
-/**
- * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
- */
-function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = false) {
-    asyncOpenURL(
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
-            .then((response) => (response ? buildURLWithAuthToken(url, response.shortLivedAuthToken) : buildURLWithAuthToken(url)))
-            .catch(() => buildURLWithAuthToken(url)),
-        (link) => link,
-        shouldSkipCustomSafariLogic,
-    );
 }
 
 function getTravelDotLink(policyID: OnyxEntry<string>) {
@@ -432,7 +444,6 @@ export {
     getInternalExpensifyPath,
     openTravelDotLink,
     buildTravelDotURL,
-    openExternalLinkWithToken,
     getTravelDotLink,
     buildOldDotURL,
     openReportFromDeepLink,

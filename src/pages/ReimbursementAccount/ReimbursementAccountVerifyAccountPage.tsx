@@ -1,4 +1,5 @@
 import React from 'react';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
@@ -13,11 +14,11 @@ function ReimbursementAccountVerifyAccountPage({route}: ReimbursementAccountVeri
     return (
         <VerifyAccountPageBase
             navigateBackTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo)}
-            navigateForwardTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo, CONST.BANK_ACCOUNT.STEP.COUNTRY)}
+            handleClose={() => {
+                Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo, CONST.BANK_ACCOUNT.STEP.COUNTRY), {compareParams: false});
+            }}
         />
     );
 }
-
-ReimbursementAccountVerifyAccountPage.displayName = 'ReimbursementAccountVerifyAccountPage';
 
 export default ReimbursementAccountVerifyAccountPage;

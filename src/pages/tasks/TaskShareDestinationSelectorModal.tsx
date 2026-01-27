@@ -2,8 +2,8 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -55,7 +55,7 @@ function TaskShareDestinationSelectorModal() {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
-    const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION,
         includeUserToInvite: false,
@@ -74,36 +74,36 @@ function TaskShareDestinationSelectorModal() {
         };
     }, [availableOptions, archivedReportsIdSet]);
 
-    const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
-
-    const headerMessage = useMemo(() => {
-        return getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false);
-    }, [filteredOptions.recentReports, searchTerm, countryCode]);
-
-    const sections = useMemo(
+    const data = useMemo(
         () =>
             filteredOptions.recentReports && filteredOptions.recentReports.length > 0
-                ? [
-                      {
-                          data: filteredOptions.recentReports.map((option) => ({
-                              ...option,
-                              text: option.text ?? '',
-                              alternateText: option.alternateText ?? undefined,
-                              keyForList: option.keyForList ?? '',
-                              isDisabled: option.isDisabled ?? undefined,
-                              login: option.login ?? undefined,
-                              shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-                          })),
-                          shouldShow: true,
-                      },
-                  ]
+                ? filteredOptions.recentReports.map((option) => ({
+                      ...option,
+                      text: option.text ?? '',
+                      alternateText: option.alternateText ?? undefined,
+                      keyForList: option.keyForList ?? '',
+                      isDisabled: option.isDisabled ?? undefined,
+                      login: option.login ?? undefined,
+                      shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+                  }))
                 : [],
         [filteredOptions.recentReports],
     );
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            onChangeText: setSearchTerm,
+            value: searchTerm,
+            headerMessage: getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false),
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
+        }),
+        [countryCode, filteredOptions.recentReports, searchTerm, setSearchTerm, translate, isOffline],
+    );
 
     return (
         <ScreenWrapper
@@ -119,24 +119,18 @@ function TaskShareDestinationSelectorModal() {
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList
                         ListItem={UserListItem}
-                        sections={areOptionsInitialized ? sections : []}
+                        data={areOptionsInitialized ? data : []}
                         onSelectRow={selectReportHandler}
-                        shouldSingleExecuteRowSelect
-                        onChangeText={setSearchTerm}
-                        textInputValue={searchTerm}
-                        headerMessage={headerMessage}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                        textInputOptions={textInputOptions}
                         showLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? false : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
-                        textInputHint={textInputHint}
                         onEndReached={onListEndReached}
+                        shouldSingleExecuteRowSelect
                     />
                 </View>
             </>
         </ScreenWrapper>
     );
 }
-
-TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
 
 export default TaskShareDestinationSelectorModal;

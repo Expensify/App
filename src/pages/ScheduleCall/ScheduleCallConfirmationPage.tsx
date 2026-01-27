@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {addMinutes} from 'date-fns';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -38,7 +38,7 @@ function ScheduleCallConfirmationPage() {
     const personalDetails = usePersonalDetails();
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.CONFIRMATION>>();
 
-    const confirm = useCallback(() => {
+    const confirm = () => {
         if (!scheduleCallDraft?.timeSlot || !scheduleCallDraft?.date || !scheduleCallDraft.guide || !scheduleCallDraft.reportID) {
             return;
         }
@@ -52,28 +52,22 @@ function ScheduleCallConfirmationPage() {
             currentUserPersonalDetails,
             userTimezone,
         );
-    }, [currentUserPersonalDetails, scheduleCallDraft, userTimezone]);
+    };
 
-    const guideDetails: PersonalDetails | null = useMemo(
-        () =>
-            scheduleCallDraft?.guide?.accountID
-                ? (personalDetails?.[scheduleCallDraft.guide.accountID] ?? {
-                      accountID: scheduleCallDraft.guide.accountID,
-                      login: scheduleCallDraft.guide.email,
-                      displayName: scheduleCallDraft.guide.email,
-                      avatar: getDefaultAvatarURL({
-                          accountID: scheduleCallDraft.guide.accountID,
-                          accountEmail: scheduleCallDraft.guide.email,
-                      }),
-                  })
-                : null,
-        [personalDetails, scheduleCallDraft?.guide?.accountID, scheduleCallDraft?.guide?.email],
-    );
+    const guideDetails: PersonalDetails | null = scheduleCallDraft?.guide?.accountID
+        ? (personalDetails?.[scheduleCallDraft.guide.accountID] ?? {
+              accountID: scheduleCallDraft.guide.accountID,
+              login: scheduleCallDraft.guide.email,
+              displayName: scheduleCallDraft.guide.email,
+              avatar: getDefaultAvatarURL({
+                  accountID: scheduleCallDraft.guide.accountID,
+                  accountEmail: scheduleCallDraft.guide.email,
+              }),
+          })
+        : null;
 
-    const dateTimeString = useMemo(() => {
-        if (!scheduleCallDraft?.timeSlot || !scheduleCallDraft.date) {
-            return '';
-        }
+    let dateTimeString = '';
+    if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
         const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
         const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
             addMinutes(scheduleCallDraft?.timeSlot, 30),
@@ -83,8 +77,8 @@ function ScheduleCallConfirmationPage() {
 
         const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
 
-        return `${dateString} from ${timeString} ${timezoneString}`;
-    }, [scheduleCallDraft?.date, scheduleCallDraft?.timeSlot, userTimezone]);
+        dateTimeString = `${dateString} from ${timeString} ${timezoneString}`;
+    }
 
     useEffect(() => {
         const guideAccountID = scheduleCallDraft?.guide?.accountID;
@@ -96,7 +90,7 @@ function ScheduleCallConfirmationPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={ScheduleCallConfirmationPage.displayName}
+            testID="ScheduleCallConfirmationPage"
         >
             <HeaderWithBackButton
                 title={translate('scheduledCall.confirmation.title')}
@@ -151,7 +145,5 @@ function ScheduleCallConfirmationPage() {
         </ScreenWrapper>
     );
 }
-
-ScheduleCallConfirmationPage.displayName = 'ScheduleCallConfirmationPage';
 
 export default ScheduleCallConfirmationPage;

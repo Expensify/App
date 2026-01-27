@@ -15,6 +15,4 @@ function OnboardingWorkspaces({...rest}: OnboardingWorkspacesProps) {
     );
 }
 
-OnboardingWorkspaces.displayName = 'OnboardingWorkspaces';
-
 export default OnboardingWorkspaces;

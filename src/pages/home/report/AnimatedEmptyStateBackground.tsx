@@ -69,5 +69,4 @@ function AnimatedEmptyStateBackground() {
     );
 }
 
-AnimatedEmptyStateBackground.displayName = 'AnimatedEmptyStateBackground';
 export default AnimatedEmptyStateBackground;

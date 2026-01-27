@@ -8,16 +8,25 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
+import type {ReplacementReason} from './libs/actions/Card';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
+import type {CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
+
+type WorkspaceCompanyCardsAssignCardParams = {
+    policyID: string;
+    feed: CompanyCardFeedWithDomainID;
+    cardID: string;
+};
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -37,13 +46,16 @@ const PUBLIC_SCREENS_ROUTES = {
     BANK_CONNECTION_COMPLETE: 'bank-connection-complete',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
-    APPLE_SIGN_IN: 'sign-in-with-apple',
-    GOOGLE_SIGN_IN: 'sign-in-with-google',
     SAML_SIGN_IN: 'sign-in-with-saml',
 } as const;
 
 // Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
+
+const MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES = {
+    FACTOR: 'multifactor-authentication/factor',
+    PROMPT: 'multifactor-authentication/prompt',
+} as const;
 
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
@@ -52,11 +64,12 @@ const ROUTES = {
 
     // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
     WORKSPACES_LIST: {route: 'workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo)},
-
+    SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
-            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const;
+        getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
+            const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
         },
     },
     SEARCH_ROOT_VERIFY_ACCOUNT: `search/${VERIFY_ACCOUNT}`,
@@ -64,6 +77,7 @@ const ROUTES = {
         route: 'search/saved-search/rename',
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
+    SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: {
         route: 'search/filters/:filterKey?',
         getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) => {
@@ -83,6 +97,17 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+
+    EXPENSE_REPORT_RHP: {
+        route: 'e/:reportID',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `e/${reportID}` as const;
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
+
     SEARCH_REPORT_VERIFY_ACCOUNT: {
         route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
@@ -109,7 +134,12 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+    SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: {
+        route: 'search/r/:reportID/reject',
+        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}/reject` as const,
+    },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    SEARCH_REJECT_REASON_RHP: 'search/reject',
     MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -138,14 +168,11 @@ const ROUTES = {
         getRoute: (accountID: number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}/avatar` as const, backTo),
     },
 
-    DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
-
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',
     WALLET_STATEMENT_WITH_DATE: 'statements/:yearMonth',
     SIGN_IN_MODAL: 'sign-in-modal',
-    REQUIRE_TWO_FACTOR_AUTH: '2fa-required',
 
     BANK_ACCOUNT: 'bank-account',
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
@@ -175,6 +202,10 @@ const ROUTES = {
             }
             return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
+    },
+    BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
+        route: 'bank-account/connect-existing-business-bank-account',
+        getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
@@ -282,6 +313,10 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/missing-details',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details` as const,
     },
+    SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/card/:cardID/missing-details/confirm-magic-code',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details/confirm-magic-code` as const,
+    },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
@@ -317,13 +352,26 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/add-bank-account', backTo),
     },
-    SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
+    SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        route: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
+        getRoute: (params: {backTo?: string}) => getUrlWithParams(`settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`, params),
+    },
+
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
+    SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
+        route: 'settings/wallet/:bankAccountID/unshare-bank-account',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/unshare-bank-account` as const,
+    },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements` as const,
+    },
+    SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
+        route: 'settings/wallet/:bankAccountID/share-bank-account',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
     },
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
@@ -335,9 +383,26 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged` as const,
     },
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-magic-code',
+        getRoute: (cardID: string, reason: ReplacementReason) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code` as const,
+    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
+    },
+    SETTINGS_RULES: 'settings/rules',
+    SETTINGS_RULES_ADD: {
+        route: 'settings/rules/new/:field?',
+        getRoute: (field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
+            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        },
+    },
+    SETTINGS_RULES_EDIT: {
+        route: 'settings/rules/edit/:hash/:field?',
+        getRoute: (hash?: string, field?: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>) => {
+            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}` as const;
+        },
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
@@ -382,13 +447,12 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
     SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/profile/contact-methods/new/:newContactMethod/confirm-magic-code',
-        getRoute: (newContactMethod: string, backTo?: string) => {
-            const encodedMethod = encodeURIComponent(newContactMethod);
+        route: 'settings/profile/contact-methods/new/confirm-magic-code',
+        getRoute: (backTo?: string) => {
             // TODO this backTo comes from drilling it through settings screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`settings/profile/contact-methods/new/${encodedMethod}/confirm-magic-code`, backTo);
+            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-magic-code`, backTo);
         },
     },
     SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
@@ -493,6 +557,18 @@ const ROUTES = {
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
+    REPORT_CARD_ACTIVATE: {
+        route: 'r/:reportID/:reportActionID?/card/:cardID/activate',
+        getRoute: (cardID: number, reportID?: string, reportActionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_CARD_ACTIVATE route');
+            }
+            if (!reportActionID) {
+                return `r/${reportID}/card/${cardID}/activate` as const;
+            }
+            return `r/${reportID}/${reportActionID}/card/${cardID}/activate` as const;
+        },
+    },
     REPORT_ATTACHMENTS: {
         route: 'attachment',
         getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
@@ -544,6 +620,10 @@ const ROUTES = {
     REPORT_VERIFY_ACCOUNT: {
         route: `r/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `r/${reportID}/${VERIFY_ACCOUNT}` as const,
+    },
+    EXPENSE_REPORT_VERIFY_ACCOUNT: {
+        route: `e/:reportID/${VERIFY_ACCOUNT}`,
+        getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -716,14 +796,41 @@ const ROUTES = {
         },
     },
     SPLIT_EXPENSE: {
-        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
+        // TODO: Remove backTo from route once we have find another way to fix navigation issues with tabs
+        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID/:backTo?',
         getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
             if (!reportID || !originalTransactionID) {
                 Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE route`);
             }
 
+            const splitExpenseTransactionIDPart = splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : '/0';
+
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionIDPart}`, backTo);
+        },
+    },
+    SPLIT_EXPENSE_SEARCH: {
+        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID/search/:backTo?',
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
+            if (!reportID || !originalTransactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_SEARCH route`);
+            }
+
+            const splitExpenseTransactionIDPart = splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : '/0';
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionIDPart}/search`, backTo);
+        },
+    },
+    SPLIT_EXPENSE_CREATE_DATE_RANGE: {
+        route: 'create/split-expense/create-date-range/:reportID/:transactionID?',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
+            if (!reportID || !transactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_CREATE_DATE_RANGE route`);
+            }
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`create/split-expense/create-date-range/${reportID}/${transactionID}`, backTo);
         },
     },
     SPLIT_EXPENSE_EDIT: {
@@ -1061,12 +1168,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const, backTo),
     },
-    MONEY_REQUEST_STEP_CURRENCY: {
-        route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
-    },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
@@ -1108,6 +1209,16 @@ const ROUTES = {
             }
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-manual/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
+        },
+    },
+    MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
+        route: ':action/:iouType/distance-odometer/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_ODOMETER route');
+            }
+
+            return `${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}` as const;
         },
     },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
@@ -1190,6 +1301,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
+    MONEY_REQUEST_CREATE_TAB_TIME: {
+        route: 'time/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `create/${iouType as string}/start/${transactionID}/${reportID}/time/${backToReport ?? ''}` as const,
+    },
 
     MONEY_REQUEST_RECEIPT_VIEW: {
         route: 'receipt-view/:transactionID',
@@ -1209,6 +1325,21 @@ const ROUTES = {
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
+    MONEY_REQUEST_STEP_TIME_RATE: {
+        route: ':action/:iouType/rate/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/rate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
+    MONEY_REQUEST_STEP_HOURS: {
+        route: ':action/:iouType/hours/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
+    MONEY_REQUEST_STEP_HOURS_EDIT: {
+        route: ':action/:iouType/hours-edit/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours-edit/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
     DISTANCE_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID/distance-new/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
@@ -1223,6 +1354,16 @@ const ROUTES = {
         route: 'distance-manual',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-manual` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_GPS: {
+        route: 'distance-gps',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-gps` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_ODOMETER: {
+        route: 'distance-odometer',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-odometer` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -1335,7 +1476,13 @@ const ROUTES = {
     },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'workspaces/:policyID/overview/currency',
-        getRoute: (policyID: string) => `workspaces/${policyID}/overview/currency` as const,
+        getRoute: (policyID: string, isForcedToChangeCurrency?: boolean) => {
+            let queryParams = '';
+            if (isForcedToChangeCurrency) {
+                queryParams += `?isForcedToChangeCurrency=true`;
+            }
+            return `workspaces/${policyID}/overview/currency${queryParams}` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export',
@@ -1602,7 +1749,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/classes/displayed_as',
@@ -1610,7 +1762,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/customers',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/customers/displayed_as',
@@ -1658,10 +1815,6 @@ const ROUTES = {
             return `workspaces/${policyID}/workflows` as const;
         },
     },
-    WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: {
-        route: 'workspaces/:policyID/workflows/connect-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/connect-account` as const,
-    },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/workflows/approvals/new` as const,
@@ -1678,9 +1831,19 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex: number, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const, backTo),
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE: {
+        route: 'workspaces/:policyID/workflows/approvals/approver-change',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver-change?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT: {
+        route: 'workspaces/:policyID/workflows/approvals/approval-limit',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approval-limit?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: {
+        route: 'workspaces/:policyID/workflows/approvals/over-limit-approver',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/over-limit-approver?approverIndex=${approverIndex}` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',
@@ -1891,6 +2054,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
     },
+    WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: {
+        route: 'workspaces/:policyID/category/:categoryName/require-itemized-receipts-over',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-itemized-receipts-over` as const,
+    },
+    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
+        route: 'workspaces/:policyID/category/:categoryName/required-fields',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
+    },
     WORKSPACE_CATEGORY_APPROVER: {
         route: 'workspaces/:policyID/category/:categoryName/approver',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/approver` as const,
@@ -2002,6 +2173,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}` as const,
     },
+    WORKSPACE_MEMBER_DETAILS_ROLE: {
+        route: 'workspaces/:policyID/members/:accountID/role',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role` as const,
+    },
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
         getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
@@ -2105,14 +2280,14 @@ const ROUTES = {
         },
     },
     WORKSPACE_COMPANY_CARDS_BANK_CONNECTION: {
-        route: 'workspaces/:policyID/company-cards/:bankName/bank-connection',
-        getRoute: (policyID: string | undefined, bankName: string, backTo: string) => {
+        route: 'workspaces/:policyID/company-cards/:feed/bank-connection',
+        getRoute: (policyID: string | undefined, feed: CompanyCardFeedWithDomainID, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS_BANK_CONNECTION route');
             }
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${bankName}/bank-connection`, backTo);
+            return getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/bank-connection`, backTo);
         },
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
@@ -2125,27 +2300,64 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/select-feed',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/select-feed` as const,
     },
-    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
-        route: 'workspaces/:policyID/company-cards/:feed/assign-card',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/assign-card`, backTo),
+    WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: {
+        route: 'workspaces/:policyID/company-cards/:feed/broken-card-feed-connection',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/broken-card-feed-connection` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/assignee',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/assignee`, backTo),
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-selection',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/card-selection` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/transaction-start-date',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/transaction-start-date` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-name',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/card-name` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/confirmation',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/confirmation`, backTo),
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/invite-new-member',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/invite-new-member` as const,
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
-        route: 'workspaces/:policyID/company-cards/:bank/:cardID',
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${bank}/${cardID}`, backTo),
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID, cardID: string, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}`, backTo),
     },
-    WORKSPACE_COMPANY_CARD_NAME: {
-        route: 'workspaces/:policyID/company-cards/:bank/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string, bank: string) => `workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/name` as const,
+    WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME: {
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/name',
+        getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
+            `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/edit/name` as const,
+    },
+    WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE: {
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/transaction-start-date',
+        getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
+            `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/edit/transaction-start-date` as const,
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
-        route: 'workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
-        getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) =>
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/export',
+        getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export`, backTo, false),
+            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/${cardID}/edit/export`, backTo, false),
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'workspaces/:policyID/expensify-card',
@@ -2210,6 +2422,12 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/issue-new`, backTo),
     },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: {
+        route: 'workspaces/:policyID/expensify-card/issue-new/confirm-magic-code',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/issue-new/confirm-magic-code`, backTo),
+    },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'workspaces/:policyID/expensify-card/choose-bank-account',
         getRoute: (policyID: string | undefined) => {
@@ -2269,10 +2487,24 @@ const ROUTES = {
             return `workspaces/${policyID}/distance-rates` as const;
         },
     },
+    WORKSPACE_TRAVEL: {
+        route: 'workspaces/:policyID/travel',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TRAVEL route');
+            }
+            return `workspaces/${policyID}/travel` as const;
+        },
+    },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
             `workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
+    },
+    WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE: {
+        route: 'workspaces/:policyID/distance-rates/new/upgrade',
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
@@ -2410,6 +2642,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/receipt-required-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/receipt-required-amount` as const,
     },
+    RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT: {
+        route: 'workspaces/:policyID/rules/itemized-receipt-required-amount',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/itemized-receipt-required-amount` as const,
+    },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,
@@ -2459,16 +2695,22 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
-    TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_MY_TRIPS: {
+        route: 'travel',
+        getRoute: (policyID?: string) => `travel?${policyID ? `policyID=${policyID}` : ''}` as const,
+    },
     TRAVEL_DOT_LINK_WEB_VIEW: {
         route: 'travel-dot-link',
-        getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,
+        getRoute: (token: string, isTestAccount?: boolean, postLoginPath?: string) => {
+            const redirectURL = postLoginPath ? `&redirectUrl=${encodeURIComponent(postLoginPath)}` : '';
+            return `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}${redirectURL}` as const;
+        },
     },
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
+        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_UPGRADE: {
         route: 'travel/upgrade',
@@ -2503,7 +2745,7 @@ const ROUTES = {
         route: 'travel/domain-selector',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/domain-selector`, backTo),
+        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-selector?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         route: 'travel/domain-permission/:domain/info',
@@ -2527,11 +2769,12 @@ const ROUTES = {
         route: 'travel/:domain/workspace-address',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),
+        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_VERIFY_ACCOUNT: {
-        route: `travel/:domain/${VERIFY_ACCOUNT}`,
-        getRoute: (domain: string) => `travel/${domain}/${VERIFY_ACCOUNT}` as const,
+        route: `travel/${VERIFY_ACCOUNT}`,
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',
@@ -2645,16 +2888,14 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, mergeTransactionID?: string) => {
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, mergeTransactionID?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the TRANSACTION_RECEIPT route');
             }
-            return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${
-                isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
-            }${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
+            return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
         },
     },
 
@@ -2713,28 +2954,40 @@ const ROUTES = {
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
     },
     MERGE_TRANSACTION_LIST_PAGE: {
-        route: 'r/:transactionID/merge',
+        route: 'merge/:transactionID',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (transactionID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo),
+        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            const url = getUrlWithBackToParam(`merge/${transactionID}` as const, backTo);
+            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
+        },
     },
     MERGE_TRANSACTION_RECEIPT_PAGE: {
-        route: 'r/:transactionID/merge/receipt',
+        route: 'merge/:transactionID/receipt',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo),
+        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            const url = getUrlWithBackToParam(`merge/${transactionID}/receipt` as const, backTo);
+            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
+        },
     },
     MERGE_TRANSACTION_DETAILS_PAGE: {
-        route: 'r/:transactionID/merge/details',
+        route: 'merge/:transactionID/details',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo),
+        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            const url = getUrlWithBackToParam(`merge/${transactionID}/details` as const, backTo);
+            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
+        },
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
-        route: 'r/:transactionID/merge/confirmation',
+        route: 'merge/:transactionID/confirmation',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo),
+        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            const url = getUrlWithBackToParam(`merge/${transactionID}/confirmation` as const, backTo);
+            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
+        },
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',
@@ -2808,6 +3061,10 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/xero/advanced` as const;
         },
     },
+    POLICY_ACCOUNTING_CLAIM_OFFER: {
+        route: 'workspaces/:policyID/accounting/claim-offer/:integration',
+        getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
+    },
     POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
         route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -2864,7 +3121,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
@@ -2872,7 +3134,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/customers',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/customers/displayed-as',
@@ -2880,7 +3147,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations/displayed-as',
@@ -2894,7 +3166,15 @@ const ROUTES = {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
-    MISSING_PERSONAL_DETAILS: 'missing-personal-details',
+    MISSING_PERSONAL_DETAILS: {
+        route: 'missing-personal-details/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return 'missing-personal-details' as const;
+            }
+            return `missing-personal-details/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
     MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'missing-personal-details/confirm-magic-code',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/netsuite/subsidiary-selector',
@@ -2915,7 +3195,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'workspaces/:policyID/accounting/netsuite/import',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING: {
         route: 'workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
@@ -2955,7 +3240,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
         route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
         route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
@@ -3368,29 +3658,92 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
     WORKSPACES_VERIFY_DOMAIN: {
-        route: 'workspaces/verify-domain/:accountID',
-        getRoute: (accountID: number) => `workspaces/verify-domain/${accountID}` as const,
+        route: 'workspaces/verify-domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/verify-domain/${domainAccountID}` as const,
     },
     WORKSPACES_DOMAIN_VERIFIED: {
-        route: 'workspaces/domain-verified/:accountID',
-        getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+        route: 'workspaces/domain-verified/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-verified/${domainAccountID}` as const,
+    },
+    WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
+    WORKSPACES_DOMAIN_ADDED: {
+        route: 'workspaces/domain-added/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-added/${domainAccountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
+        route: 'workspaces/domain-access-restricted/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-access-restricted/${domainAccountID}` as const,
     },
     DOMAIN_INITIAL: {
-        route: 'domain/:accountID',
-        getRoute: (accountID: number) => `domain/${accountID}` as const,
+        route: 'domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}` as const,
     },
     DOMAIN_SAML: {
-        route: 'domain/:accountID/saml',
-        getRoute: (accountID: number) => `domain/${accountID}/saml` as const,
+        route: 'domain/:domainAccountID/saml',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
     },
     DOMAIN_VERIFY: {
-        route: 'domain/:accountID/verify',
-        getRoute: (accountID: number) => `domain/${accountID}/verify` as const,
+        route: 'domain/:domainAccountID/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verify` as const,
     },
     DOMAIN_VERIFIED: {
-        route: 'domain/:accountID/verified',
-        getRoute: (accountID: number) => `domain/${accountID}/verified` as const,
+        route: 'domain/:domainAccountID/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verified` as const,
     },
+    DOMAIN_ADMINS: {
+        route: 'domain/:domainAccountID/admins',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
+    },
+    DOMAIN_ADMIN_DETAILS: {
+        route: 'domain/:domainAccountID/admins/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}` as const,
+    },
+    DOMAIN_ADMINS_SETTINGS: {
+        route: 'domain/:domainAccountID/admins/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings` as const,
+    },
+    DOMAIN_ADD_PRIMARY_CONTACT: {
+        route: 'domain/:domainAccountID/admins/settings/primary-contact',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings/primary-contact` as const,
+    },
+    DOMAIN_ADD_ADMIN: {
+        route: 'domain/:domainAccountID/admins/invite',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/invite` as const,
+    },
+    DOMAIN_MEMBERS: {
+        route: 'domain/:domainAccountID/members',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members` as const,
+    },
+    DOMAIN_MEMBER_DETAILS: {
+        route: 'domain/:domainAccountID/members/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}` as const,
+    },
+    DOMAIN_RESET_DOMAIN: {
+        route: 'domain/:domainAccountID/admins/:accountID/reset-domain',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}/reset-domain` as const,
+    },
+    DOMAIN_ADD_MEMBER: {
+        route: 'domain/:domainAccountID/members/invite',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/invite` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,
+    MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
+
+    // The exact outcome & prompt type will be added as a part of Multifactor Authentication config in another PR,
+    // for now a string is accepted to avoid blocking this PR.
+    MULTIFACTOR_AUTHENTICATION_OUTCOME: {
+        route: 'multifactor-authentication/outcome/:outcomeType',
+        getRoute: (outcomeType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE>) => `multifactor-authentication/outcome/${outcomeType}` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_PROMPT: {
+        route: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.PROMPT}/:promptType`,
+        getRoute: (promptType: string) => `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.PROMPT}/${promptType}` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',
 } as const;
 
 /**
@@ -3406,7 +3759,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;

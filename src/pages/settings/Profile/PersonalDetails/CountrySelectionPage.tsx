@@ -39,7 +39,6 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
     );
 
     const searchResults = searchOptions(searchValue, countries);
-    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(
         (option: Option) => {
@@ -53,22 +52,22 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
                 Navigation.goBack(appendParam(backTo, 'country', option.value), {compareParams: false});
             }
         },
-        [route],
+        [route.params.backTo],
     );
 
     const textInputOptions = useMemo(
         () => ({
-            value: searchValue,
+            headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
             label: translate('common.country'),
+            value: searchValue,
             onChangeText: setSearchValue,
-            headerMessage,
         }),
-        [headerMessage, searchValue, translate, setSearchValue],
+        [searchResults.length, searchValue, translate],
     );
 
     return (
         <ScreenWrapper
-            testID={CountrySelectionPage.displayName}
+            testID="CountrySelectionPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -83,17 +82,15 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
 
             <SelectionList
                 data={searchResults}
-                textInputOptions={textInputOptions}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
-                shouldSingleExecuteRowSelect
+                textInputOptions={textInputOptions}
                 initiallyFocusedItemKey={currentCountry}
+                shouldSingleExecuteRowSelect
                 addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );
 }
-
-CountrySelectionPage.displayName = 'CountrySelectionPage';
 
 export default CountrySelectionPage;

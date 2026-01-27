@@ -103,7 +103,7 @@ function AddPlaidBankAccount({
      */
     const isAuthenticatedWithPlaid = useCallback(
         () => (!!receivedRedirectURI && !!plaidLinkOAuthToken) || !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors),
-        [plaidData, plaidLinkOAuthToken, receivedRedirectURI],
+        [plaidData?.bankAccounts?.length, plaidData?.errors, plaidLinkOAuthToken, receivedRedirectURI],
     );
 
     /**
@@ -145,7 +145,7 @@ function AddPlaidBankAccount({
         return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -273,7 +273,5 @@ function AddPlaidBankAccount({
         </FullPageOfflineBlockingView>
     );
 }
-
-AddPlaidBankAccount.displayName = 'AddPlaidBankAccount';
 
 export default AddPlaidBankAccount;

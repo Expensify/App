@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -28,7 +28,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? CONST.DEFAULT_NUMBER_ID.toString();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const subsidiaryListSections =
         subsidiaryList.map((subsidiary: NetSuiteSubsidiary) => ({
@@ -85,8 +85,8 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteSubsidiarySelector.displayName}
-            sections={subsidiaryListSections.length > 0 ? [{data: subsidiaryListSections}] : []}
+            displayName="NetSuiteSubsidiarySelector"
+            data={subsidiaryListSections}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onSelectRow={updateSubsidiary}
@@ -102,7 +102,5 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-NetSuiteSubsidiarySelector.displayName = 'NetSuiteSubsidiarySelector';
 
 export default withPolicyConnections(NetSuiteSubsidiarySelector);

@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -14,7 +15,7 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const [transactionViolations = getEmptyArray<TransactionViolation>()] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, {
         canBeMissing: true,
     });
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
         canBeMissing: true,
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {
@@ -27,11 +28,12 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
             mergeProhibitedViolations(
                 transactionViolations.filter(
                     (violation: TransactionViolation) =>
-                        !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', iouReport, policy) &&
-                        shouldShowViolation(iouReport, policy, violation.name, currentUserDetails.email ?? '', shouldShowRterForSettledReport),
+                        !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, iouReport, policy) &&
+                        shouldShowViolation(iouReport, policy, violation.name, currentUserDetails.email ?? '', shouldShowRterForSettledReport, transaction) &&
+                        (CONST.IS_ATTENDEES_REQUIRED_ENABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES),
                 ),
             ),
-        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email],
+        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID],
     );
 }
 

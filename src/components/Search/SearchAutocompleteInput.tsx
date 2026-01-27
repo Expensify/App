@@ -9,6 +9,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useLocalize from '@hooks/useLocalize';
@@ -16,15 +17,12 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAdvancedFilters} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
+import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
 type SearchAutocompleteInputProps = {
@@ -105,8 +103,8 @@ function SearchAutocompleteInput({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
+    const {currencyList} = useCurrencyList();
+    const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
@@ -182,22 +180,9 @@ function SearchAutocompleteInput({
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
-    const clearFilters = useCallback(() => {
-        clearAdvancedFilters();
+    const clearInput = useCallback(() => {
         onSearchQueryChange('');
-
-        // Check if we are on the search page before clearing query. If we are using the popup search menu,
-        // then the clear button is ONLY available when the search is *not* saved, so we don't have to navigate
-        const currentRoute = Navigation.getActiveRouteWithoutParams();
-        const isSearchPage = currentRoute === `/${ROUTES.SEARCH_ROOT.route}`;
-
-        if (isSearchPage) {
-            Navigation.navigate(
-                ROUTES.SEARCH_ROOT.getRoute({
-                    query: buildCannedSearchQuery(),
-                }),
-            );
-        }
+        setSearchContext(false);
     }, [onSearchQueryChange]);
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -212,7 +197,7 @@ function SearchAutocompleteInput({
                         onChangeText={onSearchQueryChange}
                         autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
                         caretHidden={caretHidden}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ROLE.SEARCHBOX}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -260,8 +245,7 @@ function SearchAutocompleteInput({
                         selection={selection}
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
-                        onClearInput={clearFilters}
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+                        onClearInput={clearInput}
                     />
                 </View>
             </Animated.View>
@@ -273,8 +257,6 @@ function SearchAutocompleteInput({
         </View>
     );
 }
-
-SearchAutocompleteInput.displayName = 'SearchAutocompleteInput';
 
 export type {SearchAutocompleteInputProps};
 export default SearchAutocompleteInput;

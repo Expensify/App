@@ -16,6 +16,9 @@ type GroupedTransactions = {
     /** Transactions in this group */
     transactions: Transaction[];
 
+    /** Subtotal amount for all transactions in this group */
+    subTotalAmount: number;
+
     /** Whether the group is currently expanded */
     isExpanded: boolean;
 };

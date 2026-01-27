@@ -31,7 +31,7 @@ type HoldOrRejectEducationalModalProps = {
 function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject']);
 
     useBeforeRemove(onClose);
 
@@ -69,6 +69,8 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
             shouldCloseOnConfirm={false}
             onClose={onClose}
             onConfirm={onConfirm}
+            shouldGoBack={false}
+            shouldUseScrollView
         >
             <>
                 {menuSections.map((section) => (
@@ -91,7 +93,5 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
         </FeatureTrainingModal>
     );
 }
-
-HoldOrRejectEducationalModal.displayName = 'HoldOrRejectEducationalModal';
 
 export default HoldOrRejectEducationalModal;

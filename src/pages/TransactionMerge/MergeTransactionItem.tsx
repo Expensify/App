@@ -72,6 +72,4 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
     );
 }
 
-MergeTransactionItem.displayName = 'MergeTransactionItem';
-
 export default MergeTransactionItem;

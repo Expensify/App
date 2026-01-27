@@ -14,6 +14,4 @@ function FocusAwareCellRendererComponent<TItem extends ListItem>({onFocusCapture
     );
 }
 
-FocusAwareCellRendererComponent.displayName = 'FocusAwareCellRendererComponent';
-
 export default FocusAwareCellRendererComponent;

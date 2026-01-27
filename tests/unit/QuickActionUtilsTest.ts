@@ -5,7 +5,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -137,6 +137,72 @@ describe('QuickActionUtils', () => {
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
+            });
+        });
+
+        describe('Policy with per diem', () => {
+            const perDiemAction = {
+                action: CONST.QUICK_ACTIONS.PER_DIEM,
+            };
+            const ownerAccountID = 1;
+            const report: Report = {
+                reportID: '1',
+                isOwnPolicyExpenseChat: true,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                ownerAccountID,
+            };
+            beforeAll(() => {
+                Onyx.init({
+                    keys: ONYXKEYS,
+                    initialKeyStates: {
+                        [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
+                    },
+                });
+
+                return waitForBatchedUpdates();
+            });
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+            it('should allow per diem action when policy has per diem rates', () => {
+                const perDiemCustomUnit = {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    customUnitID: 'ABCDEF',
+                    enabled: true,
+                    rates: {
+                        London: {
+                            customUnitRateID: 'London',
+                            name: 'London',
+                        },
+                    },
+                };
+                mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(perDiemCustomUnit);
+                const policy = {
+                    id: '1',
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                } as unknown as Policy;
+                mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, false)).toBe(true);
+            });
+            it("should not allow per diem action when policy doesn't have per diem rates", () => {
+                mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(undefined);
+                const policy = {
+                    id: '1',
+                    arePerDiemRatesEnabled: true,
+                } as unknown as Policy;
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, false)).toBe(false);
+            });
+            it("should not allow per diem action when policy doesn't have per diem enabled", () => {
+                const policy = {
+                    id: '1',
+                    arePerDiemRatesEnabled: false,
+                } as unknown as Policy;
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, false)).toBe(false);
             });
         });
     });

@@ -1,6 +1,5 @@
 import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
@@ -11,20 +10,14 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
-    /** Handle assign card action */
-    handleAssignCard: () => void;
-
-    /** Whether to disable assign card button */
-    isDisabledAssignCardButton?: boolean;
-
     /** Whether to disable GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
+function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState']);
 
     return (
         <ScrollView
@@ -40,21 +33,10 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
                 headerContentStyles={styles.emptyStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
                 subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
-                buttons={[
-                    {
-                        buttonText: translate('workspace.companyCards.assignCard'),
-                        buttonAction: handleAssignCard,
-                        icon: Expensicons.Plus,
-                        success: true,
-                        isDisabled: isDisabledAssignCardButton,
-                    },
-                ]}
             />
             {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
         </ScrollView>
     );
 }
-
-WorkspaceCompanyCardsFeedAddedEmptyPage.displayName = 'WorkspaceCompanyCardsFeedAddedEmptyPage';
 
 export default WorkspaceCompanyCardsFeedAddedEmptyPage;

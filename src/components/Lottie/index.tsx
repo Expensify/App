@@ -1,7 +1,6 @@
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
-import type {ForwardedRef} from 'react';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -16,10 +15,9 @@ import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 type Props = {
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
-    ref?: ForwardedRef<LottieView>;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: Props) {
+function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props) {
     const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
     const {splashScreenState} = useSplashScreenStateContext();
@@ -48,7 +46,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
@@ -119,12 +117,6 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
             source={animationFile}
             key={`${hasNavigatedAway}`}
             ref={(newRef) => {
-                if (typeof ref === 'function') {
-                    ref(newRef);
-                } else if (ref && 'current' in ref) {
-                    // eslint-disable-next-line no-param-reassign
-                    ref.current = newRef;
-                }
                 animationRef.current = newRef;
             }}
             style={[aspectRatioStyle, props.style]}
@@ -134,7 +126,5 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
         />
     );
 }
-
-Lottie.displayName = 'Lottie';
 
 export default Lottie;

@@ -23,7 +23,6 @@ import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@componen
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,8 +35,6 @@ import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
@@ -83,8 +80,6 @@ function SearchPageNarrow({
     const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
-    const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true});
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
@@ -149,7 +144,7 @@ function SearchPageNarrow({
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value).then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
+            search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
 
@@ -167,7 +162,7 @@ function SearchPageNarrow({
     if (!queryJSON) {
         return (
             <ScreenWrapper
-                testID={SearchPageNarrow.displayName}
+                testID="SearchPageNarrow"
                 style={styles.pv0}
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldShowOfflineIndicator={!!searchResults}
@@ -183,15 +178,14 @@ function SearchPageNarrow({
 
     const shouldShowFooter = !!metadata?.count || Object.keys(selectedTransactions).length > 0;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
+    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
 
     return (
         <ScreenWrapper
-            testID={SearchPageNarrow.displayName}
+            testID="SearchPageNarrow"
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
             bottomContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
-            headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
@@ -290,7 +284,5 @@ function SearchPageNarrow({
         </ScreenWrapper>
     );
 }
-
-SearchPageNarrow.displayName = 'SearchPageNarrow';
 
 export default SearchPageNarrow;

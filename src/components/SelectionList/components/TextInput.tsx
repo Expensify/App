@@ -45,9 +45,6 @@ type TextInputProps = {
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
 
-    /** Function to update the focused index in the list */
-    setFocusedIndex: (index: number) => void;
-
     /** Function to focus text input component */
     focusTextInput: () => void;
 };
@@ -64,15 +61,14 @@ function TextInput({
     showLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
-    setFocusedIndex,
     focusTextInput,
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef} = options ?? {};
+    const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef, style} = options ?? {};
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || noData);
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -80,9 +76,8 @@ function TextInput({
     const handleTextInputChange = useCallback(
         (text: string) => {
             onChangeText?.(text);
-            setFocusedIndex(0);
         },
-        [onChangeText, setFocusedIndex],
+        [onChangeText],
     );
 
     useFocusEffect(
@@ -117,7 +112,7 @@ function TextInput({
 
     return (
         <>
-            <View style={[styles.ph5, styles.pb3]}>
+            <View style={[styles.ph5, styles.pb3, style?.containerStyle]}>
                 <BaseTextInput
                     ref={mergedRef}
                     onKeyPress={onKeyPress}
@@ -143,14 +138,12 @@ function TextInput({
                 />
             </View>
             {shouldShowHeaderMessage && (
-                <View style={[styles.ph5, styles.pb5]}>
+                <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
                 </View>
             )}
         </>
     );
 }
-
-TextInput.displayName = 'TextInput';
 
 export default TextInput;

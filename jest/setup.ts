@@ -9,6 +9,7 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
+import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
@@ -33,6 +34,12 @@ jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 
 // Mock NativeEventEmitter as it is needed to provide mocks of libraries which include it
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+
+// Mock expo-task-manager
+jest.mock('expo-task-manager', () => ({
+    defineTask: jest.fn(),
+    // Add other methods here if you use them
+}));
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
@@ -91,6 +98,9 @@ jest.mock('react-native-sound', () => {
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
+
+// Jest has no access to the native secure store module, so we mock it with the web implementation.
+jest.mock('@src/libs/MultifactorAuthentication/Biometrics/SecureStore', () => MockedSecureStore);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
@@ -179,7 +189,9 @@ jest.mock('../src/hooks/useLazyAsset.ts', () => ({
                 };
             }
             return mockIllustrations;
-        }, [names]),
+
+            // Use a value-based dependency to avoid returning a new object caused by reference changes on names
+        }, [names.join(',')]),
     ),
     useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) =>
         mockUseMemo(() => {
@@ -194,7 +206,9 @@ jest.mock('../src/hooks/useLazyAsset.ts', () => ({
                 };
             }
             return mockIcons;
-        }, [names]),
+
+            // Use a value-based dependency to avoid returning a new object caused by reference changes on names
+        }, [names.join(',')]),
     ),
     default: jest.fn((importFn) =>
         mockUseMemo(() => {
@@ -223,7 +237,7 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
+    '@components/InvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -292,3 +306,10 @@ if (typeof globalWithOptionalFetch.fetch !== 'function') {
         configurable: true,
     });
 }
+
+jest.mock('@components/ActionSheetAwareScrollView/index');
+jest.mock('@components/ActionSheetAwareScrollView/index.ios');
+jest.mock('@components/ActionSheetAwareScrollView/index.android');
+jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
+
+jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');

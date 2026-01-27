@@ -16,12 +16,6 @@ jest.mock('@rnmapbox/maps', () => ({
     MarkerView: {},
     setAccessToken: jest.fn(),
 }));
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-    getCurrentPosition: jest.fn(),
-    watchPosition: jest.fn(),
-    clearWatch: jest.fn(),
-}));
 
 const mockUseIsFocused = jest.fn().mockReturnValue(true);
 
@@ -31,6 +25,7 @@ afterEach(() => {
 
 describe('useSearchHighlightAndScroll', () => {
     const baseProps: UseSearchHighlightAndScroll = {
+        shouldUseLiveData: false,
         searchResults: {
             data: {
                 personalDetailsList: {},
@@ -95,7 +90,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
     });
 
     it('should not trigger search when not focused', () => {
@@ -153,7 +148,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
+        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
     });
 
     it('should not trigger search when new transaction removed and focused', () => {

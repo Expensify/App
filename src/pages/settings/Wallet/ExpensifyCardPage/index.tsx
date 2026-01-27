@@ -1,4 +1,5 @@
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -13,7 +14,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useBeforeRemove from '@hooks/useBeforeRemove';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,7 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
-import {formatCardExpiration, getDomainCards, maskCard, maskPin} from '@libs/CardUtils';
+import {filterPersonalCards, formatCardExpiration, getDomainCards, maskCard, maskPin} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -39,8 +40,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Card, CurrencyList, PrivatePersonalDetails} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Card, PrivatePersonalDetails} from '@src/types/onyx';
 import useExpensifyCardContext from './useExpensifyCardContext';
 
 type ExpensifyCardPageProps =
@@ -81,10 +81,10 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
 function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardID} = route.params;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: false});
     const [pin] = useOnyx(ONYXKEYS.ACTIVATED_CARD_PIN, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
+    const {currencyList} = useCurrencyList();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -95,7 +95,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch']);
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -119,10 +119,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         setIsNotFound(!currentCard);
     }, [cardList, cardsToShow, currentCard]);
 
-    useEffect(() => {
-        resetValidateActionCodeSent();
-    }, []);
-
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
@@ -132,10 +128,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const {cardsDetails, setCardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardContext();
 
-    // This resets card details when we exit the page.
-    useBeforeRemove(() => {
-        setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
-    });
+    // Resets card details when navigating away from the page.
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
+            };
+        }, [cardID, setCardsDetails]),
+    );
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
@@ -158,7 +158,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ExpensifyCardPage.displayName}>
+        <ScreenWrapper testID="ExpensifyCardPage">
             <HeaderWithBackButton
                 title={pageTitle}
                 onBackButtonPress={() => Navigation.closeRHPFlow()}
@@ -247,7 +247,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(String(card.cardID)));
                                                                 return;
                                                             }
-
+                                                            resetValidateActionCodeSent();
                                                             if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                                 return;
@@ -410,14 +410,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     large
                     text={translate('cardPage.getPhysicalCard')}
                     pressOnEnter
-                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
+                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute())}
                     style={[styles.mh5, styles.mb5]}
                 />
             )}
         </ScreenWrapper>
     );
 }
-
-ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 
 export default ExpensifyCardPage;

@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -189,22 +189,19 @@ function ToggleSettingOptionRow({
         >
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && styles.h10]}>
-                    {shouldMakeContentPressable ? (
-                        <PressableWithoutFeedback
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            onPress={onPress}
-                            accessibilityLabel={title}
-                            role="button"
-                            accessible={false}
-                        >
-                            {contentArea}
-                        </PressableWithoutFeedback>
-                    ) : (
-                        contentArea
-                    )}
+                    <PressableWithoutFeedback
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                        onPress={shouldMakeContentPressable ? onPress : undefined}
+                        accessibilityLabel={title}
+                        role="button"
+                        accessible={false}
+                        disabled={!shouldMakeContentPressable}
+                    >
+                        {contentArea}
+                    </PressableWithoutFeedback>
                     <Switch
                         disabledAction={disabledAction}
-                        accessibilityLabel={switchAccessibilityLabel}
+                        accessibilityLabel={typeof subtitle === 'string' && subtitle ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel}
                         onToggle={(isOn) => {
                             shouldAnimateAccordionSection.set(true);
                             onToggle(isOn);

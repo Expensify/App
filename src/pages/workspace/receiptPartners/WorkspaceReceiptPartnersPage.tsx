@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -41,7 +41,7 @@ type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplit
 
 function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow', 'Mail']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -74,7 +74,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 }
             }
         },
-        [integrations],
+        [integrations?.uber?.connectFormData],
     );
 
     const fetchReceiptPartners = useCallback(() => {
@@ -83,7 +83,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
 
     useEffect(() => {
         fetchReceiptPartners();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -124,7 +123,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     if (shouldShowEnterCredentialsError) {
                         return [
                             {
-                                icon: Expensicons.Key,
+                                icon: icons.Key,
                                 text: translate('workspace.accounting.enterCredentials'),
                                 onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
                                 shouldCallAfterModalHide: true,
@@ -149,7 +148,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
+        [icons.Key, icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
     );
 
     const onCloseModal = useCallback(() => {
@@ -183,6 +182,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                           }
                         : {};
 
+                    const isUber = integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
+
                     return {
                         ...iconProps,
                         ...integrationData,
@@ -191,6 +192,15 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
+                        badgeText: isUber ? translate('workspace.accounting.claimOffer.badgeText') : undefined,
+                        onBadgePress: isUber
+                            ? () => {
+                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
+                              }
+                            : undefined,
+                        badgeStyle: styles.mr3,
+                        badgeSuccess: isUber,
+                        shouldShowBadgeInSeparateRow: shouldUseNarrowLayout,
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
@@ -231,6 +241,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         shouldShowEnterCredentialsError,
         translate,
         styles,
+        shouldUseNarrowLayout,
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
         policy?.receiptPartners?.uber,
@@ -245,13 +256,13 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
             {isLoading ? (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                <FullScreenLoadingIndicator
+                    shouldUseGoBackButton
                     style={styles.flex1}
                 />
             ) : (
                 <ScreenWrapper
-                    testID={WorkspaceReceiptPartnersPage.displayName}
+                    testID="WorkspaceReceiptPartnersPage"
                     shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton
@@ -330,7 +341,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                         <MenuItem
                                             title={translate('workspace.receiptPartners.uber.manageInvites')}
                                             shouldShowRightIcon
-                                            icon={Expensicons.Mail}
+                                            icon={icons.Mail}
                                             style={[styles.sectionMenuItemTopDescription, styles.mbn3, !centralBillingAccountEmail && styles.mt6]}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER))}
                                         />
@@ -354,7 +365,5 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceReceiptPartnersPage.displayName = 'WorkspaceReceiptPartnersPage';
 
 export default WorkspaceReceiptPartnersPage;

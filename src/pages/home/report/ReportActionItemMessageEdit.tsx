@@ -12,13 +12,14 @@ import type {TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -33,10 +34,10 @@ import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
-import {isMobileChrome} from '@libs/Browser/index.website';
+import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
-import {extractEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
@@ -110,6 +111,7 @@ function ReportActionItemMessageEdit({
     ref,
 }: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const {email} = useCurrentUserPersonalDetails();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -153,6 +155,7 @@ function ReportActionItemMessageEdit({
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -218,7 +221,6 @@ function ReportActionItemMessageEdit({
      */
     const debouncedSaveDraft = useMemo(
         () =>
-            // eslint-disable-next-line react-compiler/react-compiler
             lodashDebounce((newDraft: string) => {
                 saveReportActionDraft(reportID, action, newDraft);
                 isCommentPendingSaved.current = false;
@@ -242,14 +244,17 @@ function ReportActionItemMessageEdit({
     const updateDraft = useCallback(
         (newDraftInput: string) => {
             raiseIsScrollLayoutTriggered();
-            const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+            const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+            const newDraft = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
+            const zwnjOffset = getZWNJCursorOffset(emojiConvertedText, cursorPosition);
 
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
+                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + zwnjOffset : undefined;
+                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), adjustedCursorPosition ?? 0);
                 setSelection({
                     start: position,
                     end: position,
@@ -269,7 +274,7 @@ function ReportActionItemMessageEdit({
 
     useEffect(() => {
         updateDraft(draft);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- run this only when language is changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
     /**
@@ -311,9 +316,30 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(
+            originalReport,
+            action,
+            ancestors,
+            trimmedNewDraft,
+            isOriginalReportArchived,
+            isOriginalParentReportArchived,
+            email ?? '',
+            Object.fromEntries(draftMessageVideoAttributeCache),
+        );
         deleteDraft();
-    }, [reportID, action, ancestors, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
+    }, [
+        reportID,
+        action,
+        ancestors,
+        deleteDraft,
+        draft,
+        originalReportID,
+        isOriginalReportArchived,
+        originalReport,
+        isOriginalParentReportArchived,
+        debouncedValidateCommentMaxLength,
+        email,
+    ]);
 
     /**
      * @param emoji
@@ -481,10 +507,11 @@ function ReportActionItemMessageEdit({
                                 pressDimmingValue={1}
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON}
                             >
                                 <Icon
                                     fill={theme.icon}
-                                    src={Expensicons.Close}
+                                    src={icons.Close}
                                 />
                             </PressableWithFeedback>
                         </Tooltip>
@@ -501,6 +528,7 @@ function ReportActionItemMessageEdit({
                                     ref.current = el;
                                 }
                             }}
+                            autoFocus={!shouldUseNarrowLayout}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -559,7 +587,6 @@ function ReportActionItemMessageEdit({
 
                     <Suggestions
                         ref={suggestionsRef}
-                        // eslint-disable-next-line react-compiler/react-compiler
                         isComposerFocused={textInputRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
@@ -598,9 +625,10 @@ function ReportActionItemMessageEdit({
                                 pressDimmingValue={0.2}
                                 // Keep focus on the composer when send button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON}
                             >
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     fill={hasExceededMaxCommentLength ? theme.icon : theme.textLight}
                                 />
                             </PressableWithFeedback>
@@ -612,8 +640,6 @@ function ReportActionItemMessageEdit({
         </>
     );
 }
-
-ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
 export default ReportActionItemMessageEdit;
 export type {ReportActionItemMessageEditProps};

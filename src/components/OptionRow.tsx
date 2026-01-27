@@ -2,6 +2,7 @@ import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, StyleSheet, View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -14,7 +15,6 @@ import Button from './Button';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -111,7 +111,8 @@ function OptionRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark'] as const);
     const pressableRef = useRef<View | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
@@ -154,6 +155,7 @@ function OptionRow({
         (option.participantsList ?? (option.accountID ? [option as OptionData] : [])).slice(0, 10),
         shouldUseShortFormInTooltip,
         localeCompare,
+        formatPhoneNumber,
     );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
@@ -282,7 +284,7 @@ function OptionRow({
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
-                                            src={Expensicons.DotIndicator}
+                                            src={icons.DotIndicator}
                                             fill={theme.danger}
                                         />
                                     </View>
@@ -290,7 +292,7 @@ function OptionRow({
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
-                                            src={Expensicons.DotIndicator}
+                                            src={icons.DotIndicator}
                                             fill={theme.iconSuccessFill}
                                         />
                                     </View>
@@ -321,7 +323,7 @@ function OptionRow({
                                 {isSelected && highlightSelected && (
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
-                                            src={Expensicons.Checkmark}
+                                            src={icons.Checkmark}
                                             fill={theme.iconSuccessFill}
                                         />
                                     </View>
@@ -361,6 +363,7 @@ export default React.memo(
         prevProps.showSelectedState === nextProps.showSelectedState &&
         prevProps.highlightSelected === nextProps.highlightSelected &&
         prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- icons array is created inline in some usages (e.g., BaseReactionList) with unstable references
         deepEqual(prevProps.option.icons, nextProps.option.icons) &&
         prevProps.optionIsFocused === nextProps.optionIsFocused &&
         prevProps.option.text === nextProps.option.text &&
@@ -373,6 +376,7 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon &&
         prevProps.option.tabIndex === nextProps.option.tabIndex &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- amountInputProps origin and reference stability cannot be determined across all usages
         deepEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
 );
 

@@ -109,12 +109,16 @@ jobs:
             cd Mobile-Expensify
             npm run grunt:build:shared
 
+      - name: Get Java version
+        id: get-java-version
+        uses: ./.github/actions/composite/getJavaVersion
+
       - name: Setup Java
         # v4
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
-          distribution: 'oracle'
-          java-version: '17'
+          distribution: oracle
+          java-version: ${{ steps.get-java-version.outputs.version }}
 
       - name: Setup Ruby
         # v1.229.0
@@ -125,9 +129,11 @@ jobs:
       - name: Install New Expensify Gems
         run: bundle install
 
-      - name: Install 1Password CLI
-        # v1
-        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+      - name: Setup 1Password CLI and certificates
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load files from 1Password
         env:
@@ -167,6 +173,7 @@ jobs:
           ANDROID_BUILD_TYPE: ${{ vars.ANDROID_BUILD_TYPE }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload Android app to Google Play
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
@@ -320,8 +327,8 @@ jobs:
         run: bundle install
 
       - name: Cache Pod dependencies
-        # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         id: pods-cache
         with:
           path: Mobile-Expensify/iOS/Pods
@@ -339,9 +346,11 @@ jobs:
           max_attempts: 5
           command: npm run pod-install
 
-      - name: Install 1Password CLI
-        # v1
-        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+      - name: Setup 1Password CLI and certificates
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load files from 1Password
         env:
@@ -382,6 +391,7 @@ jobs:
           APPLE_SHARE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_NAME }}
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload release build to TestFlight
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
@@ -488,6 +498,8 @@ jobs:
           else
             npm run build-staging
           fi
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Build storybook docs
         continue-on-error: true
