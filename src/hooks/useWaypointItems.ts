@@ -1,5 +1,6 @@
-import {useCallback, useMemo} from 'react';
+import {useState} from 'react';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type UseWaypointItemsParams = {
     /** List of keyForList of WaypointCollection */
@@ -13,35 +14,47 @@ type UseWaypointItemsParams = {
 
     /** Function to extract key used for draggable list */
     extractKey: (keyForList: string) => string;
+
+    updateWaypointsOrder: (items: string[]) => void;
 };
 
 /**
  * Hook that generates waypoint items based on its `keyForList` for the draggable list,
  * and provides helper functions to retrieve a waypoint or its key.
  */
+
 function useWaypointItems(waypoints: WaypointCollection): UseWaypointItemsParams {
-    const {waypointItems, waypointByKeyForList} = useMemo(() => {
-        const numberOfWaypoint = Object.keys(waypoints).length;
-        const items: string[] = [];
-        const waypointsByKey: Record<string, {key: string; waypoint: Waypoint}> = {};
+    const [firstWaypointRandomID] = useState(() => Math.random().toString(36).substring(2, 8));
+    const [secondWaypointRandomID] = useState(() => Math.random().toString(36).substring(2, 8));
+    const orderOfWaypointItems = [] as string[];
 
-        for (let i = 0; i < numberOfWaypoint; i++) {
-            const key = `waypoint${i}`;
-            const waypoint = waypoints[key];
+    const numberOfWaypoint = Object.keys(waypoints).length;
+    const waypointItems: string[] = [];
+    const waypointByKeyForList: Record<string, {key: string; waypoint: Waypoint}> = {};
 
-            const keyForList = waypoint?.keyForList ?? Math.random().toString(36).substring(2, 8);
-            items.push(keyForList);
-            waypointsByKey[keyForList] = {key, waypoint};
+    for (let i = 0; i < numberOfWaypoint; i++) {
+        const key = `waypoint${i}`;
+        const waypoint = waypoints[key];
+
+        const keyForList = waypoint?.keyForList ?? orderOfWaypointItems.at(i) ?? (i === 0 ? firstWaypointRandomID : secondWaypointRandomID);
+
+        waypointItems.push(keyForList);
+        waypointByKeyForList[keyForList] = {key, waypoint};
+    }
+
+    const getWaypointKey = (keyForList: string) => waypointByKeyForList[keyForList]?.key;
+    const getWaypoint = (keyForList: string) => waypointByKeyForList[keyForList]?.waypoint;
+    const extractKey = (keyForList: string) => (keyForList ?? getWaypoint(keyForList)?.address ?? '') + getWaypointKey(keyForList);
+    const updateWaypointsOrder = (items: string[]) => {
+        if (numberOfWaypoint !== 2 || Object.values(waypoints).every((w) => !isEmptyObject(w))) {
+            return;
         }
 
-        return {waypointItems: items, waypointByKeyForList: waypointsByKey};
-    }, [waypoints]);
+        orderOfWaypointItems[0] = items.at(1) === firstWaypointRandomID ? secondWaypointRandomID : firstWaypointRandomID;
+        orderOfWaypointItems[1] = orderOfWaypointItems.at(0) === firstWaypointRandomID ? secondWaypointRandomID : firstWaypointRandomID;
+    };
 
-    const getWaypointKey = useCallback((keyForList: string) => waypointByKeyForList[keyForList]?.key, [waypointByKeyForList]);
-    const getWaypoint = useCallback((keyForList: string) => waypointByKeyForList[keyForList]?.waypoint, [waypointByKeyForList]);
-    const extractKey = useCallback((keyForList: string) => (keyForList ?? getWaypoint(keyForList)?.address ?? '') + getWaypointKey(keyForList), [getWaypoint, getWaypointKey]);
-
-    return {waypointItems, getWaypoint, getWaypointKey, extractKey};
+    return {waypointItems, getWaypoint, getWaypointKey, extractKey, updateWaypointsOrder};
 }
 
 export default useWaypointItems;

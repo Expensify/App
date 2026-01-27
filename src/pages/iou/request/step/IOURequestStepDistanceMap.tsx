@@ -362,10 +362,11 @@ function IOURequestStepDistanceMap({
         data: string[];
     };
 
-    const {waypointItems, getWaypoint, getWaypointKey, extractKey} = useWaypointItems(waypoints);
+    const {waypointItems, getWaypoint, getWaypointKey, extractKey, updateWaypointsOrder} = useWaypointItems(waypoints);
 
     const updateWaypoints = useCallback(
         ({data}: DataParams) => {
+            updateWaypointsOrder(data);
             if (deepEqual(waypointItems, data)) {
                 return;
             }
@@ -388,7 +389,7 @@ function IOURequestStepDistanceMap({
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, transaction, waypoints, waypointItems, action, getWaypoint],
+        [transactionID, transaction, waypoints, waypointItems, action, getWaypoint, updateWaypointsOrder],
     );
 
     const submitWaypoints = useCallback(() => {
