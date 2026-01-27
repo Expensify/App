@@ -13,7 +13,8 @@ import type SCREENS from '@src/SCREENS';
 type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAG>;
 
 function AddTagPage({route}: AddTagPageProps) {
-    const policyID = route.params.policyID;
+    const {policyID, ruleID} = route.params;
+    const isEditing = ruleID !== 'new';
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -35,7 +36,7 @@ function AddTagPage({route}: AddTagPageProps) {
         return tags;
     }, [policyTags]);
 
-    const backToRoute = ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+    const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
         updateDraftMerchantRule({tag: value});

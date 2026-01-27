@@ -169,7 +169,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     descriptionTranslationKey: 'common.merchant',
                     required: true,
                     title: form?.merchantToMatch,
-                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID)),
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
                 },
             ],
         },
@@ -179,44 +179,44 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 {
                     descriptionTranslationKey: 'common.merchant',
                     title: form?.merchant,
-                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID)),
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID, ruleID)),
                 },
                 hasCategories()
                     ? {
                           descriptionTranslationKey: 'common.category',
                           title: categoryDisplayName,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID)),
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID, ruleID)),
                       }
                     : undefined,
                 hasTags()
                     ? {
                           descriptionTranslationKey: 'common.tag',
                           title: tagDisplayName,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID)),
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID)),
                       }
                     : undefined,
                 hasTaxes()
                     ? {
                           descriptionTranslationKey: 'common.tax',
                           title: taxDisplayName(),
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID)),
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
                       }
                     : undefined,
                 {
                     descriptionTranslationKey: 'common.description',
                     title: form?.comment,
-                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID)),
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
                 },
                 {
                     descriptionTranslationKey: 'common.reimbursable',
                     title: getBooleanTitle(form?.reimbursable, translate),
-                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID)),
+                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID)),
                 },
                 isBillableEnabled
                     ? {
                           descriptionTranslationKey: 'common.billable',
                           title: getBooleanTitle(form?.billable, translate),
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID)),
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID, ruleID)),
                       }
                     : undefined,
             ],
