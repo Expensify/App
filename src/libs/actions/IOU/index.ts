@@ -6663,14 +6663,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         });
     }
 
-    if (isGPSDistanceRequest) {
-        onyxData?.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.GPS_DRAFT_DETAILS,
-            value: null,
-        });
-    }
-
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? undefined : customUnitRateID;
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
@@ -6779,6 +6771,14 @@ function trackExpense(params: CreateTrackExpenseParams) {
             break;
         }
         default: {
+            if (isGPSDistanceRequest) {
+                onyxData?.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.GPS_DRAFT_DETAILS,
+                    value: null,
+                });
+            }
+
             const parameters: TrackExpenseParams = {
                 amount,
                 attendees: attendees ? JSON.stringify(attendees) : undefined,
