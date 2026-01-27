@@ -10,7 +10,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
     /** The transaction itself */
-    transaction?: Transaction;
+    transaction: Transaction;
 
     /** Whether the transaction is selected */
     isSelected: boolean;
@@ -122,7 +122,8 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -193,6 +194,7 @@ type SearchTextFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
     | ReportFieldTextKey;
 
 type SearchDateFilterKeys =
@@ -217,7 +219,8 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -248,6 +251,7 @@ type SearchQueryAST = {
     policyID?: string[];
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    limit?: number;
 };
 
 type SearchQueryJSON = {

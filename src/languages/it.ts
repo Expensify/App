@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valore',
         downloadFailedTitle: 'Download non riuscito',
         downloadFailedDescription: 'Il download non può essere completato. Riprova più tardi.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Non puoi esportare un rapporto vuoto.',
-            other: () => 'Non puoi esportare rapporti vuoti.',
-        }),
         filterLogs: 'Filtra registri',
         network: 'Rete',
         reportID: 'ID rapporto',
@@ -641,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Importo originale',
         insights: 'Analisi',
         duplicateExpense: 'Spesa duplicata',
+        newFeature: 'Nuova funzionalità',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1068,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',
         scanFailed: 'Impossibile acquisire la ricevuta perché mancano l’esercente, la data o l’importo.',
+        addAReceipt: {
+            phrase1: 'Aggiungi una ricevuta',
+            phrase2: 'o trascinala e rilasciala qui',
+        },
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -1201,14 +1202,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questa spesa?',
             other: 'Sei sicuro di voler eliminare queste spese?',
         }),
-        deleteReport: () => ({
-            one: 'Elimina rapporto',
-            other: 'Elimina rapporti',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Sei sicuro di voler eliminare questo report?',
-            other: 'Sei sicuro di voler eliminare questi report?',
-        }),
+        deleteReport: 'Elimina report',
+        deleteReportConfirmation: 'Sei sicuro di voler eliminare questo report?',
         settledExpensify: 'Pagato',
         done: 'Fatto',
         settledElsewhere: 'Pagato altrove',
@@ -6310,6 +6305,16 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Policy di spesa',
                 cardSubtitle: 'Qui è dove si trova la policy di spesa del tuo team, così tutti sono allineati su cosa è coperto.',
             },
+            merchantRules: {
+                title: 'Esercente',
+                subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
+                addRule: 'Aggiungi regola esercente',
+                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Contrassegna come "${billable ? 'fatturabile' : 'non fatturabile'}"`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6848,6 +6853,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
         searchName: 'Cerca nome',
         savedSearchesMenuItemTitle: 'Salvato',
+        topCategories: 'Categorie principali',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
             approve: 'Approva',
@@ -6874,6 +6880,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             status: 'Stato',
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
+            limit: 'Limite',
             currency: 'Valuta',
             completed: 'Completato',
             amount: {
@@ -6907,6 +6914,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
             },
             feed: 'Feed',
             withdrawalType: {

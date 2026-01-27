@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valeur',
         downloadFailedTitle: 'Échec du téléchargement',
         downloadFailedDescription: 'Votre téléchargement n’a pas pu être terminé. Veuillez réessayer plus tard.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Vous ne pouvez pas exporter un rapport vide.',
-            other: () => 'Vous ne pouvez pas exporter des rapports vides.',
-        }),
         filterLogs: 'Filtrer les journaux',
         network: 'Réseau',
         reportID: 'ID du rapport',
@@ -642,6 +638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Montant d’origine',
         insights: 'Analyses',
         duplicateExpense: 'Note de frais en double',
+        newFeature: 'Nouvelle fonctionnalité',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1072,6 +1069,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il manque un commerçant, une date ou un montant.',
+        addAReceipt: {
+            phrase1: 'Ajouter un reçu',
+            phrase2: 'ou faites-le glisser et déposez-le ici',
+        },
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -1205,14 +1206,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Êtes-vous sûr de vouloir supprimer cette dépense ?',
             other: 'Voulez-vous vraiment supprimer ces dépenses ?',
         }),
-        deleteReport: () => ({
-            one: 'Supprimer le rapport',
-            other: 'Supprimer les rapports',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Êtes-vous sûr de vouloir supprimer ce rapport ?',
-            other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
-        }),
+        deleteReport: 'Supprimer le rapport',
+        deleteReportConfirmation: 'Voulez-vous vraiment supprimer ce rapport ?',
         settledExpensify: 'Payé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
@@ -6337,6 +6332,16 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 title: 'Politique de dépenses',
                 cardSubtitle: 'Voici l’endroit où se trouve la politique de dépenses de votre équipe, afin que tout le monde soit sur la même longueur d’onde concernant ce qui est couvert.',
             },
+            merchantRules: {
+                title: 'Commerçant',
+                subtitle: 'Définissez les règles de marchand afin que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
+                addRule: 'Ajouter une règle de commerçant',
+                ruleSummaryTitle: (merchantName: string) => `Si le commerçant contient « ${merchantName} »`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Renommer le marchand en « ${merchantName} »`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} sur « ${fieldValue} »`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme « ${reimbursable ? 'remboursable' : 'non remboursable'} »`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Marquer comme « ${billable ? 'facturable' : 'non facturable'} »`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6869,6 +6874,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
+        topCategories: 'Catégories principales',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             approve: 'Approuver',
@@ -6895,6 +6901,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             status: 'Statut',
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
+            limit: 'Limite',
             currency: 'Devise',
             completed: 'Terminé',
             amount: {
@@ -6928,6 +6935,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
             },
             feed: 'Flux',
             withdrawalType: {

@@ -398,7 +398,7 @@ function IOURequestStepScan({
             return;
         }
 
-        if (!isMultiScanEnabled) {
+        if (!isMultiScanEnabled && isStartingScan) {
             removeDraftTransactions(true);
         }
 

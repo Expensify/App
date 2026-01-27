@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Waarde',
         downloadFailedTitle: 'Download mislukt',
         downloadFailedDescription: 'Je download kon niet worden voltooid. Probeer het later opnieuw.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Je kunt geen leeg rapport exporteren.',
-            other: () => 'Je kunt geen lege rapporten exporteren.',
-        }),
         filterLogs: 'Logboeken filteren',
         network: 'Netwerk',
         reportID: 'Rapport-ID',
@@ -641,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Oorspronkelijk bedrag',
         insights: 'Inzichten',
         duplicateExpense: 'Dubbele uitgave',
+        newFeature: 'Nieuwe functie',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1068,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
         scanFailed: 'De bon kon niet worden gescand, omdat er een handelaar, datum of bedrag ontbreekt.',
+        addAReceipt: {
+            phrase1: 'Bon toevoegen',
+            phrase2: 'of sleep hem hierheen',
+        },
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -1201,14 +1202,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Weet je zeker dat je deze uitgave wilt verwijderen?',
             other: 'Weet je zeker dat je deze uitgaven wilt verwijderen?',
         }),
-        deleteReport: () => ({
-            one: 'Rapport verwijderen',
-            other: 'Rapporten verwijderen',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Weet u zeker dat u dit rapport wilt verwijderen?',
-            other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
-        }),
+        deleteReport: 'Rapport verwijderen',
+        deleteReportConfirmation: 'Weet je zeker dat je dit rapport wilt verwijderen?',
         settledExpensify: 'Betaald',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
@@ -6297,6 +6292,16 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 title: 'Onkostennota-beleid',
                 cardSubtitle: 'Hier staat het onkostebeleid van je team, zodat iedereen goed weet wat wel en niet wordt vergoed.',
             },
+            merchantRules: {
+                title: 'Handelaar',
+                subtitle: 'Stel de merchantregels zo in dat onkosten met de juiste codering binnenkomen en er minder nabewerking nodig is.',
+                addRule: 'Merchantregel toevoegen',
+                ruleSummaryTitle: (merchantName: string) => `Als handelaar "${merchantName}" bevat`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Naam handelaar wijzigen in "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Werk ${fieldName} bij naar "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als  "${reimbursable ? 'Vergoedbaar' : 'niet-vergoedbaar'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Markeren als "${billable ? 'factureerbaar' : 'niet-factureerbaar'}"`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6830,6 +6835,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
         searchName: 'Naam zoeken',
         savedSearchesMenuItemTitle: 'Opgeslagen',
+        topCategories: 'Topcategorieën',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
             approve: 'Goedkeuren',
@@ -6856,6 +6862,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             status: 'Status',
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
+            limit: 'Limiet',
             currency: 'Valuta',
             completed: 'Voltooid',
             amount: {
@@ -6889,6 +6896,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
             },
             feed: 'Feed',
             withdrawalType: {

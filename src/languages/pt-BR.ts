@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valor',
         downloadFailedTitle: 'Falha no download',
         downloadFailedDescription: 'Seu download não pôde ser concluído. Tente novamente mais tarde.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Você não pode exportar um relatório vazio.',
-            other: () => 'Você não pode exportar relatórios vazios.',
-        }),
         filterLogs: 'Filtrar Logs',
         network: 'Rede',
         reportID: 'ID do Relatório',
@@ -640,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Valor original',
         insights: 'Insights',
         duplicateExpense: 'Despesa duplicada',
+        newFeature: 'Novo recurso',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1067,6 +1064,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
         scanFailed: 'O recibo não pôde ser escaneado, pois está faltando o comerciante, a data ou o valor.',
+        addAReceipt: {
+            phrase1: 'Adicionar um recibo',
+            phrase2: 'ou arraste e solte um aqui',
+        },
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
@@ -1200,14 +1201,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Você tem certeza de que deseja excluir esta despesa?',
             other: 'Tem certeza de que deseja excluir estas despesas?',
         }),
-        deleteReport: () => ({
-            one: 'Excluir relatório',
-            other: 'Excluir relatórios',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Tem certeza de que deseja excluir este relatório?',
-            other: 'Tem certeza de que deseja excluir estes relatórios?',
-        }),
+        deleteReport: 'Excluir relatório',
+        deleteReportConfirmation: 'Tem certeza de que deseja excluir este relatório?',
         settledExpensify: 'Pago',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
@@ -6291,6 +6286,16 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 title: 'Política de despesas',
                 cardSubtitle: 'É aqui que fica a política de despesas da sua equipe, para que todos estejam alinhados sobre o que é coberto.',
             },
+            merchantRules: {
+                title: 'Estabelecimento',
+                subtitle: 'Defina as regras de comerciante para que as despesas cheguem corretamente categorizadas e exijam menos retrabalho.',
+                addRule: 'Adicionar regra de estabelecimento',
+                ruleSummaryTitle: (merchantName: string) => `Se o comerciante contiver "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Renomear comerciante para "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Atualizar ${fieldName} para "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsável' : 'não reembolsável'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Marcar como "${billable ? 'faturável' : 'não faturável'}"`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6821,6 +6826,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         deleteSavedSearchConfirm: 'Você tem certeza de que deseja excluir esta pesquisa?',
         searchName: 'Pesquisar nome',
         savedSearchesMenuItemTitle: 'Salvo',
+        topCategories: 'Principais categorias',
         groupedExpenses: 'despesas agrupadas',
         bulkActions: {
             approve: 'Aprovar',
@@ -6847,6 +6853,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             status: 'Status',
             keyword: 'Palavra-chave',
             keywords: 'Palavras-chave',
+            limit: 'Limite',
             currency: 'Moeda',
             completed: 'Concluído',
             amount: {
@@ -6880,6 +6887,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
             },
             feed: 'Feed',
             withdrawalType: {

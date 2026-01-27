@@ -533,10 +533,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Nie możesz eksportować pustego raportu.',
-            other: () => 'Nie możesz eksportować pustych raportów.',
-        }),
         filterLogs: 'Filtruj logi',
         network: 'Sieć',
         reportID: 'ID raportu',
@@ -641,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Kwota pierwotna',
         insights: 'Analizy',
         duplicateExpense: 'Zduplikowany wydatek',
+        newFeature: 'Nowa funkcja',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1068,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',
         scanFailed: 'Nie można było zeskanować paragonu, ponieważ brakuje na nim sprzedawcy, daty lub kwoty.',
+        addAReceipt: {
+            phrase1: 'Dodaj paragon',
+            phrase2: 'lub przeciągnij i upuść go tutaj',
+        },
     },
     quickAction: {
         scanReceipt: 'Zeskanuj paragon',
@@ -1201,14 +1202,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Czy na pewno chcesz usunąć ten wydatek?',
             other: 'Czy na pewno chcesz usunąć te wydatki?',
         }),
-        deleteReport: () => ({
-            one: 'Usuń raport',
-            other: 'Usuń raporty',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Czy na pewno chcesz usunąć ten raport?',
-            other: 'Czy na pewno chcesz usunąć te raporty?',
-        }),
+        deleteReport: 'Usuń raport',
+        deleteReportConfirmation: 'Czy na pewno chcesz usunąć ten raport?',
         settledExpensify: 'Opłacone',
         done: 'Gotowe',
         settledElsewhere: 'Opłacone gdzie indziej',
@@ -6290,6 +6285,16 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Polityka wydatków',
                 cardSubtitle: 'Tutaj znajduje się polityka wydatków Twojego zespołu, aby wszyscy mieli jasność, co jest objęte.',
             },
+            merchantRules: {
+                title: 'Sprzedawca',
+                subtitle: 'Skonfiguruj reguły dla sprzedawców, aby wydatki trafiały z poprawnym kodowaniem i wymagały mniej poprawek.',
+                addRule: 'Dodaj regułę sprzedawcy',
+                ruleSummaryTitle: (merchantName: string) => `Jeśli sprzedawca zawiera „${merchantName}”`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Zmień sprzedawcę na „${merchantName}”`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Zaktualizuj ${fieldName} na „${fieldValue}”`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako "${reimbursable ? 'kwalifikujący się do zwrotu kosztów' : 'niepodlegający zwrotowi'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Oznacz jako „${billable ? 'fakturowalne' : 'poza fakturą'}”`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6819,6 +6824,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         deleteSavedSearchConfirm: 'Czy na pewno chcesz usunąć to wyszukiwanie?',
         searchName: 'Wyszukaj nazwę',
         savedSearchesMenuItemTitle: 'Zapisano',
+        topCategories: 'Najlepsze kategorie',
         groupedExpenses: 'pogrupowane wydatki',
         bulkActions: {
             approve: 'Zatwierdź',
@@ -6845,6 +6851,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             status: 'Status',
             keyword: 'Słowo kluczowe',
             keywords: 'Słowa kluczowe',
+            limit: 'Limit',
             currency: 'Waluta',
             completed: 'Zakończone',
             amount: {
@@ -6878,6 +6885,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
             },
             feed: 'Kanał',
             withdrawalType: {

@@ -532,10 +532,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wert',
         downloadFailedTitle: 'Download fehlgeschlagen',
         downloadFailedDescription: 'Ihr Download konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'Sie können keinen leeren Bericht exportieren.',
-            other: () => 'Sie können keine leeren Berichte exportieren.',
-        }),
         filterLogs: 'Protokolle filtern',
         network: 'Netzwerk',
         reportID: 'Berichts-ID',
@@ -640,6 +636,7 @@ const translations: TranslationDeepObject<typeof en> = {
         originalAmount: 'Ursprünglicher Betrag',
         insights: 'Einblicke',
         duplicateExpense: 'Doppelte Ausgabe',
+        newFeature: 'Neue Funktion',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1071,6 +1068,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
         addReceipt: 'Beleg hinzufügen',
         scanFailed: 'Die Quittung konnte nicht gescannt werden, da der Händler, das Datum oder der Betrag fehlt.',
+        addAReceipt: {
+            phrase1: 'Beleg hinzufügen',
+            phrase2: 'oder hierher ziehen und ablegen',
+        },
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -1204,14 +1205,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sind Sie sicher, dass Sie diese Ausgabe löschen möchten?',
             other: 'Sind Sie sicher, dass Sie diese Ausgaben löschen möchten?',
         }),
-        deleteReport: () => ({
-            one: 'Bericht löschen',
-            other: 'Berichte löschen',
-        }),
-        deleteReportConfirmation: () => ({
-            one: 'Möchten Sie diesen Bericht wirklich löschen?',
-            other: 'Möchten Sie diese Berichte wirklich löschen?',
-        }),
+        deleteReport: 'Bericht löschen',
+        deleteReportConfirmation: 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?',
         settledExpensify: 'Bezahlt',
         done: 'Fertig',
         settledElsewhere: 'Anderswo bezahlt',
@@ -6327,6 +6322,16 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier befindet sich die Spesenrichtlinie eures Teams, damit alle genau wissen, was abgedeckt ist.',
             },
+            merchantRules: {
+                title: 'Händler',
+                subtitle: 'Legen Sie Händlerregeln fest, damit Ausgaben korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
+                addRule: 'Händlerregel hinzufügen',
+                ruleSummaryTitle: (merchantName: string) => `Wenn Händler „${merchantName}“ enthält`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Händler in „${merchantName}“ umbenennen`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Als „${billable ? 'Abrechenbar' : 'nicht abrechenbar'}“ markieren`,
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6858,6 +6863,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         deleteSavedSearchConfirm: 'Möchten Sie diese Suche wirklich löschen?',
         searchName: 'Name suchen',
         savedSearchesMenuItemTitle: 'Gespeichert',
+        topCategories: 'Top-Kategorien',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
             approve: 'Genehmigen',
@@ -6884,6 +6890,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             status: 'Status',
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
+            limit: 'Limit',
             currency: 'Währung',
             completed: 'Abgeschlossen',
             amount: {
@@ -6917,6 +6924,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
             },
             feed: 'Feed',
             withdrawalType: {

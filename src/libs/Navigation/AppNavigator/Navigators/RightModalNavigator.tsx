@@ -188,6 +188,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         >
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_ROUTER}
+                                component={ModalStackNavigators.SearchRouterModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SETTINGS}
                                 component={ModalStackNavigators.SettingsModalStackNavigator}
                             />

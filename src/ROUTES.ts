@@ -65,7 +65,7 @@ const ROUTES = {
 
     // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
     WORKSPACES_LIST: {route: 'workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo)},
-
+    SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
         getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
