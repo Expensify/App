@@ -88,10 +88,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                archivedReportsIdSet,
                 onboardingPolicyID,
                 mergedAccountConciergeReportID,
                 false,
-                archivedReportsIdSet,
             );
         },
         [

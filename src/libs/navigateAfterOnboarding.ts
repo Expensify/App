@@ -14,10 +14,10 @@ import type {ArchivedReportsIDSet} from './SearchUIUtils';
 function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    archivedReportsIdSet?: ArchivedReportsIDSet,
 ): string | undefined {
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
@@ -44,10 +44,10 @@ function getReportIDAfterOnboarding(
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    archivedReportsIdSet?: ArchivedReportsIDSet,
 ) {
     setDisableDismissOnEscape(false);
 
@@ -56,7 +56,7 @@ function navigateAfterOnboarding(
         return;
     }
 
-    const reportID = getReportIDAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom, archivedReportsIdSet);
+    const reportID = getReportIDAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, archivedReportsIdSet, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
@@ -78,14 +78,14 @@ function navigateAfterOnboarding(
 function navigateAfterOnboardingWithMicrotaskQueue(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    archivedReportsIdSet?: ArchivedReportsIDSet,
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom, archivedReportsIdSet);
+        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, archivedReportsIdSet, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
     });
 }
 

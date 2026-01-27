@@ -96,10 +96,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            archivedReportsIdSet,
             onboardingPolicyID,
             mergedAccountConciergeReportID,
             false,
-            archivedReportsIdSet,
         );
     }, [
         onboardingPurposeSelected,

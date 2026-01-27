@@ -81,10 +81,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                archivedReportsIdSet,
                 policy.automaticJoiningEnabled ? policy.policyID : undefined,
                 undefined,
                 false,
-                archivedReportsIdSet,
             );
         },
         [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, isBetaEnabled, onboardingCompanySize, archivedReportsIdSet],
