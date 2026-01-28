@@ -637,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: '重复报销',
         newFeature: '新功能',
         month: '月',
+        home: '首页',
     },
     supportalNoAccess: {
         title: '先别急',

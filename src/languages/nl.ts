@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Dubbele uitgave',
         newFeature: 'Nieuwe functie',
         month: 'Maand',
+        home: 'Start',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
