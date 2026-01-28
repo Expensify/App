@@ -124,7 +124,7 @@ function SearchTransactionsChangeReport() {
                         action: CONST.IOU.ACTION.EDIT,
                         iouType: CONST.IOU.TYPE.SUBMIT,
                         transactionID: firstTransactionID,
-                        reportID: selectedTransactions[firstTransactionID]?.reportID,
+                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
                         upgradePath: CONST.UPGRADE_PATHS.REPORTS,
                     }),
                 );
