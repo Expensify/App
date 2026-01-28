@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isOpenExpenseReport} from '@libs/ReportUtils';
-import {getCreated, getMerchant} from '@libs/TransactionUtils';
+import {getCreated, getDescription, getMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -113,7 +113,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const renderItem: ListRenderItem<Transaction> = ({item}) => {
         const createdAt = getCreated(item);
         const hasCategoryOrTag = !!item.category || !!item.tag;
-        const merchantOrDescription = getMerchant(item) ?? item.comment;
+        const merchantOrDescription = getMerchant(item) ?? getDescription(item);
 
         return (
             <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.overflowHidden, styles.highlightBG, styles.p3, styles.mb2]}>
