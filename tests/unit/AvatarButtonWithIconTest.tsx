@@ -74,7 +74,7 @@ describe('AvatarButtonWithIcon', () => {
 
         it('should render edit icon when not disabled', () => {
             renderWithProvider(<AvatarButtonWithIcon {...defaultProps} />);
-            expect(screen.getByTestId(ICON_TEST_ID)).toBeTruthy();
+            expect(screen.getByTestId(ICON_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
         });
 
         it('should not render edit icon when disabled', () => {
@@ -98,7 +98,7 @@ describe('AvatarButtonWithIcon', () => {
                 />,
             );
             expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
-            expect(screen.getByTestId(MOCK_TEST_ID)).toBeTruthy();
+            expect(screen.getByTestId(MOCK_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
         });
 
         it.each([CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.X_LARGE])('should render with size: %s', (size) => {
