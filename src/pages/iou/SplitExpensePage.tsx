@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -64,7 +64,6 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -107,9 +106,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy) ?? {};
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        if (splitExpenseTransactionID) {
+            return draftTransaction?.comment?.splitExpensesTotal ?? 0;
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails.amount, splitExpenseTransactionID, draftTransaction?.comment?.splitExpensesTotal]);
+
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
-    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
@@ -131,19 +140,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {isBetaEnabled} = usePermissions();
 
-    useEffect(() => {
-        const errorString = getLatestErrorMessage(draftTransaction ?? {});
-
-        if (errorString) {
-            setErrorMessage(errorString);
-        }
-    }, [draftTransaction, draftTransaction?.errors]);
-
-    useEffect(() => {
-        setErrorMessage('');
-    }, [sumOfSplitExpenses, splitExpenses]);
+    const draftTransactionError = useMemo(() => getLatestErrorMessage(draftTransaction ?? {}), [draftTransaction]);
 
     const onAddSplitExpense = () => {
+        setErrorMessage('');
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
@@ -230,6 +230,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
+        setErrorMessage('');
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
             updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
@@ -321,14 +322,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const warningMessage = shouldShowWarningMessage
         ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
         : '';
+    const displayError = errorMessage || draftTransactionError;
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
-            {(!!errorMessage || !!warningMessage) && (
+            {(!!displayError || !!warningMessage) && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
-                    isError={!!errorMessage}
-                    isInfo={!errorMessage && shouldShowWarningMessage}
-                    message={errorMessage || warningMessage}
+                    isError={!!displayError}
+                    isInfo={!displayError && shouldShowWarningMessage}
+                    message={displayError || warningMessage}
                 />
             )}
             <Button
