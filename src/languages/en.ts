@@ -997,6 +997,19 @@ const translations = {
             menuItemTitleAdmin: 'Learn how to invite members, edit approval workflows, and reconcile company cards.',
             menuItemDescription: 'See what Expensify can do in 2 min',
         },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Submit ${count} ${count === 1 ? 'report' : 'reports'}`,
+            approve: ({count}: {count: number}) => `Approve ${count} ${count === 1 ? 'report' : 'reports'}`,
+            pay: ({count}: {count: number}) => `Pay ${count} ${count === 1 ? 'report' : 'reports'}`,
+            export: ({count}: {count: number}) => `Export ${count} ${count === 1 ? 'report' : 'reports'}`,
+            begin: 'Begin',
+            emptyStateMessages: {
+                nicelyDone: 'Nicely done',
+                keepAnEyeOut: "Keep an eye out for what's coming next!",
+                allCaughtUp: "You're all caught up",
+                upcomingTodos: 'Upcoming to-dos will appear here.',
+            },
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',

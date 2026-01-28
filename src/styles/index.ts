@@ -3681,6 +3681,49 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        widgetItemButton: {
+            width: 68,
+        },
+
+        widgetItemSubtitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 16,
+            color: theme.textSupporting,
+        },
+
+        widgetItemTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            color: theme.text,
+        },
+
+        forYouEmptyStateContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 20,
+            marginBottom: 52,
+        },
+
+        forYouEmptyStateTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            marginTop: 20,
+            textAlign: 'center',
+            color: theme.text,
+        },
+
+        forYouEmptyStateSubtitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 16,
+            marginTop: 2,
+            textAlign: 'center',
+            color: theme.textSupporting,
+        },
+
         homePageContentContainer: {
             flexGrow: 1,
             padding: 20,
@@ -6229,6 +6272,16 @@ const plainStyles = (theme: ThemeColors) =>
                 lineHeight: 20,
                 color,
             }) satisfies TextStyle,
+
+        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
+            ({
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: variables.componentBorderRadiusNormal,
+                width: variables.componentSizeNormal,
+                height: variables.componentSizeNormal,
+                backgroundColor,
+            }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
