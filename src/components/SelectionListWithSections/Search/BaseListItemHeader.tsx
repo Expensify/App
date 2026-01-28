@@ -25,6 +25,20 @@ type BaseGroupListItemType = TransactionGroupListItemType & {
     currency: string;
 };
 
+/** Supported group column keys for the base header */
+type GroupColumnKey =
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH;
+
+/** Supported column style keys for sizing */
+type ColumnStyleKey =
+    | typeof CONST.SEARCH.TABLE_COLUMNS.CATEGORY
+    | typeof CONST.SEARCH.TABLE_COLUMNS.MERCHANT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.TAG
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH;
+
 type BaseListItemHeaderProps<TItem extends ListItem> = {
     /** The group item being rendered */
     item: BaseGroupListItemType;
@@ -33,10 +47,10 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     displayName: string;
 
     /** The column key for the group name column (e.g., GROUP_CATEGORY, GROUP_MERCHANT) */
-    groupColumnKey: typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT;
+    groupColumnKey: GroupColumnKey;
 
     /** The column style key for sizing (e.g., CATEGORY, MERCHANT) */
-    columnStyleKey: typeof CONST.SEARCH.TABLE_COLUMNS.CATEGORY | typeof CONST.SEARCH.TABLE_COLUMNS.MERCHANT;
+    columnStyleKey: ColumnStyleKey;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -163,3 +177,4 @@ function BaseListItemHeader<TItem extends ListItem>({
 }
 
 export default BaseListItemHeader;
+export type {BaseListItemHeaderProps, BaseGroupListItemType};

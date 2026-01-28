@@ -1,37 +1,12 @@
 import React from 'react';
-import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
-import BaseListItemHeader from './BaseListItemHeader';
+import BaseListItemHeader, {type BaseListItemHeaderProps} from './BaseListItemHeader';
 
-type CategoryListItemHeaderProps<TItem extends ListItem> = {
+type CategoryListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The category currently being looked at */
     category: TransactionCategoryGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
-
-    /** Whether this section items disabled for selection */
-    isDisabled?: boolean | null;
-
-    /** Whether selecting multiple transactions at once is allowed */
-    canSelectMultiple: boolean | undefined;
-
-    /** Whether all transactions are selected */
-    isSelectAllChecked?: boolean;
-
-    /** Whether only some transactions are selected */
-    isIndeterminate?: boolean;
-
-    /** Callback for when the down arrow is clicked */
-    onDownArrowClick?: () => void;
-
-    /** Whether the down arrow is expanded */
-    isExpanded?: boolean;
-
-    /** The visible columns for the header */
-    columns?: SearchColumnType[];
 };
 
 function CategoryListItemHeader<TItem extends ListItem>({
