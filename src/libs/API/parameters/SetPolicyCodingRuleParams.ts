@@ -3,10 +3,10 @@ type SetPolicyCodingRuleParams = {
     policyID: string;
 
     /** The existing ruleID, or an optimistic one to create the rule */
-    ruleID: string;
+    codingRuleID: string;
 
     /** The JSON value of the merchant rule, stringified */
-    value: string;
+    codingRuleValue: string;
 
     /** Whether to update the transactions that match the rule */
     shouldUpdateMatchingTransactions: boolean;
