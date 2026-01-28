@@ -929,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per note, attività, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Configuriamo il tuo account.',
         chatWithAccountManager: 'Chatta qui con il tuo account manager',
+        askMeAnything: 'Chiedimi qualsiasi cosa!',
         sayHello: "Di' ciao!",
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
