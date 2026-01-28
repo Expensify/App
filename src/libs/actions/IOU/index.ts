@@ -1749,46 +1749,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
 
-    const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-            | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
-            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
-            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
-            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
-    > = [];
-    const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
-        >
-    > = [];
-    const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
-        >
-    > = [];
+    const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys> = {
+        optimisticData: [],
+        successData: [],
+        failureData: [],
+    };
 
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS>;
     if (isScanRequest) {
@@ -1805,7 +1770,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
     if (chat.report) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
             onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report.reportID}`,
@@ -1821,7 +1786,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    optimisticData.push(
+    onyxData.optimisticData?.push(
         {
             onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
@@ -1873,7 +1838,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (shouldGenerateTransactionThreadReport) {
-        optimisticData.push(
+        onyxData.optimisticData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
@@ -1893,7 +1858,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (isNewChatReport) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
             value: {
@@ -1903,7 +1868,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (shouldCreateNewMoneyRequestReport) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
             value: {
@@ -1914,7 +1879,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (shouldGenerateTransactionThreadReport && !isEmptyObject(transactionThreadCreatedReportAction)) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
             value: {
@@ -1924,7 +1889,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (policyRecentlyUsed.categories?.length) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iou.report.policyID}`,
             value: policyRecentlyUsed.categories,
@@ -1932,7 +1897,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (policyRecentlyUsed.currencies?.length) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
             value: policyRecentlyUsed.currencies,
@@ -1940,7 +1905,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (!isEmptyObject(policyRecentlyUsed.tags)) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iou.report.policyID}`,
             value: policyRecentlyUsed.tags,
@@ -1948,7 +1913,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (policyRecentlyUsed.destinations?.length) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${iou.report.policyID}`,
             value: policyRecentlyUsed.destinations,
@@ -1966,9 +1931,9 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             chatOptimisticParams: chat,
             testDriveCommentReportActionID,
         });
-        optimisticData.push(...testDriveOptimisticData);
-        successData.push(...testDriveSuccessData);
-        failureData.push(...testDriveFailureData);
+        onyxData.optimisticData?.push(...testDriveOptimisticData);
+        onyxData.successData?.push(...testDriveSuccessData);
+        onyxData.failureData?.push(...testDriveFailureData);
     }
 
     let iouAction = iou.action;
@@ -1998,7 +1963,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
         };
 
-        optimisticData.push(
+        onyxData.optimisticData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
@@ -2047,12 +2012,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             redundantParticipants[accountID] = null;
         }
 
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: personalDetailListAction,
         });
-        successData.push({
+        onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: successPersonalDetailListAction,
@@ -2060,14 +2025,14 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (!isEmptyObject(nextStepDeprecated)) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
             value: nextStepDeprecated,
         });
     }
     if (!isEmptyObject(nextStep)) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
@@ -2077,7 +2042,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 },
             },
         });
-        successData.push({
+        onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
@@ -2086,7 +2051,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 },
             },
         });
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
@@ -2099,7 +2064,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (isNewChatReport) {
-        successData.push(
+        onyxData.successData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
@@ -2119,7 +2084,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         );
     }
 
-    successData.push(
+    onyxData.successData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
@@ -2191,7 +2156,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (shouldGenerateTransactionThreadReport) {
-        successData.push(
+        onyxData.successData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
@@ -2212,7 +2177,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (shouldGenerateTransactionThreadReport && !isEmptyObject(transactionThreadCreatedReportAction)) {
-        successData.push({
+        onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
             value: {
@@ -2227,7 +2192,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     const errorKey = DateUtils.getMicroseconds();
 
-    failureData.push(
+    onyxData.failureData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
@@ -2287,7 +2252,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (shouldGenerateTransactionThreadReport) {
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
             value: {
@@ -2302,7 +2267,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (!isOneOnOneSplit) {
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: {
@@ -2311,7 +2276,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
         });
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: quickAction ?? null,
@@ -2319,7 +2284,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (shouldGenerateTransactionThreadReport && !isEmptyObject(transactionThreadCreatedReportAction)) {
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
             value: {
@@ -2342,16 +2307,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     if (searchUpdate) {
         if (searchUpdate.optimisticData) {
-            optimisticData.push(...searchUpdate.optimisticData);
+            onyxData.optimisticData?.push(...searchUpdate.optimisticData);
         }
         if (searchUpdate.successData) {
-            successData.push(...searchUpdate.successData);
+            onyxData.successData?.push(...searchUpdate.successData);
         }
     }
 
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return {optimisticData, successData, failureData};
+        return onyxData;
     }
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
@@ -2375,7 +2340,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             hasViolations,
             isASAPSubmitBetaEnabled,
         });
-        optimisticData.push(violationsOnyxData, {
+        onyxData.optimisticData?.push(violationsOnyxData, {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.SET,
             // buildOptimisticNextStep is used in parallel
@@ -2391,7 +2356,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 isASAPSubmitBetaEnabled,
             }),
         });
-        optimisticData.push({
+        onyxData.optimisticData?.push({
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
@@ -2401,7 +2366,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 },
             },
         });
-        successData.push({
+        onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
@@ -2410,12 +2375,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 },
             },
         });
-        failureData.push({
+        onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
-        failureData.push({
+        onyxData.failureData?.push({
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
@@ -2427,7 +2392,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    return {optimisticData, successData, failureData};
+    return onyxData;
 }
 
 type BuildOnyxDataForTrackExpenseParams = {
