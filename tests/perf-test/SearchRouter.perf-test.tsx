@@ -1,4 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
+import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
@@ -95,7 +96,8 @@ const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
-const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, mockedReports);
+const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
+const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports);
 
 beforeAll(() =>
     Onyx.init({
