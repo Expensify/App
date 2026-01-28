@@ -886,6 +886,7 @@ function MoneyReportHeader({
                 icon: (() => {
                     return getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons);
                 })(),
+                displayInDefaultIconColor: true,
                 additionalIconStyles: styles.integrationIcon,
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
                 sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
@@ -906,6 +907,7 @@ function MoneyReportHeader({
                     return getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons);
                 })(),
                 additionalIconStyles: styles.integrationIcon,
+                displayInDefaultIconColor: true,
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
                 sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
                 onSelected: () => {
