@@ -102,7 +102,9 @@ import {
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
+import * as ReportActionsFollowupUtils from '@libs/ReportActionsFollowupUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getLastVisibleAction} from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
@@ -533,6 +535,39 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
 }
 
 /**
+ * Builds an optimistic report action with resolved followups (followup-list marked as selected).
+ * @param reportAction - The report action to check and potentially resolve
+ * @returns Null if the action doesn't have unresolved followups or the updated report action with resolved followups.
+ */
+function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>): ReportAction | null {
+    if (!reportAction) {
+        return null;
+    }
+
+    const message = ReportActionsUtils.getReportActionMessage(reportAction);
+    if (!message) {
+        return null;
+    }
+    const html = message?.html ?? '';
+    const followups = ReportActionsFollowupUtils.parseFollowupsFromHtml(html);
+
+    if (!followups || followups.length === 0) {
+        return null;
+    }
+
+    const updatedHtml = html.replace(/<followup-list(\s[^>]*)?>/, '<followup-list selected>');
+    return {
+        ...reportAction,
+        message: [
+            {
+                ...message,
+                html: updatedHtml,
+            },
+        ],
+    };
+}
+
+/**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
  * - Adding one comment
@@ -597,7 +632,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
-    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction | ReportAction> = {};
 
     // Only add the reportCommentAction when there is no file attachment. If there is both a file attachment and text, that will all be contained in the attachmentAction.
     if (text && reportCommentAction?.reportActionID && !file) {
@@ -606,6 +641,17 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     if (file && attachmentAction?.reportActionID) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
+
+    // Check if the last visible action is from Concierge with unresolved followups
+    // If so, optimistically resolve them by adding the updated action to optimisticReportActions
+    const lastVisibleAction = getLastVisibleAction(reportID);
+    const lastActorAccountID = lastVisibleAction?.actorAccountID;
+    const lastActionReportActionID = lastVisibleAction?.reportActionID;
+    const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
+    if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID && resolvedAction) {
+        optimisticReportActions[lastActionReportActionID] = resolvedAction;
+    }
+
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
@@ -662,9 +708,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     };
     const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
         const lastVisibleActionCreated = lastVisibleAction?.created;
-        const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
             lastMessageText,
             lastVisibleActionCreated,
@@ -672,7 +716,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         };
     }
 
-    const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction> = {};
 
     for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
@@ -680,6 +724,10 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
             ...(action as OptimisticAddCommentReportAction),
             errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
+    }
+    // In case of error bring back the follow up buttons to the cast comment
+    if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID) {
+        failureReportActions[lastActionReportActionID] = lastVisibleAction;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -1583,42 +1631,72 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
 }
 
 /**
- * This will navigate to an existing thread, or create a new one if necessary
+ * This will navigate to an existing thread, or create a new one if necessary.
+ * If the child report doesn't exist, creates an optimistic report and calls openReport().
  *
  * @param childReport The report we are trying to open
  * @param parentReportAction the parent comment of a thread
  * @param parentReport The parent report
  */
 function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>) {
-    if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport);
+
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+}
+
+/**
+ * Creates a child report and returns it without checking for existing reports.
+ * If childReportID is not provided, creates an optimistic report and calls openReport()
+ * so the optimistic data is available when navigating to the thread.
+ */
+function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>): Report {
+    const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
+    // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
+    const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
+    const newChat = buildOptimisticChatReport({
+        participantList: participantAccountIDs,
+        reportName: ReportActionsUtils.getReportActionText(parentReportAction),
+        chatType: childReportChatType,
+        policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
+        ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        oldPolicyName: parentReport?.policyName ?? '',
+        notificationPreference: getChildReportNotificationPreference(parentReportAction),
+        parentReportActionID: parentReportAction.reportActionID,
+        parentReportID: parentReport?.reportID,
+        optimisticReportID: parentReportAction.childReportID,
+    });
+
+    const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
+    if (!childReportID) {
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
+        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
     } else {
-        const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
-        // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
-        const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
-        const newChat = buildOptimisticChatReport({
-            participantList: participantAccountIDs,
-            reportName: ReportActionsUtils.getReportActionText(parentReportAction),
-            chatType: childReportChatType,
-            policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
-            ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-            oldPolicyName: parentReport?.policyName ?? '',
-            notificationPreference: getChildReportNotificationPreference(parentReportAction),
-            parentReportActionID: parentReportAction.reportActionID,
-            parentReportID: parentReport?.reportID,
-            optimisticReportID: parentReportAction.childReportID,
-        });
-
-        const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
-        if (!childReportID) {
-            const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
-        } else {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
-        }
-
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
     }
+
+    return newChat;
+}
+
+/**
+ * Creates an explanation thread for a report action with reasoning
+ * Adds a "Please explain this to me." comment from the user
+ */
+function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string | undefined, translate: LocalizedTranslate, timezone: Timezone = CONST.DEFAULT_TIME_ZONE) {
+    if (!originalReportID || !reportAction) {
+        return;
+    }
+
+    // Check if explanation thread report already exists
+    const existingChildReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const report = existingChildReport ?? createChildReport(existingChildReport, reportAction, originalReport);
+
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    // Schedule adding the explanation comment on the next animation frame
+    // so it runs immediately after navigation completes.
+    requestAnimationFrame(() => {
+        addComment(report, report.reportID, [], translate('reportActionContextMenu.explainMessage'), timezone, true);
+    });
 }
 
 /**
@@ -6466,6 +6544,46 @@ function resolveConciergeDescriptionOptions(
 }
 
 /**
+ * Resolves a suggested followup by posting the selected question as a comment
+ * and optimistically updating the HTML to mark the followup-list as resolved.
+ * @param report - The report where the action exists
+ * @param notifyReportID - The report ID to notify for new actions
+ * @param reportAction - The report action containing the followup-list
+ * @param selectedFollowup - The followup question selected by the user
+ * @param timezoneParam - The user's timezone
+ * @param ancestors - Array of ancestor reports for proper threading
+ */
+function resolveSuggestedFollowup(
+    report: OnyxEntry<Report>,
+    notifyReportID: string | undefined,
+    reportAction: OnyxEntry<ReportAction>,
+    selectedFollowup: string,
+    timezoneParam: Timezone,
+    ancestors: Ancestor[] = [],
+) {
+    const reportID = report?.reportID;
+    const reportActionID = reportAction?.reportActionID;
+
+    if (!reportID || !reportActionID) {
+        return;
+    }
+
+    const resolvedAction = buildOptimisticResolvedFollowups(reportAction);
+
+    if (!resolvedAction) {
+        return;
+    }
+
+    // Optimistically update the HTML to mark followup-list as resolved
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [reportActionID]: resolvedAction,
+    });
+
+    // Post the selected followup question as a comment
+    addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup, timezoneParam);
+}
+
+/**
  * Enhances existing transaction thread reports with additional context for navigation
  *
  * This is NOT the same as createTransactionThreadReport - this function only adds missing
@@ -6504,6 +6622,7 @@ export {
     broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
     buildOptimisticChangePolicyData,
+    buildOptimisticResolvedFollowups,
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
@@ -6524,6 +6643,7 @@ export {
     doneCheckingPublicRoom,
     downloadReportPDF,
     editReportComment,
+    explain,
     expandURLPreview,
     exportReportToCSV,
     exportReportToPDF,
@@ -6547,6 +6667,7 @@ export {
     markAsManuallyExported,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
+    createChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToConciergeChat,
@@ -6564,6 +6685,7 @@ export {
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
+    resolveSuggestedFollowup,
     savePrivateNotesDraft,
     saveReportActionDraft,
     saveReportDraftComment,
