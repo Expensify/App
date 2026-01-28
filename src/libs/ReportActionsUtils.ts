@@ -2698,8 +2698,10 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
 
 function getWorkspaceCategoriesUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {count} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES>) ?? {};
-    if (typeof count === 'number') {
-        return translate('workspaceActions.updateCategories', {count});
+    const parsedCount = typeof count === 'number' ? count : Number(count);
+
+    if (!Number.isNaN(parsedCount)) {
+        return translate('workspaceActions.updateCategories', {count: parsedCount});
     }
 
     return getReportActionText(action);
@@ -2748,9 +2750,10 @@ function getWorkspaceTagUpdateMessage(translate: LocalizedTranslate, action: Rep
         });
     }
 
-    if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName && typeof count === 'string') {
+    if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName) {
+        const formattedCount = typeof count === 'number' ? count.toString() : count;
         return translate('workspaceActions.deleteMultipleTags', {
-            count,
+            count: formattedCount,
             tagListName,
         });
     }
@@ -3725,7 +3728,7 @@ function getUpdatedTimeEnabledMessage(translate: LocalizedTranslate, reportActio
 }
 
 function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
-    const {newRate, oldRate, currency} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED>) ?? {};
+    const {newRate, oldRate, currency} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE>) ?? {};
 
     const newRateText = newRate !== undefined ? convertToDisplayString(convertToBackendAmount(newRate), currency) : undefined;
     const oldRateText = oldRate !== undefined ? convertToDisplayString(convertToBackendAmount(oldRate), currency) : undefined;
