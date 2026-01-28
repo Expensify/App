@@ -4,14 +4,15 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
-import type {ContinueActionParams, PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
+import type {ContinueActionParams} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {ThemeStyles} from '@styles/index';
+import type {PaymentActionParams} from '@src/components/SettlementButton/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -32,7 +33,7 @@ type SelectPaymentTypeParams = {
     iouPaymentType: PaymentMethodType;
     triggerKYCFlow: TriggerKYCFlow;
     policy: OnyxEntry<Policy>;
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void;
+    onPress: (params: PaymentActionParams) => void;
     currentAccountID: number;
     currentEmail: string;
     hasViolations: boolean;
@@ -41,7 +42,7 @@ type SelectPaymentTypeParams = {
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
-    allBetas: OnyxEntry<Beta[]>;
+    isSelectedTransactionAction?: boolean;
 };
 
 /**
@@ -177,7 +178,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         confirmApproval,
         iouReport,
         iouReportNextStep,
-        allBetas,
+        isSelectedTransactionAction,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -197,12 +198,12 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, allBetas, true);
+            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
         }
         return;
     }
 
-    onPress(iouPaymentType);
+    onPress({paymentType: iouPaymentType, isSelectedTransactionAction});
 };
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;
