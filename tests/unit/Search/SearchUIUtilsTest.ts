@@ -29,13 +29,13 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

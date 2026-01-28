@@ -475,8 +475,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 
     // Check if view was explicitly set by the user (exists in rawFilterList or differs from default)
     const wasViewExplicitlySet =
-        (queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false) ||
-        (queryJSON?.view && queryJSON.view !== defaultQueryJSON?.view);
+        (queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false) || (queryJSON?.view && queryJSON.view !== defaultQueryJSON?.view);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
         // Skip view if it wasn't explicitly set by the user
