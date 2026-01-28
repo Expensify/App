@@ -42,7 +42,7 @@
     card: "asc",
     "withdrawal-id": "desc",
     category: "asc",
-    merchant: "desc",
+    merchant: "asc",
     month: "desc"
   };
 
