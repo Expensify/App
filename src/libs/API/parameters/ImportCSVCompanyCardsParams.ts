@@ -8,7 +8,7 @@ type ImportCSVCompanyCardsParams = {
     /** Type of the card feed layout */
     layoutType: string;
 
-    /** Stringified JSON array of column mapping settings, ordered by column index */
+    /** JSON object containing the settings for the layout */
     settings: string;
 
     /** Stringified JSON array of imported row data */

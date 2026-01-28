@@ -1000,12 +1000,12 @@ function setFeedStatementPeriodEndDay(
     API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DAY, parameters, {optimisticData, successData, failureData});
 }
 
-function importCSVCompanyCards(policyID: string, layoutName: string, layoutType: string, settings: string[], csvData: string[][]) {
+function importCSVCompanyCards(policyID: string, layoutName: string, layoutType: string, columnMappings: string[], csvData: string[][]) {
     const parameters: ImportCSVCompanyCardsParams = {
         policyID,
         layoutName,
         layoutType,
-        settings: JSON.stringify(settings),
+        settings: JSON.stringify({columnMappings}),
         csvData: JSON.stringify(csvData),
     };
 
