@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import type {ChartBounds, PointsArray} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
-import {useFont} from '@shopify/react-native-skia';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/ChartTooltip';
@@ -16,13 +15,14 @@ import {
     DEFAULT_SINGLE_BAR_COLOR_INDEX,
     DOMAIN_PADDING,
     DOMAIN_PADDING_SAFETY_BUFFER,
-    EXPENSIFY_NEUE_FONT_URL,
     FRAME_LINE_WIDTH,
     X_AXIS_LINE_WIDTH,
     Y_AXIS_LABEL_OFFSET,
     Y_AXIS_LINE_WIDTH,
     Y_AXIS_TICK_COUNT,
 } from '@components/Charts/constants';
+import {useFont} from '@shopify/react-native-skia';
+import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartColors, useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
 import type {BarChartProps} from '@components/Charts/types';
@@ -48,7 +48,7 @@ function calculateMinDomainPadding(chartWidth: number, barCount: number, innerPa
 function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const font = useFont(EXPENSIFY_NEUE_FONT_URL, variables.iconSizeExtraSmall);
+    const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
 
