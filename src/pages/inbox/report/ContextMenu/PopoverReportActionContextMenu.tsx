@@ -2,13 +2,14 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -20,6 +21,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import Navigation from '@libs/Navigation/Navigation';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -48,6 +50,7 @@ type PopoverReportActionContextMenuProps = {
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -74,8 +77,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
-    const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
-    const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
 
     const [isRoomArchived, setIsRoomArchived] = useState(false);
     const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
@@ -103,11 +104,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const onPopoverHide = useRef(() => {});
     const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>(undefined);
-    const onCancelDeleteModal = useRef(() => {});
-    const onConfirmDeleteModal = useRef(() => {});
 
     const onPopoverHideActionCallback = useRef(() => {});
-    const callbackWhenDeleteModalHide = useRef(() => {});
 
     /** Get the Context menu anchor position. We calculate the anchor coordinates from measureInWindow async method */
     const getContextMenuMeasuredLocation = useCallback(
@@ -344,79 +342,64 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         }
         ancestorsRef.current = ancestors;
     }, [originalReport, ancestors]);
-    const confirmDeleteAndHideModal = useCallback(() => {
-        callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
-        const reportAction = reportActionRef.current;
-        if (isMoneyRequestAction(reportAction)) {
-            const originalMessage = getOriginalMessage(reportAction);
-            if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense({
-                    chatReportID: reportIDRef.current,
-                    chatReport: report,
-                    transactionID: originalMessage?.IOUTransactionID,
-                    reportAction,
-                    iouReport,
-                    chatIOUReport: chatReport,
-                    transactions: duplicateTransactions,
-                    violations: duplicateTransactionViolations,
-                    isSingleTransactionView: undefined,
-                    isChatReportArchived: isReportArchived,
-                    isChatIOUReportArchived,
-                    allTransactionViolationsParam: allTransactionViolations,
-                    currentUserAccountID,
-                });
-            } else if (originalMessage?.IOUTransactionID) {
-                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
-            }
-        } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList);
-        } else if (reportAction) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
-            });
-        }
+    /** Opens the Confirm delete action modal */
+    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = async (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
+        reportIDRef.current = reportID;
+        reportActionRef.current = reportAction ?? null;
 
-        DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
-        setIsDeleteCommentConfirmModalVisible(false);
-    }, [
-        report,
-        iouReport,
-        chatReport,
-        duplicateTransactions,
-        duplicateTransactionViolations,
-        isReportArchived,
-        isChatIOUReportArchived,
-        deleteTransactions,
-        currentSearchHash,
-        email,
-        reportTransactions,
-        isOriginalReportArchived,
-        allTransactionViolations,
-        bankAccountList,
-        currentUserAccountID,
-    ]);
+        const result = await showConfirmModal({
+            title: translate('reportActionContextMenu.deleteAction', {action: reportAction}),
+            prompt: translate('reportActionContextMenu.deleteConfirmation', {action: reportAction}),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+            shouldSetModalVisibility,
+            onModalHide: () => {
+                clearActiveReportAction();
+            },
+        });
+        if (result.action === ModalActions.CONFIRM) {
+            onConfirm();
+            const currentReportAction = reportActionRef.current;
+            if (isMoneyRequestAction(currentReportAction)) {
+                const originalMessage = getOriginalMessage(currentReportAction);
+                if (isTrackExpenseAction(currentReportAction)) {
+                    deleteTrackExpense({
+                        chatReportID: reportIDRef.current,
+                        chatReport: report,
+                        transactionID: originalMessage?.IOUTransactionID,
+                        reportAction: currentReportAction,
+                        iouReport,
+                        chatIOUReport: chatReport,
+                        transactions: duplicateTransactions,
+                        violations: duplicateTransactionViolations,
+                        isSingleTransactionView: undefined,
+                        isChatReportArchived: isReportArchived,
+                        isChatIOUReportArchived,
+                        allTransactionViolationsParam: allTransactionViolations,
+                    });
+                } else if (originalMessage?.IOUTransactionID) {
+                    deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+                }
+            } else if (isReportPreviewAction(currentReportAction)) {
+                deleteAppReport(currentReportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
+            } else if (currentReportAction) {
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    deleteReportComment(reportIDRef.current, currentReportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
+                });
+            }
+
+            DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, currentReportAction?.reportActionID);
+        } else {
+            onCancel();
+        }
+    };
 
     const hideDeleteModal = () => {
-        callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
-        setIsDeleteCommentConfirmModalVisible(false);
-        setShouldSetModalVisibilityForDeleteConfirmation(true);
         setIsRoomArchived(false);
         setIsChronosReportEnabled(false);
         setIsChatPinned(false);
         setHasUnreadMessages(false);
-    };
-
-    /** Opens the Confirm delete action modal */
-    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
-        onCancelDeleteModal.current = onCancel;
-
-        onConfirmDeleteModal.current = onConfirm;
-        reportIDRef.current = reportID;
-        reportActionRef.current = reportAction ?? null;
-
-        setShouldSetModalVisibilityForDeleteConfirmation(shouldSetModalVisibility);
-        setIsDeleteCommentConfirmModalVisible(true);
     };
 
     useImperativeHandle(ref, () => ({
@@ -433,60 +416,41 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
-    const reportAction = reportActionRef.current;
-
     return (
-        <>
-            <PopoverWithMeasuredContent
+        <PopoverWithMeasuredContent
+            isVisible={isPopoverVisible}
+            onClose={() => hideContextMenu()}
+            onModalShow={runAndResetOnPopoverShow}
+            onModalHide={runAndResetOnPopoverHide}
+            anchorPosition={popoverAnchorPosition.current}
+            animationIn="fadeIn"
+            disableAnimation={false}
+            shouldSetModalVisibility={false}
+            fullscreen
+            withoutOverlay={isWithoutOverlay}
+            anchorDimensions={contextMenuDimensions.current}
+            anchorRef={anchorRef}
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+        >
+            <BaseReportActionContextMenu
                 isVisible={isPopoverVisible}
-                onClose={() => hideContextMenu()}
-                onModalShow={runAndResetOnPopoverShow}
-                onModalHide={runAndResetOnPopoverHide}
-                anchorPosition={popoverAnchorPosition.current}
-                animationIn="fadeIn"
-                disableAnimation={false}
-                shouldSetModalVisibility={false}
-                fullscreen
-                withoutOverlay={isWithoutOverlay}
-                anchorDimensions={contextMenuDimensions.current}
-                anchorRef={anchorRef}
-                shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-            >
-                <BaseReportActionContextMenu
-                    isVisible={isPopoverVisible}
-                    type={typeRef.current}
-                    reportID={reportIDRef.current}
-                    reportActionID={reportActionIDRef.current}
-                    draftMessage={reportActionDraftMessageRef.current}
-                    selection={selectionRef.current}
-                    isArchivedRoom={isRoomArchived}
-                    isChronosReport={isChronosReportEnabled}
-                    isPinnedChat={isChatPinned}
-                    isUnreadChat={hasUnreadMessages}
-                    isThreadReportParentAction={isThreadReportParentAction}
-                    anchor={contextMenuTargetNode}
-                    contentRef={contentRef}
-                    originalReportID={originalReportIDRef.current}
-                    disabledActions={disabledActions}
-                    setIsEmojiPickerActive={onEmojiPickerToggle.current}
-                />
-            </PopoverWithMeasuredContent>
-            <ConfirmModal
-                title={translate('reportActionContextMenu.deleteAction', {action: reportAction})}
-                isVisible={isDeleteCommentConfirmModalVisible}
-                shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
-                onConfirm={confirmDeleteAndHideModal}
-                onCancel={hideDeleteModal}
-                onModalHide={() => {
-                    clearActiveReportAction();
-                    callbackWhenDeleteModalHide.current();
-                }}
-                prompt={translate('reportActionContextMenu.deleteConfirmation', {action: reportAction})}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
+                type={typeRef.current}
+                reportID={reportIDRef.current}
+                reportActionID={reportActionIDRef.current}
+                draftMessage={reportActionDraftMessageRef.current}
+                selection={selectionRef.current}
+                isArchivedRoom={isRoomArchived}
+                isChronosReport={isChronosReportEnabled}
+                isPinnedChat={isChatPinned}
+                isUnreadChat={hasUnreadMessages}
+                isThreadReportParentAction={isThreadReportParentAction}
+                anchor={contextMenuTargetNode}
+                contentRef={contentRef}
+                originalReportID={originalReportIDRef.current}
+                disabledActions={disabledActions}
+                setIsEmojiPickerActive={onEmojiPickerToggle.current}
             />
-        </>
+        </PopoverWithMeasuredContent>
     );
 }
 
