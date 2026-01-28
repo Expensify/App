@@ -31,6 +31,7 @@ import type {
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -174,6 +175,12 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
         const datePart = transactionDateString.substring(0, 10);
         const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
         return datePart >= weekStart && datePart <= weekEnd;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.YEAR) {
+        const yearGroup = groupItem as TransactionYearGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
+        return transactionYear === yearGroup.year;
     }
     return false;
 }

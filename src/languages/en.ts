@@ -634,6 +634,7 @@ const translations = {
         nonReimbursableTotal: 'Non-reimbursable total',
         month: 'Month',
         week: 'Week',
+        year: 'Year',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -6893,6 +6894,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
             },
             feed: 'Feed',
             withdrawalType: {

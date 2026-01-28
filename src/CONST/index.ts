@@ -6886,6 +6886,7 @@ const CONST = {
             TAG: 'tag',
             MONTH: 'month',
             WEEK: 'week',
+            YEAR: 'year',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6987,6 +6988,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                YEAR: {
+                    YEAR: this.TABLE_COLUMNS.GROUP_YEAR,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -7033,6 +7039,7 @@ const CONST = {
                 TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7133,6 +7140,7 @@ const CONST = {
             GROUP_TAG: 'groupTag',
             GROUP_MONTH: 'groupmonth',
             GROUP_WEEK: 'groupweek',
+            GROUP_YEAR: 'groupyear',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7326,6 +7334,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
                 [this.TABLE_COLUMNS.GROUP_MONTH]: 'group-month',
                 [this.TABLE_COLUMNS.GROUP_WEEK]: 'group-week',
+                [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
             };
         },
         NOT_MODIFIER: 'Not',

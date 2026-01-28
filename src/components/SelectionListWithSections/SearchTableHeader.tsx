@@ -427,6 +427,24 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     isColumnSortable: true,
                 },
             ];
+        case CONST.SEARCH.GROUP_BY.YEAR:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
+                    translationKey: 'common.year',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                    translationKey: 'common.expenses',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                    translationKey: 'common.total',
+                    isColumnSortable: true,
+                },
+            ];
         default:
             return [];
     }

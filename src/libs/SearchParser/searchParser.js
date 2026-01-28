@@ -4371,6 +4371,7 @@ function peg$parse(input, options) {
     merchant: "groupMerchant",
     month: "groupmonth",
     week: "groupweek",
+    year: "groupyear",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -4381,6 +4382,7 @@ function peg$parse(input, options) {
     merchant: "asc",
     month: "desc",
     week: "desc",
+    year: "desc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
