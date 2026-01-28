@@ -1,6 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
@@ -5020,6 +5021,175 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('shouldShowDeleteOption', () => {
+        it('should use the data from selectedTransactions when the data is not available from search result with group-by filter', async () => {
+            const TEST_GROUP_KEY = 'group_123456';
+            const TEST_ACCOUNT_ID = 1234567;
+            const TEST_REPORT_ID = '123456789';
+            const TEST_POLICY_ID = 'A1B2C3';
+            const TEST_CHILD_REPORT_ID = '1111111';
+            const TEST_CHAT_REPORT_ID = '2222222';
+            const TEST_TRANSACTION_ID = '123456789';
+            const TEST_REPORT_ACTION_ID = '987654321';
+            const TEST_PARENT_REPORT_ACTION_ID = '555555555';
+            const TEST_CUSTOM_UNIT_ID = 'TEST123';
+            const TEST_CUSTOM_UNIT_RATE_ID = 'RATE456';
+            const TEST_AMOUNT = 23897;
+            const TEST_DISTANCE = 341.38;
+
+            const currentSearchResults = {
+                [TEST_GROUP_KEY]: {
+                    accountID: TEST_ACCOUNT_ID,
+                    count: 1,
+                    currency: 'USD',
+                    total: TEST_AMOUNT,
+                },
+                personalDetailsList: {
+                    [TEST_ACCOUNT_ID]: {
+                        accountID: TEST_ACCOUNT_ID,
+                        avatar: '',
+                        displayName: 'Test User',
+                        email: 'test@example.com',
+                        firstName: 'Test',
+                        lastName: 'User',
+                        login: 'test@example.com',
+                    },
+                },
+            } as OnyxTypes.SearchResults['data'];
+
+            const selectedTransactions = {
+                [TEST_TRANSACTION_ID]: {
+                    action: 'approve',
+                    canHold: true,
+                    isHeld: false,
+                    canUnhold: false,
+                    canSplit: false,
+                    hasBeenSplit: false,
+                    canChangeReport: true,
+                    isSelected: true,
+                    canReject: true,
+                    reportID: TEST_REPORT_ID,
+                    policyID: TEST_POLICY_ID,
+                    amount: -TEST_AMOUNT,
+                    groupAmount: -TEST_AMOUNT,
+                    groupCurrency: 'USD',
+                    groupExchangeRate: '1.0',
+                    currency: 'USD',
+                    ownerAccountID: TEST_ACCOUNT_ID,
+                    reportAction: {
+                        actionName: 'IOU',
+                        actorAccountID: TEST_ACCOUNT_ID,
+                        avatar: '',
+                        childReportID: TEST_CHILD_REPORT_ID,
+                        created: '2024-01-01 00:00:00',
+                        lastModified: '2024-01-01 00:00:00',
+                        message: [
+                            {
+                                type: 'COMMENT',
+                                html: `$${(TEST_AMOUNT / 100).toFixed(2)} expense for ${TEST_DISTANCE} miles`,
+                                text: `$${(TEST_AMOUNT / 100).toFixed(2)} expense for ${TEST_DISTANCE} miles`,
+                                isEdited: false,
+                                whisperedTo: [],
+                                isDeletedParentAction: false,
+                                deleted: '',
+                                reactions: [],
+                            },
+                        ],
+                        originalMessage: {
+                            IOUReportID: Number(TEST_REPORT_ID),
+                            IOUTransactionID: TEST_TRANSACTION_ID,
+                            amount: TEST_AMOUNT,
+                            comment: `${TEST_DISTANCE} miles`,
+                            currency: 'USD',
+                            isNewDot: true,
+                            lastModified: '2024-01-01 00:00:00',
+                            participantAccountIDs: [TEST_ACCOUNT_ID, 0],
+                            type: 'create',
+                        },
+                        person: [
+                            {
+                                type: 'TEXT',
+                                style: 'strong',
+                                text: 'Test User',
+                            },
+                        ],
+                        reportActionID: TEST_REPORT_ACTION_ID,
+                        shouldShow: true,
+                        timestamp: 1704067200,
+                        reportActionTimestamp: 1704067200000,
+                        automatic: false,
+                        childType: 'chat',
+                        childCommenterCount: 0,
+                        childVisibleActionCount: 0,
+                        submitterEmail: 'test@example.com',
+                        whisperedToAccountIDs: [],
+                    },
+                    isFromOneTransactionReport: true,
+                    report: {
+                        approved: '',
+                        chatReportID: TEST_CHAT_REPORT_ID,
+                        chatType: '',
+                        created: '2024-01-01 00:00:00',
+                        currency: 'USD',
+                        isOneTransactionReport: true,
+                        isOwnPolicyExpenseChat: false,
+                        isWaitingOnBankAccount: false,
+                        managerID: TEST_ACCOUNT_ID,
+                        nonReimbursableTotal: 0,
+                        oldPolicyName: '',
+                        ownerAccountID: TEST_ACCOUNT_ID,
+                        parentReportActionID: TEST_PARENT_REPORT_ACTION_ID,
+                        parentReportID: TEST_CHAT_REPORT_ID,
+                        policyID: TEST_POLICY_ID,
+                        reportID: TEST_REPORT_ID,
+                        reportName: 'Expense Report 2024-01-01',
+                        stateNum: 0,
+                        statusNum: 0,
+                        submitted: '2024-01-01 00:00:00',
+                        total: -TEST_AMOUNT,
+                        transactionCount: 1,
+                        type: 'expense',
+                        unheldTotal: -TEST_AMOUNT,
+                    },
+                    transactionID: TEST_TRANSACTION_ID,
+                    managedCard: false,
+                    comment: {
+                        comment: '',
+                        customUnit: {
+                            attributes: [],
+                            customUnitID: TEST_CUSTOM_UNIT_ID,
+                            customUnitRateID: TEST_CUSTOM_UNIT_RATE_ID,
+                            distanceUnit: 'mi',
+                            name: 'Distance',
+                            quantity: TEST_DISTANCE,
+                            subRates: [],
+                        },
+                        type: 'customUnit',
+                        waypoints: {
+                            waypoint0: {
+                                address: 'Test City, ST, USA',
+                                keyForList: 'TestCity_1704067200',
+                                lat: 40.7128,
+                                lng: -74.006,
+                                name: 'Test City',
+                            },
+                            waypoint1: {
+                                address: 'Test Destination, ST, USA',
+                                keyForList: 'TestDestination_1704067201',
+                                lat: 34.0522,
+                                lng: -118.2437,
+                                name: 'Test Destination',
+                            },
+                        },
+                    },
+                },
+            } as unknown as Record<string, SelectedTransactionInfo>;
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
+
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, false)).toBe(true);
+        });
+    });
     describe('getToFieldValueForTransaction', () => {
         const mockTransaction: OnyxTypes.Transaction = {
             transactionID: '1',
