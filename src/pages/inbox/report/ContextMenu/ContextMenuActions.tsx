@@ -28,6 +28,7 @@ import {
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
+    getAddedBudgetMessage,
     getAddedConnectionMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -38,6 +39,7 @@ import {
     getCreatedReportForUnapprovedTransactionsMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
+    getDeletedBudgetMessage,
     getDismissedViolationMessageText,
     getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationMessageHTML,
@@ -91,9 +93,6 @@ import {
     getUpdateRoomDescriptionMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoriesUpdatedMessage,
-    getUpdatedManualApprovalThresholdMessage,
-    getUpdateRoomDescriptionMessage,
-    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -102,7 +101,6 @@ import {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitSubRateDeletedMessage,
     getWorkspaceCustomUnitSubRateUpdatedMessage,
-    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
@@ -264,7 +262,6 @@ type ContextMenuActionPayload = {
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
-    policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
@@ -289,7 +286,20 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
         | IconAsset
         | Extract<
               ExpensifyIconName,
-              'Download' | 'ThreeDots' | 'ChatBubbleReply' | 'ChatBubbleUnread' | 'Mail' | 'Pencil' | 'Stopwatch' | 'Bell' | 'Copy' | 'LinkCopy' | 'Pin' | 'Flag' | 'Bug' | 'Trashcan'
+              | 'Download'
+              | 'ThreeDots'
+              | 'ChatBubbleReply'
+              | 'ChatBubbleUnread'
+              | 'Mail'
+              | 'Pencil'
+              | 'Stopwatch'
+              | 'Bell'
+              | 'Copy'
+              | 'LinkCopy'
+              | 'Pin'
+              | 'Flag'
+              | 'Bug'
+              | 'Trashcan'
               | 'Download'
               | 'ThreeDots'
               | 'ChatBubbleReply'
@@ -732,8 +742,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 childReport,
                 policy,
                 getLocalDateFromDatetime,
-                getLocalDateFromDatetime,
-                policy,
                 policyTags,
                 translate,
                 harvestReport,
