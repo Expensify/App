@@ -6245,8 +6245,8 @@ ${amount} para ${merchant} - ${date}`,
         deletedAllTags: 'eliminó todas las etiquetas',
         addTag: ({tagListName, tagName}) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
-        updateTagEnabled: ({tagListName, tagName, enabled}:UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
-        deleteTag: ({tagListName, tagName}:UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
+        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
+        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
         deleteMultipleTags: ({count, tagListName}) => `eliminó "${count}" etiquetas de la lista "${tagListName}"`,
         updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}) => {
             if (oldValue) {
