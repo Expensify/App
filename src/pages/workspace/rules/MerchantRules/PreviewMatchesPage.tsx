@@ -59,10 +59,6 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         getTransactionsMatchingCodingRule(policyID, merchant);
     }, [merchant, policyID, isOffline]);
 
-    const onBack = () => {
-        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
-    };
-
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const hasMatchingTransactions = !!(merchant && matchingTransactionsArray.length);
 
@@ -146,6 +142,10 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
 
     const keyExtractor = (item: Transaction) => item.transactionID;
 
+    const goBack = () => {
+        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+    };
+
     return (
         <ScreenWrapper
             testID="PreviewMatchesPage"
@@ -154,7 +154,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.rules.merchantRules.previewMatches')}
-                onBackButtonPress={onBack}
+                onBackButtonPress={goBack}
             />
 
             <FullPageOfflineBlockingView>
