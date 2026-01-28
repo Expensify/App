@@ -115,6 +115,7 @@ columnsValues
   / groupWithdrawalId
   / groupCategory
   / groupMonth
+  / groupWeek
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -140,6 +141,7 @@ groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "gr
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupMonth              = "group-month"i &wordBoundary              { return "groupMonth"; }
+groupWeek               = "group-week"i &wordBoundary               { return "groupWeek"; }
 
 
 operator "operator"

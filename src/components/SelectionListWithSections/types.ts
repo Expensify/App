@@ -521,9 +521,6 @@ type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
         /** Final and formatted "week" value used for displaying */
         formattedWeek: string;
-
-        /** Key used for sorting */
-        sortKey: string;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {

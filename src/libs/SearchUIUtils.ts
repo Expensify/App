@@ -266,7 +266,7 @@ const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSo
 };
 
 const transactionWeekGroupColumnNamesToSortingProperty: TransactionWeekGroupSorting = {
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'sortKey' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'week' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
@@ -2894,9 +2894,7 @@ function getSortedMonthData(data: TransactionMonthGroupListItemType[], localeCom
  * Sorts week group data based on a specified column and sort order.
  */
 function getSortedWeekData(data: TransactionWeekGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    // For week groups, sortKey is a string (date in YYYY-MM-DD format), so we compare strings
-    // Use localeCompare from context for consistent string comparison
-    return getSortedData(data, localeCompare, transactionWeekGroupColumnNamesToSortingProperty, (a, b) => localeCompare(b.sortKey, a.sortKey), sortBy, sortOrder);
+    return getSortedData(data, localeCompare, transactionWeekGroupColumnNamesToSortingProperty, (a, b) => localeCompare(a.week, b.week), sortBy, sortOrder);
 }
 
 /**
