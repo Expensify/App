@@ -25,7 +25,7 @@ const filterCardsHiddenFromSearch = (cardList: OnyxEntry<CardList>): CardList =>
  * This selector keeps non-personal cards (fundID !== '0').
  */
 const filterPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
+    return filterObject(cards ?? {}, (key, card) => !isPersonalCard(card));
 };
 
 /**
