@@ -217,6 +217,7 @@ import {
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
     getReportActionText,
+    getSettlementAccountLockedMessage,
     getSortedReportActions,
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
@@ -5919,6 +5920,11 @@ function getReportName(
         const reportName = getReportName(originalReport);
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translateLocal);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getSettlementAccountLockedMessage(translateLocal, parentReportAction);
     }
 
     if (isChatThread(report)) {

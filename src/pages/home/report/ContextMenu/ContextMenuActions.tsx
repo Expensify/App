@@ -68,6 +68,7 @@ import {
     getReportAction,
     getReportActionMessageText,
     getRoomAvatarUpdatedMessage,
+    getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
@@ -977,6 +978,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                             return openTag + modifiedContent + closeTag || '';
                         }),
                     );
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+                    setClipboardMessage(getSettlementAccountLockedMessage(translate, reportAction));
                 } else if (messageText) {
                     Clipboard.setString(messageText);
                 }

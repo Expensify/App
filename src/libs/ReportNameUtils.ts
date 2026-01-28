@@ -54,6 +54,7 @@ import {
     getRenamedAction,
     getReportActionMessage as getReportActionMessageFromActionsUtils,
     getReportActionText,
+    getSettlementAccountLockedMessage,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -557,6 +558,10 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
         return getWorkspaceCustomUnitRateDeletedMessage(translate, parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+        return getSettlementAccountLockedMessage(translate, parentReportAction);
     }
 
     return undefined;
