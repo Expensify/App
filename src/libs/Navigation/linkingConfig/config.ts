@@ -41,14 +41,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         },
 
         [SCREENS.NOT_FOUND]: '*',
-        [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
-                    path: ROUTES.PUBLIC_CONSOLE_DEBUG.route,
-                    exact: true,
-                },
-            },
-        },
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.FEATURE_TRAINING_ROOT]: {
