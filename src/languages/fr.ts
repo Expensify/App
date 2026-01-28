@@ -6655,12 +6655,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             `a mis à jour « Refacturer les dépenses aux clients » en « ${newValue} » (auparavant « ${oldValue} »)`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `« Cash expense default » mis à jour sur « ${newValue} » (auparavant « ${oldValue} »)`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) =>
-            `a activé « Imposer les titres de rapport par défaut » ${
-                value 
-                    ? 'activé'
-                    : 'Désactivé'
-            }`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `a activé « Imposer les titres de rapport par défaut » ${value ? 'activé' : 'Désactivé'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `a mis à jour le nom de cet espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription

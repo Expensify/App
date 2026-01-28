@@ -6890,9 +6890,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft "${prohibitedExpense}" toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft "${prohibitedExpense}" verwijderd uit verboden uitgaven`,
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
-            `terugbetalingsmethode gewijzigd naar ‘${
-                newReimbursementChoice
-            }’ (voorheen ‘${oldReimbursementChoice}’)`,
+            `terugbetalingsmethode gewijzigd naar ‘${newReimbursementChoice}’ (voorheen ‘${oldReimbursementChoice}’)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'Ingeschakeld' : 'Uitgeschakeld'} voorafgaande goedkeuring van werkruimteaansluitingsverzoeken`,
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
             `aangepaste rapportnaamformule gewijzigd in "${newDefaultTitle}" (voorheen "${oldDefaultTitle}")`,

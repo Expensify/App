@@ -6910,7 +6910,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             summaryLink,
             thresholdPercentage,
             totalSpend,
-            unsubmittedSpend, 
+            unsubmittedSpend,
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>

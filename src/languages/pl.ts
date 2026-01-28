@@ -6872,7 +6872,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             return `usunięto budżet z ${entityType} „${entityName}”`;
         },
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
-            return `${enabled ? 'Włączone' : 'Wyłączone'} śledzenie czasu`; 
+            return `${enabled ? 'Włączone' : 'Wyłączone'} śledzenie czasu`;
         },
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
             return `zmieniono stawkę godzinową na „${newRate}” (wcześniej „${oldRate}”)`;

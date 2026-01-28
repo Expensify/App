@@ -6922,9 +6922,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             `Erstattungsmethode zu „${newReimbursementChoice}“ geändert (zuvor „${oldReimbursementChoice}“)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'Aktiviert' : 'deaktiviert'} Vorabgenehmigung von Arbeitsbereichsbeitrittsanfragen`,
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
-            `benutzerdefinierte Berichtsnamensformel in „${
-                newDefaultTitle 
-            }“ geändert (zuvor „${oldDefaultTitle}“)`,
+            `benutzerdefinierte Berichtsnamensformel in „${newDefaultTitle}“ geändert (zuvor „${oldDefaultTitle}“)`,
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
             `hat die Inhaberschaft von ${policyName} von ${oldOwnerName} (${oldOwnerEmail}) übernommen`,
         updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `${enabled ? 'Aktiviert' : 'deaktiviert'} geplante Einreichung`,
@@ -6950,7 +6948,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             summaryLink,
             thresholdPercentage,
             totalSpend,
-            unsubmittedSpend, 
+            unsubmittedSpend,
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>

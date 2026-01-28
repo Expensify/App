@@ -6755,7 +6755,7 @@ ${reportName}
             summaryLink,
             thresholdPercentage,
             totalSpend,
-            unsubmittedSpend, 
+            unsubmittedSpend,
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
