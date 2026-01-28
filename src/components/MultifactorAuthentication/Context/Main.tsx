@@ -10,6 +10,7 @@ import Navigation from '@navigation/Navigation';
 import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import MultifactorAuthenticationGuardsProvider from './Guards';
 import MultifactorAuthenticationStateProvider, {useMultifactorAuthenticationState} from './State';
 import useNativeBiometrics from './useNativeBiometrics';
 import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
@@ -266,7 +267,11 @@ function MultifactorAuthenticationProviderInner({children}: MultifactorAuthentic
         [cancel, executeScenario],
     );
 
-    return <MultifactorAuthenticationContext.Provider value={contextValue}>{children}</MultifactorAuthenticationContext.Provider>;
+    return (
+        <MultifactorAuthenticationContext.Provider value={contextValue}>
+            <MultifactorAuthenticationGuardsProvider>{children}</MultifactorAuthenticationGuardsProvider>
+        </MultifactorAuthenticationContext.Provider>
+    );
 }
 
 type MultifactorAuthenticationProviderProps = {

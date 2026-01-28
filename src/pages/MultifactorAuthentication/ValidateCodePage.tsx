@@ -1,12 +1,13 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import {useMultifactorAuthentication, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthentication, useMultifactorAuthenticationGuards, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -34,6 +35,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const {guards} = useMultifactorAuthenticationGuards();
 
     // Onyx data
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -162,44 +164,46 @@ function MultifactorAuthenticationValidateCodePage() {
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationValidateCodePage.displayName}>
-            <HeaderWithBackButton
-                title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={onGoBackPress}
-                shouldShowBackButton
-            />
-            <FullPageOfflineBlockingView>
-                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterMagicCode', contactMethod)}</Text>
-                <View style={[styles.mh5]}>
-                    <MagicCodeInput
-                        autoComplete="one-time-code"
-                        name="multifactorAuthenticationValidateCode"
-                        value={inputCode}
-                        onChangeText={onCodeInput}
-                        onFulfill={validateAndSubmitForm}
-                        errorText={canShowError && formError.inputCode ? translate(formError.inputCode) : ''}
-                        hasError={hasError}
-                        ref={inputRef}
-                        maxLength={CONST.MAGIC_CODE_LENGTH}
-                    />
-                    {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
-                    <MultifactorAuthenticationValidateCodeResendButton
-                        ref={resendButtonRef}
-                        shouldDisableResendCode={shouldDisableResendCode}
-                        hasError={hasError}
-                        resendButtonText="validateCodeForm.magicCodeNotReceived"
-                        onResendValidationCode={resendValidationCode}
-                    />
-                </View>
-                <Button
-                    success
-                    large
-                    style={[styles.w100, styles.p5, styles.mtAuto]}
-                    onPress={validateAndSubmitForm}
-                    text={translate('common.verify')}
-                    isLoading={isValidateCodeFormSubmitting}
-                    isDisabled={isOffline}
+            <FullPageNotFoundView shouldShow={!guards.canAccessMagicCode}>
+                <HeaderWithBackButton
+                    title={translate('multifactorAuthentication.letsVerifyItsYou')}
+                    onBackButtonPress={onGoBackPress}
+                    shouldShowBackButton
                 />
-            </FullPageOfflineBlockingView>
+                <FullPageOfflineBlockingView>
+                    <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterMagicCode', contactMethod)}</Text>
+                    <View style={[styles.mh5]}>
+                        <MagicCodeInput
+                            autoComplete="one-time-code"
+                            name="multifactorAuthenticationValidateCode"
+                            value={inputCode}
+                            onChangeText={onCodeInput}
+                            onFulfill={validateAndSubmitForm}
+                            errorText={canShowError && formError.inputCode ? translate(formError.inputCode) : ''}
+                            hasError={hasError}
+                            ref={inputRef}
+                            maxLength={CONST.MAGIC_CODE_LENGTH}
+                        />
+                        {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                        <MultifactorAuthenticationValidateCodeResendButton
+                            ref={resendButtonRef}
+                            shouldDisableResendCode={shouldDisableResendCode}
+                            hasError={hasError}
+                            resendButtonText="validateCodeForm.magicCodeNotReceived"
+                            onResendValidationCode={resendValidationCode}
+                        />
+                    </View>
+                    <Button
+                        success
+                        large
+                        style={[styles.w100, styles.p5, styles.mtAuto]}
+                        onPress={validateAndSubmitForm}
+                        text={translate('common.verify')}
+                        isLoading={isValidateCodeFormSubmitting}
+                        isDisabled={isOffline}
+                    />
+                </FullPageOfflineBlockingView>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
