@@ -59,6 +59,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Basket',
         'Bookmark',
         'Pencil',
         'Receipt',
