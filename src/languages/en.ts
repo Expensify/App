@@ -914,7 +914,6 @@ const translations = {
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
-        askMeAnything: 'Ask me anything!',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
@@ -4850,7 +4849,6 @@ const translations = {
                 '<muted-text><centered-text>Or something might be broken. Either way, if you have any questions, just <concierge-link>contact Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choose a transaction start date',
             startDateDescription: "Choose your import start date. We'll sync all transactions from this date onwards.",
-            editStartDateDescription: "Choose a new transaction start date. We'll sync all transactions from that date onwards, excluding those we already imported.",
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
             customCloseDate: 'Custom close date',
@@ -6244,6 +6242,9 @@ const translations = {
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+                matchType: 'Match type',
+                exactlyMatches: 'Exactly matches',
+                contains: 'Contains',
             },
             categoryRules: {
                 title: 'Category rules',
@@ -6826,7 +6827,6 @@ const translations = {
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
         topCategories: 'Top categories',
-        topMerchants: 'Top merchants',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
@@ -6889,7 +6889,6 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
             },
@@ -6913,7 +6912,6 @@ const translations = {
             accessPlaceHolder: 'Open for details',
         },
         noCategory: 'No category',
-        noMerchant: 'No merchant',
         noTag: 'No tag',
         expenseType: 'Expense type',
         withdrawalType: 'Withdrawal type',
@@ -7045,8 +7043,6 @@ const translations = {
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>`,
-                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
-                    `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {

@@ -220,12 +220,12 @@ const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
     [SCREENS.REPORT_DETAILS.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportDetailsPage').default,
-    [SCREENS.REPORT_DETAILS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ReportDetailsShareCodePage').default,
-    [SCREENS.REPORT_DETAILS.EXPORT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ReportDetailsExportPage').default,
+    [SCREENS.REPORT_DETAILS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportDetailsShareCodePage').default,
+    [SCREENS.REPORT_DETAILS.EXPORT]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportDetailsExportPage').default,
 });
 
 const ReportCardActivateStackNavigator = createModalStackNavigator<ReportCardActivateNavigatorParamList>({
-    [SCREENS.REPORT_CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ActivatePhysicalCardPage').default,
+    [SCREENS.REPORT_CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/home/report/ActivatePhysicalCardPage').default,
 });
 
 const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<ReportChangeWorkspaceNavigatorParamList>({
@@ -262,8 +262,8 @@ const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorPa
 });
 
 const ReportVerifyAccountModalStackNavigator = createModalStackNavigator<ReportVerifyAccountNavigatorParamList>({
-    [SCREENS.REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ReportVerifyAccountPage').default,
-    [SCREENS.EXPENSE_REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ExpenseReportVerifyAccountPage').default,
+    [SCREENS.REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportVerifyAccountPage').default,
+    [SCREENS.EXPENSE_REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/home/report/ExpenseReportVerifyAccountPage').default,
     [SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchReportVerifyAccountPage').default,
 });
 
@@ -824,6 +824,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesProhibitedDefaultPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantRulePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantToMatchPage').default,
+    [SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/MerchantMatchTypePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_TAG]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddTagPage').default,
