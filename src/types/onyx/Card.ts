@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {CompanyCardFeedWithDomainID} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -342,20 +341,6 @@ type CardAssignmentData = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-/**
- * Pending action for a company card assignment
- */
-type FailedCompanyCardAssignment = CardAssignmentData & {
-    /** The domain or workspace account ID */
-    domainOrWorkspaceAccountID: number;
-
-    /** The name of the feed */
-    feed: CompanyCardFeedWithDomainID;
-};
-
-/** Pending action for a company card assignment */
-type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
-
 export default Card;
 export type {
     ExpensifyCardDetails,
@@ -365,8 +350,6 @@ export type {
     IssueNewCardData,
     WorkspaceCardsList,
     CardAssignmentData,
-    FailedCompanyCardAssignment,
-    FailedCompanyCardAssignments,
     CardLimitType,
     ProvisioningCardData,
     AssignableCardsList,
