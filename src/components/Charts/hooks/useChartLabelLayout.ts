@@ -1,6 +1,14 @@
-import {useMemo} from 'react';
 import type {SkFont} from '@shopify/react-native-skia';
-import {LABEL_ELLIPSIS, LABEL_PADDING, SIN_45_DEGREES, X_AXIS_LABEL_MAX_HEIGHT_RATIO, X_AXIS_LABEL_ROTATION_45, X_AXIS_LABEL_ROTATION_90, Y_AXIS_LABEL_OFFSET} from '@components/Charts/constants';
+import {useMemo} from 'react';
+import {
+    LABEL_ELLIPSIS,
+    LABEL_PADDING,
+    SIN_45_DEGREES,
+    X_AXIS_LABEL_MAX_HEIGHT_RATIO,
+    X_AXIS_LABEL_ROTATION_45,
+    X_AXIS_LABEL_ROTATION_90,
+    Y_AXIS_LABEL_OFFSET,
+} from '@components/Charts/constants';
 
 type ChartDataPoint = {
     label: string;

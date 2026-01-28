@@ -10,11 +10,7 @@ import type {
 } from '@components/SelectionListWithSections/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type GroupedItem =
-    | TransactionMemberGroupListItemType
-    | TransactionCardGroupListItemType
-    | TransactionWithdrawalIDGroupListItemType
-    | TransactionCategoryGroupListItemType;
+type GroupedItem = TransactionMemberGroupListItemType | TransactionCardGroupListItemType | TransactionWithdrawalIDGroupListItemType | TransactionCategoryGroupListItemType;
 
 type SearchBarChartProps = {
     /** Grouped transaction data from search results */

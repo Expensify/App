@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ScrollView from '@components/ScrollView';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -18,11 +19,7 @@ import ROUTES from '@src/ROUTES';
 import SearchBarChart from './SearchBarChart';
 import type {SearchGroupBy, SearchQueryJSON, SearchView} from './types';
 
-type GroupedItem =
-    | TransactionMemberGroupListItemType
-    | TransactionCardGroupListItemType
-    | TransactionWithdrawalIDGroupListItemType
-    | TransactionCategoryGroupListItemType;
+type GroupedItem = TransactionMemberGroupListItemType | TransactionCardGroupListItemType | TransactionWithdrawalIDGroupListItemType | TransactionCategoryGroupListItemType;
 
 /**
  * Chart-specific configuration for each groupBy type - defines how to extract label and build filter query
@@ -128,19 +125,24 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     }
 
     return (
-        <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.flex1]}>
-            <ChartComponent
-                data={data}
-                title={config.title}
-                titleIcon={config.titleIcon}
-                getLabel={config.getLabel}
-                getFilterQuery={config.getFilterQuery}
-                onBarPress={handleBarPress}
-                isLoading={isLoading}
-                yAxisUnit={yAxisUnit}
-                yAxisUnitPosition={yAxisUnitPosition}
-            />
-        </View>
+        <ScrollView
+            style={styles.flex1}
+            contentContainerStyle={styles.flexGrow1}
+        >
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                <ChartComponent
+                    data={data}
+                    title={config.title}
+                    titleIcon={config.titleIcon}
+                    getLabel={config.getLabel}
+                    getFilterQuery={config.getFilterQuery}
+                    onBarPress={handleBarPress}
+                    isLoading={isLoading}
+                    yAxisUnit={yAxisUnit}
+                    yAxisUnitPosition={yAxisUnitPosition}
+                />
+            </View>
+        </ScrollView>
     );
 }
 

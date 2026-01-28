@@ -90,7 +90,9 @@ function useIsInteractionActive<Init extends ChartInteractionStateInit>(state: C
  *   });
  * ```
  */
-function useChartInteractionState<Init extends ChartInteractionStateInit>(initialValues: Init): {
+function useChartInteractionState<Init extends ChartInteractionStateInit>(
+    initialValues: Init,
+): {
     state: ChartInteractionState<Init>;
     isActive: boolean;
 } {

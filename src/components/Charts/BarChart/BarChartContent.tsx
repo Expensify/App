@@ -1,3 +1,4 @@
+import {useFont} from '@shopify/react-native-skia';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
@@ -5,8 +6,8 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import type {ChartBounds, PointsArray} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/ChartTooltip';
+import ChartHeader from '@components/Charts/components/ChartHeader';
 import {
     BAR_INNER_PADDING,
     BAR_ROUNDED_CORNERS,
@@ -21,7 +22,6 @@ import {
     Y_AXIS_LINE_WIDTH,
     Y_AXIS_TICK_COUNT,
 } from '@components/Charts/constants';
-import {useFont} from '@shopify/react-native-skia';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartColors, useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';

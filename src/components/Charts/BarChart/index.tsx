@@ -1,6 +1,6 @@
+import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
 import {View} from 'react-native';
-import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {BarChartProps} from '@components/Charts/types';
 import colors from '@styles/theme/colors';
