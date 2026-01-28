@@ -5271,8 +5271,8 @@ describe('ReportUtils', () => {
                 participants: {
                     [currentUserAccountID]: {
                         notificationPreference: 'always',
-                    }
-                }
+                    },
+                },
             };
 
             ownedReport = {
@@ -5284,8 +5284,8 @@ describe('ReportUtils', () => {
                 participants: {
                     [currentUserAccountID]: {
                         notificationPreference: 'always',
-                    }
-                }
+                    },
+                },
             };
 
             // Add reports to Onyx
