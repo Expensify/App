@@ -732,6 +732,22 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: '请重新登录。',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: '审核交易',
+            pleaseReview: '请审核此交易',
+            requiresYourReview: '下面的 Expensify 卡交易需要您的审核。',
+            transactionDetails: '交易详情',
+            deny: '拒绝',
+            approve: '批准',
+            denyTransaction: '拒绝交易',
+            transactionDenied: '交易已拒绝',
+            transactionApproved: '交易已批准！',
+            areYouSureToDeny: '您确定吗？如果您关闭此屏幕，交易将被拒绝。',
+            youCanTryAgainAtMerchantOrReachOut: '您可以在商户处再试一次。如果您没有尝试此交易，请联系 Concierge 报告潜在的欺诈。',
+            youNeedToTryAgainAtMerchant: '此交易未通过验证，因此我们已拒绝。您需要在商户处再试一次。',
+            goBackToTheMerchant: '返回商户网站继续交易。',
+            authorizationFailed: '您的批准失败，因此我们拒绝了此交易。您可以在商户处再试一次。',
+        },
         biometricsTest: {
             biometricsTest: '生物特征测试',
             authenticationSuccessful: '认证成功',

@@ -737,6 +737,23 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Meld u opnieuw aan.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Transactie beoordelen',
+            pleaseReview: 'Beoordeel deze transactie alstublieft',
+            requiresYourReview: 'Een transactie met de Expensify kaart vereist hieronder uw beoordeling.',
+            transactionDetails: 'Transactiedetails',
+            deny: 'Weigeren',
+            approve: 'Goedkeuren',
+            denyTransaction: 'Transactie weigeren',
+            transactionDenied: 'Transactie geweigerd',
+            transactionApproved: 'Transactie goedgekeurd!',
+            areYouSureToDeny: 'Weet u zeker dat u wilt weigeren? De transactie wordt geweigerd als u dit scherm sluit.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'U kunt het opnieuw proberen bij de handelaar. Als u deze transactie niet heeft geprobeerd, neem dan contact op met Concierge om mogelijke fraude te melden.',
+            youNeedToTryAgainAtMerchant: 'Deze transactie is niet geverifieerd, dus we hebben het geweigerd. U moet het opnieuw bij de handelaar proberen.',
+            goBackToTheMerchant: 'Ga terug naar de website van de handelaar om de transactie voort te zetten.',
+            authorizationFailed: 'Uw goedkeuring is mislukt, dus we hebben deze transactie geweigerd. U kunt het opnieuw bij de handelaar proberen.',
+        },
         biometricsTest: {
             biometricsTest: 'Biometrische test',
             authenticationSuccessful: 'Authenticatie geslaagd',

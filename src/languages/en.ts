@@ -724,6 +724,22 @@ const translations = {
         signIn: 'Please sign in again.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Review transaction',
+            pleaseReview: 'Please review this transaction',
+            requiresYourReview: 'An Expensify Card transaction requires your review below.',
+            transactionDetails: 'Transaction details',
+            deny: 'Deny',
+            approve: 'Approve',
+            denyTransaction: 'Deny transaction',
+            transactionDenied: 'Transaction denied',
+            transactionApproved: 'Transaction approved!',
+            areYouSureToDeny: 'Are you sure? The transaction will be denied if you close this screen.',
+            youCanTryAgainAtMerchantOrReachOut: "You can try again at the merchant. If you didn't attempt this transaction, reach out to Concierge to report potential fraud.",
+            youNeedToTryAgainAtMerchant: "This transaction was not verified, so we denied it. You'll need to try again at the merchant.",
+            goBackToTheMerchant: 'Go back to the merchant site to continue the transaction.',
+            authorizationFailed: 'Your approval failed, so we denied this transaction. You can try again at the merchant.',
+        },
         biometricsTest: {
             biometricsTest: 'Biometrics test',
             authenticationSuccessful: 'Authentication successful',

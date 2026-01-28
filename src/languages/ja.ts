@@ -736,6 +736,22 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'もう一度サインインしてください。',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: '取引のレビュー',
+            pleaseReview: 'この取引をレビューしてください',
+            requiresYourReview: 'Expensifyカードの取引が以下のレビューを必要としています。',
+            transactionDetails: '取引の詳細',
+            deny: '拒否',
+            approve: '承認',
+            denyTransaction: '取引を拒否',
+            transactionDenied: '取引が拒否されました',
+            transactionApproved: '取引が承認されました！',
+            areYouSureToDeny: 'よろしいですか？ この画面を閉じると取引は拒否されます。',
+            youCanTryAgainAtMerchantOrReachOut: '商店で再試行することができます。この取引を試みなかった場合は、Conciergeに連絡して潜在的な詐欺を報告してください。',
+            youNeedToTryAgainAtMerchant: 'この取引は検証されませんでしたので、拒否しました。商店で再試行する必要があります。',
+            goBackToTheMerchant: '取引を続行するために、商店のサイトに戻ってください。',
+            authorizationFailed: '承認が失敗したため、この取引は拒否されました。商店で再試行してください。',
+        },
         biometricsTest: {
             biometricsTest: '生体認証テスト',
             authenticationSuccessful: '認証成功',
