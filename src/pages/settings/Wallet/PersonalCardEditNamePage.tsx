@@ -1,3 +1,4 @@
+import {cardByIdSelector} from '@selectors/Card';
 import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -21,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {cardByIdSelector} from '@selectors/Card';
 import INPUT_IDS from '@src/types/form/EditPersonalCardNameForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 

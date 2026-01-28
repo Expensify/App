@@ -1,3 +1,4 @@
+import {cardByIdSelector} from '@selectors/Card';
 import {format, parseISO, subDays} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -19,7 +20,6 @@ import Navigation from '@navigation/Navigation';
 import {updateAssignedCardTransactionStartDate} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {cardByIdSelector} from '@selectors/Card';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
