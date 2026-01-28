@@ -1,7 +1,7 @@
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {setEndAddress, setStartAddress} from '@libs/actions/GPSDraftDetails';
-import addressFromGpsPoint from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/addressFromGpsPoint';
+import {addressFromGpsPoint} from '@libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 
