@@ -4,6 +4,7 @@ import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -100,6 +101,9 @@ type MagicCodeInputProps = {
     /** TestID for test */
     testID?: string;
 
+    /** Accessibility label for the input */
+    accessibilityLabel?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
 };
@@ -150,10 +154,12 @@ function MagicCodeInput({
     autoComplete,
     hasError = false,
     testID = '',
+    accessibilityLabel,
     ref,
 }: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
@@ -486,7 +492,7 @@ function MagicCodeInput({
                             }}
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
-                            role={CONST.ROLE.PRESENTATION}
+                            accessibilityLabel={`${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
@@ -516,7 +522,12 @@ function MagicCodeInput({
                                 <View style={styles.magicCodeInputValueContainer}>
                                     <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
                                     {isFocused && !isDisableKeyboard && (
-                                        <View style={[styles.magicCodeInputCursorContainer]}>
+                                        <View
+                                            style={[styles.magicCodeInputCursorContainer]}
+                                            accessibilityElementsHidden
+                                            importantForAccessibility="no-hide-descendants"
+                                            accessible={false}
+                                        >
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>
                                             <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle, cursorMargin]}>│</Animated.Text>

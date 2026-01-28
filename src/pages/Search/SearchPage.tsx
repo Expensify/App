@@ -79,7 +79,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -108,7 +108,8 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchResults} =
+        useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
@@ -123,6 +124,7 @@ function SearchPage({route}: SearchPageProps) {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {canBeMissing: true});
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
@@ -135,6 +137,7 @@ function SearchPage({route}: SearchPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isCustomReportNamesBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -163,8 +166,6 @@ function SearchPage({route}: SearchPageProps) {
         'ArrowSplit',
     ] as const);
 
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -197,10 +198,12 @@ function SearchPage({route}: SearchPageProps) {
     const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const onlyShowPayElsewhere = useMemo(() => {
-        const selectedPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`];
+        const firstPolicyID = selectedPolicyIDs.at(0);
+        const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
         return (selectedTransactionReportIDs ?? selectedReportIDs).some((reportID) => {
             const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const chatReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+            const chatReportID = report?.chatReportID;
+            const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
             return (
                 report &&
                 !canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, false) &&
@@ -240,18 +243,6 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
-
-    // Peggy injects default sortBy/sortOrder at parse time, so queryJSON
-    // can differ from the URL’s raw query. When they diverge, we need to replace the URL
-    useEffect(() => {
-        if (!queryJSON || !route.params.q) {
-            return;
-        }
-        const normalizedQueryString = buildSearchQueryString(queryJSON);
-        if (normalizedQueryString !== route.params.q) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: normalizedQueryString}), {forceReplace: true});
-        }
-    }, [queryJSON, route.params.q]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -483,6 +474,7 @@ function SearchPage({route}: SearchPageProps) {
                 if (!itemReportID) {
                     return;
                 }
+                const itemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportID}`];
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
                 const reportType = getReportType(itemReportID);
@@ -523,9 +515,13 @@ function SearchPage({route}: SearchPageProps) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber);
+                    // Get transactions for this report
+                    const reportTransactions = Object.values(allTransactions ?? {}).filter(
+                        (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
+                    );
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReportID, adminPolicy);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
                     }
                 }
             }
@@ -583,6 +579,9 @@ function SearchPage({route}: SearchPageProps) {
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
             personalPolicyID,
+            allTransactions,
+            isCustomReportNamesBetaEnabled,
+            allReports,
         ],
     );
 
@@ -1040,6 +1039,7 @@ function SearchPage({route}: SearchPageProps) {
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
+            draftTransactions,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];

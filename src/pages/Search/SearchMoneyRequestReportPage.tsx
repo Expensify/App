@@ -35,12 +35,12 @@ import {
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
-import ReactionListWrapper from '@pages/home/ReactionListWrapper';
+import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
+import type {ActionListContextType, ScrollPosition} from '@pages/inbox/ReportScreenContext';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
-import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -163,6 +163,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
     useEffect(() => {
+        // Guard prevents calling openReport for multi-transaction reports
+        if (visibleTransactions.length > 2) {
+            return;
+        }
+
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
             createTransactionThreadReport(report, iouAction);
@@ -170,9 +175,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
+
+        // oneTransactionID dependency handles the case when deleting a transaction:
+        // oneTransactionID updates after transactionThreadReportID,
+        // so we need it in dependencies to re-run the effect with the correct remaining transaction.
+        // For more details see https://github.com/Expensify/App/pull/80107
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportIDFromRoute, transactionThreadReportID]);
+    }, [reportIDFromRoute, transactionThreadReportID, oneTransactionID]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
