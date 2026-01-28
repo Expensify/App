@@ -34,6 +34,7 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchMonthGroup,
+    SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWeekGroup,
@@ -510,6 +511,11 @@ type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
         /** Final and formatted "category" value used for displaying and sorting */
         formattedCategory?: string;
+    };
+
+type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
+        /** Final and formatted "tag" value used for displaying and sorting */
+        formattedTag?: string;
     };
 
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
@@ -1163,6 +1169,7 @@ export type {
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     Section,
     SectionListDataType,

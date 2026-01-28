@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -639,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Zduplikowany wydatek',
         newFeature: 'Nowa funkcja',
         month: 'Miesiąc',
+        home: 'Strona główna',
         week: 'Tydzień',
     },
     supportalNoAccess: {
@@ -1496,6 +1499,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'oznaczył wydatek jako „podlegający zwrotowi”' : 'oznaczył wydatek jako „niepodlegający zwrotowi”';
+                }
+                if (key === 'billable') {
+                    return value ? 'oznaczył wydatek jako „refakturowalny”' : 'oznaczył wydatek jako „niepodlegający refakturowaniu”';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `ustaw stawkę podatku na „${taxRateName}”`;
+                    }
+                    return `stawka podatku na „${taxRateName}”`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `ustaw ${translations.common[key].toLowerCase()} na „${updatedValue}”`;
+                }
+                return `${translations.common[key].toLowerCase()} na „${updatedValue}”`;
+            });
+            return `${formatList(fragments)} przez <a href="${policyRulesRoute}">zasady przestrzeni roboczej</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6319,6 +6348,14 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Zaktualizuj ${fieldName} na „${fieldValue}”`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako "${reimbursable ? 'kwalifikujący się do zwrotu kosztów' : 'niepodlegający zwrotowi'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Oznacz jako „${billable ? 'fakturowalne' : 'poza fakturą'}”`,
+                addRuleTitle: 'Dodaj regułę',
+                expensesWith: 'Dla wydatków z:',
+                applyUpdates: 'Zastosuj te aktualizacje:',
+                merchantHint: 'Dopasuj nazwę sprzedawcy przy użyciu nieczułego na wielkość liter dopasowania typu „zawiera”',
+                saveRule: 'Zapisz regułę',
+                confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną aktualizację',
+                confirmErrorMerchant: 'Wprowadź sprzedawcę',
+                confirmErrorUpdate: 'Proszę wprowadzić co najmniej jedną zmianę',
             },
         },
         planTypePage: {
@@ -6917,6 +6954,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etykieta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Tydzień',
             },

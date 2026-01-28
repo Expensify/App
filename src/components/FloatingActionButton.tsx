@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,6 +54,8 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isNewDotHomeEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_HOME);
 
     const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
 
@@ -94,7 +97,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
         onLongPress?.(event);
     };
 
-    if (isLHBVisible) {
+    if (isLHBVisible || isNewDotHomeEnabled) {
         return (
             <Tooltip text={translate('common.create')}>
                 <PressableWithoutFeedback
@@ -106,7 +109,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                     }}
                     style={[
                         styles.navigationTabBarFABItem,
-
+                        styles.ph0,
                         // Prevent text selection on touch devices (e.g. on long press)
                         canUseTouchScreen() && styles.userSelectNone,
                         styles.flex1,
@@ -124,7 +127,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
                         return (
                             <Animated.View
-                                style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle]}
+                                style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}
                                 testID="fab-animated-container"
                             >
                                 <Svg

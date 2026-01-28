@@ -20,6 +20,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
         [SCREENS.TRACK_EXPENSE]: ROUTES.TRACK_EXPENSE,
         [SCREENS.SUBMIT_EXPENSE]: ROUTES.SUBMIT_EXPENSE,
+        [SCREENS.HOME]: ROUTES.HOME,
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
         [SCREENS.REPORT_ADD_ATTACHMENT]: ROUTES.REPORT_ADD_ATTACHMENT.route,
@@ -1152,6 +1153,33 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
                             path: ROUTES.RULES_PROHIBITED_DEFAULT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
+                            path: ROUTES.RULES_MERCHANT_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
+                            path: ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: {
+                            path: ROUTES.RULES_MERCHANT_MERCHANT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY]: {
+                            path: ROUTES.RULES_MERCHANT_CATEGORY.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_TAG]: {
+                            path: ROUTES.RULES_MERCHANT_TAG.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
+                            path: ROUTES.RULES_MERCHANT_TAX.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION]: {
+                            path: ROUTES.RULES_MERCHANT_DESCRIPTION.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE]: {
+                            path: ROUTES.RULES_MERCHANT_REIMBURSABLE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
+                            path: ROUTES.RULES_MERCHANT_BILLABLE.route,
+                        },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
                         },
@@ -1962,8 +1990,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
             path: ROUTES.ROOT,
             screens: {
-                [SCREENS.HOME]: {
-                    path: ROUTES.HOME,
+                [SCREENS.INBOX]: {
+                    path: ROUTES.INBOX,
                     exact: true,
                 },
                 [SCREENS.REPORT]: {
