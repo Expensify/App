@@ -1904,7 +1904,6 @@ const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
         total: 250,
         groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
         formattedWeek: 'Jan 25 - Jan 31, 2026',
-        sortKey: '2026-01-25',
         transactions: [],
         transactionsQueryJSON: undefined,
     },
@@ -1915,7 +1914,6 @@ const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
         total: 75,
         groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
         formattedWeek: 'Dec 28, 2025 - Jan 3, 2026',
-        sortKey: '2025-12-28',
         transactions: [],
         transactionsQueryJSON: undefined,
     },
@@ -2766,7 +2764,6 @@ describe('SearchUIUtils', () => {
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                 formattedWeek: 'Week of January 25, 2026',
-                sortKey: '2026-01-25',
                 transactions: [],
                 transactionsQueryJSON: undefined,
             };
@@ -2821,23 +2818,6 @@ describe('SearchUIUtils', () => {
             // Check that formatted week contains the start date
             expect(result.some((item) => item.formattedWeek.includes('Jan 25'))).toBe(true);
             expect(result.some((item) => item.formattedWeek.includes('Jun 15'))).toBe(true);
-        });
-
-        it('should calculate sortKey correctly for week groups', () => {
-            const [result] = SearchUIUtils.getSections({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                data: searchResultsGroupByWeek.data,
-                currentAccountID: 2074551,
-                currentUserEmail: '',
-                translate: translateLocal,
-                formatPhoneNumber,
-                bankAccountList: {},
-                groupBy: CONST.SEARCH.GROUP_BY.WEEK,
-            }) as [TransactionWeekGroupListItemType[], number];
-
-            expect(result).toHaveLength(2);
-            expect(result.some((item) => item.sortKey === '2026-01-25')).toBe(true);
-            expect(result.some((item) => item.sortKey === '2025-12-28')).toBe(true);
         });
 
         it('should return isTransactionCategoryGroupListItemType false for non-category group items', () => {

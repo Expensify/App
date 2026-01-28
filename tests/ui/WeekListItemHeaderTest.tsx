@@ -59,7 +59,6 @@ const createWeekListItem = (week: string, options: Partial<TransactionWeekGroupL
     transactions: [],
     transactionsQueryJSON: undefined,
     keyForList: `week-${week}`,
-    sortKey: options.sortKey ?? week,
     ...options,
 });
 
