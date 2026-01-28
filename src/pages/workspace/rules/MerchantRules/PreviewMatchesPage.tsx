@@ -1,4 +1,5 @@
-import {FlashList, ListRenderItem} from '@shopify/flash-list';
+import type {ListRenderItem} from '@shopify/flash-list';
+import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -6,9 +7,12 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
-import TotalCell from '@components/SelectionListWithSections/Search/TotalCell';
+import Text from '@components/Text';
+import CategoryCell from '@components/TransactionItemRow/DataCells/CategoryCell';
 import MerchantOrDescriptionCell from '@components/TransactionItemRow/DataCells/MerchantCell';
 import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
+import TagCell from '@components/TransactionItemRow/DataCells/TagCell';
+import TotalCell from '@components/TransactionItemRow/DataCells/TotalCell';
 import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isOpenExpenseReport} from '@libs/ReportUtils';
+import {getCreated, getMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,7 +56,8 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                 return matchingReports;
             }, new Set<string>());
         },
-        [policyID],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [policyID, merchant],
     );
 
     const [matchingReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: matchingReportIDsSelector});
@@ -67,8 +73,9 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
 
                 // This merchant matching logic should match
                 // https://github.com/Expensify/Web-Expensify/blob/fcdbe59e80ecaa4a63f0c4a2779b2aa6c9b1d165/lib/ExpenseRule.php#L54-L59
-                const transactionMerchant = (transaction?.modifiedMerchant ?? transaction?.merchant ?? '').replaceAll(/\s+/g, ' ');
-                const hasMatchingMerchant = new RegExp(merchant, 'i').test(transactionMerchant);
+                const targetMerchant = merchant.replaceAll(/\s+/g, ' ').toLowerCase();
+                const transactionMerchant = getMerchant(transaction)?.replaceAll(/\s+/g, ' ').toLowerCase();
+                const hasMatchingMerchant = new RegExp(targetMerchant, 'i').test(transactionMerchant);
 
                 if (hasMatchingMerchant) {
                     matchingTransactions.add(transaction);
@@ -94,10 +101,12 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const hasMatchingTransactions = !!merchant && !!matchingTransactionsArray.length;
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => {
-        const merchantOrDescription = !!item.modifiedMerchant || !!item.merchant || !!item.description;
+        const createdAt = getCreated(item);
+        const hasCategoryOrTag = !!item.category || !!item.tag;
+        const merchantOrDescription = getMerchant(item) ?? item.comment;
 
         return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.overflowHidden]}>
+            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.overflowHidden, styles.activeComponentBG]}>
                 <View style={[styles.flexRow]}>
                     <ReceiptCell
                         transactionItem={item}
@@ -107,20 +116,22 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                     <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                             <DateCell
+                                showTooltip
+                                isLargeScreenWidth={false}
                                 date={createdAt}
-                                showTooltip={shouldShowTooltip}
-                                isLargeScreenWidth={!shouldUseNarrowLayout}
                             />
                             <Text style={[styles.textMicroSupporting]}> • </Text>
                             <TypeCell
-                                transactionItem={transactionItem}
-                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                shouldShowTooltip
+                                shouldUseNarrowLayout
+                                transactionItem={item}
                             />
                             {!merchantOrDescription && (
                                 <View style={[styles.mlAuto]}>
                                     <TotalCell
-                                        transactionItem={transactionItem}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        shouldShowTooltip
+                                        shouldUseNarrowLayout
+                                        transactionItem={item}
                                     />
                                 </View>
                             )}
@@ -128,13 +139,15 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                         {!!merchantOrDescription && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                                 <MerchantOrDescriptionCell
+                                    shouldShowTooltip
+                                    shouldUseNarrowLayout
                                     merchantOrDescription={merchantOrDescription}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     isDescription={!merchant}
                                 />
                                 <TotalCell
-                                    transactionItem={transactionItem}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    shouldShowTooltip
+                                    shouldUseNarrowLayout
+                                    transactionItem={item}
                                 />
                             </View>
                         )}
@@ -142,17 +155,17 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                 </View>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                     <View style={[styles.flexColumn, styles.flex1]}>
-                        {hasCategoryOrTag && !isIOUReport(report) && (
+                        {hasCategoryOrTag && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
                                 <CategoryCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    shouldShowTooltip
+                                    shouldUseNarrowLayout
+                                    transactionItem={item}
                                 />
                                 <TagCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    shouldShowTooltip
+                                    shouldUseNarrowLayout
+                                    transactionItem={item}
                                 />
                             </View>
                         )}
@@ -192,6 +205,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                         data={matchingTransactionsArray}
                         renderItem={renderItem}
                         keyExtractor={keyExtractor}
+                        contentContainerStyle={[styles.mhn5]}
                         estimatedItemSize={64}
                     />
                 )}

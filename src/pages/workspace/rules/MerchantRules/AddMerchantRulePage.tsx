@@ -224,14 +224,12 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                         </View>
                     ))}
                 </ScrollView>
-                {!!form?.merchantToMatch && (
-                    <Button
-                        text={translate('workspace.rules.merchantRules.previewMatches')}
-                        style={[styles.mh4, styles.mt4]}
-                        large
-                        onPress={previewMatches}
-                    />
-                )}
+                <Button
+                    text={translate('workspace.rules.merchantRules.previewMatches')}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                    onPress={previewMatches}
+                />
                 <FormAlertWithSubmitButton
                     buttonText={translate('workspace.rules.merchantRules.saveRule')}
                     containerStyles={[styles.m4, styles.mb5]}
