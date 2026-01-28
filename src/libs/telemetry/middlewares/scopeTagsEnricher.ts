@@ -29,6 +29,9 @@ const scopeTagsEnricher: TelemetryBeforeSend = (event: TransactionEvent): Transa
             ...(scopeData.contexts?.[CONST.TELEMETRY.CONTEXT_POLICIES] && {
                 [CONST.TELEMETRY.CONTEXT_POLICIES]: scopeData.contexts[CONST.TELEMETRY.CONTEXT_POLICIES],
             }),
+            ...(scopeData.contexts?.[CONST.TELEMETRY.CONTEXT_MEMORY] && {
+                [CONST.TELEMETRY.CONTEXT_MEMORY]: scopeData.contexts[CONST.TELEMETRY.CONTEXT_MEMORY],
+            }),
         },
     };
 
