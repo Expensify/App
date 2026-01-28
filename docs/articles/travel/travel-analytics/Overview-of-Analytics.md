@@ -72,7 +72,7 @@ Most reports include a visual graph highlighting key metrics over time. Tile sum
 
 Admins can favorite specific Company Reports to make them easier to access in the future.
 
-Once a report is configured, click the **star** icon on the far right of the Report Filters. This adds the report to a **Favorites** category, visible in the left-hand menu.
+Once you've applied your desired filters to a report, click the **star** icon on the far right of the Report Filters. This adds the report to a **Favorites** category, visible in the left-hand menu.
 
 To remove a report from Favorites:
 1. Select the report under the **Favorites** category.
@@ -84,7 +84,7 @@ To remove a report from Favorites:
 
 Admins can schedule Company Reports to be automatically delivered on a recurring basis.
 
-Once a report is configured, click the **calendar** icon on the far right of the Report Filters and select **Create new schedule**.
+Once you've applied your desired filters to a report, click the **calendar** icon on the far right of the Report Filters and select **Create new schedule**.
 
 To set up a report schedule, fill in the following fields:
 - **Schedule name** – A descriptive name for easy identification.
