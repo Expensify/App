@@ -17,6 +17,7 @@ import Performance from '@libs/Performance';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -396,10 +397,24 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
         return Promise.resolve();
     }
+    
+    const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+    if (bootsplashSpan) {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            parentSpan: bootsplashSpan,
+        });
+    }
 
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments));
+        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments)).finally(() => {
+            if (!bootsplashSpan) {
+                return;
+            }
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+        });;
     });
 }
 
@@ -408,8 +423,22 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
+    const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+
+    if (bootsplashSpan) {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            parentSpan: bootsplashSpan,
+        });
+    }
+
     hasLoadedAppPromise.then(() => {
         if (!hasLoadedApp) {
+            // If app hasn't loaded yet, call openApp instead (which has its own span)
+            if (bootsplashSpan) {
+                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+            }
             openApp();
             return;
         }
@@ -420,18 +449,25 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-        getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-            const params: ReconnectAppParams = policyParams;
+        getPolicyParamsForOpenOrReconnect()
+            .then((policyParams) => {
+                const params: ReconnectAppParams = policyParams;
 
-            // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-            // Otherwise, a full set of app data will be returned.
-            if (updateIDFrom) {
-                params.updateIDFrom = updateIDFrom;
-            }
+                // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+                // Otherwise, a full set of app data will be returned.
+                if (updateIDFrom) {
+                    params.updateIDFrom = updateIDFrom;
+                }
 
-            const isFullReconnect = !updateIDFrom;
-            API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
-        });
+                const isFullReconnect = !updateIDFrom;
+                return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
+            })
+            .finally(() => {
+                if (!bootsplashSpan) {
+                    return;
+                }
+                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+            });
     });
 }
 
@@ -688,7 +724,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             if (shouldNavigateToHomepage) {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             }
 
             if (preservedUserSession) {

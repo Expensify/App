@@ -83,7 +83,7 @@ function SecondaryOverlay() {
     return null;
 }
 
-const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/home/RHPReportScreen').default;
+const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
@@ -185,6 +185,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         screenListeners={screenListeners}
                         id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     >
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_ROUTER}
+                            component={ModalStackNavigators.SearchRouterModalStackNavigator}
+                        />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SETTINGS}
                             component={ModalStackNavigators.SettingsModalStackNavigator}
