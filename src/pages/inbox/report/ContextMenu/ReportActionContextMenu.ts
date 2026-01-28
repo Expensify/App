@@ -58,7 +58,7 @@ type HideContextMenu = (params?: HideContextMenuParams) => void;
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
     hideContextMenu: HideContextMenu;
-    showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
+    showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => Promise<void>;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
     instanceIDRef: RefObject<string>;
@@ -157,11 +157,11 @@ function hideDeleteModal() {
 /**
  * Opens the Confirm delete action modal
  */
-function showDeleteModal(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) {
+async function showDeleteModal(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) {
     if (!contextMenuRef.current || !reportID) {
         return;
     }
-    contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
+    await contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
 }
 
 /**
