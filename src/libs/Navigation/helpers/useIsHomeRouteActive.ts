@@ -11,7 +11,7 @@ function useIsHomeRouteActive(isNarrowLayout: boolean) {
     const navigationState = useRootNavigationState((x) => x);
 
     if (isNarrowLayout) {
-        return focusedRoute?.name === SCREENS.HOME;
+        return focusedRoute?.name === SCREENS.INBOX;
     }
 
     // On full width screens HOME is always a sidebar to the Reports Screen

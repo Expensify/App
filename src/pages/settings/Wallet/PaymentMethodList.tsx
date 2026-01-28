@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {filterPersonalCards} from '@selectors/Card';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement} from 'react';
@@ -21,7 +22,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
-    filterPersonalCards,
     getAssignedCardSortKey,
     getCardFeedIcon,
     getCompanyCardFeedWithDomainID,
