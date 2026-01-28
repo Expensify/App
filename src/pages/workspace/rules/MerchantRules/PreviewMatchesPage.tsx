@@ -3,6 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -38,9 +39,13 @@ const merchantRuleFormSelector = (form: OnyxEntry<MerchantRuleForm>) => form?.me
 
 function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const policyID = route.params.policyID;
+
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+
+    const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW, {canBeMissing: true});
     const [merchant = ''] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true, selector: merchantRuleFormSelector});
 
     const matchingReportIDsSelector = useCallback(
@@ -99,7 +104,10 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     };
 
     const matchingTransactionsArray = Array.from(matchingTransactions ?? []);
-    const hasMatchingTransactions = !!merchant && !!matchingTransactionsArray.length;
+    const hasMatchingTransactions = !!(merchant && matchingTransactionsArray.length);
+
+    const isLoadedAndEmpty = !isLoading && !hasMatchingTransactions;
+    const isLoadedWithTransactions = !isLoading && hasMatchingTransactions;
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => {
         const createdAt = getCreated(item);
@@ -190,7 +198,17 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                 onBackButtonPress={onBack}
             />
             <View style={[styles.flex1]}>
-                {!hasMatchingTransactions && (
+                {!!isLoading && (
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <ActivityIndicator
+                            color={theme.spinner}
+                            size={25}
+                            style={[styles.pl3]}
+                        />
+                    </View>
+                )}
+
+                {isLoadedAndEmpty && (
                     <BlockingView
                         icon={illustrations.Telescope}
                         iconWidth={variables.emptyListIconWidth}
@@ -201,7 +219,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                     />
                 )}
 
-                {hasMatchingTransactions && (
+                {isLoadedWithTransactions && (
                     <FlashList
                         data={matchingTransactionsArray}
                         renderItem={renderItem}
