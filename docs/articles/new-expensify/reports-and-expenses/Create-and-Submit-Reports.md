@@ -24,7 +24,7 @@ Follow these steps to build and submit an expense report manually.
 
 ## Step 2: Add expenses to the report
 
-Inside the draft report, tap **Add expense** to include expense items.
+Inside the draft report, click **More** then **Add expense** to include expense items.
 
 **Option A:** Create a new expense:
 
