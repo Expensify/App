@@ -11,7 +11,7 @@ import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import PureReportActionItem from '@pages/home/report/PureReportActionItem';
+import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
