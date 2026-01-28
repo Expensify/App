@@ -1,25 +1,45 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type SwitchReportEventData = {
+    preexistingReportID: string;
+    reportToCopyDraftTo: string;
+    callback: () => void;
+};
+
+const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
 const mockIsReady = jest.fn(() => false);
 const mockGetActiveRoute = jest.fn(() => '');
+const mockGetCurrentRoute = jest.fn(() => undefined as {name: string; params: Record<string, unknown>} | undefined);
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-    setParams: jest.fn(),
+    navigate: (...args: unknown[]) => mockNavigate(...args) as void,
+    setParams: (...args: unknown[]) => mockSetParams(...args) as void,
     getActiveRoute: () => mockGetActiveRoute(),
     navigationRef: {
         isReady: () => mockIsReady(),
-        getCurrentRoute: jest.fn(),
+        getCurrentRoute: () => mockGetCurrentRoute(),
     },
 }));
+
+const mockOpenReport = jest.fn();
+jest.mock('@src/libs/actions/Report', () => {
+    const originalModule = jest.requireActual('@src/libs/actions/Report');
+    return {
+        ...originalModule,
+        openReport: (...args: unknown[]) => mockOpenReport(...args) as void,
+    };
+});
 
 describe('replaceOptimisticReportWithActualReport', () => {
     beforeAll(() => {
@@ -34,6 +54,10 @@ describe('replaceOptimisticReportWithActualReport', () => {
         // Reset navigation mocks to default values
         mockIsReady.mockReturnValue(false);
         mockGetActiveRoute.mockReturnValue('');
+        mockGetCurrentRoute.mockReturnValue(undefined);
+        mockNavigate.mockClear();
+        mockSetParams.mockClear();
+        mockOpenReport.mockClear();
     });
 
     it('should do nothing if reportID is missing', async () => {
@@ -60,6 +84,36 @@ describe('replaceOptimisticReportWithActualReport', () => {
 
         const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}1`);
         expect(updatedReport).toBeUndefined();
+    });
+
+    it('should be triggered automatically when report with preexistingReportID is set in Onyx', async () => {
+        // Given a preexisting report already in Onyx
+        const reportID = '1';
+        const preexistingReportID = '2';
+
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
+        existingReport.reportID = preexistingReportID;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await waitForBatchedUpdates();
+
+        // When an optimistic report with preexistingReportID is set in Onyx
+        const optimisticReport = createRandomReport(Number(reportID), undefined);
+        optimisticReport.reportID = reportID;
+        optimisticReport.preexistingReportID = preexistingReportID;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        // Then the replacement should happen automatically via Onyx callback
+        const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(deletedReport).toBeFalsy();
+
+        // And the preexisting report should be updated with cleared preexistingReportID
+        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
+        expect(updatedReport).toBeDefined();
+        expect(updatedReport?.reportID).toBe(preexistingReportID);
+        expect(updatedReport?.preexistingReportID).toBeFalsy();
     });
 
     it('should clean up stale optimistic IOU report and its report preview', async () => {
@@ -164,6 +218,96 @@ describe('replaceOptimisticReportWithActualReport', () => {
         // Verify preexisting report uses optimistic report's participants when existing has none
         const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
         expect(updatedReport?.participants).toEqual(optimisticReport.participants);
+    });
+
+    it('should handle preexistingReportID for DM/group-DM and preserve participants', async () => {
+        // Given an optimistic DM report without parent action
+        const reportID = '1';
+        const preexistingReportID = '2';
+        const user1AccountID = 100;
+        const user2AccountID = 200;
+
+        const optimisticReport = createRandomReport(Number(reportID), undefined);
+        optimisticReport.reportID = reportID;
+        optimisticReport.preexistingReportID = preexistingReportID;
+        optimisticReport.type = CONST.REPORT.TYPE.CHAT;
+        optimisticReport.participants = {
+            [user1AccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            [user2AccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+        };
+
+        optimisticReport.parentReportActionID = undefined;
+
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
+        existingReport.reportID = preexistingReportID;
+        existingReport.type = CONST.REPORT.TYPE.CHAT;
+        existingReport.participants = {
+            [user1AccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY},
+            [user2AccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE},
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+
+        await waitForBatchedUpdates();
+
+        // Then the optimistic report should be cleared
+        const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(deletedReport).toBeFalsy();
+
+        // And the preexisting report should preserve existing participants
+        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
+        expect(updatedReport?.participants).toEqual(existingReport.participants);
+        expect(updatedReport?.preexistingReportID).toBeFalsy();
+    });
+
+    it('should merge preexisting report data correctly', async () => {
+        // Given an optimistic report and a preexisting report with different data
+        const reportID = '1';
+        const preexistingReportID = '2';
+        const accountID = 100;
+
+        const optimisticReport = createRandomReport(Number(reportID), undefined);
+        optimisticReport.reportID = reportID;
+        optimisticReport.preexistingReportID = preexistingReportID;
+        optimisticReport.reportName = 'Optimistic Chat';
+        optimisticReport.lastReadTime = '2026-01-27T10:00:00Z';
+        optimisticReport.lastVisibleActionCreated = '2026-01-27T10:00:00Z';
+
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
+        existingReport.reportID = preexistingReportID;
+        existingReport.reportName = 'Original Chat';
+        existingReport.lastReadTime = '2026-01-20T10:00:00Z';
+        existingReport.lastVisibleActionCreated = '2026-01-20T10:00:00Z';
+        existingReport.participants = {[accountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+
+        await waitForBatchedUpdates();
+
+        // Then the preexisting report should be updated with optimistic report data
+        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
+
+        // Report ID should be the preexisting one
+        expect(updatedReport?.reportID).toBe(preexistingReportID);
+
+        // preexistingReportID should be cleared
+        expect(updatedReport?.preexistingReportID).toBeFalsy();
+
+        // Participants should be preserved from the existing report
+        expect(updatedReport?.participants).toEqual(existingReport.participants);
+
+        // Other data from the optimistic report should be merged
+        expect(updatedReport?.reportName).toBe(optimisticReport.reportName);
     });
 
     it('should handle preexistingReportID for one-transaction report', async () => {
@@ -372,6 +516,40 @@ describe('replaceOptimisticReportWithActualReport', () => {
         expect(parentChatReportActions?.['1']?.childReportID).toBe(preexistingReportID);
     });
 
+    it('should transfer draft comment to preexisting report when the user is not on the report', async () => {
+        // Given an optimistic DM report with a draft comment and user on a different report
+        const reportID = '1';
+        const preexistingReportID = '2';
+        const draftComment = 'This is a draft message';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue('/r/999');
+
+        const optimisticReport = createRandomReport(Number(reportID), undefined);
+        optimisticReport.reportID = reportID;
+        optimisticReport.preexistingReportID = preexistingReportID;
+
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
+        existingReport.reportID = preexistingReportID;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called with a draft comment
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+
+        await waitForBatchedUpdates();
+
+        // Then the draft comment should be transferred to the preexisting report
+        const preexistingDraftComment = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${preexistingReportID}`);
+        expect(preexistingDraftComment).toBe(draftComment);
+
+        // And the optimistic report should be cleared
+        const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(deletedReport).toBeFalsy();
+    });
+
     it('should transfer draft comment to preexisting thread report for transaction thread', async () => {
         // Given an optimistic transaction thread with a parent IOU report
         const iouReportID = '9999';
@@ -444,27 +622,40 @@ describe('replaceOptimisticReportWithActualReport', () => {
         expect(deletedReport).toBeFalsy();
     });
 
-    it('should transfer draft comment to preexisting report when the user is not on the report', async () => {
-        // Given an optimistic DM report with a draft comment
-        const reportID = '1';
-        const preexistingReportID = '2';
-        const draftComment = 'This is a draft message';
+    it('should transfer draft comment to parent IOU report for one-transaction report when user is not on report', async () => {
+        // Given an optimistic transaction thread under a one-transaction IOU report with user on a different report
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const draftComment = 'Draft for one-transaction thread';
 
-        // Mock navigation to be ready
         mockIsReady.mockReturnValue(true);
-
-        // User is on a different report
         mockGetActiveRoute.mockReturnValue('/r/999');
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
 
-        const optimisticReport = createRandomReport(Number(reportID), undefined);
-        optimisticReport.reportID = reportID;
-        optimisticReport.preexistingReportID = preexistingReportID;
+        const reportActionID = '1';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 1,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+            },
+        });
 
-        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
-        existingReport.reportID = preexistingReportID;
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called with a draft comment
@@ -472,13 +663,13 @@ describe('replaceOptimisticReportWithActualReport', () => {
 
         await waitForBatchedUpdates();
 
-        // Then the draft comment should be transferred to the preexisting report
-        const preexistingDraftComment = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${preexistingReportID}`);
-        expect(preexistingDraftComment).toBe(draftComment);
+        // Then the draft comment should be transferred to the parent IOU report
+        const parentDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${iouReportID}`);
+        expect(parentDraft).toBe(draftComment);
 
-        // And the optimistic report should be cleared
-        const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-        expect(deletedReport).toBeFalsy();
+        // And the preexisting thread should NOT have the draft
+        const preexistingDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${preexistingReportID}`);
+        expect(preexistingDraft).toBeFalsy();
     });
 
     it('should clear optimistic report draft comment after transfer', async () => {
@@ -499,104 +690,543 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, draftComment);
         await waitForBatchedUpdates();
 
-        // When replaceOptimisticReportWithActualReport is called
+        // When replaceOptimisticReportWithActualReport is called with the draft comment
         replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
 
         await waitForBatchedUpdates();
 
-        // Then the optimistic report's draft comment should be cleared
+        // Then the optimistic report's draft comment should be cleared from Onyx
         const optimisticDraftComment = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
         expect(optimisticDraftComment).toBeFalsy();
     });
 
-    it('should handle preexistingReportID for DM/group-DM (no parent action) and preserve participants', async () => {
-        // Given an optimistic DM report without parent action
+    it('should navigate to preexisting report when user is focused on optimistic DM report', async () => {
+        // Given an optimistic DM report with the user currently viewing it
         const reportID = '1';
         const preexistingReportID = '2';
-        const user1AccountID = 100;
-        const user2AccountID = 200;
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/r/${reportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
 
         const optimisticReport = createRandomReport(Number(reportID), undefined);
         optimisticReport.reportID = reportID;
         optimisticReport.preexistingReportID = preexistingReportID;
-        optimisticReport.type = CONST.REPORT.TYPE.CHAT;
-        optimisticReport.participants = {
-            [user1AccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            [user2AccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        };
-
-        // No parent action for DM
-        optimisticReport.parentReportActionID = undefined;
 
         const existingReport = createRandomReport(Number(preexistingReportID), undefined);
         existingReport.reportID = preexistingReportID;
-        existingReport.type = CONST.REPORT.TYPE.CHAT;
-        existingReport.participants = {
-            [user1AccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY},
-            [user2AccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE},
-        };
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
         await waitForBatchedUpdates();
 
+        const eventCallback = jest.fn();
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, eventCallback);
+
         // When replaceOptimisticReportWithActualReport is called
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
-
         await waitForBatchedUpdates();
 
-        // Then the optimistic report should be cleared
+        // Then the switchToPreExistingReport event should be emitted
+        expect(eventCallback).toHaveBeenCalled();
+        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
+        expect(eventData).toMatchObject({
+            preexistingReportID,
+            reportToCopyDraftTo: preexistingReportID,
+        });
+
+        // And when the callback is executed (simulating ComposerWithSuggestions behavior)
+        eventData.callback();
+        await waitForBatchedUpdates();
+
+        // Then the navigation should update to the preexisting report
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: preexistingReportID});
+
+        subscription.remove();
+    });
+
+    it('should navigate to parent IOU report when user is focused on transaction thread of one-transaction report', async () => {
+        // Given an optimistic transaction thread under a one-transaction IOU report with the user viewing it
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/r/${optimisticReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
+
+        const iouReportAction = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: 'trans123',
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 1,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [iouReportAction.reportActionID]: iouReportAction,
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: '1',
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        const eventCallback = jest.fn();
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, eventCallback);
+
+        // When replaceOptimisticReportWithActualReport is called and the callback is executed
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
+        eventData.callback();
+        await waitForBatchedUpdates();
+
+        // Then the navigation should go to the parent IOU report, not the preexisting thread
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: iouReportID});
+
+        subscription.remove();
+    });
+
+    it('should navigate to preexisting thread when user is focused on thread under comment', async () => {
+        // Given an optimistic thread under a chat comment with the user viewing it
+        const chatReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const reportActionID = '1';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/r/${optimisticReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                childReportID: optimisticReportID,
+            },
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: chatReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        const eventCallback = jest.fn();
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, eventCallback);
+
+        // When replaceOptimisticReportWithActualReport is called and the callback is executed
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
+        eventData.callback();
+        await waitForBatchedUpdates();
+
+        // Then the navigation should go to the preexisting thread
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: preexistingReportID});
+
+        subscription.remove();
+    });
+
+    it('should navigate to preexisting thread when user is focused on transaction thread of multi-transaction report', async () => {
+        // Given an optimistic transaction thread under a multi-transaction IOU report with the user viewing it
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/r/${optimisticReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
+
+        const reportActionID1 = '1';
+        const reportActionID2 = '2';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 2,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID1]: {
+                reportActionID: reportActionID1,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans1'},
+            },
+            [reportActionID2]: {
+                reportActionID: reportActionID2,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans2'},
+            },
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: '1',
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        const eventCallback = jest.fn();
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, eventCallback);
+
+        // When replaceOptimisticReportWithActualReport is called and the callback is executed
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
+        eventData.callback();
+        await waitForBatchedUpdates();
+
+        // Then the navigation should go to the preexisting thread, NOT the parent IOU report
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: preexistingReportID});
+
+        subscription.remove();
+    });
+
+    it('should update backTo route when optimistic report is in background on expense report screen', async () => {
+        // Given an optimistic report in the background while user is on expense report screen with backTo pointing to it
+        const reportID = '1';
+        const preexistingReportID = '2';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue('/e/999');
+        mockGetCurrentRoute.mockReturnValue({
+            name: SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            params: {backTo: `/r/${reportID}`},
+        });
+
+        const optimisticReport = createRandomReport(Number(reportID), undefined);
+        optimisticReport.reportID = reportID;
+        optimisticReport.preexistingReportID = preexistingReportID;
+
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
+        existingReport.reportID = preexistingReportID;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await waitForBatchedUpdates();
+
+        const eventCallback = jest.fn();
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, eventCallback);
+
+        // When replaceOptimisticReportWithActualReport is called and the callback is executed
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
+        eventData.callback();
+        await waitForBatchedUpdates();
+
+        // Then the navigation should update the backTo route with the preexisting report ID
+        expect(mockNavigate).toHaveBeenCalledWith(`/r/${preexistingReportID}`);
+
+        subscription.remove();
+    });
+
+    it('should emit event with parent report as reportToCopyDraftTo for one-transaction report', async () => {
+        // Given an optimistic transaction thread under a one-transaction IOU report with the user viewing it
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const reportActionID = '1';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/r/${optimisticReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 1,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+            },
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        const eventCallback = jest.fn();
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, eventCallback);
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        // Then the emitted event should have the parent IOU report as reportToCopyDraftTo
+        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
+        expect(eventData.reportToCopyDraftTo).toBe(iouReportID);
+
+        subscription.remove();
+    });
+
+    it('should NOT emit switchToPreExistingReport event when user is not on optimistic report', async () => {
+        // Given an optimistic report with the user on a completely different report
+        const reportID = '1';
+        const preexistingReportID = '2';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue('/r/999');
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
+
+        const optimisticReport = createRandomReport(Number(reportID), undefined);
+        optimisticReport.reportID = reportID;
+        optimisticReport.preexistingReportID = preexistingReportID;
+
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
+        existingReport.reportID = preexistingReportID;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await waitForBatchedUpdates();
+
+        const eventCallback = jest.fn();
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, eventCallback);
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        // Then the switchToPreExistingReport event should NOT be emitted
+        expect(eventCallback).not.toHaveBeenCalled();
+
+        // But the optimistic report should still be cleared
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         expect(deletedReport).toBeFalsy();
 
-        // And the preexisting report should preserve existing participants (not use optimistic ones)
-        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
-        expect(updatedReport?.participants).toEqual(existingReport.participants);
-        expect(updatedReport?.preexistingReportID).toBeFalsy();
+        subscription.remove();
     });
 
-    it('should merge preexisting report data correctly', async () => {
-        // Given an optimistic report and a preexisting report with different data
-        const reportID = '1';
-        const preexistingReportID = '2';
-        const accountID = 100;
+    it('should call openReport when user is already on parent one expense report', async () => {
+        // Given an optimistic transaction thread under a one-transaction IOU report with the user on the parent IOU report
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
 
-        const optimisticReport = createRandomReport(Number(reportID), undefined);
-        optimisticReport.reportID = reportID;
-        optimisticReport.preexistingReportID = preexistingReportID;
-        optimisticReport.reportName = 'Optimistic Chat';
-        optimisticReport.lastReadTime = '2026-01-27T10:00:00Z';
-        optimisticReport.lastVisibleActionCreated = '2026-01-27T10:00:00Z';
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/r/${iouReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
 
-        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
-        existingReport.reportID = preexistingReportID;
-        existingReport.reportName = 'Original Chat';
-        existingReport.lastReadTime = '2026-01-20T10:00:00Z';
-        existingReport.lastVisibleActionCreated = '2026-01-20T10:00:00Z';
-        existingReport.participants = {[accountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}};
+        const reportActionID = '1';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 1,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+            },
+        });
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
-
         await waitForBatchedUpdates();
 
-        // Then the preexisting report should be updated with optimistic report data
-        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
+        // Then openReport should be called with the parent IOU report ID
+        expect(mockOpenReport).toHaveBeenCalledWith(iouReportID);
 
-        // Report ID should be the preexisting one
-        expect(updatedReport?.reportID).toBe(preexistingReportID);
+        // And the optimistic report should be cleared
+        const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        expect(deletedReport).toBeFalsy();
+    });
 
-        // preexistingReportID should be cleared
-        expect(updatedReport?.preexistingReportID).toBeFalsy();
+    it('should transfer draft to parent IOU report and call openReport when user is already on parent one expense report', async () => {
+        // Given an optimistic transaction thread with a draft comment under a one-transaction IOU report with the user on the parent
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const draftComment = 'Draft while on parent report';
 
-        // Participants should be preserved from the existing report
-        expect(updatedReport?.participants).toEqual(existingReport.participants);
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/r/${iouReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
 
-        // Other data from the optimistic report should be merged
-        expect(updatedReport?.reportName).toBe(optimisticReport.reportName);
+        const reportActionID = '1';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 1,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+            },
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called with a draft comment
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+        await waitForBatchedUpdates();
+
+        // Then the draft should be transferred to the parent IOU report
+        const parentDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${iouReportID}`);
+        expect(parentDraft).toBe(draftComment);
+
+        // And openReport should be called after the draft is saved
+        expect(mockOpenReport).toHaveBeenCalledWith(iouReportID);
+
+        // And the optimistic report should be cleared
+        const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        expect(deletedReport).toBeFalsy();
+    });
+
+    it('should call openReport when user is on search report view of parent one expense report', async () => {
+        // Given an optimistic transaction thread under a one-transaction IOU report with the user on the search report view
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/search/view/${iouReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.SEARCH.MONEY_REQUEST_REPORT, params: {}});
+
+        const reportActionID = '1';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 1,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+            },
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        // Then openReport should be called with the parent IOU report ID
+        expect(mockOpenReport).toHaveBeenCalledWith(iouReportID);
+    });
+
+    it('should transfer draft to parent IOU report and call openReport when user is on search report view with draft comment', async () => {
+        // Given an optimistic transaction thread with a draft comment under a one-transaction IOU report with the user on search view
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const draftComment = 'Draft while on search view';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(`/search/view/${iouReportID}`);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.SEARCH.MONEY_REQUEST_REPORT, params: {}});
+
+        const reportActionID = '1';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 1,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+            },
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called with a draft comment
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+        await waitForBatchedUpdates();
+
+        // Then the draft should be transferred to the parent IOU report
+        const parentDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${iouReportID}`);
+        expect(parentDraft).toBe(draftComment);
+
+        // And openReport should be called after the draft is saved
+        expect(mockOpenReport).toHaveBeenCalledWith(iouReportID);
+
+        // And the optimistic report should be cleared
+        const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        expect(deletedReport).toBeFalsy();
     });
 });
