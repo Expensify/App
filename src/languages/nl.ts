@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nieuwe functie',
         month: 'Maand',
         home: 'Start',
+        week: 'Week',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -6973,6 +6974,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Verkoper',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Label',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
             },
             feed: 'Feed',
             withdrawalType: {

@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nuova funzionalità',
         month: 'Mese',
         home: 'Home',
+        week: 'Settimana',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6990,6 +6991,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerciante',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
             },
             feed: 'Feed',
             withdrawalType: {
