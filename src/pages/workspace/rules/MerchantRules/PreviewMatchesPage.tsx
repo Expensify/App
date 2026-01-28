@@ -5,6 +5,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import DateCell from '@components/SelectionListWithSections/Search/DateCell';
+import TotalCell from '@components/SelectionListWithSections/Search/TotalCell';
+import MerchantOrDescriptionCell from '@components/TransactionItemRow/DataCells/MerchantCell';
+import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
+import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -88,7 +93,74 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const matchingTransactionsArray = Array.from(matchingTransactions ?? []);
     const hasMatchingTransactions = !!merchant && !!matchingTransactionsArray.length;
 
-    const renderItem: ListRenderItem<Transaction> = ({}) => <View></View>;
+    const renderItem: ListRenderItem<Transaction> = ({item}) => {
+        const merchantOrDescription = !!item.modifiedMerchant || !!item.merchant || !!item.description;
+
+        return (
+            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.overflowHidden]}>
+                <View style={[styles.flexRow]}>
+                    <ReceiptCell
+                        transactionItem={item}
+                        style={styles.mr3}
+                        isSelected={false}
+                    />
+                    <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
+                            <DateCell
+                                date={createdAt}
+                                showTooltip={shouldShowTooltip}
+                                isLargeScreenWidth={!shouldUseNarrowLayout}
+                            />
+                            <Text style={[styles.textMicroSupporting]}> • </Text>
+                            <TypeCell
+                                transactionItem={transactionItem}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                            {!merchantOrDescription && (
+                                <View style={[styles.mlAuto]}>
+                                    <TotalCell
+                                        transactionItem={transactionItem}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                </View>
+                            )}
+                        </View>
+                        {!!merchantOrDescription && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                <MerchantOrDescriptionCell
+                                    merchantOrDescription={merchantOrDescription}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    isDescription={!merchant}
+                                />
+                                <TotalCell
+                                    transactionItem={transactionItem}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
+                        )}
+                    </View>
+                </View>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
+                    <View style={[styles.flexColumn, styles.flex1]}>
+                        {hasCategoryOrTag && !isIOUReport(report) && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
+                                <CategoryCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                                <TagCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
+                        )}
+                    </View>
+                </View>
+            </View>
+        );
+    };
 
     const keyExtractor = (item: Transaction) => item.transactionID;
 
