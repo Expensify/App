@@ -2962,6 +2962,52 @@ describe('SearchUIUtils', () => {
             expect(emptyMerchantItem?.transactionsQueryJSON?.inputQuery).toContain(CONST.SEARCH.MERCHANT_EMPTY_VALUE);
         });
 
+        it('should treat DEFAULT_MERCHANT "Expense" as empty merchant and display "No merchant"', () => {
+            const dataWithDefaultMerchant: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}default` as const]: {
+                    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT, // 'Expense'
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithDefaultMerchant,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                queryJSON: {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    status: '',
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    view: CONST.SEARCH.VIEW.TABLE,
+                    hash: 12345,
+                    flatFilters: [],
+                    inputQuery: 'type:expense groupBy:merchant',
+                    recentSearchHash: 12345,
+                    similarSearchHash: 12345,
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                        right: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    },
+                },
+            }) as [TransactionMerchantGroupListItemType[], number];
+
+            expect(result).toHaveLength(1);
+            // The merchant field keeps the original value for query purposes
+            expect(result.at(0)?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+            // But formattedMerchant should be "No merchant" for display
+            expect(result.at(0)?.formattedMerchant).toBe('No merchant');
+        });
+
         it('should return isTransactionMerchantGroupListItemType true for merchant group items', () => {
             const merchantItem: TransactionMerchantGroupListItemType = {
                 merchant: 'Starbucks',

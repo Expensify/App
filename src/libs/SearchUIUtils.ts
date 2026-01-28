@@ -2277,8 +2277,9 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
             }
 
             // Format the merchant name - use translated "No merchant" for empty values so it sorts alphabetically
+            // Also treat TRANSACTION.DEFAULT_MERCHANT ('Expense') as empty since it's a system default
             const rawMerchant = merchantGroup.merchant;
-            const isEmptyMerchant = !rawMerchant || rawMerchant === CONST.SEARCH.MERCHANT_EMPTY_VALUE;
+            const isEmptyMerchant = !rawMerchant || rawMerchant === CONST.SEARCH.MERCHANT_EMPTY_VALUE || rawMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
             const formattedMerchant = isEmptyMerchant ? translate('search.noMerchant') : rawMerchant;
 
             merchantSections[key] = {
