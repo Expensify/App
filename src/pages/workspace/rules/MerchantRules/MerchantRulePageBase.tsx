@@ -88,8 +88,11 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!isEditing || !existingRule) {
             return;
         }
+        // Map the operator to match type: 'matches' is exact, 'eq' (or anything else) is contains
+        const matchType = existingRule.filters?.operator === 'matches' ? CONST.MERCHANT_RULES.MATCH_TYPE.EXACT : CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS;
         setDraftMerchantRule({
             merchantToMatch: existingRule.filters?.right,
+            matchType,
             merchant: existingRule.merchant,
             category: existingRule.category,
             tag: existingRule.tag,

@@ -72,6 +72,14 @@ function openPolicyRulesPage(policyID: string | undefined) {
  * @param ruleID - Optional existing rule ID for updates
  * @param shouldUpdateMatchingTransactions - Whether to update transactions that match the rule
  */
+/**
+ * Gets the filter operator based on the match type
+ * 'eq' is used for "contains" matching, 'matches' is used for "exact" matching
+ */
+function getOperatorFromMatchType(matchType: string | undefined): string {
+    return matchType === CONST.MERCHANT_RULES.MATCH_TYPE.EXACT ? 'matches' : 'eq';
+}
+
 function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: Policy | undefined, ruleID?: string, shouldUpdateMatchingTransactions = false) {
     if (!policyID || !form.merchantToMatch) {
         Log.warn('Invalid params for setPolicyCodingRule', {policyID, merchantToMatch: form.merchantToMatch});
@@ -81,6 +89,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     const isEditing = !!ruleID;
     const existingRule = isEditing ? policy?.rules?.codingRules?.[ruleID] : undefined;
     const ruleFields = mapFormFieldsToRule(form, policy);
+    const operator = getOperatorFromMatchType(form.matchType);
 
     // When editing, use the existing rule and merge updated fields; when adding, create a new rule
     const targetRuleID = ruleID ?? NumberUtils.rand64();
@@ -91,6 +100,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                   ...ruleFields,
                   filters: {
                       ...existingRule.filters,
+                      operator,
                       right: form.merchantToMatch,
                   },
               }
@@ -98,7 +108,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                   ruleID: targetRuleID,
                   filters: {
                       left: 'merchant',
-                      operator: 'eq',
+                      operator,
                       right: form.merchantToMatch,
                   },
                   ...ruleFields,
