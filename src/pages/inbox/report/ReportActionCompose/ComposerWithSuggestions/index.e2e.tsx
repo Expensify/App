@@ -2,7 +2,7 @@ import React, {useCallback, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
-import type {ComposerRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
+import type {ComposerRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 

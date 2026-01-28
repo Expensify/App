@@ -1,5 +1,5 @@
 import React, {useCallback, useRef} from 'react';
-import FloatingActionButtonAndPopover from '@pages/home/sidebar/FloatingActionButtonAndPopover';
+import FloatingActionButtonAndPopover from '@pages/inbox/sidebar/FloatingActionButtonAndPopover';
 import type FloatingActionButtonPopoverMenuRef from './types';
 
 function NavigationTabBarFloatingActionButton() {
