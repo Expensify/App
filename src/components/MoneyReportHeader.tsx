@@ -487,7 +487,7 @@ function MoneyReportHeader({
         hasDuplicates ||
         shouldShowMarkAsResolved;
 
-    let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy);
+    let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy, allTransactionViolations, email ?? '', accountID);
 
     // Check for DEW submit failed or pending - show appropriate next step
     if (isDEWBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {

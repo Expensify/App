@@ -441,10 +441,6 @@ function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>)
     );
 }
 
-function isPendingCardOrIncompleteTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || (isAmountMissing(transaction) && isMerchantMissing(transaction));
-}
-
 /**
  * Optimistically generate a transaction.
  *
@@ -2846,7 +2842,6 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
-    isPendingCardOrIncompleteTransaction,
     hasTransactionBeenRejected,
     isExpenseSplit,
     getAttendeesListDisplayString,

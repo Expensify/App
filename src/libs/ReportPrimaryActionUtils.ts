@@ -45,7 +45,6 @@ import {
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
-    isPendingCardOrIncompleteTransaction,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -104,7 +103,12 @@ function isSubmitAction(
     }
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
+    if (
+        reportTransactions.length > 0 &&
+        reportTransactions.every((transaction) =>
+            hasSubmissionBlockingViolations(transaction, violations, currentUserEmail ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy),
+        )
+    ) {
         return false;
     }
 

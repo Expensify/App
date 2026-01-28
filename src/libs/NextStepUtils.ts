@@ -1,10 +1,10 @@
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -24,7 +24,7 @@ import {
     isPayer,
     isReportOwner,
 } from './ReportUtils';
-import {isPendingCardOrIncompleteTransaction} from './TransactionUtils';
+import {hasSubmissionBlockingViolations} from './TransactionUtils';
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -364,10 +364,19 @@ function getReportNextStep(
     moneyRequestReport: OnyxEntry<Report>,
     transactions: Array<OnyxEntry<Transaction>>,
     policy: OnyxEntry<Policy>,
+    transactionViolations: OnyxCollection<TransactionViolations>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
 ) {
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
 
-    if (isOpenExpenseReport(moneyRequestReport) && transactions.length > 0 && transactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
+    if (
+        isOpenExpenseReport(moneyRequestReport) &&
+        transactions.length > 0 &&
+        transactions.every(
+            (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
+        )
+    ) {
         return buildOptimisticFixIssueNextStep();
     }
 
