@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -634,6 +636,8 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: '洞察',
         duplicateExpense: '重复报销',
         newFeature: '新功能',
+        month: '月',
+        home: '首页',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -754,6 +758,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: '使用您的脸部或指纹启用快速安全验证。无需密码或代码。',
+        },
+        revoke: {
+            revoke: '撤销',
+            title: '面容/指纹和通行密钥',
+            explanation: '在一台或多台设备上已启用面部/指纹或通行密钥验证。撤销访问权限后，下一次在任意设备上进行验证时都需要输入魔法验证码',
+            confirmationPrompt: '你确定吗？在任何设备上进行下一步验证时，你都需要一个魔法代码',
+            cta: '撤销访问权限',
+            noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。如果您注册了设备，您将可以在此撤销其访问权限。',
+            dismiss: '知道了',
+            error: '请求失败。请稍后再试。',
         },
     },
     validateCodeModal: {
@@ -1459,6 +1473,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: '修复里程费率错误后请重试。',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>解释</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”';
+                }
+                if (key === 'billable') {
+                    return value ? '将该报销标记为“可向客户收费”' : '已将该报销标记为“不可计费”';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `将税率设置为“${taxRateName}”`;
+                    }
+                    return `税率为“${taxRateName}”`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `将 ${translations.common[key].toLowerCase()} 设置为 “${updatedValue}”`;
+                }
+                return `${translations.common[key].toLowerCase()} 为 “${updatedValue}”`;
+            });
+            return `${formatList(fragments)} 通过<a href="${policyRulesRoute}">工作区规则</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6172,6 +6212,14 @@ ${reportName}
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `将 ${fieldName} 更新为“${fieldValue}”`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `标记为“${reimbursable ? '可报销' : '不予报销'}”`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `标记为“${billable ? '可计费' : '不可计费'}”`,
+                addRuleTitle: '添加规则',
+                expensesWith: '对于以下费用：',
+                applyUpdates: '应用这些更新：',
+                merchantHint: '使用不区分大小写的“包含”匹配来匹配商户名称',
+                saveRule: '保存规则',
+                confirmError: '输入商家并至少应用一项更新',
+                confirmErrorMerchant: '请输入商家',
+                confirmErrorUpdate: '请至少进行一次更新',
             },
         },
         planTypePage: {
@@ -6711,7 +6759,8 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从不',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '本月',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新结单',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '本年截至目前',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新对账单',
                 },
             },
             status: '状态',
@@ -6748,10 +6797,12 @@ ${reportName}
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '从',
+                [CONST.SEARCH.GROUP_BY.FROM]: '来自',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提款 ID',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
+                [CONST.SEARCH.GROUP_BY.TAG]: '标签',
+                [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
             feed: '动态',
             withdrawalType: {

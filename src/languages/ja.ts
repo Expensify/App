@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -637,6 +639,8 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'インサイト',
         duplicateExpense: '重複した経費',
         newFeature: '新機能',
+        month: '月',
+        home: 'ホーム',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -758,6 +762,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: '顔または指紋を使用して、パスワードやコード不要の迅速かつ安全な認証を有効にしてください。',
+        },
+        revoke: {
+            revoke: '取り消す',
+            title: '顔認証／指紋認証 & パスキー',
+            explanation: '1 台以上のデバイスで、顔認証／指紋認証またはパスキー認証が有効になっています。アクセスを取り消すと、次回以降どのデバイスでも認証時にマジックコードが必要になります',
+            confirmationPrompt: '本当に実行してもよろしいですか？今後、どのデバイスでの認証にもマジックコードが必要になります',
+            cta: 'アクセスを取り消す',
+            noDevices: '顔／指紋認証またはパスキー認証用に登録されたデバイスがありません。デバイスを登録すると、そのアクセスをここで取り消せるようになります。',
+            dismiss: '了解しました',
+            error: 'リクエストに失敗しました。後でもう一度お試しください。',
         },
     },
     validateCodeModal: {
@@ -1482,6 +1496,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明する</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? '経費を「立替精算対象」にマークしました' : '経費を「非精算」としてマークしました';
+                }
+                if (key === 'billable') {
+                    return value ? '経費を「請求可能」とマークしました' : '経費を「請求対象外」としてマークしました';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `税率を「${taxRateName}」に設定`;
+                    }
+                    return `税率を「${taxRateName}」に`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `${translations.common[key].toLowerCase()} を「${updatedValue}」に設定`;
+                }
+                return `${translations.common[key].toLowerCase()} を「${updatedValue}」に`;
+            });
+            return `${formatList(fragments)}（<a href="${policyRulesRoute}">ワークスペースルール</a>経由）`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6282,6 +6322,14 @@ ${reportName}
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} を「${fieldValue}」に更新`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `「${reimbursable ? '払い戻し対象' : '精算対象外'}」としてマーク`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `「${billable ? '請求可能' : '請求対象外'}」としてマーク`,
+                addRuleTitle: 'ルールを追加',
+                expensesWith: '次の条件の経費について:',
+                applyUpdates: 'これらの更新を適用:',
+                merchantHint: '大文字小文字を区別しない「含む」一致で支払先名を照合する',
+                saveRule: 'ルールを保存',
+                confirmError: '支払先を入力し、少なくとも 1 つの更新を適用してください',
+                confirmErrorMerchant: '商人を入力してください',
+                confirmErrorUpdate: '少なくとも 1 件の更新を適用してください',
             },
         },
         planTypePage: {
@@ -6831,7 +6879,8 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'しない',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '年初来',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細書',
                 },
             },
             status: 'ステータス',
@@ -6868,10 +6917,12 @@ ${reportName}
             reimbursable: '精算対象',
             purchaseCurrency: '購入通貨',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
+                [CONST.SEARCH.GROUP_BY.FROM]: '送信者',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
-                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
+                [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
             feed: 'フィード',
             withdrawalType: {
