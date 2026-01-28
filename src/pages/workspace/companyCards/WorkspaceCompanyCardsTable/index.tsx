@@ -79,7 +79,7 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata);
 
-    const isLoadingCards = (selectedFeed?.accountList === undefined && cardList === undefined) ? isLoadingOnyxValue(cardListMetadata) : false;
+    const isLoadingCards = selectedFeed?.accountList === undefined && cardList === undefined ? isLoadingOnyxValue(cardListMetadata) : false;
 
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed;
