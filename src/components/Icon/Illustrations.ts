@@ -30,6 +30,7 @@ import Encryption from '@assets/images/simple-illustrations/simple-illustration_
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
+import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
@@ -43,6 +44,7 @@ import Luggage from '@assets/images/simple-illustrations/simple-illustration__lu
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
+import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
@@ -75,6 +77,7 @@ export {
     ExpensifyCardImage,
     FastMoney,
     Filters,
+    Fireworks,
     Flash,
     Gears,
     HeadSet,
@@ -93,5 +96,6 @@ export {
     Pencil,
     PendingTravel,
     Puzzle,
+    ThumbsUpStars,
     TurtleInShell,
 };
