@@ -7,7 +7,7 @@ import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -76,14 +76,15 @@ function SuggestionMention({
     suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar']);
 
-    const currentReportID = useCurrentReportID();
-    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
+    const {currentReportID} = useCurrentReportIDState();
+    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
     // Smaller weight means higher order in suggestion list
     const getPersonalDetailsWeight = useCallback(
         (detail: PersonalDetails, policyEmployeeAccountIDs: number[]): number => {
@@ -99,7 +100,7 @@ function SuggestionMention({
     );
     const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList | undefined = useMemo(() => {
         const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
-        if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
+        if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID, conciergeReportID)) {
             return personalDetails;
         }
         return lodashMapValues(personalDetails, (detail) =>
@@ -110,7 +111,7 @@ function SuggestionMention({
                   }
                 : null,
         );
-    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID]);
+    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID, conciergeReportID]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,

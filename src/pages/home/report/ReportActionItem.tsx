@@ -2,6 +2,7 @@ import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -35,7 +36,10 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID'> & {
+type ReportActionItemProps = Omit<
+    PureReportActionItemProps,
+    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts'
+> & {
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
 
@@ -89,6 +93,7 @@ function ReportActionItem({
     isTryNewDotNVPDismissed,
     ...props
 }: ReportActionItemProps) {
+    const {translate} = useLocalize();
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     const originalReportID = useOriginalReportID(reportID, action);
@@ -96,6 +101,7 @@ function ReportActionItem({
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
@@ -121,6 +127,7 @@ function ReportActionItem({
             {...props}
             allReports={allReports}
             introSelected={introSelected}
+            allTransactionDrafts={allTransactionDrafts}
             policies={policies}
             personalPolicyID={personalPolicyID}
             action={action}
@@ -151,6 +158,7 @@ function ReportActionItem({
             isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
             reimbursementDeQueuedOrCanceledActionMessage={getReimbursementDeQueuedOrCanceledActionMessage(
+                translate,
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}

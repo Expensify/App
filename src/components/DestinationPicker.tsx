@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import React from 'react';
+import type {ForwardedRef} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -9,18 +10,18 @@ import type {Destination} from '@libs/PerDiemRequestUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionListWithSections';
-import RadioListItem from './SelectionListWithSections/RadioListItem';
-import type {ListItem} from './SelectionListWithSections/types';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SelectionList from './SelectionList/SelectionListWithSections';
+import type {ListItem, SelectionListWithSectionsHandle} from './SelectionList/types';
 
 type DestinationPickerProps = {
     policyID: string;
     selectedDestination?: string;
     onSubmit: (item: ListItem & {currency: string}) => void;
+    ref?: ForwardedRef<SelectionListWithSectionsHandle>;
 };
 
-function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
+function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
@@ -28,13 +29,12 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const selectedOptions = useMemo((): Destination[] => {
+    const getSelectedOptions = (): Destination[] => {
         if (!selectedDestination) {
             return [];
         }
 
         const selectedRate = customUnit?.rates?.[selectedDestination];
-
         if (!selectedRate?.customUnitRateID) {
             return [];
         }
@@ -47,41 +47,45 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
                 isSelected: true,
             },
         ];
-    }, [customUnit?.rates, selectedDestination]);
+    };
 
-    const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
-        const destinationOptions = getDestinationListSections({
-            searchValue: debouncedSearchValue,
-            selectedOptions,
-            destinations: Object.values(customUnit?.rates ?? {}),
-            recentlyUsedDestinations: policyRecentlyUsedDestinations,
-            translate,
-        });
+    const selectedOptions = getSelectedOptions();
 
-        const destinationData = destinationOptions?.at(0)?.data ?? [];
-        const header = getHeaderMessageForNonUserList(destinationData.length > 0, debouncedSearchValue);
-        const destinationsCount = Object.values(customUnit?.rates ?? {}).length;
-        const isDestinationsCountBelowThreshold = destinationsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
-        const showInput = !isDestinationsCountBelowThreshold;
+    const sections = getDestinationListSections({
+        searchValue: debouncedSearchValue,
+        selectedOptions,
+        destinations: Object.values(customUnit?.rates ?? {}),
+        recentlyUsedDestinations: policyRecentlyUsedDestinations,
+        translate,
+    });
 
-        return [destinationOptions, header, showInput];
-    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations, translate]);
+    const destinationsCount = Object.values(customUnit?.rates ?? {}).length;
+    const shouldShowTextInput = destinationsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
-    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((destination) => destination.keyForList === selectedDestination)?.keyForList, [sections, selectedDestination]);
+    const destinationData = sections?.at(0)?.data ?? [];
+    const selectedOptionKey = destinationData.find((destination) => destination.keyForList === selectedDestination)?.keyForList;
+
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+        disableAutoFocus: true,
+        headerMessage: getHeaderMessageForNonUserList(destinationData.length > 0, debouncedSearchValue),
+    };
 
     return (
         <SelectionList
+            ref={ref}
             key={selectedDestination}
             sections={sections}
-            headerMessage={headerMessage}
-            textInputValue={searchValue}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            onChangeText={setSearchValue}
+            shouldShowTextInput={shouldShowTextInput}
+            textInputOptions={textInputOptions}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            initiallyFocusedItemKey={selectedOptionKey}
             shouldHideKeyboardOnScroll={false}
             shouldUpdateFocusedIndex
+            disableMaintainingScrollPosition
         />
     );
 }

@@ -47,16 +47,11 @@ describe('SidebarUtils', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    beforeEach(() => {
-        // Reset all mocks before each test
-        jest.clearAllMocks();
-    });
-
-    afterAll(async () => {
+    afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
         });
-        await waitForBatchedUpdatesWithAct();
+        jest.clearAllMocks();
     });
 
     describe('getReasonAndReportActionThatHasRedBrickRoad', () => {
@@ -356,6 +351,7 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -371,6 +367,7 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -1172,6 +1169,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1233,6 +1231,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1297,6 +1296,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 0,
             });
 
             // Then the alternate text should show @Hidden.
@@ -1346,6 +1346,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1386,6 +1387,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1423,6 +1425,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1549,6 +1552,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
@@ -1591,6 +1595,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1662,6 +1667,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: session.accountID,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1722,12 +1728,69 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: session.accountID,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
             });
 
+            it('shows "You:" prefix in a 1:1 chat when report actions are not loaded yet (cold start scenario)', async () => {
+                const session = {
+                    authToken: 'sensitive-auth-token',
+                    encryptedAuthToken: 'sensitive-encrypted-token',
+                    email: 'user@example.com',
+                    accountID: 2,
+                };
+
+                const report: Report = {
+                    ...createRandomReport(9999, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastMessageText: 'someMessage',
+                    lastMessageHtml: 'someMessage',
+                    lastActorAccountID: session.accountID,
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    participants: {
+                        [session.accountID]: {notificationPreference: 'always'},
+                        3: {notificationPreference: 'always'},
+                    },
+                };
+
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.SESSION, session);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+                    // Note: We intentionally do NOT set REPORT_ACTIONS to simulate cold start
+                    // where report actions haven't been loaded yet
+                });
+
+                const result = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {
+                        [session.accountID]: {accountID: session.accountID},
+                    },
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    translate: translateLocal,
+                    localeCompare,
+                    lastAction: undefined,
+                    lastActionReport: undefined,
+                    isReportArchived: undefined,
+                    lastMessageTextFromReport: report.lastMessageText,
+                    currentUserAccountID: session.accountID,
+                });
+
+                expect(result?.alternateText).toBe('You: someMessage');
+            });
+
             it('returns the last action message as an alternate text if the expense report is the one expense report', async () => {
+                const session = {
+                    accountID: 123,
+                };
+
                 const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
 
                 iouReportR14932.reportID = '5';
@@ -1769,7 +1832,7 @@ describe('SidebarUtils', () => {
                     shouldShow: true,
                     pendingAction: null,
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    actorAccountID: undefined,
+                    actorAccountID: session.accountID,
                 };
 
                 await act(async () => {
@@ -1781,7 +1844,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
-                    report: {...iouReportR14932, lastActorAccountID: undefined},
+                    report: {...iouReportR14932, lastActorAccountID: session.accountID},
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -1794,6 +1857,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: session.accountID,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1912,6 +1976,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -1997,6 +2062,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 0,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -2094,10 +2160,11 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: managerID,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
-                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID})}: ${reportPreviewMessage}`);
+                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
             });
 
             it("shouldn't add current user prefix if the current user isn't the report's manager for report preview action in a DM chat", async () => {
@@ -2192,6 +2259,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: managerID,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
@@ -2203,7 +2271,7 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
-                const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
+                const {reports, reportNameValuePairs} = createSidebarTestData();
 
                 // Given reportsDrafts contains a draft comment for report '2'
                 const reportsDrafts = {
@@ -2211,7 +2279,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, reportNameValuePairs, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, reportNameValuePairs);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -2233,21 +2301,12 @@ describe('SidebarUtils', () => {
                         reportName: 'Attention Report',
                         isPinned: false,
                         hasErrorsOtherThanFailedReceipt: false,
+                        requiresAttention: true,
                     },
                 ]);
 
-                const reportAttributes = {
-                    '0': {
-                        requiresAttention: true,
-                        reportName: 'Test Report',
-                        isEmpty: false,
-                        brickRoadStatus: undefined,
-                        reportErrors: {} as Record<string, string | null>,
-                    },
-                };
-
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
