@@ -8161,6 +8161,11 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             cancel: 'Reis bekijken',
         },
         signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',
             confirm: 'Instellingen openen',

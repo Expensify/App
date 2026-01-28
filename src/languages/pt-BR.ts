@@ -8156,6 +8156,11 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             cancel: 'Ver viagem',
         },
         signOutWarningTripInProgress: {title: 'Rastreamento por GPS em andamento', prompt: 'Tem certeza de que deseja descartar a viagem e sair?', confirm: 'Descartar e sair'},
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
+        },
         notification: {title: 'Rastreamento por GPS em andamento', body: 'Ir para o app para finalizar'},
         locationServicesRequiredModal: {
             title: 'Acesso à localização obrigatório',

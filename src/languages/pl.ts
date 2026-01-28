@@ -8148,6 +8148,11 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
         },
         notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby dokończyć'},
         signOutWarningTripInProgress: {title: 'Śledzenie GPS w toku', prompt: 'Czy na pewno chcesz porzucić podróż i się wylogować?', confirm: 'Odrzuć i wyloguj się'},
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             confirm: 'Otwórz ustawienia',

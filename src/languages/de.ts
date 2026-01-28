@@ -8199,6 +8199,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         },
         notification: {title: 'GPS-Tracking läuft', body: 'Zur App gehen, um abzuschließen'},
         signOutWarningTripInProgress: {title: 'GPS-Tracking läuft', prompt: 'Sind Sie sicher, dass Sie die Reise verwerfen und sich abmelden möchten?', confirm: 'Verwerfen und abmelden'},
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Standortzugriff erforderlich',
             confirm: 'Einstellungen öffnen',

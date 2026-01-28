@@ -7924,6 +7924,11 @@ ${reportName}
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
         desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
         signOutWarningTripInProgress: {title: 'GPS 跟踪进行中', prompt: '您确定要放弃此行程并登出吗？', confirm: '放弃并退出'},
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
+        },
         notification: {title: '正在进行 GPS 跟踪', body: '前往应用完成'},
         continueGpsTripModal: {title: '是否继续记录 GPS 行程？', prompt: '看起来在您上一次的 GPS 行程中应用已关闭。您想从那次行程继续记录吗？', confirm: '继续行程', cancel: '查看行程'},
         locationServicesRequiredModal: {title: '需要访问位置信息', confirm: '打开设置', prompt: '请在设备设置中允许位置访问，以开始 GPS 距离跟踪。'},

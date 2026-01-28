@@ -8186,6 +8186,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
         signOutWarningTripInProgress: {title: 'Tracciamento GPS in corso', prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?', confirm: 'Annulla e disconnettiti'},
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'È necessario l’accesso alla posizione',
             confirm: 'Apri impostazioni',
