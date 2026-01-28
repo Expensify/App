@@ -30,11 +30,11 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     CardFeedErrorsDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     VisibleReportActionsDerivedValue,
-    NonPersonalAndWorkspaceCardListDerivedValue
 } from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
