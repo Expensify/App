@@ -187,6 +187,11 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     ];
 
     const previewMatches = () => {
+        if (errorMessage) {
+            setShouldShowError(true);
+            return;
+        }
+
         Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID));
     };
 
@@ -226,7 +231,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                 </ScrollView>
 
                 <View style={[styles.m4, styles.mb5]}>
-                    {!!errorMessage && (
+                    {!!shouldShowError && (
                         <FormHelpMessage
                             isError
                             message={errorMessage}
