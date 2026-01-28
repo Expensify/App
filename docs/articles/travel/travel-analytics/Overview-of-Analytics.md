@@ -1,7 +1,7 @@
 ---
 title: Overview of Analytics
 description: Learn how to use Expensify Travel analytics to monitor spend, track bookings, and access company-wide travel insights.
-keywords: [travel analytics, reporting, travel spend, usage insights, expensify travel reports]
+keywords: [Expensify Travel, travel analytics, company reports, travel spend tracking, schedule report, export travel data, filter reports, Workspace Admin, approver, company-wide analytics]
 ---
 
 Expensify Travel analytics give travelers, approvers, and admins real-time visibility into travel activity and spend. These insights help identify travel trends, ensure policy compliance, and support strategic decision-making across your organization.
