@@ -4,7 +4,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react'
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {MultifactorAuthenticationProvider} from '@components/MultifactorAuthentication/Context';
+import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import {
     animatedWideRHPWidth,
     expandedRHPProgress,
@@ -171,7 +171,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     return (
         <NarrowPaneContextProvider>
-            <MultifactorAuthenticationProvider>
+            <MultifactorAuthenticationContextProviders>
                 <NoDropZone>
                     {!shouldUseNarrowLayout && (
                         <Overlay
@@ -424,7 +424,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     )}
                 </NoDropZone>
-            </MultifactorAuthenticationProvider>
+            </MultifactorAuthenticationContextProviders>
         </NarrowPaneContextProvider>
     );
 }

@@ -10,8 +10,7 @@ import Navigation from '@navigation/Navigation';
 import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import MultifactorAuthenticationGuardsProvider from './Guards';
-import MultifactorAuthenticationStateProvider, {useMultifactorAuthenticationState} from './State';
+import {useMultifactorAuthenticationState} from './State';
 import useNativeBiometrics from './useNativeBiometrics';
 import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
 
@@ -27,11 +26,11 @@ type MultifactorAuthenticationContextValue = {
 
 const MultifactorAuthenticationContext = createContext<MultifactorAuthenticationContextValue | undefined>(undefined);
 
-type MultifactorAuthenticationProviderInnerProps = {
+type MultifactorAuthenticationContextProviderProps = {
     children: ReactNode;
 };
 
-function MultifactorAuthenticationProviderInner({children}: MultifactorAuthenticationProviderInnerProps) {
+function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
     const {state, setScenario, setPayload, setOutcomePaths, setError, setIsRegistrationComplete, setIsAuthorizationComplete, setIsFlowComplete} = useMultifactorAuthenticationState();
 
     const biometrics = useNativeBiometrics();
@@ -258,37 +257,20 @@ function MultifactorAuthenticationProviderInner({children}: MultifactorAuthentic
         [cancel, executeScenario],
     );
 
-    return (
-        <MultifactorAuthenticationContext.Provider value={contextValue}>
-            <MultifactorAuthenticationGuardsProvider>{children}</MultifactorAuthenticationGuardsProvider>
-        </MultifactorAuthenticationContext.Provider>
-    );
-}
-
-type MultifactorAuthenticationProviderProps = {
-    children: ReactNode;
-};
-
-function MultifactorAuthenticationProvider({children}: MultifactorAuthenticationProviderProps) {
-    return (
-        <MultifactorAuthenticationStateProvider>
-            <MultifactorAuthenticationProviderInner>{children}</MultifactorAuthenticationProviderInner>
-        </MultifactorAuthenticationStateProvider>
-    );
+    return <MultifactorAuthenticationContext.Provider value={contextValue}>{children}</MultifactorAuthenticationContext.Provider>;
 }
 
 function useMultifactorAuthentication(): MultifactorAuthenticationContextValue {
     const context = useContext(MultifactorAuthenticationContext);
 
     if (!context) {
-        throw new Error('useMultifactorAuthentication must be used within a MultifactorAuthenticationProvider');
+        throw new Error('useMultifactorAuthentication must be used within a MultifactorAuthenticationContextProviders');
     }
 
     return context;
 }
 
-MultifactorAuthenticationProvider.displayName = 'MultifactorAuthenticationProvider';
+MultifactorAuthenticationContextProvider.displayName = 'MultifactorAuthenticationContextProvider';
 
-export default MultifactorAuthenticationProvider;
-export {useMultifactorAuthentication, MultifactorAuthenticationContext};
+export {useMultifactorAuthentication, MultifactorAuthenticationContext, MultifactorAuthenticationContextProvider};
 export type {MultifactorAuthenticationContextValue, ExecuteScenarioParams};
