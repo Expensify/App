@@ -187,6 +187,21 @@ type SearchCategoryGroup = {
     currency: string;
 };
 
+/** Model of merchant grouped search result */
+type SearchMerchantGroup = {
+    /** Merchant name */
+    merchant: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
 /** Model of tag grouped search result */
 type SearchTagGroup = {
     /** Tag name */
@@ -250,8 +265,11 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
         PrefixedRecord<
+            
             typeof CONST.SEARCH.GROUP_PREFIX,
-            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchTagGroup | SearchMonthGroup | SearchWeekGroup
+           
+            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup
+         | SearchWeekGroup
         >;
 
     /** Whether search data is being fetched from server */
@@ -274,6 +292,7 @@ export type {
     SearchCardGroup,
     SearchWithdrawalIDGroup,
     SearchCategoryGroup,
+    SearchMerchantGroup,
     SearchTagGroup,
     SearchMonthGroup,
     SearchWeekGroup,

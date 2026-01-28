@@ -1682,6 +1682,10 @@ function clearDraftRule() {
     Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, null);
 }
 
+function setDraftMerchantRule(ruleData: Partial<MerchantRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, ruleData);
+}
+
 function updateDraftMerchantRule(ruleData: Partial<MerchantRuleForm>) {
     Onyx.merge(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, ruleData);
 }
@@ -1736,6 +1740,7 @@ export {
     setDraftRule,
     updateDraftRule,
     clearDraftRule,
+    setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
 };

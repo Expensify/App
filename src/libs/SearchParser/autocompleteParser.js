@@ -270,8 +270,8 @@ function peg$parse(input, options) {
   var peg$c84 = "group-withdrawn";
   var peg$c85 = "group-withdrawal-id";
   var peg$c86 = "group-category";
-  var peg$c87 = "group-month";
-  var peg$c88 = "group-week";
+  var peg$c87 = "group-merchant";
+  var peg$c88 = "group-month";
   var peg$c89 = "!=";
   var peg$c90 = ">=";
   var peg$c91 = ">";
@@ -385,8 +385,8 @@ function peg$parse(input, options) {
   var peg$e87 = peg$literalExpectation("group-withdrawn", true);
   var peg$e88 = peg$literalExpectation("group-withdrawal-id", true);
   var peg$e89 = peg$literalExpectation("group-category", true);
-  var peg$e90 = peg$literalExpectation("group-month", true);
-  var peg$e91 = peg$literalExpectation("group-week", true);
+  var peg$e90 = peg$literalExpectation("group-merchant", true);
+  var peg$e91 = peg$literalExpectation("group-month", true);
   var peg$e92 = peg$otherExpectation("operator");
   var peg$e93 = peg$classExpectation([":", "="], false, false);
   var peg$e94 = peg$literalExpectation("!=", false);
@@ -549,8 +549,8 @@ function peg$parse(input, options) {
   var peg$f76 = function() { return "groupWithdrawn"; };
   var peg$f77 = function() { return "groupWithdrawalID"; };
   var peg$f78 = function() { return "groupCategory"; };
-  var peg$f79 = function() { return "groupMonth"; };
-  var peg$f80 = function() { return "groupWeek"; };
+  var peg$f79 = function() { return "groupMerchant"; };
+  var peg$f80 = function() { return "groupMonth"; };
   var peg$f81 = function() { return "eq"; };
   var peg$f82 = function() { return "neq"; };
   var peg$f83 = function() { return "gte"; };
@@ -2378,9 +2378,9 @@ function peg$parse(input, options) {
                                           if (s0 === peg$FAILED) {
                                             s0 = peg$parsegroupCategory();
                                             if (s0 === peg$FAILED) {
-                                              s0 = peg$parsegroupMonth();
+                                              s0 = peg$parsegroupMerchant();
                                               if (s0 === peg$FAILED) {
-                                                s0 = peg$parsegroupWeek();
+                                                s0 = peg$parsegroupMonth();
                                               }
                                             }
                                           }
@@ -3267,13 +3267,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsegroupMonth() {
+  function peg$parsegroupMerchant() {
     var s0, s1, s2, s3;
 
     s0 = peg$currPos;
-    s1 = input.substr(peg$currPos, 11);
+    s1 = input.substr(peg$currPos, 14);
     if (s1.toLowerCase() === peg$c87) {
-      peg$currPos += 11;
+      peg$currPos += 14;
     } else {
       s1 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e90); }
@@ -3304,13 +3304,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsegroupWeek() {
+  function peg$parsegroupMonth() {
     var s0, s1, s2, s3;
 
     s0 = peg$currPos;
-    s1 = input.substr(peg$currPos, 10);
+    s1 = input.substr(peg$currPos, 11);
     if (s1.toLowerCase() === peg$c88) {
-      peg$currPos += 10;
+      peg$currPos += 11;
     } else {
       s1 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e91); }
