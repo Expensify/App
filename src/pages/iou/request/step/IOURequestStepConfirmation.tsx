@@ -574,7 +574,7 @@ function IOURequestStepConfirmation({
                 }
 
                 const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
-                const existingTransactionDraft = transactions.find((transaction) => transaction.transactionID === existingTransactionID);
+                const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
 
                 const {iouReport} = requestMoneyIOUActions({
                     report,
