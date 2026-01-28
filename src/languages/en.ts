@@ -6825,6 +6825,7 @@ const translations = {
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
         topCategories: 'Top categories',
+        topMerchants: 'Top merchants',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
@@ -6887,6 +6888,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
             },
@@ -6910,6 +6912,7 @@ const translations = {
             accessPlaceHolder: 'Open for details',
         },
         noCategory: 'No category',
+        noMerchant: 'No merchant',
         noTag: 'No tag',
         expenseType: 'Expense type',
         withdrawalType: 'Withdrawal type',
