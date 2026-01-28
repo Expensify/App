@@ -38,6 +38,7 @@
     month: "groupmonth",
     week: "groupweek",
     year: "groupyear",
+    quarter: "groupquarter",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -50,6 +51,7 @@
     month: "desc",
     week: "desc",
     year: "desc",
+    quarter: "desc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
