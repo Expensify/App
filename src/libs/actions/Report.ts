@@ -152,7 +152,6 @@ import {
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportTransactions,
-    getReportViolations,
     getTitleReportField,
     hasOutstandingChildRequest,
     isAdminRoom,
@@ -2611,7 +2610,7 @@ function updateReportField({
     email,
     hasViolationsParam,
     recentlyUsedReportFields,
-    allReportsViolations,
+    reportViolations,
     shouldFixViolations = false,
 }: {
     report: Report;
@@ -2623,12 +2622,11 @@ function updateReportField({
     email: string;
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
-    allReportsViolations: OnyxCollection<ReportViolations>;
+    reportViolations: OnyxEntry<ReportViolations>;
     shouldFixViolations: boolean | undefined;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
-    const reportViolations = getReportViolations(reportID, allReportsViolations);
     const fieldViolation = getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
 

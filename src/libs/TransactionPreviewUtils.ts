@@ -352,7 +352,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 }
 
 function createTransactionPreviewConditionals({
-    allReportsViolations,
+    reportViolations,
     iouReport,
     transaction,
     action,
@@ -365,7 +365,7 @@ function createTransactionPreviewConditionals({
     currentUserAccountID,
     reportActions,
 }: {
-    allReportsViolations: OnyxCollection<OnyxTypes.ReportViolations>;
+    reportViolations: OnyxEntry<OnyxTypes.ReportViolations>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
     action: OnyxEntry<OnyxTypes.ReportAction>;
@@ -419,7 +419,7 @@ function createTransactionPreviewConditionals({
             ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors =
-        (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID, allReportsViolations)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
+        (isReportOwner(iouReport) && hasReportViolations(reportViolations)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
     const isDEWSubmitFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed;
 

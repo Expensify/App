@@ -49,7 +49,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const [allReportsViolations] = useOnyx(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS, {canBeMissing: true});
+    const [reportViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`, {canBeMissing: true});
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
@@ -109,7 +109,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     email: session?.email ?? '',
                     hasViolationsParam: hasViolations,
                     recentlyUsedReportFields,
-                    allReportsViolations,
+                    reportViolations,
                     shouldFixViolations: hasOtherViolations ?? false,
                 });
             }
