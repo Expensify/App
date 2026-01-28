@@ -73,7 +73,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
-    const isFeedAdded = !isLoadingOnyxValue(allCardFeedsMetadata) && !isFeedPending && !isNoFeed;
+    const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
 
     if (!policyID) {
         return {onyxMetadata, isInitiallyLoadingFeeds, isNoFeed, isFeedPending, isFeedAdded};
