@@ -77,13 +77,6 @@ type BackToParams = {
     backTo?: Routes;
 };
 
-type ConsoleNavigatorParamList = {
-    [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
-    };
-};
-
 type ReportVerifyAccountNavigatorParamList = {
     [SCREENS.REPORT_VERIFY_ACCOUNT]: {
         reportID: string;
@@ -2770,7 +2763,6 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
-    [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<ConsoleNavigatorParamList>;
     [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
 
@@ -3148,7 +3140,6 @@ export type {
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
-    ConsoleNavigatorParamList,
     ScheduleCallParamList,
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
