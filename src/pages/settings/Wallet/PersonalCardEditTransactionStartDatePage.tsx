@@ -16,6 +16,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
+import {updateAssignedCardTransactionStartDate} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -70,9 +71,10 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
 
         const newStartDate = getNewStartDate();
 
-        if (currentStartDate === newStartDate) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
+        if (currentStartDate !== newStartDate) {
+            updateAssignedCardTransactionStartDate(cardID, newStartDate, currentStartDate);
         }
+        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
     };
 
     const dateOptions = [
