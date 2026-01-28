@@ -620,7 +620,6 @@ function ReportActionsList({
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
-
         if (!hasNewestReportAction) {
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
@@ -629,10 +628,15 @@ function ReportActionsList({
             reportScrollManager.scrollToBottom();
             return;
         }
-        reportScrollManager.scrollToBottom();
+        const unreadReportActionIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
+        if (unreadReportActionIndex !== -1) {
+            reportScrollManager?.scrollToIndex(unreadReportActionIndex, undefined, CONST.SCROLL_TO_INDEX_VIEW_POSITION);
+        } else {
+            reportScrollManager.scrollToBottom();
+        }
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, sortedVisibleReportActions, report.reportID, reportScrollManager, backTo, unreadMarkerReportActionID]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
