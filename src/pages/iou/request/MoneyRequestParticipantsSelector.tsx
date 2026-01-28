@@ -360,7 +360,28 @@ function MoneyRequestParticipantsSelector({
         }
 
         return [newSections, headerMessage];
-    }, [areOptionsInitialized, didScreenTransitionEnd, searchTerm, participants, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived, translate, availableOptions.workspaceChats, availableOptions.selfDMChat, availableOptions.userToInvite, availableOptions.recentReports, availableOptions.personalDetails, isWorkspacesOnly, loginList, currentUserEmail, isPerDiemRequest, showImportContacts, inputHelperText]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        searchTerm,
+        participants,
+        policyTags,
+        currentUserAccountID,
+        personalDetails,
+        reportAttributesDerived,
+        translate,
+        availableOptions.workspaceChats,
+        availableOptions.selfDMChat,
+        availableOptions.userToInvite,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
+        isWorkspacesOnly,
+        loginList,
+        currentUserEmail,
+        isPerDiemRequest,
+        showImportContacts,
+        inputHelperText,
+    ]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.

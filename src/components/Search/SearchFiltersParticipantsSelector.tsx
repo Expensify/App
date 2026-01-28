@@ -86,7 +86,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
             countryCode,
         );
-    }, [areOptionsInitialized, options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, loginList, currentUserAccountID, currentUserEmail, personalDetails, countryCode]);
+    }, [
+        areOptionsInitialized,
+        options.reports,
+        options.personalDetails,
+        allPolicies,
+        draftComments,
+        nvpDismissedProductTraining,
+        policyTags,
+        loginList,
+        currentUserAccountID,
+        currentUserEmail,
+        personalDetails,
+        countryCode,
+    ]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));

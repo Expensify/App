@@ -928,8 +928,8 @@ function createOption(
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         result.lastMessageText = getLastMessageTextForReport({
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translate: translateLocal,
             report,
             lastActorDetails,
@@ -1265,7 +1265,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report,  policyTags, currentUserAccountID, undefined, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, report, policyTags, currentUserAccountID, undefined, reportAttributesDerived),
         },
     };
 }
@@ -1467,7 +1467,7 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report,  policyTags, currentUserAccountID, config, reportAttributesDerived),
+        ...createOption(accountIDs, personalDetails, report, policyTags, currentUserAccountID, config, reportAttributesDerived),
     };
 }
 

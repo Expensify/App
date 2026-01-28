@@ -275,7 +275,24 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         );
 
         return [newSections, headerMessage];
-    }, [areOptionsInitialized, didScreenTransitionEnd, searchTerm, initialSelectedOptions, orderedAvailableOptions.recentReports, orderedAvailableOptions.personalDetails, orderedAvailableOptions.userToInvite, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived, loginList, currentUserEmail, countryCode, attendees, translate]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        searchTerm,
+        initialSelectedOptions,
+        orderedAvailableOptions.recentReports,
+        orderedAvailableOptions.personalDetails,
+        orderedAvailableOptions.userToInvite,
+        policyTags,
+        currentUserAccountID,
+        personalDetails,
+        reportAttributesDerived,
+        loginList,
+        currentUserEmail,
+        countryCode,
+        attendees,
+        translate,
+    ]);
 
     const optionLength = useMemo(() => {
         if (!areOptionsInitialized) {

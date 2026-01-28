@@ -137,12 +137,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm,  countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm,  countryCode, loginList, currentUserEmail, currentUserAccountID]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -195,7 +195,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, policyTags,  currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,

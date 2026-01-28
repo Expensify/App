@@ -172,7 +172,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, currentUserAccountID, reportAttributes?.reports, policyTags ]);
+    }, [changedReportActions, personalDetails, currentUserAccountID, reportAttributes?.reports, policyTags]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -190,13 +190,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         // Handle initial personal details load. This initialization is required here specifically to prevent
         // UI freezing that occurs when resetting the app from the troubleshooting page.
         if (!prevPersonalDetails) {
-            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(
-                personalDetails,
-                policyTags,
-                currentUserAccountID,
-                reports,
-                reportAttributes?.reports,
-            );
+            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, policyTags, currentUserAccountID, reports, reportAttributes?.reports);
             setOptions((prevOptions) => ({
                 ...prevOptions,
                 personalDetails: newPersonalDetailsOptions,
@@ -230,7 +224,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 }
 
                 const reportPolicyTags = report.policyID ? policyTags?.[report.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
-                const newReportOption = createOptionFromReport(report, personalDetails, reportPolicyTags,  currentUserAccountID, reportAttributes?.reports, {
+                const newReportOption = createOptionFromReport(report, personalDetails, reportPolicyTags, currentUserAccountID, reportAttributes?.reports, {
                     showPersonalDetails: true,
                 });
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
@@ -242,7 +236,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         }
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = createOptionList(personalDetails, policyTags,  currentUserAccountID, reports, reportAttributes?.reports).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(personalDetails, policyTags, currentUserAccountID, reports, reportAttributes?.reports).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};

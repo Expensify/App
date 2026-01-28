@@ -70,19 +70,13 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             const reportObj = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
             const reportPolicyTags = reportObj?.policyID ? policyTags?.[reportObj.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
             const report = getSelectedOptionData(
-                createOptionFromReport(
-                    {...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id},
-                    personalDetails,
-                    reportPolicyTags,
-                    currentUserAccountID,
-                    reportAttributesDerived,
-                ),
+                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportPolicyTags, currentUserAccountID, reportAttributesDerived),
             );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
             const alternateText = getAlternateText(report, {}, reportPolicyTags, isReportArchived, currentUserAccountID, {});
             return {...report, alternateText};
         });
-    }, [selectedReportIDs, reports, policyTags, personalDetails,  currentUserAccountID, reportAttributesDerived, archivedReportsIdSet]);
+    }, [selectedReportIDs, reports, policyTags, personalDetails, currentUserAccountID, reportAttributesDerived, archivedReportsIdSet]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
@@ -100,25 +94,14 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             currentUserEmail,
             policyTags,
         });
-    }, [
-        areOptionsInitialized,
-        isScreenTransitionEnd,
-        options,
-        draftComments,
-        nvpDismissedProductTraining,
-        countryCode,
-        loginList,
-        currentUserAccountID,
-        currentUserEmail,
-        policyTags,
-    ]);
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, currentUserAccountID, currentUserEmail, policyTags]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm,  countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm,  countryCode, loginList, currentUserEmail, currentUserAccountID, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];

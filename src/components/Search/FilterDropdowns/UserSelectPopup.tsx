@@ -144,7 +144,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                 canInviteUser: false,
             },
         );
-    }, [optionsList, cleanSearchTerm,  countryCode, loginList, currentUserEmail, currentUserAccountID]);
+    }, [optionsList, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({

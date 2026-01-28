@@ -96,15 +96,7 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(
-            options.personalDetails,
-            nvpDismissedProductTraining,
-            loginList,
-            currentUserAccountID,
-            currentUserEmail,
-            betas ?? [],
-            excludedUsers,
-        );
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, betas ?? [], excludedUsers);
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
         for (const detail of inviteOptions.personalDetails) {
@@ -136,7 +128,7 @@ function RoomInvitePage({
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions,  countryCode, loginList, currentUserEmail, currentUserAccountID, excludedUsers]);
+    }, [debouncedSearchTerm, defaultOptions, countryCode, loginList, currentUserEmail, currentUserAccountID, excludedUsers]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];

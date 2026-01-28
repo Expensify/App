@@ -1,5 +1,4 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
