@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -638,6 +640,8 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analizy',
         duplicateExpense: 'Zduplikowany wydatek',
         newFeature: 'Nowa funkcja',
+        month: 'Miesiąc',
+        home: 'Strona główna',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -760,6 +764,18 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł ani kodów.',
         },
+        revoke: {
+            revoke: 'Unieważnij',
+            title: 'Rozpoznawanie twarzy/odcisk palca i klucze dostępu',
+            explanation:
+                'Weryfikacja za pomocą twarzy/odcisku palca lub klucza dostępu (passkey) jest włączona na jednym lub większej liczbie urządzeń. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
+            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na dowolnym urządzeniu',
+            cta: 'Cofnij dostęp',
+            noDevices:
+                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp w tym miejscu.',
+            dismiss: 'Rozumiem',
+            error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -782,7 +798,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Wróć do oryginalnego urządzenia i poproś o nowy kod',
         successfulNewCodeRequest: 'Kod został wysłany. Sprawdź swoje urządzenie.',
         tfaRequiredTitle: dedent(`
-            Dwuskładnikowe uwierzytelnianie
+            Dwuskładnikowe uwierzytelnianie  
             wymagane
         `),
         tfaRequiredDescription: dedent(`
@@ -913,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'To jest Twoja osobista przestrzeń. Używaj jej do notatek, zadań, szkiców i przypomnień.',
         beginningOfChatHistorySystemDM: 'Witamy! Skonfigurujmy wszystko.',
         chatWithAccountManager: 'Czat z Twoim opiekunem klienta tutaj',
+        askMeAnything: 'Zapytaj mnie o cokolwiek!',
         sayHello: 'Przywitaj się!',
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witamy w ${roomName}!`,
@@ -1482,6 +1499,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'oznaczył wydatek jako „podlegający zwrotowi”' : 'oznaczył wydatek jako „niepodlegający zwrotowi”';
+                }
+                if (key === 'billable') {
+                    return value ? 'oznaczył wydatek jako „refakturowalny”' : 'oznaczył wydatek jako „niepodlegający refakturowaniu”';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `ustaw stawkę podatku na „${taxRateName}”`;
+                    }
+                    return `stawka podatku na „${taxRateName}”`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `ustaw ${translations.common[key].toLowerCase()} na „${updatedValue}”`;
+                }
+                return `${translations.common[key].toLowerCase()} na „${updatedValue}”`;
+            });
+            return `${formatList(fragments)} przez <a href="${policyRulesRoute}">zasady przestrzeni roboczej</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4878,13 +4921,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
-                workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',
-                feedCouldNotBeLoadedTitle: 'Nie można było wczytać tego kanału',
-                feedCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania tego kanału. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
-                tryAgain: 'Spróbuj ponownie',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
@@ -6312,6 +6348,17 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Zaktualizuj ${fieldName} na „${fieldValue}”`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako "${reimbursable ? 'kwalifikujący się do zwrotu kosztów' : 'niepodlegający zwrotowi'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Oznacz jako „${billable ? 'fakturowalne' : 'poza fakturą'}”`,
+                addRuleTitle: 'Dodaj regułę',
+                expensesWith: 'Dla wydatków z:',
+                applyUpdates: 'Zastosuj te aktualizacje:',
+                merchantHint: 'Dopasuj nazwę sprzedawcy przy użyciu nieczułego na wielkość liter dopasowania typu „zawiera”',
+                saveRule: 'Zapisz regułę',
+                confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną aktualizację',
+                confirmErrorMerchant: 'Wprowadź sprzedawcę',
+                confirmErrorUpdate: 'Proszę wprowadzić co najmniej jedną zmianę',
+                editRuleTitle: 'Edytuj regułę',
+                deleteRule: 'Usuń regułę',
+                deleteRuleConfirmation: 'Czy na pewno chcesz usunąć tę regułę?',
             },
         },
         planTypePage: {
@@ -6848,6 +6895,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchName: 'Wyszukaj nazwę',
         savedSearchesMenuItemTitle: 'Zapisano',
         topCategories: 'Najlepsze kategorie',
+        topMerchants: 'Najlepsi sprzedawcy',
         groupedExpenses: 'pogrupowane wydatki',
         bulkActions: {
             approve: 'Zatwierdź',
@@ -6868,6 +6916,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nigdy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'W zeszłym miesiącu',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ten miesiąc',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Od początku roku',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ostatnie zestawienie',
                 },
             },
@@ -6909,6 +6958,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawca',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etykieta',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
             },
             feed: 'Kanał',
             withdrawalType: {
@@ -6930,6 +6982,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły',
         },
         noCategory: 'Brak kategorii',
+        noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',
         withdrawalType: 'Typ wypłaty',
@@ -8089,6 +8142,12 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             title: 'Śledź dystans na swoim telefonie',
             subtitle: 'Automatycznie rejestruj mile lub kilometry za pomocą GPS i natychmiast zamieniaj podróże w wydatki.',
             button: 'Pobierz aplikację',
+        },
+        continueGpsTripModal: {
+            title: 'Kontynuować rejestrowanie trasy GPS?',
+            prompt: 'Wygląda na to, że aplikacja została zamknięta podczas Twojej ostatniej trasy GPS. Czy chcesz kontynuować rejestrowanie z tamtej trasy?',
+            confirm: 'Kontynuuj podróż',
+            cancel: 'Zobacz podróż',
         },
         notification: {title: 'Śledzenie GPS w toku', body: 'Przejdź do aplikacji, aby dokończyć'},
         signOutWarningTripInProgress: {title: 'Śledzenie GPS w toku', prompt: 'Czy na pewno chcesz porzucić podróż i się wylogować?', confirm: 'Odrzuć i wyloguj się'},
