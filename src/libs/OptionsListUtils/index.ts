@@ -2682,7 +2682,7 @@ function formatSectionsFromSearchTerm(
         const isIOUInvoiceRoom = participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === 'invoice';
         if (participant.isSelfDM || isIOUInvoiceRoom) {
             const privateIsArchived = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
-            return getReportOption(participant, privateIsArchived, undefined, reportAttributesDerived);
+            return getReportOption(participant, privateIsArchived, undefined, currentUserAccountID, personalDetails, reportAttributesDerived);
         }
         return isReportPolicyExpenseChat
             ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)

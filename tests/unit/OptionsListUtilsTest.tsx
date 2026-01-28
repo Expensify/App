@@ -1407,10 +1407,19 @@ describe('OptionsListUtils', () => {
             const selectedPerson = PERSONAL_DETAILS['3'];
             const selectedReport = REPORTS['3'] as unknown as OptionData;
 
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, allPolicies, {}, nvpDismissedProductTraining, loginList, {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                selectedOptions: [selectedPerson, selectedReport],
-            });
+            const results = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {
+                    excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                    selectedOptions: [selectedPerson, selectedReport],
+                },
+            );
 
             // The person must be excluded
             expect(results.recentReports.every((option) => option.login !== selectedPerson.login)).toBe(true);
