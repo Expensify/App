@@ -831,10 +831,6 @@ function isPersonalCard(card?: Card) {
     return !!card?.fundID && card.fundID !== '0';
 }
 
-/**
- * Check if the given card is a personal card assigned to the current user.
- * These cards do not have a domainName and are owned by the current user.
- */
 function isUserAssignedPersonalCard(card: Card | undefined, currentUserAccountID: number): boolean {
     if (!card) {
         return false;
