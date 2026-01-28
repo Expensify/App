@@ -85,11 +85,7 @@ function PayAndDowngradePage() {
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pt3]}>
                         <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.payAndDowngrade.headline')}</Text>
                         <View style={[styles.renderHTML]}>
-                            <RenderHTML
-                                html={translate('workspace.payAndDowngrade.description1', {
-                                    formattedAmount: billingDetails?.formattedSubtotal ?? '',
-                                })}
-                            />
+                            <RenderHTML html={translate('workspace.payAndDowngrade.description1', billingDetails?.formattedSubtotal ?? '')} />
                         </View>
                         <Text style={[styles.mb5]}>{translate('workspace.payAndDowngrade.description2', billingDetails?.billingMonth ?? '')}</Text>
 

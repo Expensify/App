@@ -31,7 +31,7 @@ function EmailDeliveryFailurePage() {
         <>
             <View style={[styles.mv3, styles.flexRow]}>
                 <View style={[styles.flex1]}>
-                    <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
+                    <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', login)}</Text>
                     <View style={[styles.mt5, styles.renderHTML]}>
                         <RenderHTML html={translate('emailDeliveryFailurePage.confirmThat', login)} />
                     </View>

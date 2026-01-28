@@ -85,7 +85,7 @@ function buildMessageFragmentForValue(
             setFragments.push(fragment);
         }
     } else if (!newValue || newValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
-        const fragment = translate('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
+        const fragment = translate('iou.removedTheRequest', displayValueName, oldValueToDisplay);
         removalFragments.push(fragment);
     } else {
         const fragment = translate('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
