@@ -362,13 +362,13 @@ function WorkspaceCompanyCardsTable({
                 <ScrollView>
                     {isLoadingPage && <TableRowSkeleton fixedNumItems={5} />}
 
-                    {isFeedPending && (
+                    {!isLoadingPage && isFeedPending && (
                         <View style={styles.flex1}>
                             <WorkspaceCompanyCardsFeedPendingPage />
                         </View>
                     )}
 
-                    {isNoFeed && (
+                    {!isLoadingPage && isNoFeed && (
                         <View style={styles.flex1}>
                             <WorkspaceCompanyCardPageEmptyState
                                 policyID={policyID}
