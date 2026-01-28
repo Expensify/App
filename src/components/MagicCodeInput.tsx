@@ -4,8 +4,8 @@ import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
-import useLocalize from '@hooks/useLocalize';
 import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';

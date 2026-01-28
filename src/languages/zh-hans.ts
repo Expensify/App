@@ -7909,7 +7909,7 @@ ${reportName}
             findMember: '查找成员',
             addMember: '添加成员',
             email: '电子邮箱地址',
-            errors: {addMember: '无法添加此成员。请重试。'}},
+            errors: {addMember: '无法添加此成员。请重试。'},
             forceTwoFactorAuth: '强制启用双重身份验证',
             forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>请禁用<a href="${CONST.SAML_HELP_URL}">SAML</a>以强制启用双重身份验证。</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>要求此域中的所有成员使用双重身份验证。当域成员登录时，将提示他们在其账户上设置双重身份验证。</muted-text>`,
