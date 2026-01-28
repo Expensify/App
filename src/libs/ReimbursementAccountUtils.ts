@@ -74,12 +74,5 @@ function getSetupStateBankAccount(bankAccountList?: BankAccountList) {
     return setupStateBankAccounts.at(0) ?? null;
 }
 
-export {
-    getRouteForCurrentStep,
-    hasInProgressUSDVBBA,
-    hasInProgressNonUSDVBBA,
-    hasInProgressVBBA,
-    REIMBURSEMENT_ACCOUNT_ROUTE_NAMES,
-    getSetupStateBankAccount,
-};
+export {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, getSetupStateBankAccount};
 export type {ReimbursementAccountStepToOpen};
