@@ -51,6 +51,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -204,7 +205,6 @@ import {
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
-    resolveSuggestedFollowup,
 } from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
