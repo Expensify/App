@@ -303,11 +303,6 @@ function Expensify() {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
-    useEffect(() => {
-        setAudioModeAsync({playsInSilentMode: true});
-    }, []);
-
     useEffect(() => {
         if (isLoadingOnyxValue(sessionMetadata)) {
             return;
