@@ -29,6 +29,7 @@ import type {
     TransactionCategoryGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
+    TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
@@ -158,6 +159,9 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
         return (transaction.category ?? '') === ((groupItem as TransactionCategoryGroupListItemType).category ?? '');
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
+        return (transaction.merchant ?? '') === ((groupItem as TransactionMerchantGroupListItemType).merchant ?? '');
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
         const monthGroup = groupItem as TransactionMonthGroupListItemType;
