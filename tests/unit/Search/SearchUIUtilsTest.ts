@@ -2073,7 +2073,7 @@ const transactionQuarterGroupListItems: TransactionQuarterGroupListItemType[] = 
         currency: 'USD',
         total: 250,
         groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-        formattedQuarter: 'Q1 2026',
+        formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
         sortKey: 20261,
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -2085,7 +2085,7 @@ const transactionQuarterGroupListItems: TransactionQuarterGroupListItemType[] = 
         currency: 'USD',
         total: 75,
         groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-        formattedQuarter: 'Q4 2025',
+        formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
         sortKey: 20254,
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -3013,8 +3013,8 @@ describe('SearchUIUtils', () => {
             }) as [TransactionQuarterGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
-            expect(result.some((item) => item.formattedQuarter === 'Q1 2026')).toBe(true);
-            expect(result.some((item) => item.formattedQuarter === 'Q3 2026')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter.startsWith('Q1 2026'))).toBe(true);
+            expect(result.some((item) => item.formattedQuarter.startsWith('Q3 2026'))).toBe(true);
         });
 
         it('should calculate sortKey correctly for quarter groups', () => {
@@ -3042,7 +3042,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                formattedQuarter: 'Q1 2026',
+                formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
                 sortKey: 20261,
                 transactions: [],
                 transactionsQueryJSON: undefined,
