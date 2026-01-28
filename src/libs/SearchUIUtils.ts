@@ -377,9 +377,7 @@ type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon?:
-        | IconAsset
-        | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>;
+    icon?: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -429,9 +427,7 @@ type GetSectionsParams = {
 function createTopSearchMenuItem(
     key: SearchKey,
     translationPath: TranslationPaths,
-    icon:
-        | IconAsset
-        | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
+    icon: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
     limit?: number,
 ): SearchTypeMenuItem {
@@ -2281,10 +2277,39 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
             }
 
             // Format the merchant name - use translated "No merchant" for empty values so it sorts alphabetically
-            // Also treat TRANSACTION.DEFAULT_MERCHANT ('Expense') as empty since it's a system default
+            // Handle all known empty merchant values:
+            // - Empty string or falsy
+            // - MERCHANT_EMPTY_VALUE ('none') - used in search queries
+            // - DEFAULT_MERCHANT ('Expense') - system default for expenses without merchant
+            // - PARTIAL_TRANSACTION_MERCHANT ('(none)') - used for partial/incomplete transactions
+            // - UNKNOWN_MERCHANT ('Unknown Merchant') - used when merchant cannot be determined
             const rawMerchant = merchantGroup.merchant;
-            const isEmptyMerchant = !rawMerchant || rawMerchant === CONST.SEARCH.MERCHANT_EMPTY_VALUE || rawMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+            const isEmptyMerchant =
+                !rawMerchant ||
+                rawMerchant === CONST.SEARCH.MERCHANT_EMPTY_VALUE ||
+                rawMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT ||
+                rawMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
+                rawMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT;
             const formattedMerchant = isEmptyMerchant ? translate('search.noMerchant') : rawMerchant;
+
+            // DEBUG: Log merchant processing to identify edge cases
+            // eslint-disable-next-line no-console
+            console.log(
+                '[getMerchantSections] DEBUG:',
+                JSON.stringify({
+                    key,
+                    rawMerchant,
+                    rawMerchantType: typeof rawMerchant,
+                    rawMerchantLength: rawMerchant?.length,
+                    rawMerchantCharCodes: rawMerchant ? Array.from(rawMerchant).map((c) => c.charCodeAt(0)) : [],
+                    MERCHANT_EMPTY_VALUE: CONST.SEARCH.MERCHANT_EMPTY_VALUE,
+                    DEFAULT_MERCHANT: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    PARTIAL_TRANSACTION_MERCHANT: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    UNKNOWN_MERCHANT: CONST.TRANSACTION.UNKNOWN_MERCHANT,
+                    isEmptyMerchant,
+                    formattedMerchant,
+                }),
+            );
 
             merchantSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
