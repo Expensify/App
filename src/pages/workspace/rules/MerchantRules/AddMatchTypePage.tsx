@@ -39,16 +39,16 @@ function AddMatchTypePage({route}: AddMatchTypePageProps) {
 
     const items: MatchTypeItem[] = [
         {
-            value: CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
-            keyForList: CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
-            text: translate('workspace.rules.merchantRules.matchTypeExact'),
-            isSelected: selectedValue === CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
-        },
-        {
             value: CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS,
             keyForList: CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS,
             text: translate('workspace.rules.merchantRules.matchTypeContains'),
             isSelected: selectedValue === CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS,
+        },
+        {
+            value: CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
+            keyForList: CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
+            text: translate('workspace.rules.merchantRules.matchTypeExact'),
+            isSelected: selectedValue === CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
         },
     ];
 
