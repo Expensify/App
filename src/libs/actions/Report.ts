@@ -102,7 +102,9 @@ import {
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
+import * as ReportActionsFollowupUtils from '@libs/ReportActionsFollowupUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getLastVisibleAction} from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
@@ -533,6 +535,39 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
 }
 
 /**
+ * Builds an optimistic report action with resolved followups (followup-list marked as selected).
+ * @param reportAction - The report action to check and potentially resolve
+ * @returns Null if the action doesn't have unresolved followups or the updated report action with resolved followups.
+ */
+function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>): ReportAction | null {
+    if (!reportAction) {
+        return null;
+    }
+
+    const message = ReportActionsUtils.getReportActionMessage(reportAction);
+    if (!message) {
+        return null;
+    }
+    const html = message?.html ?? '';
+    const followups = ReportActionsFollowupUtils.parseFollowupsFromHtml(html);
+
+    if (!followups || followups.length === 0) {
+        return null;
+    }
+
+    const updatedHtml = html.replace(/<followup-list(\s[^>]*)?>/, '<followup-list selected>');
+    return {
+        ...reportAction,
+        message: [
+            {
+                ...message,
+                html: updatedHtml,
+            },
+        ],
+    };
+}
+
+/**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
  * - Adding one comment
@@ -597,7 +632,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
-    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction | ReportAction> = {};
 
     // Only add the reportCommentAction when there is no file attachment. If there is both a file attachment and text, that will all be contained in the attachmentAction.
     if (text && reportCommentAction?.reportActionID && !file) {
@@ -606,6 +641,17 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     if (file && attachmentAction?.reportActionID) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
+
+    // Check if the last visible action is from Concierge with unresolved followups
+    // If so, optimistically resolve them by adding the updated action to optimisticReportActions
+    const lastVisibleAction = getLastVisibleAction(reportID);
+    const lastActorAccountID = lastVisibleAction?.actorAccountID;
+    const lastActionReportActionID = lastVisibleAction?.reportActionID;
+    const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
+    if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID && resolvedAction) {
+        optimisticReportActions[lastActionReportActionID] = resolvedAction;
+    }
+
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
@@ -662,9 +708,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     };
     const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
         const lastVisibleActionCreated = lastVisibleAction?.created;
-        const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
             lastMessageText,
             lastVisibleActionCreated,
@@ -672,7 +716,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         };
     }
 
-    const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction> = {};
 
     for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
@@ -680,6 +724,10 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
             ...(action as OptimisticAddCommentReportAction),
             errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
+    }
+    // In case of error bring back the follow up buttons to the cast comment
+    if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID) {
+        failureReportActions[lastActionReportActionID] = lastVisibleAction;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -6496,6 +6544,46 @@ function resolveConciergeDescriptionOptions(
 }
 
 /**
+ * Resolves a suggested followup by posting the selected question as a comment
+ * and optimistically updating the HTML to mark the followup-list as resolved.
+ * @param report - The report where the action exists
+ * @param notifyReportID - The report ID to notify for new actions
+ * @param reportAction - The report action containing the followup-list
+ * @param selectedFollowup - The followup question selected by the user
+ * @param timezoneParam - The user's timezone
+ * @param ancestors - Array of ancestor reports for proper threading
+ */
+function resolveSuggestedFollowup(
+    report: OnyxEntry<Report>,
+    notifyReportID: string | undefined,
+    reportAction: OnyxEntry<ReportAction>,
+    selectedFollowup: string,
+    timezoneParam: Timezone,
+    ancestors: Ancestor[] = [],
+) {
+    const reportID = report?.reportID;
+    const reportActionID = reportAction?.reportActionID;
+
+    if (!reportID || !reportActionID) {
+        return;
+    }
+
+    const resolvedAction = buildOptimisticResolvedFollowups(reportAction);
+
+    if (!resolvedAction) {
+        return;
+    }
+
+    // Optimistically update the HTML to mark followup-list as resolved
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [reportActionID]: resolvedAction,
+    });
+
+    // Post the selected followup question as a comment
+    addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup, timezoneParam);
+}
+
+/**
  * Enhances existing transaction thread reports with additional context for navigation
  *
  * This is NOT the same as createTransactionThreadReport - this function only adds missing
@@ -6534,6 +6622,7 @@ export {
     broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
     buildOptimisticChangePolicyData,
+    buildOptimisticResolvedFollowups,
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
@@ -6596,6 +6685,7 @@ export {
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
+    resolveSuggestedFollowup,
     savePrivateNotesDraft,
     saveReportActionDraft,
     saveReportDraftComment,

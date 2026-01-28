@@ -38,11 +38,11 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
-import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
-import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
-import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
-import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
+import getCursorPosition from '@pages/inbox/report/ReportActionCompose/getCursorPosition';
+import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScrollPosition';
+import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
+import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
