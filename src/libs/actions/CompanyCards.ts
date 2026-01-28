@@ -598,6 +598,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
     };
 
     if (breakConnection) {
+        // Simulate "Account not found" error code for testing
         parameters.breakConnection = 434;
     }
 
