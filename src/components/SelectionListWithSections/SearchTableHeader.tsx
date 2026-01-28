@@ -381,6 +381,15 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 },
                 ...commonGroupHeaders,
             ];
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
+                    translationKey: 'common.quarter',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
         default:
             return [];
     }

@@ -32,6 +32,7 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
+    TransactionQuarterGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -181,6 +182,15 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
         const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
         const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
         return transactionYear === yearGroup.year;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.QUARTER) {
+        const quarterGroup = groupItem as TransactionQuarterGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
+        const transactionMonth = parseInt(transactionDateString.substring(5, 7), 10);
+        // Calculate which quarter the transaction belongs to (1-4)
+        const transactionQuarter = Math.floor((transactionMonth - 1) / 3) + 1;
+        return transactionYear === quarterGroup.year && transactionQuarter === quarterGroup.quarter;
     }
     return false;
 }

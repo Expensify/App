@@ -64,6 +64,7 @@ import {
     isTransactionWeekGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
     isTransactionYearGroupListItemType,
+    isTransactionQuarterGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -947,6 +948,36 @@ function Search({
                     filters: [
                         {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: yearStart},
                         {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: yearEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionQuarterGroupListItemType(item)) {
+                const quarterGroupItem = item;
+                if (quarterGroupItem.year === undefined || quarterGroupItem.quarter === undefined) {
+                    return;
+                }
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                // Calculate quarter date range: Q1 (Jan-Mar), Q2 (Apr-Jun), Q3 (Jul-Sep), Q4 (Oct-Dec)
+                const quarterStartMonth = (quarterGroupItem.quarter - 1) * 3 + 1; // 1, 4, 7, 10
+                const quarterEndMonth = quarterGroupItem.quarter * 3; // 3, 6, 9, 12
+                const quarterStart = `${quarterGroupItem.year}-${String(quarterStartMonth).padStart(2, '0')}-01`;
+                // Get last day of quarter end month (Date constructor uses 0-indexed months, so quarterEndMonth gives last day of previous month)
+                const quarterEndDate = new Date(quarterGroupItem.year, quarterEndMonth, 0);
+                const quarterEnd = `${quarterGroupItem.year}-${String(quarterEndMonth).padStart(2, '0')}-${String(quarterEndDate.getDate()).padStart(2, '0')}`;
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: quarterStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: quarterEnd},
                     ],
                 });
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};

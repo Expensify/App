@@ -35,6 +35,7 @@ import type {
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchMonthGroup,
+    SearchQuarterGroup,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
@@ -533,6 +534,14 @@ type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedB
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
         /** Final and formatted "year" value used for displaying */
         formattedYear: string;
+    };
+
+type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
+        /** Final and formatted "quarter" value used for displaying */
+        formattedQuarter: string;
+
+        /** Sort key for sorting */
+        sortKey: number;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -1182,6 +1191,7 @@ export type {
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
+    TransactionQuarterGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
