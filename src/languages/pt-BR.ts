@@ -8168,6 +8168,12 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
     },
+    proactiveAppReview: {
+        title: 'Curtindo o novo Expensify?',
+        description: 'Avise-nos para que possamos ajudar a tornar sua experiência com despesas ainda melhor.',
+        positiveButton: 'Sim!',
+        negativeButton: 'Na verdade, não',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
