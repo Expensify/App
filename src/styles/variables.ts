@@ -401,6 +401,8 @@ export default {
     // Multifactor Authentication illustrations size
     openPadlockWidth: 140,
     openPadlockHeight: 140,
+    transactionHandWidth: 118,
+    transactionHandHeight: 191,
     runOutOfTimeWidth: 218,
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
