@@ -65,6 +65,14 @@ describe('useNativeBiometrics hook', () => {
             writable: true,
             configurable: true,
         });
+        // Setup default mocks for PublicKeyStore and requestAuthenticationChallenge
+        (PublicKeyStore.get as jest.Mock).mockResolvedValue({
+            value: null,
+            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
+        });
+        (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
+            publicKeys: [],
+        });
     });
 
     describe('Hook initialization', () => {
@@ -129,14 +137,11 @@ describe('useNativeBiometrics hook', () => {
     });
 
     describe('refresh', () => {
-        beforeEach(() => {
+        it('should update info', async () => {
             (PublicKeyStore.get as jest.Mock).mockResolvedValue({
                 value: 'public-key-123',
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
             });
-        });
-
-        it('should update info', async () => {
             (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
                 challenge: {user: {id: '123'}, rp: {name: 'Expensify'}},
                 reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
@@ -155,6 +160,10 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should call public key store with the accountID', async () => {
+            (PublicKeyStore.get as jest.Mock).mockResolvedValue({
+                value: 'public-key-123',
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
+            });
             const {result} = renderHook(() => useNativeBiometrics());
 
             await act(async () => {
