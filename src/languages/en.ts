@@ -6506,7 +6506,7 @@ const translations = {
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `updated ${count} categories`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated tags on the list "${tagListName}"`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `changed tag lists ${tagListsName} to ${isRequired ? 'required' : 'not required'}`,
+        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `changed tag list "${tagListsName}" to ${isRequired ? 'required' : 'not required'}`,
         importTags: 'imported tags from a spreadsheet',
         deletedAllTags: 'deleted all tags',
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,

@@ -161,7 +161,7 @@ import type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -6578,7 +6578,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             `atualizou "Refaturar despesas para clientes" para "${newValue}" (anteriormente "${oldValue}")`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `atualizado "Padrão de despesa em dinheiro" para "${newValue}" (anteriormente "${oldValue}")`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `ativou "Aplicar títulos padrão de relatório" ${value ? 'Ativado' : 'Desativado'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `ativou "Aplicar títulos padrão de relatório" ${value ? 'Ativado' : 'Desativado'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `atualizou o nome deste workspace para "${newName}" (anteriormente "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription

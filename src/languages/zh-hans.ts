@@ -161,7 +161,7 @@ import type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -6437,7 +6437,7 @@ ${reportName}
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“向客户重新计费用的支出”更新为“${newValue}”（之前为“${oldValue}”）`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“现金报销默认值”更新为“${newValue}”（之前为“${oldValue}”）`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `已开启“强制使用默认报表标题”${value ? '开' : '关'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `已开启“强制使用默认报表标题”${value ? '开' : '关'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `已将此工作区名称更新为“${newName}”（之前为“${oldName}”）`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription ? `将此工作区的描述设置为“${newDescription}”` : `已将此工作区的描述更新为“${newDescription}”（之前为“${oldDescription}”）`,

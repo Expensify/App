@@ -161,7 +161,7 @@ import type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -6600,7 +6600,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             `aggiornato "Riaddebita le spese ai clienti" in "${newValue}" (in precedenza "${oldValue}")`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `aggiornato “Impostazione predefinita per spese in contanti” in “${newValue}” (in precedenza “${oldValue}”)`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `ha attivato "Imponi titoli predefiniti dei report" ${value ? 'attivo' : 'disattivato'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `ha attivato "Imponi titoli predefiniti dei report" ${value ? 'attivo' : 'disattivato'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `ha aggiornato il nome di questo spazio di lavoro in "${newName}" (in precedenza "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription

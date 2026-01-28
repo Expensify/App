@@ -6240,7 +6240,7 @@ ${amount} para ${merchant} - ${date}`,
         updateCategories: ({count}) => `actualizó ${count} categorías`,
         updateTagListName: ({oldName, newName}) => `cambió el nombre de la lista de etiquetas a "${newName}" (previamente "${oldName}")`,
         updateTagList: ({tagListName}) => `actualizó las etiquetas de la lista "${tagListName}"`,
-        updateTagListRequired: ({tagListsName, isRequired}) => `cambió las listas de etiquetas ${tagListsName} a ${isRequired ? 'requeridas' : 'no requeridas'}`,
+        updateTagListRequired: ({tagListsName, isRequired}) => `cambió la lista de etiquetas "${tagListsName}" a ${isRequired ? 'requerida' : 'no requerida'}`,
         importTags: 'importó etiquetas desde una hoja de cálculo',
         deletedAllTags: 'eliminó todas las etiquetas',
         addTag: ({tagListName, tagName}) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
@@ -6356,13 +6356,19 @@ ${amount} para ${merchant} - ${date}`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}) => {
             const thresholdSuffix = notificationThreshold ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
+            let entityLabel = entityType;
+            if (entityType === 'category') {
+                entityLabel = 'la categoría';
+            } else if (entityType === 'tag') {
+                entityLabel = 'la etiqueta';
+            }
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
-                return `añadió presupuesto ${frequency} individual de "${individual}" y presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} al ${entityType} "${entityName}"`;
+                return `añadió presupuesto ${frequency} individual de "${individual}" y presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} a ${entityLabel} "${entityName}"`;
             }
             if (typeof individual !== 'undefined') {
-                return `añadió presupuesto ${frequency} individual de "${individual}"${thresholdSuffix} al ${entityType} "${entityName}"`;
+                return `añadió presupuesto ${frequency} individual de "${individual}"${thresholdSuffix} a ${entityLabel} "${entityName}"`;
             }
-            return `añadió presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} al ${entityType} "${entityName}"`;
+            return `añadió presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} a ${entityLabel} "${entityName}"`;
         },
         updateBudget: ({entityType, entityName, oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold}) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
@@ -6392,32 +6398,50 @@ ${amount} para ${merchant} - ${date}`,
             }
 
             if (changesList.length === 1) {
+                let entityLabel = entityType;
+                if (entityType === 'category') {
+                    entityLabel = 'la categoría';
+                } else if (entityType === 'tag') {
+                    entityLabel = 'la etiqueta';
+                }
                 if (frequencyChanged) {
-                    return `cambió la frecuencia del presupuesto para ${entityType} "${entityName}" a "${newFrequency}" (antes "${oldFrequency}")`;
+                    return `cambió la frecuencia del presupuesto para ${entityLabel} "${entityName}" a "${newFrequency}" (antes "${oldFrequency}")`;
                 }
                 if (sharedChanged) {
-                    return `cambió el presupuesto compartido total para ${entityType} "${entityName}" a "${newShared}" (antes "${oldShared}")`;
+                    return `cambió el presupuesto compartido total para ${entityLabel} "${entityName}" a "${newShared}" (antes "${oldShared}")`;
                 }
                 if (individualChanged) {
-                    return `cambió el presupuesto individual para ${entityType} "${entityName}" a "${newIndividual}" (antes "${oldIndividual}")`;
+                    return `cambió el presupuesto individual para ${entityLabel} "${entityName}" a "${newIndividual}" (antes "${oldIndividual}")`;
                 }
-                return `cambió el umbral de notificación para ${entityType} "${entityName}" a "${newNotificationThreshold}%" (antes "${oldNotificationThreshold}%")`;
+                return `cambió el umbral de notificación para ${entityLabel} "${entityName}" a "${newNotificationThreshold}%" (antes "${oldNotificationThreshold}%")`;
             }
 
-            return `actualizó el presupuesto para ${entityType} "${entityName}": ${changesList.join('; ')}`;
+            let entityLabel = entityType;
+            if (entityType === 'category') {
+                entityLabel = 'la categoría';
+            } else if (entityType === 'tag') {
+                entityLabel = 'la etiqueta';
+            }
+            return `actualizó el presupuesto para ${entityLabel} "${entityName}": ${changesList.join('; ')}`;
         },
         deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
+            let entityLabel = entityType;
+            if (entityType === 'category') {
+                entityLabel = 'la categoría';
+            } else if (entityType === 'tag') {
+                entityLabel = 'la etiqueta';
+            }
             if (shared && individual) {
-                return `eliminó el presupuesto ${frequency} compartido de "${shared}" y el presupuesto individual de "${individual}"${thresholdSuffix} del ${entityType} "${entityName}"`;
+                return `eliminó el presupuesto ${frequency} compartido de "${shared}" y el presupuesto individual de "${individual}"${thresholdSuffix} de ${entityLabel} "${entityName}"`;
             }
             if (shared) {
-                return `eliminó el presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} del ${entityType} "${entityName}"`;
+                return `eliminó el presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} de ${entityLabel} "${entityName}"`;
             }
             if (individual) {
-                return `eliminó el presupuesto ${frequency} individual de "${individual}"${thresholdSuffix} del ${entityType} "${entityName}"`;
+                return `eliminó el presupuesto ${frequency} individual de "${individual}"${thresholdSuffix} de ${entityLabel} "${entityName}"`;
             }
-            return `eliminó el presupuesto del ${entityType} "${entityName}"`;
+            return `eliminó el presupuesto de ${entityLabel} "${entityName}"`;
         },
         updatedTimeEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de tiempo`,
         updatedTimeRate: ({newRate, oldRate}) => `cambió la tarifa por hora a "${newRate}" (anteriormente "${oldRate}")`,

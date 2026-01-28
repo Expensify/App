@@ -161,7 +161,7 @@ import type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -6585,7 +6585,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             `heeft "Kosten opnieuw doorberekenen aan klanten" bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `"Standaard contante uitgave" bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `heeft "Standaardtitels voor rapporten afdwingen" ingeschakeld ${value ? 'aan' : 'Uit'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `heeft "Standaardtitels voor rapporten afdwingen" ingeschakeld ${value ? 'aan' : 'Uit'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `heeft de naam van deze workspace bijgewerkt naar "${newName}" (voorheen "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription

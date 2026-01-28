@@ -161,7 +161,7 @@ import type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -6627,7 +6627,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             `a mis à jour « Refacturer les dépenses aux clients » en « ${newValue} » (auparavant « ${oldValue} »)`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `« Cash expense default » mis à jour sur « ${newValue} » (auparavant « ${oldValue} »)`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `a activé « Enforce default report titles » ${value ? 'Activé' : 'désactivé'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `a activé « Enforce default report titles » ${value ? 'Activé' : 'désactivé'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `a mis à jour le nom de cet espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription

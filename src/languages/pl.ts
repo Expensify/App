@@ -161,7 +161,7 @@ import type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -6578,7 +6578,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             `zaktualizowano „Obciążanie klientów kosztami poniesionymi w ich imieniu” na „${newValue}” (wcześniej „${oldValue}”)`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `zaktualizowano „Domyślny wydatek gotówkowy” na „${newValue}” (wcześniej „${oldValue}”)`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `włączył „Wymuszaj domyślne tytuły raportów” ${value ? 'włączone' : 'Wył.'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `włączył „Wymuszaj domyślne tytuły raportów” ${value ? 'włączone' : 'Wył.'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `zaktualizowano nazwę tego workspace do „${newName}” (wcześniej „${oldName}”)`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription ? `ustaw opis tego obszaru roboczego na „${newDescription}”` : `zaktualizował opis tego obszaru roboczego na „${newDescription}” (wcześniej „${oldDescription}”)`,
