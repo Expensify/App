@@ -3,6 +3,8 @@ import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selec
 import {emailSelector} from '@selectors/Session';
 import {useEffect, useMemo} from 'react';
 import {InteractionManager} from 'react-native';
+import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
@@ -72,6 +74,22 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
+            // Temporary solution to navigate to onboarding when trying to access the app
+            // Should be removed once Test Drive moodal route has its own navigation guard
+            // Details: https://github.com/Expensify/App/pull/79898
+            if (hasCompletedGuidedSetupFlowSelector(onboardingValues) && onboardingValues?.testDriveModalDismissed === false) {
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from test drive modal');
+                    startOnboardingFlow({
+                        onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
+                        isUserFromPublicDomain: false,
+                        hasAccessiblePolicies: false,
+                        currentOnboardingCompanySize: undefined,
+                        currentOnboardingPurposeSelected: undefined,
+                        onboardingValues,
+                    });
+                });
+            }
             if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
                 const navigationState = navigationRef.getRootState();
                 const lastRoute = navigationState.routes.at(-1);
