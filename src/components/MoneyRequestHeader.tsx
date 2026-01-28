@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {ReactNode} from 'react';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -173,6 +174,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
@@ -199,6 +201,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    isSelfTourViewed,
                     customUnitPolicyID: policy?.id,
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
@@ -206,7 +209,18 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 });
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, introSelected, activePolicyID, quickAction, policyRecentlyUsedCurrencies, policy?.id],
+        [
+            activePolicyExpenseChat,
+            allPolicyCategories,
+            defaultExpensePolicy,
+            isASAPSubmitBetaEnabled,
+            introSelected,
+            activePolicyID,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            policy?.id,
+            isSelfTourViewed,
+        ],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
@@ -586,6 +600,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
                             allTransactionViolationsParam: allTransactionViolations,
+                            currentUserAccountID: accountID,
                         });
                     } else {
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
