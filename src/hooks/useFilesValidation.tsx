@@ -3,7 +3,7 @@ import React, {useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
-import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
+import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -54,7 +54,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const [invalidFileExtension, setInvalidFileExtension] = useState('');
     const [errorQueue, setErrorQueue] = useState<ErrorObject[]>([]);
     const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
-    const {setIsLoaderVisible} = useFullScreenLoader();
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
