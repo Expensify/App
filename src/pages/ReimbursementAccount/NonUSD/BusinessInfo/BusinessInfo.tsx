@@ -95,6 +95,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
     }, [country]);
 
     const submit = useCallback(() => {
+        isSubmittingRef.current = true;
         saveCorpayOnboardingCompanyDetails(
             {
                 ...businessInfoStepValues,

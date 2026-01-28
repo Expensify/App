@@ -53,6 +53,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
+        isSubmittingRef.current = true;
         createCorpayBankAccount({...values, ...corpayData} as ReimbursementAccountForm, policyID);
     };
 
@@ -67,7 +68,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
             return;
         }
 
-        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+        if (reimbursementAccount?.isSuccess === true && isSubmittingRef.current) {
             isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountBankCreation();

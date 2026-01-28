@@ -81,6 +81,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
             [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
         });
 
+        isSubmittingRef.current = true;
         saveCorpayOnboardingBeneficialOwners({
             inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
             ...ownerFiles,
