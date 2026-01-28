@@ -5897,7 +5897,6 @@ function getReportName(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getPlaidBalanceFailureMessage(translateLocal, parentReportAction);
     }
 
