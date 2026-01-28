@@ -42,3 +42,4 @@ function useWaypointItems(waypoints: WaypointCollection): UseWaypointItemsParams
 }
 
 export default useWaypointItems;
+export type {UseWaypointItemsParams};
