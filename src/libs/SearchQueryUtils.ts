@@ -1010,10 +1010,11 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.groupBy) {
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
-    }
 
-    if (queryJSON.view) {
-        filtersForm[FILTER_KEYS.VIEW] = queryJSON.view;
+        // View is only allowed when groupBy is set
+        if (queryJSON.view) {
+            filtersForm[FILTER_KEYS.VIEW] = queryJSON.view;
+        }
     }
 
     if (queryJSON.columns) {
