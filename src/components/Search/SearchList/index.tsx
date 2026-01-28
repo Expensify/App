@@ -284,7 +284,6 @@ function SearchList({
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
@@ -424,7 +423,6 @@ function SearchList({
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
-                        accountID={accountID}
                         isOffline={isOffline}
                         violations={violations}
                         customCardNames={customCardNames}
@@ -457,7 +455,6 @@ function SearchList({
             isUserValidated,
             personalDetails,
             userBillingFundID,
-            accountID,
             isOffline,
             violations,
             onDEWModalOpen,

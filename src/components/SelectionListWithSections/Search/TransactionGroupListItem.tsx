@@ -64,7 +64,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     columns,
     groupBy,
     searchType,
-    accountID,
     isOffline,
     newTransactionID,
     violations,
@@ -418,7 +417,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 onCheckboxPress={onCheckboxPress}
                                 columns={columns}
                                 groupBy={groupBy}
-                                accountID={accountID}
+                                accountID={currentUserDetails.accountID}
                                 isOffline={isOffline}
                                 violations={violations}
                                 transactions={transactions}
