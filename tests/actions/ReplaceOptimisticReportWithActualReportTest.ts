@@ -159,4 +159,210 @@ describe('replaceOptimisticReportWithActualReport', () => {
         const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
         expect(updatedReport?.participants).toEqual(optimisticReport.participants);
     });
+
+    it('should handle preexistingReportID for one-transaction report', async () => {
+        // Given an IOU report with one transaction
+        const iouReportID = '9999';
+        const chatReportID = '8888';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const iouReportAction = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: 'trans123',
+            },
+            childReportID: preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            chatReportID,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [iouReportAction.reportActionID]: iouReportAction,
+        });
+
+        // Create the optimistic report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: '1',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [iouReportAction.reportActionID]: {
+                childReportID: optimisticReportID,
+            },
+        });
+
+        // When OpenReport API is called, it returns preexistingReportID and reportID
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {
+            reportID: optimisticReportID,
+            preexistingReportID,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then replaceOptimisticReportWithActualReport is called
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        if (report) {
+            replaceOptimisticReportWithActualReport(report, undefined);
+        }
+
+        await waitForBatchedUpdates();
+
+        // Then the optimistic report should be cleared
+        const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        expect(optimisticReport).toBeFalsy();
+
+        // Then the childReportID of the IOU action should be updated
+        const iouReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+        expect(iouReportActions?.['1']?.childReportID).toBe(preexistingReportID);
+    });
+
+    it('should handle preexistingReportID for multi-transaction report', async () => {
+        // Given an IOU report with multiple transactions
+        const iouReportID = '9999';
+        const chatReportID = '8888';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const iouReportAction1 = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: 'trans123',
+            },
+            childReportID: preexistingReportID,
+        };
+        const iouReportAction2 = {
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: 'trans456',
+            },
+            childReportID: '6666',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+            chatReportID,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [iouReportAction1.reportActionID]: iouReportAction1,
+            [iouReportAction2.reportActionID]: iouReportAction2,
+        });
+
+        // Given that we create an optimistic transaction thread report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: '1',
+        });
+
+        // Given that we update the childReportID of the first IOU action points to the optimistic report
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [iouReportAction1.reportActionID]: {
+                childReportID: optimisticReportID,
+            },
+        });
+
+        // When OpenReport API is called, it returns preexistingReportID and reportID
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {
+            reportID: optimisticReportID,
+            preexistingReportID,
+        });
+
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        if (report) {
+            replaceOptimisticReportWithActualReport(report, undefined);
+        }
+
+        await waitForBatchedUpdates();
+
+        // Then the optimistic report should be cleared
+        const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        expect(optimisticReport).toBeFalsy();
+
+        // Then the childReportID of the IOU action should be updated
+        const iouReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+        expect(iouReportActions?.[iouReportAction1.reportActionID]?.childReportID).toBe(preexistingReportID);
+    });
+
+    it('should handle preexistingReportID for thread under comment', async () => {
+        // Given a parent chat report with a comment
+        const chatReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const commentReportAction = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: 'TEXT', text: 'Test comment'}],
+            childReportID: preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            [commentReportAction.reportActionID]: commentReportAction,
+        });
+
+        // Given that we create an optimistic thread report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: chatReportID,
+            parentReportActionID: '1',
+        });
+
+        // Given that we update the childReportID of the comment action points to the optimistic report
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            [commentReportAction.reportActionID]: {
+                childReportID: optimisticReportID,
+            },
+        });
+
+        // When OpenReport API is called, it returns preexistingReportID and reportID
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {
+            reportID: optimisticReportID,
+            preexistingReportID,
+        });
+
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        if (report) {
+            replaceOptimisticReportWithActualReport(report, undefined);
+        }
+
+        await waitForBatchedUpdates();
+
+        // Then the optimistic report should be cleared
+        const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        expect(optimisticReport).toBeFalsy();
+
+        // And the parent report action should be updated to point to preexisting thread
+        const parentChatReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+        expect(parentChatReportActions?.['1']?.childReportID).toBe(preexistingReportID);
+    });
 });
