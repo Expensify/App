@@ -182,8 +182,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    AnyRequest,
     BankAccountList,
-    GenericRequest,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -2299,7 +2299,7 @@ function editReportComment(
                 if (addCommentIndex > -1) {
                     return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
                 }
-                return resolveDuplicationConflictAction(persistedRequests as GenericRequest[], createUpdateCommentMatcher(reportActionID));
+                return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
         },
     );

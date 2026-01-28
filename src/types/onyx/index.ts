@@ -250,7 +250,7 @@ export type {
     ReportFieldsViolations,
     ReportLayoutGroupBy,
     GroupedTransactions,
-    AnyRequest as GenericRequest,
+    AnyRequest,
     Request,
     Response,
     ScreenShareRequest,
