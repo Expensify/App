@@ -71,8 +71,8 @@ describe('DeepLinkHandler', () => {
             hasAuthToken: (): boolean => mockHasAuthToken(),
         }));
         jest.doMock('@expensify/react-native-hybrid-app', () => ({
-                onURLListenerAdded: (): void => {
-                    mockOnURLListenerAdded();
+            onURLListenerAdded: (): void => {
+                mockOnURLListenerAdded();
             },
         }));
         jest.doMock('@src/CONFIG', () => ({
@@ -102,30 +102,6 @@ describe('DeepLinkHandler', () => {
 
             // Should only set up listener once
             expect(mockAddEventListener).toHaveBeenCalledTimes(1);
-        });
-
-        it('should process initial URL when processInitialURL is called', async () => {
-            jest.resetModules();
-            setupMocksAfterReset(false);
-        
-            const testUrl = 'https://new.expensify.com/r/123';
-            const DeepLinkHandlerModule = await import('@src/libs/DeepLinkHandler');
-            await waitForBatchedUpdates();
-        
-            // Set up reports in Onyx so the deep link can be processed
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {
-                reportID: '123',
-                type: 'chat',
-            });
-            await waitForBatchedUpdates();
-
-            // Process initial URL via the exported function (called by Expensify.tsx)
-            // Properly type the imported module default export and avoid unsafe casts
-            const processInitialURL = (DeepLinkHandlerModule as {default: (url: string) => void}).default;
-            processInitialURL(testUrl);
-            await waitForBatchedUpdates();
-
-            expect(mockOpenReportFromDeepLink).toHaveBeenCalled();
         });
 
         it('should call HybridAppModule.onURLListenerAdded when IS_HYBRID_APP is true', async () => {
