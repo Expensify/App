@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import escapeRegExp from 'lodash/escapeRegExp';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
@@ -111,6 +111,7 @@ import type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyEmployee,
     Report,
     ReportAction,
     ReportActions,
@@ -813,6 +814,29 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         approvalMode,
     };
 
+    const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+        for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
+            const employee = policy?.employeeList?.[employeeEmail];
+            const updates: Partial<PolicyEmployee> = {};
+
+            if (employee?.submitsTo) {
+                updates.submitsTo = policy?.owner;
+            }
+            if (employee?.forwardsTo) {
+                updates.forwardsTo = '';
+            }
+            if (employee?.overLimitForwardsTo) {
+                updates.overLimitForwardsTo = '';
+            }
+
+            if (Object.keys(updates).length > 0) {
+                optimisticMembersState[employeeEmail] = updates;
+            }
+        }
+    }
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -820,6 +844,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 ...value,
                 pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                employeeList: optimisticMembersState,
             },
         },
     ];
