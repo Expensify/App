@@ -61,6 +61,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                             // Since the parent View has accessible, we need to set accessible to false here to avoid duplicate accessibility elements.
                             // On Android when TalkBack is enabled, only the parent element should be accessible, otherwise the button will not work.
                             accessible={false}
+                            focusable={false}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
                         >
                             {({pressed}) => (
