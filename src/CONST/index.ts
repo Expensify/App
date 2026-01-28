@@ -2690,22 +2690,21 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
-    SUB_PAGE: {
-        MISSING_PERSONAL_DETAILS: {
-            STEP_INDEX_LIST: ['1', '2', '3', '4'],
-            PAGE_NAME: {
-                LEGAL_NAME: 'legal-name',
-                DATE_OF_BIRTH: 'date-of-birth',
-                ADDRESS: 'address',
-                PHONE_NUMBER: 'phone-number',
-                CONFIRM: 'confirm',
-            },
+    MISSING_PERSONAL_DETAILS: {
+        STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+            CONFIRM: 'confirm',
         },
-        SUBSCRIPTION_SIZE: {
-            PAGE_NAME: {
-                SIZE: 'size',
-                CONFIRM: 'confirm',
-            },
+    },
+
+    SUBSCRIPTION_SIZE: {
+        PAGE_NAME: {
+            SIZE: 'size',
+            CONFIRM: 'confirm',
         },
     },
 
