@@ -1,10 +1,12 @@
 import type {ValueOf} from 'type-fest';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 const NotificationType = {
     REPORT_ACTION: 'reportAction',
     REPORT_COMMENT: 'reportComment',
     TRANSACTION: 'transaction',
+    AUTHORIZE_TRANSACTION: 'authorizeTransaction',
 } as const;
 
 type NotificationTypes = ValueOf<typeof NotificationType>;
@@ -13,9 +15,10 @@ type NotificationDataMap = {
     [NotificationType.REPORT_ACTION]: ReportActionPushNotificationData;
     [NotificationType.REPORT_COMMENT]: ReportActionPushNotificationData;
     [NotificationType.TRANSACTION]: TransactionPushNotificationData;
+    [NotificationType.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPushNotificationData;
 };
 
-type PushNotificationData = ReportActionPushNotificationData | TransactionPushNotificationData;
+type PushNotificationData = ReportActionPushNotificationData | TransactionPushNotificationData | AuthorizeTransactionPushNotificationData;
 
 type BasePushNotificationData = {
     title: string;
@@ -34,7 +37,13 @@ type ReportActionPushNotificationData = BasePushNotificationData & {
 
 type TransactionPushNotificationData = BasePushNotificationData & {
     reportID: number;
-    transactionID: number;
+    // Due to its length and the rounding, the transactionID must be a string.
+    transactionID: string;
+};
+
+type AuthorizeTransactionPushNotificationData = TransactionPushNotificationData & {
+    challenge: MultifactorAuthenticationChallengeObject;
+    deadline: number;
 };
 
 /**
@@ -42,4 +51,4 @@ type TransactionPushNotificationData = BasePushNotificationData & {
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationTypes, NotificationDataMap, PushNotificationData, ReportActionPushNotificationData, TransactionPushNotificationData};
+export type {NotificationTypes, NotificationDataMap, PushNotificationData, ReportActionPushNotificationData, TransactionPushNotificationData, AuthorizeTransactionPushNotificationData};

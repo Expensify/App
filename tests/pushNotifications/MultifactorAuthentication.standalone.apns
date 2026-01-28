@@ -1,0 +1,12 @@
+{
+ "Simulator Target Bundle": "com.expensify.chat.dev",
+ "aps": {
+   "alert": "Approve transaction",
+ },
+ "payload": {
+   "type":"transaction",
+   "reportID": <REPORT_ID_NUMBER>,
+   "transactionID": <TRANSACTION_ID_STRING>,
+   "app":"new"
+ }
+}
