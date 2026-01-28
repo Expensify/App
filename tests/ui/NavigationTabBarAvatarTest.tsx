@@ -36,7 +36,7 @@ describe('NavigationTabBarAvatar hover', () => {
 
     it('shows green ring while hovered', () => {
         renderAvatar();
-        const button = screen.getByRole(CONST.ROLE.BUTTON);
+        const button = screen.getByRole(CONST.ROLE.TAB);
 
         // Before hover, ring should not have border styles
         const ring = screen.getByTestId('avatar-ring');
