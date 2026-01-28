@@ -23,7 +23,7 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string})
     return (
         <Section
             title={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-            subtitle={translate('workspace.moreFeatures.timeTracking.defaultHourlyRateSubtitle')}
+            subtitle={translate('workspace.moreFeatures.timeTracking.subtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={styles.pt6}
             subtitleMuted

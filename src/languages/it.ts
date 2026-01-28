@@ -5228,9 +5228,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             timeTracking: {
                 title: 'Ora',
-                subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.',
+                subtitle: 'Imposta una tariffa oraria fatturabile per il monitoraggio del tempo.',
                 defaultHourlyRate: 'Tariffa oraria predefinita',
-                defaultHourlyRateSubtitle: 'Imposta una tariffa oraria fatturabile per il monitoraggio del tempo.',
             },
         },
         reports: {

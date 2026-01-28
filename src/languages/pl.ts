@@ -5210,9 +5210,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             timeTracking: {
                 title: 'Czas',
-                subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.',
+                subtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
-                defaultHourlyRateSubtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
             },
         },
         reports: {

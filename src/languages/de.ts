@@ -5241,9 +5241,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             timeTracking: {
                 title: 'Zeit',
-                subtitle: 'Legen Sie einen abrechenbaren Stundensatz fest, damit Mitarbeitende für ihre Zeit bezahlt werden.',
+                subtitle: 'Legen Sie einen abrechenbaren Stundensatz für die Zeiterfassung fest.',
                 defaultHourlyRate: 'Standardstundensatz',
-                defaultHourlyRateSubtitle: 'Legen Sie einen abrechenbaren Stundensatz für die Zeiterfassung fest.',
             },
         },
         reports: {

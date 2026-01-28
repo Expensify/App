@@ -5249,9 +5249,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             timeTracking: {
                 title: 'Heure',
-                subtitle: 'Définissez un taux horaire facturable pour que les employés soient rémunérés pour leur temps.',
+                subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
                 defaultHourlyRate: 'Taux horaire par défaut',
-                defaultHourlyRateSubtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
             },
         },
         reports: {

@@ -5194,9 +5194,8 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             },
             timeTracking: {
                 title: '時間',
-                subtitle: '従業員が作業時間に対して支払いを受けられるよう、時間単位の請求レートを設定します。',
+                subtitle: 'タイムトラッキング用の時間単価請求レートを設定します。',
                 defaultHourlyRate: 'デフォルトの時間単価',
-                defaultHourlyRateSubtitle: 'タイムトラッキング用の時間単価請求レートを設定します。',
             },
         },
         reports: {

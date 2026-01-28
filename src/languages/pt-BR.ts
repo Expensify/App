@@ -5210,9 +5210,8 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             },
             timeTracking: {
                 title: 'Hora',
-                subtitle: 'Defina uma taxa horária faturável para que os funcionários sejam pagos pelo tempo trabalhado.',
+                subtitle: 'Defina uma taxa horária faturável para o controle de tempo.',
                 defaultHourlyRate: 'Taxa horária padrão',
-                defaultHourlyRateSubtitle: 'Defina uma taxa horária faturável para o controle de tempo.',
             },
         },
         reports: {

@@ -5217,9 +5217,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             },
             timeTracking: {
                 title: 'Tijd',
-                subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.',
+                subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
                 defaultHourlyRate: 'Standaard uurtarief',
-                defaultHourlyRateSubtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
             },
         },
         reports: {
