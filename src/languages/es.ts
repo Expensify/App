@@ -4527,7 +4527,7 @@ ${amount} para ${merchant} - ${date}`,
             cardAlreadyAssignedError: 'Esta tarjeta ya está asignada a un usuario en otro espacio de trabajo.',
             importTransactions: {
                 title: 'Importar transacciones desde archivo',
-                description: 'Por favor, ajusta la configuración para tu archivo que se aplicará al importar.',
+                description: 'Por favor, ajusta la configuración de archivo que se aplicará al importar.',
                 cardDisplayName: 'Nombre de la tarjeta',
                 currency: 'Moneda',
                 transactionsAreReimbursable: 'Las transacciones son reembolsables',
