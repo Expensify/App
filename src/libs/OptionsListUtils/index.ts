@@ -27,6 +27,7 @@ import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
+    canSubmitTimeExpenseFromWorkspace,
     getCountOfEnabledTagsOfList,
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
@@ -2035,6 +2036,7 @@ function prepareReportOptionsForDisplay(
         shouldBoldTitleByDefault = true,
         shouldSeparateWorkspaceChat,
         isPerDiemRequest = false,
+        isTimeRequest = false,
         showRBR = true,
         shouldShowGBR = false,
         shouldUnreadBeBold = false,
@@ -2118,6 +2120,9 @@ function prepareReportOptionsForDisplay(
                 }
                 const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
                 if (!canSubmitPerDiemExpense && isPerDiemRequest) {
+                    continue;
+                }
+                if (isTimeRequest && !canSubmitTimeExpenseFromWorkspace(policy)) {
                     continue;
                 }
             }

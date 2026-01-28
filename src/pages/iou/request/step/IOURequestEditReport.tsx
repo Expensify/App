@@ -5,6 +5,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useHasTimeTransactions from '@hooks/useHasTimeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -51,8 +52,9 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
 
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
+    const hasTimeTransactions = useHasTimeTransactions(selectedTransactionIDs);
 
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, hasTimeTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
@@ -104,11 +106,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!hasPerDiemTransactions && !policyForMovingExpenses?.id) {
+        if ((!hasPerDiemTransactions || !hasTimeTransactions) && !policyForMovingExpenses?.id) {
             return;
         }
 
-        const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
+        const policyForNewReport = hasPerDiemTransactions || hasTimeTransactions ? selectedReportPolicy : policyForMovingExpenses;
         const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
@@ -121,11 +123,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        if (hasPerDiemTransactions) {
+        if (hasPerDiemTransactions || hasTimeTransactions) {
             handleCreateReport();
             return;
         }
-        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if ((!hasPerDiemTransactions || !hasTimeTransactions) && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
@@ -151,6 +153,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 isEditing={action === CONST.IOU.ACTION.EDIT}
                 createReport={createReport}
                 isPerDiemRequest={hasPerDiemTransactions}
+                isTimeRequest={hasTimeTransactions}
             />
         </>
     );

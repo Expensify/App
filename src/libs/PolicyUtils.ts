@@ -1041,6 +1041,11 @@ function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolea
     return !!policy?.isPolicyExpenseChatEnabled && !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
 }
 
+/** Whether the user can submit time expense from the workspace */
+function canSubmitTimeExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.isPolicyExpenseChatEnabled && isTimeTrackingEnabled(policy);
+}
+
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
     return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy.id));
@@ -1805,6 +1810,7 @@ export {
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
+    canSubmitTimeExpenseFromWorkspace,
     canSendInvoice,
     hasDependentTags,
     getXeroTenants,
