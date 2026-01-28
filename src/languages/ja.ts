@@ -6925,7 +6925,7 @@ ${reportName}
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '送信者',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金 ID',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
