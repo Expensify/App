@@ -81,7 +81,7 @@ function buildMessageFragmentForValue(
 
     if (!oldValue || isOldValuePartialMerchant || isOldCategoryMissing) {
         if (!(isOldCategoryMissing && isNewCategoryMissing)) {
-            const fragment = translate('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
+            const fragment = translate('iou.setTheRequest', displayValueName, newValueToDisplay);
             setFragments.push(fragment);
         }
     } else if (!newValue || newValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
@@ -144,7 +144,7 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     }
     const translatedChangedField = translate(`common.${changedField}`).toLowerCase();
     if (!oldMerchant.length) {
-        return translate('iou.setTheDistanceMerchant', {translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
+        return translate('iou.setTheDistanceMerchant', translatedChangedField, newMerchant, newAmount);
     }
     return translate('iou.updatedTheDistanceMerchant', {
         translatedChangedField,

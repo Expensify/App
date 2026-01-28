@@ -191,7 +191,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
             } else if (isExistingRoomName(values.roomName, reports, values.policyID)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
