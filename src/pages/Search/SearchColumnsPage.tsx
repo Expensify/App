@@ -173,6 +173,13 @@ function SearchColumnsPage() {
     const onSelectGroupItem = (item: ListItem) => onSelectItem(item, 'group');
     const onSelectTypeItem = (item: ListItem) => onSelectItem(item, 'type');
 
+    // Update active list on hover for keyboard navigation (addresses bot comment about focus-based switching)
+    const setGroupListActive = () => setActiveList('group');
+    const setTypeListActive = () => setActiveList('type');
+    // Deactivate list keyboard navigation when hovering over other areas (like Save button)
+    // This ensures Enter key works on Save button after using arrow keys in the list
+    const deactivateListKeyboard = () => setActiveList('none');
+
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
@@ -250,7 +257,7 @@ function SearchColumnsPage() {
                                 <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
                             </View>
 
-                            <View onPointerEnter={() => setActiveList('group')}>
+                            <View onPointerEnter={setGroupListActive}>
                                 <DraggableList
                                     disableScroll
                                     data={groupColumnsList}
@@ -270,7 +277,7 @@ function SearchColumnsPage() {
                         </>
                     )}
 
-                    <View onPointerEnter={() => setActiveList('type')}>
+                    <View onPointerEnter={setTypeListActive}>
                         <DraggableList
                             disableScroll
                             data={typeColumnsList}
@@ -285,7 +292,7 @@ function SearchColumnsPage() {
             </View>
             <View
                 style={[styles.ph5, styles.pb5]}
-                onPointerEnter={() => setActiveList('none')}
+                onPointerEnter={deactivateListKeyboard}
             >
                 <Button
                     large
