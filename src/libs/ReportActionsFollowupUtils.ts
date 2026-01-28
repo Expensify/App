@@ -9,8 +9,8 @@ import {getReportActionMessage, isActionOfType} from './ReportActionsUtils';
  * @returns true if the action is an ADD_COMMENT with unresolved followups, false otherwise
  */
 function containsActionableFollowUps(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    const isActionAComment = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-    if (!isActionAComment) {
+    const isAddCommentAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+    if (!isAddCommentAction) {
         return false;
     }
     const messageHtml = getReportActionMessage(reportAction)?.html;
