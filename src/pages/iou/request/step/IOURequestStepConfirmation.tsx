@@ -731,6 +731,8 @@ function IOURequestStepConfirmation({
         ],
     );
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
             if (!transactions.length) {
@@ -795,6 +797,7 @@ function IOURequestStepConfirmation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    recentWaypoints,
                 });
             }
         },
@@ -821,6 +824,7 @@ function IOURequestStepConfirmation({
             introSelected,
             activePolicyID,
             quickAction,
+            recentWaypoints,
         ],
     );
 

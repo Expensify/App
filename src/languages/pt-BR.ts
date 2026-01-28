@@ -767,12 +767,12 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Revogar',
             title: 'Rosto/digital & chaves de acesso',
             explanation:
-                'Verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
+                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
             confirmationPrompt: 'Tem certeza? Você precisará de um código mágico para a próxima verificação em qualquer dispositivo',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação com rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
-            error: 'A solicitação falhou. Tente novamente mais tarde.',
+            error: 'Falha na solicitação. Tente novamente mais tarde.',
         },
     },
     validateCodeModal: {
@@ -928,6 +928,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo(a)! Vamos configurar tudo para você.',
         chatWithAccountManager: 'Converse com o seu gerente de conta aqui',
+        askMeAnything: 'Pergunte-me qualquer coisa!',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) a ${roomName}!`,
@@ -4918,6 +4919,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             assign: 'Atribuir',
             assignCardFailedError: 'Falha na atribuição do cartão.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: 'Escolha uma nova data de início das transações. Vamos sincronizar todas as transações a partir dessa data, excluindo aquelas que já importamos.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
         },
         expensifyCard: {
@@ -6355,6 +6357,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 confirmError: 'Insira o estabelecimento e aplique pelo menos uma atualização',
                 confirmErrorMerchant: 'Insira o comerciante',
                 confirmErrorUpdate: 'Por favor, aplique pelo menos uma atualização',
+                editRuleTitle: 'Editar regra',
+                deleteRule: 'Excluir regra',
+                deleteRuleConfirmation: 'Tem certeza de que deseja excluir esta regra?',
             },
         },
         planTypePage: {
@@ -6892,6 +6897,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         searchName: 'Pesquisar nome',
         savedSearchesMenuItemTitle: 'Salvo',
         topCategories: 'Principais categorias',
+        topMerchants: 'Principais comerciantes',
         groupedExpenses: 'despesas agrupadas',
         bulkActions: {
             approve: 'Aprovar',
@@ -6954,6 +6960,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID da retirada',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
             },
@@ -6977,6 +6984,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             accessPlaceHolder: 'Abra para ver detalhes',
         },
         noCategory: 'Sem categoria',
+        noMerchant: 'Sem comerciante',
         noTag: 'Sem tag',
         expenseType: 'Tipo de despesa',
         withdrawalType: 'Tipo de saque',
@@ -7133,6 +7141,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 leftTheChat: 'saiu do chat',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `A conexão ${feedName} está quebrada. Para restaurar as importações do cartão, <a href='${workspaceCompanyCardRoute}'>faça login no seu banco</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `a conexão Plaid com sua conta bancária empresarial está quebrada. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',
