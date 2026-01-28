@@ -12,7 +12,7 @@ import type {
     RevealExpensifyCardDetailsParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
-    UnassignCompanyCard,
+    UnassignCardParams,
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
     UpdateExpensifyCardLimitParams,
@@ -322,7 +322,7 @@ function setPersonalCardReimbursable(cardID: number, reimbursable: boolean, prev
     API.write(WRITE_COMMANDS.SET_PERSONAL_CARD_REIMBURSABLE, parameters, {optimisticData, finallyData, failureData});
 }
 
-function syncCompanyCard(cardID: number, lastScrapeResult?: number) {
+function syncCard(cardID: number, lastScrapeResult?: number) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -380,10 +380,10 @@ function syncCompanyCard(cardID: number, lastScrapeResult?: number) {
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
 }
 
-function unassignCompanyCard(card: Card) {
+function unassignCard(card: Card) {
     const cardID = card.cardID;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
@@ -420,11 +420,11 @@ function unassignCompanyCard(card: Card) {
         },
     ];
 
-    const parameters: UnassignCompanyCard = {
+    const parameters: UnassignCardParams = {
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UNASSIGN_CARD, parameters, {optimisticData, successData, failureData});
 }
 
 function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTitle?: string) {
@@ -1380,8 +1380,8 @@ export {
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,
-    syncCompanyCard,
-    unassignCompanyCard,
+    syncCard,
+    unassignCard,
     updateAssignedCardName,
     updateAssignedCardTransactionStartDate,
     toggleContinuousReconciliation,

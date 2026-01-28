@@ -30,7 +30,7 @@ import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
-import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable, syncCompanyCard, unassignCompanyCard} from '@userActions/Card';
+import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable, syncCard, unassignCard} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -70,7 +70,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             Navigation.goBack();
             return;
         }
-        unassignCompanyCard(card);
+        unassignCard(card);
         Navigation.goBack();
     };
 
@@ -78,7 +78,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         if (!card) {
             return;
         }
-        syncCompanyCard(card.cardID, card.lastScrapeResult);
+        syncCard(card.cardID, card.lastScrapeResult);
     };
 
     const lastScrape = useMemo(() => {
