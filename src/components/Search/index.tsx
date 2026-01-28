@@ -31,6 +31,7 @@ import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actio
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
+import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -56,6 +57,8 @@ import {
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
+    isTransactionMonthGroupListItemType,
+    isTransactionTagGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -837,6 +840,40 @@ function Search({
                 return;
             }
 
+            if (isTransactionTagGroupListItemType(item)) {
+                const tagValue = item.tag === '' || item.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : item.tag;
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionMonthGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(item.year, item.month);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: monthStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: monthEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
             let reportID = item.reportID;
             if (isTransactionItem && item?.reportAction?.childReportID) {
                 const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1104,7 +1141,6 @@ function Search({
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
-                    containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
                     title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}

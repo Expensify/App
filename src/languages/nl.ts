@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -638,6 +640,8 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Inzichten',
         duplicateExpense: 'Dubbele uitgave',
         newFeature: 'Nieuwe functie',
+        month: 'Maand',
+        home: 'Start',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -759,6 +763,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
+        },
+        revoke: {
+            revoke: 'Intrekken',
+            title: 'Gezicht/vingerafdruk en passkeys',
+            explanation:
+                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
+            confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat',
+            cta: 'Toegang intrekken',
+            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkey-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
+            dismiss: 'Begrepen',
+            error: 'Aanvraag mislukt. Probeer het later opnieuw.',
         },
     },
     validateCodeModal: {
@@ -914,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Dit is je persoonlijke ruimte. Gebruik het voor notities, taken, concepten en herinneringen.',
         beginningOfChatHistorySystemDM: 'Welkom! Laten we je instellen.',
         chatWithAccountManager: 'Chat hier met je accountmanager',
+        askMeAnything: 'Vraag mij wat je maar wilt!',
         sayHello: 'Zeg hallo!',
         yourSpace: 'Je ruimte',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welkom bij ${roomName}!`,
@@ -1483,6 +1499,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'heeft de uitgave als „vergoedbaar” gemarkeerd' : 'markeerde de uitgave als ‘niet-terugbetaalbaar’';
+                }
+                if (key === 'billable') {
+                    return value ? 'heeft de uitgave gemarkeerd als ‘factureerbaar’' : 'heeft de uitgave als ‘niet-declarabel’ gemarkeerd';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `stel het belastingtarief in op "${taxRateName}"`;
+                    }
+                    return `belastingtarief naar "${taxRateName}"`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `stel de ${translations.common[key].toLowerCase()} in op "${updatedValue}"`;
+                }
+                return `${translations.common[key].toLowerCase()} naar "${updatedValue}"`;
+            });
+            return `${formatList(fragments)} via <a href="${policyRulesRoute}">werkruimteregels</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4638,7 +4680,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze helppagina](${CONST.NETSUITE
 
 _Voor meer gedetailleerde instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Wat is de script-ID?',
-                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder:
+                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder: 
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Klik op een aangepast segment.
@@ -4889,14 +4931,6 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             assignCardFailedError: 'Toewijzing van kaart mislukt.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
-                workspaceFeedsCouldNotBeLoadedMessage:
-                    'Er is een fout opgetreden bij het laden van de kaartfeeds van de werkruimte. Probeer het opnieuw of neem contact op met uw beheerder.',
-                feedCouldNotBeLoadedTitle: 'Kon deze feed niet laden',
-                feedCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van deze feed. Probeer het opnieuw of neem contact op met uw beheerder.',
-                tryAgain: 'Opnieuw proberen',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Uw Expensify Cards uitgeven en beheren',
@@ -6320,6 +6354,17 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Werk ${fieldName} bij naar "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als  "${reimbursable ? 'Vergoedbaar' : 'niet-vergoedbaar'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Markeren als "${billable ? 'factureerbaar' : 'niet-factureerbaar'}"`,
+                addRuleTitle: 'Regel toevoegen',
+                expensesWith: 'Voor uitgaven met:',
+                applyUpdates: 'Deze updates toepassen:',
+                merchantHint: 'Een handelsnaam koppelen met hoofdletterongevoelige "bevat"-overeenkomst',
+                saveRule: 'Regel opslaan',
+                confirmError: 'Voer een leverancier in en pas ten minste één wijziging toe',
+                confirmErrorMerchant: 'Voer handelaar in',
+                confirmErrorUpdate: 'Breng ten minste één wijziging aan alstublieft',
+                editRuleTitle: 'Regel bewerken',
+                deleteRule: 'Regel verwijderen',
+                deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
             },
         },
         planTypePage: {
@@ -6880,6 +6925,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Vorige maand',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Jaar tot nu toe',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Laatste afschrift',
                 },
             },
@@ -6921,6 +6967,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Label',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -8106,6 +8154,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
         desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
         notification: {title: 'GPS-tracking bezig', body: 'Ga naar de app om te voltooien'},
+        continueGpsTripModal: {
+            title: 'GPS-reisregistratie voortzetten?',
+            prompt: 'Het lijkt erop dat de app is afgesloten tijdens je laatste GPS-rit. Wil je de opname van die rit hervatten?',
+            confirm: 'Reis voortzetten',
+            cancel: 'Reis bekijken',
+        },
         signOutWarningTripInProgress: {title: 'GPS-tracking bezig', prompt: 'Weet je zeker dat je de reis wilt weggooien en uitloggen?', confirm: 'Verwerpen en afmelden'},
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',

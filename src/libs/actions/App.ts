@@ -686,7 +686,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             if (shouldNavigateToHomepage) {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             }
 
             if (preservedUserSession) {

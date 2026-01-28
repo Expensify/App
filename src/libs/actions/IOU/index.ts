@@ -225,7 +225,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
-import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '@userActions/Policy/Tag';
+import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
@@ -874,6 +874,19 @@ Onyx.connect({
     },
 });
 
+let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+        allPolicyTags = value;
+    },
+});
+
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -967,6 +980,19 @@ function getCurrentUserEmail(): string {
 
 function getUserAccountID(): number {
     return userAccountID;
+}
+
+function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
+    return allPolicyTags;
+}
+
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getPolicyTagsData(policyID: string | undefined) {
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
 /**
@@ -3207,6 +3233,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         policyTags: getPolicyTagsData(iouReport.policyID),
         policyRecentlyUsedTags,
         transactionTags: tag,
@@ -3560,6 +3588,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     optimisticTransaction.hasEReceipt = true;
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         policyTags: getPolicyTagsData(iouReport.policyID),
         policyRecentlyUsedTags,
         transactionTags: tag,
@@ -4397,6 +4427,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedTag = 'tag' in transactionChanges;
     if (hasModifiedTag) {
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             policyTags: getPolicyTagsData(iouReport?.policyID),
             policyRecentlyUsedTags,
             transactionTags: transactionChanges.tag,
@@ -7303,6 +7335,8 @@ function createSplitsAndOnyxData({
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
             ? buildOptimisticPolicyRecentlyUsedTags({
+                  // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+                  // eslint-disable-next-line @typescript-eslint/no-deprecated
                   policyTags: getPolicyTagsData(participant.policyID),
                   policyRecentlyUsedTags,
                   transactionTags: tag,
@@ -11009,6 +11043,8 @@ function detachReceipt(transactionID: string | undefined, transactionPolicy: Ony
     ];
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policyTagList = getPolicyTagsData(transactionPolicy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -11134,6 +11170,8 @@ function replaceReceipt({transactionID, file, source, transactionPolicy, transac
     ];
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policyTagList = getPolicyTagsData(transactionPolicy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -13141,6 +13179,7 @@ export {
     getUserAccountID,
     getReceiptError,
     getSearchOnyxUpdate,
+    getPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     buildMinimalTransactionForFormula,
