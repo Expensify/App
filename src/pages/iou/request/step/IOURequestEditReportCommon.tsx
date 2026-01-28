@@ -85,7 +85,7 @@ function IOURequestEditReportCommon({
     const reportPolicy = usePolicy(selectedReport?.policyID);
     // Pass the expense's policyID so that the "Create report" button shows the correct workspace
     // instead of defaulting to the user's active workspace
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, selectedReport?.policyID);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 

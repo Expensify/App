@@ -20,17 +20,18 @@ function isPolicyMemberByRole(policy: OnyxEntry<Policy>) {
     return !!policy?.role && Object.values(CONST.POLICY.ROLE).includes(policy.role);
 }
 
-function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string, isPerDiemRequest?: boolean) {
+function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string, isPerDiemRequest?: boolean, isTimeRequest?: boolean) {
     return (
         checkForUserPendingDelete(login, policy) &&
         isPolicyMemberByRole(policy) &&
         isPaidGroupPolicy(policy) &&
         policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy))
+        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)) &&
+        (!isTimeRequest || canSubmitTimeExpenseFromWorkspace(policy))
     );
 }
 
-function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?: string) {
+function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
@@ -40,7 +41,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?
 
     const session = useSession();
     const login = session?.email ?? '';
-    const userPolicies = Object.values(allPolicies ?? {}).filter((policy) => isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest));
+    const userPolicies = Object.values(allPolicies ?? {}).filter((policy) => isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest, isTimeRequest));
     const isMemberOfMoreThanOnePolicy = userPolicies.length > 1;
 
     // If an expense policy ID is provided and valid, prefer it over the active policy
@@ -48,7 +49,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?
     // even if the user's default workspace is A
     if (expensePolicyID) {
         const expensePolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expensePolicyID}`];
-        if (expensePolicy && isPolicyValidForMovingExpenses(expensePolicy, login, isPerDiemRequest)) {
+        if (expensePolicy && isPolicyValidForMovingExpenses(expensePolicy, login, isPerDiemRequest, isTimeRequest)) {
             return {policyForMovingExpensesID: expensePolicyID, policyForMovingExpenses: expensePolicy, shouldSelectPolicy: false};
         }
     }

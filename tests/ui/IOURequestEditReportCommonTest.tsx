@@ -51,6 +51,7 @@ const renderIOURequestEditReportCommon = ({selectedReportID = '', selectedPolicy
                 selectReport={jest.fn()}
                 backTo=""
                 isPerDiemRequest={false}
+                isTimeRequest={false}
             />
         </ComposeProviders>,
     );
