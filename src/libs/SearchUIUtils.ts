@@ -277,8 +277,7 @@ const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSo
 
 const transactionWeekGroupColumnNamesToSortingProperty: TransactionWeekGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'week' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+    ...transactionGroupBaseSortingProperties,
 };
 
 const expenseStatusActionMapping = {
