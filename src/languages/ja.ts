@@ -6327,7 +6327,6 @@ ${reportName}
                 addRuleTitle: 'ルールを追加',
                 expensesWith: '次の条件の経費について:',
                 applyUpdates: 'これらの更新を適用:',
-                merchantHint: '大文字小文字を区別しない「含む」一致で支払先名を照合する',
                 saveRule: 'ルールを保存',
                 confirmError: '支払先を入力し、少なくとも 1 つの更新を適用してください',
                 confirmErrorMerchant: '商人を入力してください',

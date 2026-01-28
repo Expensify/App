@@ -6352,7 +6352,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 addRuleTitle: 'Adicionar regra',
                 expensesWith: 'Para despesas com:',
                 applyUpdates: 'Aplicar estas atualizações:',
-                merchantHint: 'Corresponder um nome de comerciante com correspondência "contém" sem diferenciação entre maiúsculas e minúsculas',
                 saveRule: 'Salvar regra',
                 confirmError: 'Insira o estabelecimento e aplique pelo menos uma atualização',
                 confirmErrorMerchant: 'Insira o comerciante',

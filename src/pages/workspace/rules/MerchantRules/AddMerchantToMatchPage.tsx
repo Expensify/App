@@ -88,7 +88,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                 onBackButtonPress={goBack}
             />
             <FormProvider
-                style={[styles.flex1, styles.ph5]}
+                style={[styles.flex1]}
                 formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}
                 validate={validate}
                 onSubmit={onSave}
@@ -97,7 +97,6 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
             >
                 <View style={styles.mb5}>
                     <InputWrapper
-                        hint={translate('workspace.rules.merchantRules.merchantHint')}
                         InputComponent={TextInput}
                         inputID={CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH}
                         name={CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH}
@@ -106,6 +105,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
+                        containerStyles={[styles.ph5]}
                     />
                 </View>
                 <MenuItemWithTopDescription
@@ -113,7 +113,6 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                     title={getMatchTypeLabel()}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined))}
-                    wrapperStyle={styles.mhn5}
                 />
             </FormProvider>
         </ScreenWrapper>

@@ -6400,7 +6400,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 addRuleTitle: 'Ajouter une règle',
                 expensesWith: 'Pour les dépenses avec :',
                 applyUpdates: 'Appliquer ces mises à jour :',
-                merchantHint: 'Faire correspondre un nom de commerçant avec une correspondance « contient » insensible à la casse',
                 saveRule: 'Enregistrer la règle',
                 confirmError: 'Saisissez un marchand et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',

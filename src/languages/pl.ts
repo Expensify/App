@@ -6352,7 +6352,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 addRuleTitle: 'Dodaj regułę',
                 expensesWith: 'Dla wydatków z:',
                 applyUpdates: 'Zastosuj te aktualizacje:',
-                merchantHint: 'Dopasuj nazwę sprzedawcy przy użyciu nieczułego na wielkość liter dopasowania typu „zawiera”',
                 saveRule: 'Zapisz regułę',
                 confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną aktualizację',
                 confirmErrorMerchant: 'Wprowadź sprzedawcę',

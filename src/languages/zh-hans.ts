@@ -6217,7 +6217,6 @@ ${reportName}
                 addRuleTitle: '添加规则',
                 expensesWith: '对于以下费用：',
                 applyUpdates: '应用这些更新：',
-                merchantHint: '使用不区分大小写的“包含”匹配来匹配商户名称',
                 saveRule: '保存规则',
                 confirmError: '输入商家并至少应用一项更新',
                 confirmErrorMerchant: '请输入商家',

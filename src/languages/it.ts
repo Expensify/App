@@ -6371,7 +6371,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 addRuleTitle: 'Aggiungi regola',
                 expensesWith: 'Per spese con:',
                 applyUpdates: 'Applica questi aggiornamenti:',
-                merchantHint: 'Abbina un nome commerciante con una corrispondenza "contiene" che non distingue tra maiuscole e minuscole',
                 saveRule: 'Salva regola',
                 confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
                 confirmErrorMerchant: 'Per favore inserisci l’esercente',

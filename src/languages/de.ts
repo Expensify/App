@@ -6389,7 +6389,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 addRuleTitle: 'Regel hinzufügen',
                 expensesWith: 'Für Ausgaben mit:',
                 applyUpdates: 'Diese Updates anwenden:',
-                merchantHint: 'Einem Händlernamen mit groß-/kleinschreibungsunabhängiger „Enthält“-Übereinstimmung zuordnen',
                 saveRule: 'Regel speichern',
                 confirmError: 'Geben Sie den Händler ein und nehmen Sie mindestens eine Änderung vor',
                 confirmErrorMerchant: 'Bitte geben Sie den Händler ein',

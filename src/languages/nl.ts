@@ -6359,7 +6359,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 addRuleTitle: 'Regel toevoegen',
                 expensesWith: 'Voor uitgaven met:',
                 applyUpdates: 'Deze updates toepassen:',
-                merchantHint: 'Een handelsnaam koppelen met hoofdletterongevoelige "bevat"-overeenkomst',
                 saveRule: 'Regel opslaan',
                 confirmError: 'Voer een leverancier in en pas ten minste één wijziging toe',
                 confirmErrorMerchant: 'Voer handelaar in',

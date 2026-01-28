@@ -6232,7 +6232,6 @@ const translations = {
                 editRuleTitle: 'Edit rule',
                 expensesWith: 'For expenses with:',
                 applyUpdates: 'Apply these updates:',
-                merchantHint: 'Match a merchant name with case-insensitive "contains" matching',
                 saveRule: 'Save rule',
                 confirmError: 'Enter merchant and apply at least one update',
                 confirmErrorMerchant: 'Please enter merchant',
