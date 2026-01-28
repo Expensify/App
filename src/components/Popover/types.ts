@@ -5,11 +5,7 @@ import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-
-type PopoverDimensions = {
-    width: number;
-    height: number;
-};
+import type {Dimensions} from '@src/types/utils/Layout';
 
 type PopoverProps = BaseModalProps &
     ChildrenProps & {
@@ -29,7 +25,7 @@ type PopoverProps = BaseModalProps &
         withoutOverlay?: boolean;
 
         /** The dimensions of the popover */
-        popoverDimensions?: PopoverDimensions;
+        popoverDimensions?: Dimensions;
 
         /** The ref of the popover */
         withoutOverlayRef?: RefObject<View | HTMLDivElement>;
@@ -39,6 +35,9 @@ type PopoverProps = BaseModalProps &
 
         /** Whether we should close when browser navigation change. This doesn't affect native platform */
         shouldCloseWhenBrowserNavigationChanged?: boolean;
+
+        /** Whether we should display the popover below other modals (e.g. SidePanel, RHP) */
+        shouldDisplayBelowModals?: boolean;
     };
 
 export default PopoverProps;

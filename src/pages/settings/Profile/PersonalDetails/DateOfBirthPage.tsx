@@ -19,10 +19,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 
 function DateOfBirthPage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     /**
      * @returns An object containing the errors for each inputID
      */
@@ -44,7 +45,7 @@ function DateOfBirthPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={DateOfBirthPage.displayName}
+            testID="DateOfBirthPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -78,7 +79,5 @@ function DateOfBirthPage() {
         </ScreenWrapper>
     );
 }
-
-DateOfBirthPage.displayName = 'DateOfBirthPage';
 
 export default DateOfBirthPage;

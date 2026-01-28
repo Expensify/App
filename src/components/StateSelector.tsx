@@ -35,12 +35,12 @@ type StateSelectorProps = {
 
     /** object to get route details from */
     stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE | typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function StateSelector(
-    {errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE}: StateSelectorProps,
-    ref: ForwardedRef<View>,
-) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -71,7 +71,7 @@ function StateSelector(
         // This helps prevent issues where the component might not update correctly if the state is controlled by both the parent and the URL.
         Navigation.setParams({state: undefined});
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
     const title = stateCode && stateCode in COMMON_CONST.STATES ? translate(`allStates.${stateCode}.stateName`) : '';
@@ -98,8 +98,6 @@ function StateSelector(
     );
 }
 
-StateSelector.displayName = 'StateSelector';
-
-export default React.forwardRef(StateSelector);
+export default StateSelector;
 
 export type {State};

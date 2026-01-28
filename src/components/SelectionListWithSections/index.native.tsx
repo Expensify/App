@@ -15,10 +15,9 @@ function SelectionListWithSections<TItem extends ListItem>({shouldHideKeyboardOn
                 }
                 Keyboard.dismiss();
             }}
+            isRowMultilineSupported
         />
     );
 }
-
-SelectionListWithSections.displayName = 'SelectionListWithSections';
 
 export default SelectionListWithSections;

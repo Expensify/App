@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,6 +18,7 @@ import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils'
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
 
@@ -42,11 +44,12 @@ function InviteMemberListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
         canShowProductTrainingTooltip &&
-            !getIsUserSubmittedExpenseOrScannedReceipt() &&
+            !getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) &&
             isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) &&
             isSelectedManagerMcTest(item.login) &&
             !item.isSelected,
@@ -170,7 +173,5 @@ function InviteMemberListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-InviteMemberListItem.displayName = 'InviteMemberListItem';
 
 export default InviteMemberListItem;

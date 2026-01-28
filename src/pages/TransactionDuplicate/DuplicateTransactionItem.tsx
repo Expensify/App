@@ -6,10 +6,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
-import ReportActionItemContext from '@pages/home/report/ReportActionItemContext';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -20,11 +21,12 @@ type DuplicateTransactionItemProps = {
     allReports: OnyxCollection<Report>;
     /** All the data of the policy collection */
     policies: OnyxCollection<Policy>;
+    onPreviewPressed: (reportID: string) => void;
 };
 
 const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>) => transaction?.errorFields?.route ?? null;
 
-function DuplicateTransactionItem({transaction, index, allReports, policies}: DuplicateTransactionItemProps) {
+function DuplicateTransactionItem({transaction, index, allReports, policies, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -51,19 +53,22 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
         canBeMissing: true,
     });
 
-    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID}`, {
-        canBeMissing: true,
-        selector: linkedTransactionRouteErrorSelector,
-    });
+    const [linkedTransactionRouteError] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined)}`,
+        {
+            canBeMissing: true,
+            selector: linkedTransactionRouteErrorSelector,
+        },
+    );
 
-    const contextValue = useMemo(() => ({shouldOpenReportInRHP: true}), []);
+    const contextValue = useMemo(() => ({shouldOpenReportInRHP: true, onPreviewPressed}), [onPreviewPressed]);
 
     if (!action || !report) {
         return null;
     }
 
     const reportDraftMessage = draftMessage?.[action.reportActionID];
-    const matchingDraftMessage = typeof reportDraftMessage === 'string' ? reportDraftMessage : reportDraftMessage?.message;
+    const matchingDraftMessage = reportDraftMessage?.message;
 
     return (
         <View style={styles.pb2}>
@@ -95,5 +100,4 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
     );
 }
 
-DuplicateTransactionItem.displayName = 'DuplicateTransactionItem';
 export default DuplicateTransactionItem;

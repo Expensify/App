@@ -24,12 +24,12 @@ function SearchFiltersGroupByPage() {
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.groupBy);
 
     const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
-        return getGroupByOptions().map((groupOption) => ({
+        return getGroupByOptions(translate).map((groupOption) => ({
             text: groupOption.text,
             keyForList: groupOption.value,
             isSelected: selectedItem === groupOption.value,
         }));
-    }, [selectedItem]);
+    }, [translate, selectedItem]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);
@@ -46,7 +46,7 @@ function SearchFiltersGroupByPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersGroupByPage.displayName}
+            testID="SearchFiltersGroupByPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -84,7 +84,5 @@ function SearchFiltersGroupByPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersGroupByPage.displayName = 'SearchFiltersGroupByPage';
 
 export default SearchFiltersGroupByPage;

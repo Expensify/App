@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -45,6 +46,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
 
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN, {canBeMissing: true});
 
@@ -76,7 +78,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
-                        MarkerComponent = Expensicons.Location;
+                        MarkerComponent = expensifyIcons.Location;
                     } else {
                         MarkerComponent = Expensicons.DotIndicator;
                     }
@@ -89,7 +91,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint);
         },
-        [getMarkerComponent],
+        [getMarkerComponent, expensifyIcons.Location],
     );
 
     const waypointMarkers = getWaypointMarkers(waypoints);
@@ -124,7 +126,5 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
         />
     );
 }
-
-ConfirmedRoute.displayName = 'ConfirmedRoute';
 
 export default ConfirmedRoute;

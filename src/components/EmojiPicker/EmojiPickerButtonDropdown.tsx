@@ -3,16 +3,16 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {EmojiPickerOnModalHide} from '@libs/actions/EmojiPickerAction';
 import {hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor, showEmojiPicker} from '@libs/actions/EmojiPickerAction';
-import type {OnModalHideValue} from '@libs/actions/EmojiPickerAction';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -22,7 +22,7 @@ type EmojiPickerButtonDropdownProps = {
     isDisabled?: boolean;
     accessibilityLabel?: string;
     role?: string;
-    onModalHide: OnModalHideValue;
+    onModalHide: EmojiPickerOnModalHide;
     onInputChange: (emoji: string) => void;
     value?: string;
     disabled?: boolean;
@@ -40,6 +40,7 @@ function EmojiPickerButtonDropdown(
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Emoji']);
 
     useEffect(() => resetEmojiPopoverAnchor, []);
     const onPress = () => {
@@ -48,20 +49,18 @@ function EmojiPickerButtonDropdown(
             return;
         }
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            showEmojiPicker(
+            showEmojiPicker({
                 onModalHide,
-                (emoji) => onInputChange(emoji),
+                onEmojiSelected: (emoji) => onInputChange(emoji),
                 emojiPopoverAnchor,
-                {
+                anchorOrigin: {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     shiftVertical: 4,
                 },
-                () => {},
-                undefined,
-                value,
+                activeEmoji: value,
                 withoutOverlay,
-            );
+            });
         });
     };
 
@@ -73,8 +72,9 @@ function EmojiPickerButtonDropdown(
                 disabled={isDisabled}
                 onPress={onPress}
                 id="emojiDropdownButton"
-                accessibilityLabel="statusEmoji"
+                accessibilityLabel={value ? `${value}, ${translate('statusPage.status')}` : translate('statusPage.status')}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON_DROPDOWN}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>
@@ -86,7 +86,7 @@ function EmojiPickerButtonDropdown(
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 value || (
                                     <Icon
-                                        src={Expensicons.Emoji}
+                                        src={icons.Emoji}
                                         fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
                                     />
                                 )
@@ -94,7 +94,7 @@ function EmojiPickerButtonDropdown(
                         </Text>
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={icons.ArrowRight}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>
@@ -104,7 +104,5 @@ function EmojiPickerButtonDropdown(
         </Tooltip>
     );
 }
-
-EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
 
 export default EmojiPickerButtonDropdown;

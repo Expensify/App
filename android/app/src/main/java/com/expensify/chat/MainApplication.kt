@@ -25,6 +25,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
+import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 class MainApplication : MultiDexApplication(), ReactApplication {
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
@@ -41,7 +42,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             add(NavBarManagerPackage())
         }
 
-        override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
+        override fun getJSMainModuleName() = "index"
 
         override val isNewArchEnabled: Boolean
             get() = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
@@ -64,11 +65,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             return
         }
 
-        SoLoader.init(this, OpenSourceMergedSoMapping)
-        if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-            // If you opted-in for the New Architecture, we load the native entry point for this app.
-            load()
-        }
+        loadReactNative(this)
         if (BuildConfig.DEBUG) {
             FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)
         }

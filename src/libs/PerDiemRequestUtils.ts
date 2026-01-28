@@ -1,23 +1,19 @@
 import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
-import type {OptionTree, SectionBase} from './OptionsListUtils';
-import {getPolicy} from './PolicyUtils';
+import type {OptionTree} from './OptionsListUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Returns custom unit ID for the per diem transaction
  */
-function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
+function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
 
@@ -35,10 +31,7 @@ type ModifiedOptionTree = OptionTree & {
     currency: string;
 };
 
-type DestinationTreeSection = SectionBase & {
-    data: ModifiedOptionTree[];
-    indexOffset?: number;
-};
+type DestinationTreeSection = Section<ModifiedOptionTree>;
 
 type Destination = {
     name: string;
@@ -57,9 +50,9 @@ type Destination = {
  */
 function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] {
     const optionCollection = new Map<string, ModifiedOptionTree>();
-    Object.values(options).forEach((option) => {
+    for (const option of Object.values(options)) {
         if (optionCollection.has(option.rateID)) {
-            return;
+            continue;
         }
 
         optionCollection.set(option.rateID, {
@@ -71,7 +64,7 @@ function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] 
             isSelected: !!option.isSelected,
             currency: option.currency,
         });
-    });
+    }
 
     return Array.from(optionCollection.values());
 }
@@ -85,12 +78,14 @@ function getDestinationListSections({
     selectedOptions = [],
     recentlyUsedDestinations = [],
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     destinations: Rate[];
     selectedOptions?: Destination[];
     searchValue?: string;
     recentlyUsedDestinations?: string[];
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }): DestinationTreeSection[] {
     const sortedDestinations: Destination[] = lodashSortBy(destinations, 'name').map((rate) => ({
         name: rate.name ?? '',
@@ -109,9 +104,8 @@ function getDestinationListSections({
         destinationSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 0,
         });
 
         return destinationSections;
@@ -122,16 +116,15 @@ function getDestinationListSections({
         destinationSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 1,
         });
     }
 
-    const selectedOptionRateIDs = selectedOptions.map((selectedOption) => selectedOption.rateID);
+    const selectedOptionRateIDs = new Set(selectedOptions.map((selectedOption) => selectedOption.rateID));
 
     if (sortedDestinations.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateIDs.includes(rateID));
+        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateIDs.has(rateID));
         if (filteredNonSelectedDestinations.length === 0) {
             return destinationSections;
         }
@@ -139,15 +132,14 @@ function getDestinationListSections({
         destinationSections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 2,
         });
 
         return destinationSections;
     }
 
-    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateIDs.includes(rateID));
+    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateIDs.has(rateID));
 
     if (filteredRecentlyUsedDestinations.length > 0) {
         const cutRecentlyUsedDestinations = filteredRecentlyUsedDestinations.slice(0, maxRecentReportsToShow);
@@ -155,22 +147,18 @@ function getDestinationListSections({
         const data = getDestinationOptionTree(cutRecentlyUsedDestinations);
         destinationSections.push({
             // "Recent" section
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            title: translateLocal('common.recent'),
-            shouldShow: true,
+            title: translate('common.recent'),
             data,
-            indexOffset: data.length,
+            sectionIndex: 3,
         });
     }
 
     const data = getDestinationOptionTree(sortedDestinations);
     destinationSections.push({
         // "All" section when items amount more than the threshold
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        title: translateLocal('common.all'),
-        shouldShow: true,
+        title: translate('common.all'),
         data,
-        indexOffset: data.length,
+        sectionIndex: 4,
     });
 
     return destinationSections;

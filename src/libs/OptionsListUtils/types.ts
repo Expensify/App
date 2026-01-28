@@ -1,8 +1,8 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {OptionData} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -43,6 +43,7 @@ type SearchOptionData = Pick<
     | 'avatar'
     | 'phoneNumber'
     | 'searchText'
+    | 'timezone'
 
     // State properties
     | 'isSelected'
@@ -67,6 +68,7 @@ type SearchOptionData = Pick<
     | 'isChatRoom'
     | 'isInvoiceRoom'
     | 'isDefaultRoom'
+    | 'isDM'
 
     // Status properties
     | 'private_isArchived'
@@ -151,6 +153,11 @@ type GetValidReportsConfig = {
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
+    isRestrictedToPreferredPolicy?: boolean;
+    preferredPolicyID?: string;
+    shouldUnreadBeBold?: boolean;
+    shouldAlwaysIncludeDM?: boolean;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -170,12 +177,11 @@ type IsValidReportsConfig = Pick<
     | 'includeDomainEmail'
     | 'loginsToExclude'
     | 'excludeNonAdminWorkspaces'
->;
-
-type GetValidReportsReturnTypeCombined = {
-    selfDMOption: SearchOptionData | undefined;
-    workspaceOptions: SearchOptionData[];
-    recentReports: SearchOptionData[];
+    | 'isRestrictedToPreferredPolicy'
+    | 'preferredPolicyID'
+    | 'shouldAlwaysIncludeDM'
+> & {
+    currentUserAccountID: number;
 };
 
 type GetOptionsConfig = {
@@ -190,6 +196,7 @@ type GetOptionsConfig = {
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
+    shouldAcceptName?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -204,6 +211,9 @@ type GetUserToInviteConfig = {
     shouldAcceptName?: boolean;
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
     countryCode?: number;
+    loginList: OnyxEntry<Login>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -272,7 +282,6 @@ export type {
     GetUserToInviteConfig,
     GetValidOptionsSharedConfig,
     GetValidReportsConfig,
-    GetValidReportsReturnTypeCombined,
     MemberForList,
     Option,
     OptionList,

@@ -39,13 +39,13 @@ export default function PriorityModeController() {
     const closeModal = useCallback(() => setShouldShowModal(false), []);
     const validReportCount = useMemo(() => {
         let count = 0;
-        Object.values(allReports ?? {}).forEach((report) => {
+        for (const report of Object.values(allReports ?? {})) {
             if (!isValidReport(report) || !isReportParticipant(accountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
-                return;
+                continue;
             }
 
             count++;
-        });
+        }
         return count;
     }, [accountID, allReports]);
 
@@ -77,14 +77,16 @@ export default function PriorityModeController() {
 
         // We wait for the user to navigate back to the home screen before triggering this switch
         const isNarrowLayout = getIsNarrowLayout();
-        if ((isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
+        if ((isNarrowLayout && currentRouteName !== SCREENS.INBOX) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
             Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {validReportCount, currentRouteName});
             return;
         }
 
         Log.info('[PriorityModeController] Switching user to focus mode', false, {validReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
         updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
-        setShouldShowModal(true);
+        requestAnimationFrame(() => {
+            setShouldShowModal(true);
+        });
         hasSwitched.current = true;
     }, [accountID, currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, validReportCount]);
 
@@ -92,10 +94,10 @@ export default function PriorityModeController() {
         if (!shouldShowModal) {
             return;
         }
-        const isNarrowLayout = getIsNarrowLayout();
-        const shouldHideModalOnNavigation = (isNarrowLayout && currentRouteName !== SCREENS.HOME) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT);
+        const isNavigatingToPriorityModePage = currentRouteName === SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE;
 
-        if (shouldHideModalOnNavigation) {
+        // Hide focus modal when settings button is pressed from the prompt.
+        if (isNavigatingToPriorityModePage) {
             setShouldShowModal(false);
         }
     }, [currentRouteName, shouldShowModal]);

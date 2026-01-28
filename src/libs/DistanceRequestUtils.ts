@@ -1,11 +1,13 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {CurrencyListContextProps} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCurrencySymbol} from './CurrencyUtils';
+// This will be fixed as part of https://github.com/Expensify/App/issues/66397
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P} from './TransactionUtils';
 
@@ -16,6 +18,7 @@ type MileageRate = {
     unit: Unit;
     name?: string;
     enabled?: boolean;
+    index?: number;
 };
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
@@ -33,13 +36,13 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
         return mileageRates;
     }
 
-    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
+    for (const [rateID, rate] of Object.entries(distanceUnit.rates)) {
         if (!includeDisabledRates && rate.enabled === false && (!selectedRateID || rateID !== selectedRateID)) {
-            return;
+            continue;
         }
 
         if (!distanceUnit.attributes) {
-            return;
+            continue;
         }
 
         mileageRates[rateID] = {
@@ -49,8 +52,9 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             name: rate.name,
             customUnitRateID: rate.customUnitRateID,
             enabled: rate.enabled,
+            index: rate.index,
         };
-    });
+    }
 
     return mileageRates;
 }
@@ -67,7 +71,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>, localeCompare?: (a: string, b: string) => number): MileageRate | undefined {
+function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | undefined {
     if (isEmptyObject(policy) || !policy?.customUnits) {
         return undefined;
     }
@@ -76,7 +80,11 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>, localeCompare?:
     if (!distanceUnit?.rates || !distanceUnit.attributes) {
         return;
     }
-    const mileageRates = localeCompare ? Object.values(getMileageRates(policy)).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')) : Object.values(getMileageRates(policy));
+    const mileageRates = Object.values(getMileageRates(policy)).sort((a, b) => {
+        const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
+        const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
+        return aIndex - bIndex;
+    });
 
     const distanceRate = mileageRates.at(0) ?? ({} as MileageRate);
 
@@ -86,6 +94,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>, localeCompare?:
         currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
         name: distanceRate.name,
+        index: distanceRate.index,
     };
 }
 
@@ -133,6 +142,7 @@ function getRateForDisplay(
     currency: string | undefined,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol'],
     isOffline?: boolean,
     useShortFormUnit?: boolean,
 ): string {
@@ -168,8 +178,12 @@ function getDistanceForDisplay(
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
 ): string {
-    if (!hasRoute || !unit || !distanceInMeters) {
+    if (!hasRoute || !unit) {
         return translate('iou.fieldPending');
+    }
+
+    if (!distanceInMeters) {
+        return '';
     }
 
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
@@ -207,15 +221,20 @@ function getDistanceMerchant(
     currency: string,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol'],
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, undefined, true);
+    if (!distanceInMeters) {
+        return '';
+    }
 
-    return `${distanceInUnits} @ ${ratePerUnit}`;
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
+    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
+
+    return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
 
 function ensureRateDefined(rate: number | undefined): asserts rate is number {
@@ -283,13 +302,11 @@ function getCustomUnitRateID({
     isPolicyExpenseChat,
     policy,
     lastSelectedDistanceRates,
-    localeCompare,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
-    localeCompare?: (a: string, b: string) => number;
 }): string {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
@@ -312,7 +329,7 @@ function getCustomUnitRateID({
         if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
-            const defaultMileageRate = getDefaultMileageRate(policy, localeCompare);
+            const defaultMileageRate = getDefaultMileageRate(policy);
             if (!defaultMileageRate?.customUnitRateID) {
                 return customUnitRateID;
             }
@@ -335,7 +352,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     const unit = distanceUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const rate = customUnitRate?.rate ?? CONST.DEFAULT_NUMBER_ID;
     const amount = getDistanceRequestAmount(distance, unit, rate);
-    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID;
+    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? 1;
     return amount * taxClaimablePercentage;
 }
 
@@ -364,6 +381,8 @@ function getRate({
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
+    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);

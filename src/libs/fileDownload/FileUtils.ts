@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
 import CONST from '@src/CONST';
@@ -20,15 +21,15 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
  * Show alert on successful attachment download
  * @param successMessage
  */
-function showSuccessAlert(successMessage?: string) {
+function showSuccessAlert(translate: LocalizedTranslate, successMessage?: string) {
     Alert.alert(
-        translateLocal('fileDownload.success.title'),
-        // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
+        translate('fileDownload.success.title'),
+        // successMessage can be an empty string and we want to default to `Localize.translate('fileDownload.success.message')`
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        successMessage || translateLocal('fileDownload.success.message'),
+        successMessage || translate('fileDownload.success.message'),
         [
             {
-                text: translateLocal('common.ok'),
+                text: translate('common.ok'),
                 style: 'cancel',
             },
         ],
@@ -39,10 +40,10 @@ function showSuccessAlert(successMessage?: string) {
 /**
  * Show alert on attachment download error
  */
-function showGeneralErrorAlert() {
-    Alert.alert(translateLocal('fileDownload.generalError.title'), translateLocal('fileDownload.generalError.message'), [
+function showGeneralErrorAlert(translate: LocalizedTranslate) {
+    Alert.alert(translate('fileDownload.generalError.title'), translate('fileDownload.generalError.message'), [
         {
-            text: translateLocal('common.cancel'),
+            text: translate('common.cancel'),
             style: 'cancel',
         },
     ]);
@@ -51,14 +52,14 @@ function showGeneralErrorAlert() {
 /**
  * Show alert on attachment download permissions error
  */
-function showPermissionErrorAlert() {
-    Alert.alert(translateLocal('fileDownload.permissionError.title'), translateLocal('fileDownload.permissionError.message'), [
+function showPermissionErrorAlert(translate: LocalizedTranslate) {
+    Alert.alert(translate('fileDownload.permissionError.title'), translate('fileDownload.permissionError.message'), [
         {
-            text: translateLocal('common.cancel'),
+            text: translate('common.cancel'),
             style: 'cancel',
         },
         {
-            text: translateLocal('common.settings'),
+            text: translate('common.settings'),
             onPress: () => {
                 Linking.openSettings();
             },
@@ -69,17 +70,17 @@ function showPermissionErrorAlert() {
 /**
  * Inform the users when they need to grant camera access and guide them to settings
  */
-function showCameraPermissionsAlert() {
+function showCameraPermissionsAlert(translate: LocalizedTranslate) {
     Alert.alert(
-        translateLocal('attachmentPicker.cameraPermissionRequired'),
-        translateLocal('attachmentPicker.expensifyDoesNotHaveAccessToCamera'),
+        translate('attachmentPicker.cameraPermissionRequired'),
+        translate('attachmentPicker.expensifyDoesNotHaveAccessToCamera'),
         [
             {
-                text: translateLocal('common.cancel'),
+                text: translate('common.cancel'),
                 style: 'cancel',
             },
             {
-                text: translateLocal('common.settings'),
+                text: translate('common.settings'),
                 onPress: () => {
                     Linking.openSettings();
                     // In the case of ios, the App reloads when we update camera permission from settings
@@ -108,7 +109,7 @@ function getFileName(url: string): string {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
 
-    return decodeURIComponent(fileName).replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    return decodeURIComponent(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
 function isImage(fileName: string): boolean {
@@ -156,18 +157,44 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
  * Returns the filename replacing special characters with underscore
  */
 function cleanFileName(fileName: string): string {
-    return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
+    return fileName.replaceAll(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
 function appendTimeToFileName(fileName: string): string {
     const file = splitExtensionFromFileName(fileName);
-    let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
-    // Replace illegal characters before trying to download the attachment.
-    newFileName = newFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
-    if (file.fileExtension) {
-        newFileName += `.${file.fileExtension}`;
+
+    const fileNameWithoutExtension = file.fileName;
+    const fileExtension = file.fileExtension;
+
+    const time = DateUtils.getDBTime();
+    const timeSuffix = `-${time}`;
+
+    const lengthSafeFileNameWithoutExtension =
+        Platform.OS === 'android' ? truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength: timeSuffix.length}) : fileNameWithoutExtension;
+
+    let newFileName = `${lengthSafeFileNameWithoutExtension}${timeSuffix}`;
+
+    // Replace all illegal characters before trying to download the attachment.
+    newFileName = newFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    if (fileExtension) {
+        newFileName += `.${fileExtension}`;
     }
     return newFileName;
+}
+
+const ANDROID_SAFE_FILE_NAME_LENGTH = 70;
+
+/**
+ * Truncates the file name to a safe length on Android
+ * @param params - An object containing:
+ *   @param params.fileNameWithoutExtension - The file name without the extension
+ *   @param params.fileSuffixLength - The length of the file suffix
+ * @returns The truncated file name
+ */
+function truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength}: {fileNameWithoutExtension: string; fileSuffixLength: number}): string {
+    const safeFileNameLengthWithoutSuffix = ANDROID_SAFE_FILE_NAME_LENGTH - fileSuffixLength;
+
+    return fileNameWithoutExtension.substring(0, safeFileNameLengthWithoutSuffix);
 }
 
 /**
@@ -549,18 +576,23 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
         });
 };
 
-const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
-    const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+type ValidateAttachmentOptions = {
+    isValidatingReceipts?: boolean;
+    isValidatingMultipleFiles?: boolean;
+};
 
-    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
+const validateAttachment = (file: FileObject, validationOptions?: ValidateAttachmentOptions) => {
+    const maxFileSize = validationOptions?.isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (validationOptions?.isValidatingReceipts && !isValidReceiptExtension(file)) {
+        return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
 
     if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
-        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
+        return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
-    if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+    if (validationOptions?.isValidatingReceipts && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
 
@@ -574,6 +606,7 @@ type TranslationAdditionalData = {
 };
 
 const getFileValidationErrorText = (
+    translate: LocalizedTranslate,
     validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
     additionalData: TranslationAdditionalData = {},
     isValidatingReceipt = false,
@@ -591,71 +624,71 @@ const getFileValidationErrorText = (
     switch (validationError) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
-                title: translateLocal('attachmentPicker.wrongFileType'),
-                reason: translateLocal('attachmentPicker.notAllowedExtension'),
+                title: translate('attachmentPicker.wrongFileType'),
+                reason: translate('attachmentPicker.notAllowedExtension'),
             };
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE:
             return {
-                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translateLocal('attachmentPicker.unsupportedFileType', {fileType: additionalData.fileType ?? ''}),
+                title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translate('attachmentPicker.unsupportedFileType', additionalData.fileType ?? ''),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
-                title: translateLocal('attachmentPicker.attachmentTooLarge'),
+                title: translate('attachmentPicker.attachmentTooLarge'),
                 reason: isValidatingReceipt
-                    ? translateLocal('attachmentPicker.sizeExceededWithLimit', {
+                    ? translate('attachmentPicker.sizeExceededWithLimit', {
                           maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
                       })
-                    : translateLocal('attachmentPicker.sizeExceeded'),
+                    : translate('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
             return {
-                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translateLocal('attachmentPicker.sizeLimitExceeded', {
+                title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translate('attachmentPicker.sizeLimitExceeded', {
                     maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
                 }),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {
-                title: translateLocal('attachmentPicker.attachmentTooSmall'),
-                reason: translateLocal('attachmentPicker.sizeNotMet'),
+                title: translate('attachmentPicker.attachmentTooSmall'),
+                reason: translate('attachmentPicker.sizeNotMet'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
             return {
-                title: translateLocal('attachmentPicker.attachmentError'),
-                reason: translateLocal('attachmentPicker.folderNotAllowedMessage'),
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.folderNotAllowedMessage'),
             };
         case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
             return {
-                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translateLocal('attachmentPicker.maxFileLimitExceeded'),
+                title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translate('attachmentPicker.maxFileLimitExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
             return {
-                title: translateLocal('attachmentPicker.attachmentError'),
-                reason: translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {
-                title: translateLocal('attachmentPicker.attachmentError'),
-                reason: translateLocal('attachmentPicker.protectedPDFNotSupported'),
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.protectedPDFNotSupported'),
             };
         default:
             return {
-                title: translateLocal('attachmentPicker.attachmentError'),
-                reason: translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
     }
 };
 
-const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undefined) => {
+const getConfirmModalPrompt = (translate: LocalizedTranslate, attachmentInvalidReason: TranslationPaths | undefined) => {
     if (!attachmentInvalidReason) {
         return '';
     }
     if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-        return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+        return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
     }
-    return translateLocal(attachmentInvalidReason);
+    return translate(attachmentInvalidReason);
 };
 
 const MAX_CANVAS_SIZE = 4096;
@@ -692,7 +725,7 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
                         return;
                     }
 
-                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                    const jpegFileName = fileName.replaceAll(/\.(heic|heif)$/gi, '.jpg');
                     const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {uri: URL.createObjectURL(convertedBlob)});
                     resolve(jpegFile);
                 },
@@ -754,6 +787,8 @@ export {
     getFileType,
     cleanFileName,
     appendTimeToFileName,
+    ANDROID_SAFE_FILE_NAME_LENGTH,
+    truncateFileNameToSafeLengthOnAndroid,
     readFileAsync,
     base64ToFile,
     isLocalFile,
@@ -777,3 +812,5 @@ export {
     cleanFileObject,
     cleanFileObjectName,
 };
+
+export type {ValidateAttachmentOptions};

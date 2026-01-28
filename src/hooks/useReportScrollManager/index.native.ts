@@ -2,7 +2,7 @@ import {useCallback, useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {ActionListContext} from '@pages/home/ReportScreenContext';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import scrollToBottomHandler from './handlers/scrollToBottom';
 import scrollToOffsetHandler from './handlers/scrollToOffset';
 import type ReportScrollManagerData from './types';

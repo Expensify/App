@@ -14,8 +14,9 @@ labels: Daily, NewFeature
 - [ ] Email `strategy@expensify.com` and paste in the Proposal
 - [ ] Fill out the **High-level overview of the problem**, **Timeline**, and **Terminology** sections of the Design Doc
 - [ ] Email `strategy@expensify.com` (continue the same email chain as before) with the link to your Design Doc
-- [ ] Host a **pre-design** meeting ([example](https://expensify.slack.com/archives/C01GTK53T8Q/p1665794669539419)) in `#expensify-open-source` to discuss any necessary details in public before filling out the **High-level of proposed solution** section.
+- [ ] Host a **pre-design** meeting ([example](https://expensify.slack.com/archives/C01GTK53T8Q/p1665794669539419)) in `#expensify-open-source` to discuss any necessary details in public before filling out the **High-level of proposed solution** section
 - [ ] Fill out the **High-level of proposed solution** section
+- [ ] Ensure all employees have permission to comment and edit using `Share > Expensify, Inc > Commenter`
 - [ ] Email `stategy@expensify.com` again with links to the doc and pre-design conversation in Slack
 - [ ] Add the `DesignDocReview` label to get the **High-level of proposed solution** section reviewed
 - [ ] Respond to any questions or concerns and bring up blockers in Slack to get a consensus if necessary

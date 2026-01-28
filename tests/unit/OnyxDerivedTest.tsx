@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
+import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -25,17 +26,22 @@ const renderLocaleContextProvider = () => {
     );
 };
 
-describe('OnyxDerived', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-        initOnyxDerivedValues();
-    });
+const onyxDerivedTestSetup = () => {
+    Onyx.clear();
+    Onyx.init({keys: ONYXKEYS});
+    initOnyxDerivedValues();
+};
 
-    beforeEach(async () => {
-        await Onyx.clear();
+describe('OnyxDerived', () => {
+    beforeEach(() => {
+        Onyx.clear();
     });
 
     describe('reportAttributes', () => {
+        beforeAll(() => {
+            onyxDerivedTestSetup();
+        });
+
         const mockReport: Report = {
             reportID: `test_1`,
             reportName: 'Test Report',
@@ -123,14 +129,14 @@ describe('OnyxDerived', () => {
             const reportID1 = '0';
             const reportID2 = '1';
             const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: createRandomReport(Number(reportID1)),
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID2}`]: createRandomReport(Number(reportID2)),
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: createRandomReport(Number(reportID1), undefined),
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID2}`]: createRandomReport(Number(reportID2), undefined),
             };
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {areAllConnectionsSet: true});
-            const reportAttributesComputedValue = reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {
+            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {areAllConnectionsSet: true});
+            const reportAttributesComputedValue = reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {
                 sourceValues: {
                     [ONYXKEYS.COLLECTION.REPORT]: {
                         [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`],
@@ -231,7 +237,7 @@ describe('OnyxDerived', () => {
 
         describe('reportErrors', () => {
             it('returns empty errors when no errors exist', async () => {
-                const report = createRandomReport(1);
+                const report = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await waitForBatchedUpdates();
 
@@ -241,7 +247,7 @@ describe('OnyxDerived', () => {
 
             it('combines report error fields with report action errors', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {
                             '1234567890': 'Error message 1',
@@ -280,7 +286,7 @@ describe('OnyxDerived', () => {
 
             it('handles multiple error sources', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {
                             '1234567890': 'Error message 1',
@@ -331,7 +337,7 @@ describe('OnyxDerived', () => {
 
             it('handles empty error objects in sources', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {},
                         field2: {
@@ -370,6 +376,155 @@ describe('OnyxDerived', () => {
                     '1234567890': 'Error message 1',
                     '1234567891': 'Error message 2',
                 });
+            });
+        });
+
+        describe('RBR propagation for IOU reports', () => {
+            it('should correctly propagate and resolve RBR for IOU reports', async () => {
+                renderLocaleContextProvider();
+                await waitForBatchedUpdates();
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+                await waitForBatchedUpdates();
+
+                const parentReport = createRandomReport(2, undefined);
+                const iouReport = {
+                    ...createRandomReport(2, undefined),
+                    chatReportID: parentReport.reportID,
+                    ownerAccountID: 1,
+                    type: CONST.REPORT.TYPE.IOU,
+                    errorFields: {
+                        generic: {
+                            '1234567890': 'Generic error',
+                        },
+                    },
+                };
+
+                // --- Setup ---
+                // Set the reports in Onyx.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await waitForBatchedUpdates();
+
+                // --- Assertion 1: Propagation Works ---
+                // The parent report should have an error RBR because the child IOU report has an error.
+                let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+                // --- Action: Resolve Error ---
+                // Remove the error from the IOU report. This will trigger a partial update.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {errorFields: null});
+                await waitForBatchedUpdates();
+
+                // --- Assertion 2: RBR is Cleared ---
+                // The parent report's RBR should be cleared now that the child's error is gone.
+                derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
+            });
+        });
+    });
+
+    describe('nonPersonalAndWorkspaceCardList', () => {
+        beforeAll(async () => {
+            onyxDerivedTestSetup();
+        });
+
+        it('returns empty object when dependencies are not set', async () => {
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+            expect(derivedCardList).toEqual({});
+        });
+
+        it('merges cardList and workspaceCardFeeds when dependencies are set', async () => {
+            // Non-personal cards (fundID !== '0') from cardList are kept, workspace cards are always included
+            const nonPersonalCard1 = createRandomExpensifyCard(1, {fundID: '123'});
+            const nonPersonalCard2 = createRandomExpensifyCard(2, {fundID: '456'});
+            const workspaceCard3 = createRandomCompanyCard(3, {bank: 'vcf'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {
+                '1': nonPersonalCard1,
+                '2': nonPersonalCard2,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '3': workspaceCard3,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+                '2': expect.objectContaining({cardID: 2}),
+                '3': expect.objectContaining({cardID: 3}),
+            });
+        });
+
+        it('filters out personal cards from cardList when dependencies are set', async () => {
+            const nonPersonalCard = createRandomExpensifyCard(1, {fundID: '123'});
+            const personalCard = createRandomExpensifyCard(2, {fundID: '0'});
+            const workspaceCard = createRandomCompanyCard(3, {bank: 'vcf'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {
+                '1': nonPersonalCard,
+                '2': personalCard,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '3': workspaceCard,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList?.['1']).toBeDefined();
+            expect(derivedCardList?.['1']).toMatchObject({cardID: 1});
+            expect(derivedCardList?.['2']).toBeUndefined();
+            expect(derivedCardList?.['3']).toBeDefined();
+            expect(derivedCardList?.['3']).toMatchObject({cardID: 3});
+        });
+
+        it('handles empty cardList when workspaceCardFeeds are set', async () => {
+            const workspaceCard = createRandomCompanyCard(1, {bank: 'vcf'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '1': workspaceCard,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+            });
+        });
+
+        it('handles empty workspaceCardFeeds when cardList is set', async () => {
+            const nonPersonalCard = createRandomExpensifyCard(1, {fundID: '123'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {
+                '1': nonPersonalCard,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+            });
+        });
+
+        it('includes cards from multiple workspace feeds when dependencies are set', async () => {
+            const card1 = createRandomCompanyCard(1, {bank: 'vcf'});
+            const card2 = createRandomCompanyCard(2, {bank: 'stripe'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '1': card1,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_456`, {
+                '2': card2,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+                '2': expect.objectContaining({cardID: 2}),
             });
         });
     });

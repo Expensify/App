@@ -1,5 +1,14 @@
 import Onyx from 'react-native-onyx';
-import {appendCountryCode, getPhoneLogin, getPhoneNumberWithoutSpecialChars, isEmailPublicDomain, validateNumber} from '@libs/LoginUtils';
+import {
+    appendCountryCode,
+    getEmailDomain,
+    getPhoneLogin,
+    getPhoneNumberWithoutSpecialChars,
+    isDomainPublic,
+    isEmailPublicDomain,
+    sanitizePhoneOrEmail,
+    validateNumber,
+} from '@libs/LoginUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -97,6 +106,96 @@ describe('LoginUtils', () => {
             const countryCode = CONST.DEFAULT_COUNTRY_CODE;
             const parsedPhone = getPhoneLogin(givenPhone, countryCode);
             expect(parsedPhone).toBe('');
+        });
+    });
+    describe('isDomainPublic', () => {
+        it('Should return true for public domains', () => {
+            expect(isDomainPublic('gmail.com')).toBe(true);
+            expect(isDomainPublic('yahoo.com')).toBe(true);
+            expect(isDomainPublic('hotmail.com')).toBe(true);
+        });
+
+        it('Should return false for private/custom domains', () => {
+            expect(isDomainPublic('expensify.com')).toBe(false);
+            expect(isDomainPublic('customdomain.com')).toBe(false);
+            expect(isDomainPublic('test.org')).toBe(false);
+        });
+
+        it('Should return false for empty string', () => {
+            expect(isDomainPublic('')).toBe(false);
+        });
+
+        it('Should handle case sensitivity correctly', () => {
+            expect(isDomainPublic('GMAIL.COM')).toBe(false);
+            expect(isDomainPublic('Gmail.Com')).toBe(false);
+        });
+    });
+
+    describe('getEmailDomain', () => {
+        it('Should extract domain from valid email addresses', () => {
+            expect(getEmailDomain('user@gmail.com')).toBe('gmail.com');
+            expect(getEmailDomain('test@example.org')).toBe('example.org');
+            expect(getEmailDomain('admin@company.co.uk')).toBe('company.co.uk');
+        });
+
+        it('Should handle emails with multiple dots in domain', () => {
+            expect(getEmailDomain('user@sub.domain.com')).toBe('sub.domain.com');
+        });
+
+        it('Should return lowercase domain', () => {
+            expect(getEmailDomain('user@GMAIL.COM')).toBe('gmail.com');
+            expect(getEmailDomain('test@Example.ORG')).toBe('example.org');
+        });
+
+        it('Should handle emails with uppercase local part', () => {
+            expect(getEmailDomain('USER@gmail.com')).toBe('gmail.com');
+        });
+
+        it('Should handle invalid email formats gracefully', () => {
+            expect(getEmailDomain('email')).toBe('email');
+            expect(getEmailDomain('')).toBe('');
+            expect(getEmailDomain('@gmail.com')).toBe('gmail.com');
+            expect(getEmailDomain('user@')).toBe('');
+        });
+
+        it('Should handle emails with special characters', () => {
+            expect(getEmailDomain('user+tag@gmail.com')).toBe('gmail.com');
+            expect(getEmailDomain('user.name@example.com')).toBe('example.com');
+        });
+    });
+
+    describe('sanitizePhoneOrEmail', () => {
+        it.each([
+            ['email without spaces', 'test@example.com', 'test@example.com'],
+            ['email with spaces', 'test @example. com', 'test@example.com'],
+            ['email with multiple spaces', 'test  @  example  .  com', 'test@example.com'],
+            ['email with tabs and spaces', 'test\t@ example .com', 'test@example.com'],
+            ['email with uppercase', 'Test@Example.COM', 'test@example.com'],
+            ['email with spaces and uppercase', 'Test @Example. COM', 'test@example.com'],
+        ])('Should sanitize email - %s', (_description, input, expected) => {
+            expect(sanitizePhoneOrEmail(input)).toBe(expected);
+        });
+
+        it.each([
+            ['phone without spaces', '+12345678901', '+12345678901'],
+            ['phone with spaces', '+1 234 567 8901', '+12345678901'],
+            ['phone with multiple spaces', '+1  234  567  8901', '+12345678901'],
+            ['phone with tabs', '+1\t234\t567\t8901', '+12345678901'],
+            ['phone with mixed whitespace', '+1 234\t567  8901', '+12345678901'],
+        ])('Should sanitize phone number - %s', (_description, input, expected) => {
+            expect(sanitizePhoneOrEmail(input)).toBe(expected);
+        });
+
+        it.each([
+            ['empty string', '', ''],
+            ['string with only spaces', '   ', ''],
+            ['string with only tabs', '\t\t\t', ''],
+            ['string with mixed whitespace', ' \t \t ', ''],
+            ['email with newlines', 'test\n@example.\ncom', 'test@example.com'],
+            ['phone with newlines', '+1\n234\n567\n8901', '+12345678901'],
+            ['mixed newlines and spaces', 'test \n @example. \n com', 'test@example.com'],
+        ])('Should handle edge cases - %s', (_description, input, expected) => {
+            expect(sanitizePhoneOrEmail(input)).toBe(expected);
         });
     });
 });

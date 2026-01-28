@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
 import PromotedActionsBar from '@components/PromotedActionsBar';
 import type {PromotedAction, PromotedActionsBarProps} from '@components/PromotedActionsBar';
 import variables from '@src/styles/variables';
@@ -33,19 +33,19 @@ function Template(args: PromotedActionsBarProps) {
 const promotedActions = [
     {
         key: 'join',
-        icon: Expensicons.CommentBubbles,
+        icon: 'CommentBubbles',
         text: 'Join',
         onSelected: () => {},
     },
     {
         key: 'pin',
-        icon: Expensicons.Pin,
+        icon: getExpensifyIcon('Pin'),
         text: 'Pin',
         onSelected: () => {},
     },
     {
         key: 'share',
-        icon: Expensicons.QrCode,
+        icon: getExpensifyIcon('QrCode'),
         text: 'Share',
         onSelected: () => {},
     },
@@ -53,7 +53,7 @@ const promotedActions = [
 
 const defaultPromotedAction = {
     key: '',
-    icon: Expensicons.ExpensifyLogoNew,
+    icon: getExpensifyIcon('ExpensifyLogoNew'),
     text: '',
     onSelected: () => {},
 };

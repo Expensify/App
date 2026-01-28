@@ -30,15 +30,15 @@ These errors prevent automatic exports. You’ll need to correct the issue and e
 You can only export reports that are in one of these states:
 
 - **Approved**
-- **Closed**
-- **Reimbursed**
+- **Done**
+- **Paid**
 
-If a report is still **Open**, you’ll see a message indicating the data isn’t ready for export.
+If a report is still a **Draft**, you’ll see a message indicating the data isn’t ready for export.
 
 ## How to resolve it
 
 1. Open the report and review its status.
-2. If the report is **Open**, submit it.
-3. If the report is **Processing**, it must be approved by an admin or approver.
+2. If the report is a **Draft**, submit it.
+3. If the report is **Outstanding**, it must be approved by an admin or approver.
 4. Once approved, go to the top of the report, select **Export**, and choose **Xero**.
 

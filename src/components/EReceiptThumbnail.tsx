@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,7 +11,6 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
 
@@ -37,6 +37,7 @@ type EReceiptThumbnailProps = {
 };
 
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'EReceiptIcon']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
@@ -86,16 +87,22 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
             ]}
         >
             <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
-                <ImageSVG src={backgroundImage} />
+                <ImageSVG
+                    src={backgroundImage}
+                    // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                    cachePolicy="none"
+                />
             </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={Expensicons.EReceiptIcon}
+                        src={icons.EReceiptIcon}
                         height={receiptIconHeight}
                         width={receiptIconWidth}
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
+                        // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                        cachePolicy="none"
                     />
                     {isReceiptThumbnail && !!fileExtension && (
                         <Text
@@ -112,10 +119,12 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                     )}
                     {isPerDiemRequest ? (
                         <Icon
-                            src={Expensicons.CalendarSolid}
+                            src={icons.CalendarSolid}
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
                     ) : null}
                     {!isPerDiemRequest && MCCIcon && !isReceiptThumbnail ? (
@@ -124,6 +133,8 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
                     ) : null}
                     {!isPerDiemRequest && !MCCIcon && tripIcon ? (
@@ -132,6 +143,8 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
+                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+                            cachePolicy="none"
                         />
                     ) : null}
                 </View>
@@ -140,7 +153,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
     );
 }
 
-EReceiptThumbnail.displayName = 'EReceiptThumbnail';
 export default EReceiptThumbnail;
 
 export type {IconSize, EReceiptThumbnailProps};

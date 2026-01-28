@@ -1,5 +1,4 @@
 #!/usr/bin/env npx ts-node
-
 /*
  * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
  */
@@ -13,11 +12,15 @@ import ts from 'typescript';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
+import baseTranslationPrompt from '@prompts/translation/base';
+import contextPrompt from '@prompts/translation/context';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
+import ChatGPTCostEstimator from './chatGPTCostEstimator';
 import CLI from './utils/CLI';
+import COLORS from './utils/COLORS';
 import Git from './utils/Git';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
@@ -50,6 +53,11 @@ const GENERATED_FILE_PREFIX = dedent(`
 `);
 
 const tsPrinter = ts.createPrinter();
+
+/**
+ * If the estimated cost of translation exceeds this threshold (in USD), prompt the user for confirmation before proceeding.
+ */
+const COST_CONFIRMATION_THRESHOLD = 1;
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
@@ -119,32 +127,127 @@ class TranslationGenerator {
     private readonly isIncremental: boolean;
 
     /**
+     * CLI instance for user prompts.
+     */
+    /* eslint-disable @typescript-eslint/naming-convention */
+    private readonly cli: CLI<{
+        flags: {
+            'dry-run': {description: string};
+            verbose: {description: string};
+        };
+        namedArgs: {
+            locales: {description: string; default: TranslationTargetLocale[]; parse: (val: string) => TranslationTargetLocale[]};
+            'compare-ref': {description: string; default: string; parse: (val: string) => string};
+            paths: {description: string; parse: (val: string) => Set<TranslationPaths>; supersedes: string[]; required: false};
+        };
+    }>;
+    /* eslint-enable @typescript-eslint/naming-convention */
+
+    /**
      * If a complex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
      * This map provides us a way to look up the English hash for each translated span hash, so that when we're transforming the English file and we encounter a translated expression hash,
      * we can look up English hash and use it to look up the translation for that hash (since the translation map is keyed by English string hashes).
      */
     private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
 
-    constructor(config: {
-        targetLanguages: TranslationTargetLocale[];
-        languagesDir: string;
-        sourceFile: string;
-        translator: Translator;
-        compareRef: string;
-        paths?: Set<TranslationPaths>;
-        verbose: boolean;
-    }) {
-        this.targetLanguages = config.targetLanguages;
-        this.languagesDir = config.languagesDir;
-        const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
-        this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
-        this.translator = config.translator;
-        this.compareRef = config.compareRef;
+    /**
+     * Set of translation keys for strings that are arguments to dedent() calls.
+     * These need special handling to preserve whitespace structure.
+     */
+    private readonly dedentStringKeys = new Set<number>();
+
+    constructor() {
+        this.languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
+        const enSourceFile = path.join(this.languagesDir, 'en.ts');
+
+        /* eslint-disable @typescript-eslint/naming-convention */
+        this.cli = new CLI({
+            flags: {
+                'dry-run': {
+                    description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
+                },
+                verbose: {
+                    description: 'Should we print verbose logs?',
+                },
+            },
+            namedArgs: {
+                locales: {
+                    description: 'Locales to generate translations for.',
+                    default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
+                    parse: (val: string): TranslationTargetLocale[] => {
+                        const rawLocales = val.split(',');
+                        const validatedLocales: TranslationTargetLocale[] = [];
+                        for (const locale of rawLocales) {
+                            if (!isTranslationTargetLocale(locale)) {
+                                throw new Error(`Invalid locale ${String(locale)}`);
+                            }
+                            validatedLocales.push(locale);
+                        }
+                        return validatedLocales;
+                    },
+                },
+                'compare-ref': {
+                    description:
+                        'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
+                    default: '',
+                    parse: (val: string): string => {
+                        if (!val.trim()) {
+                            return val;
+                        }
+                        if (!Git.isValidRef(val)) {
+                            throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
+                        }
+                        return val;
+                    },
+                },
+                paths: {
+                    description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
+                    parse: (val: string): Set<TranslationPaths> => {
+                        const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
+                        const validatedPaths = new Set<TranslationPaths>();
+                        const invalidPaths: string[] = [];
+                        for (const rawPath of rawPaths) {
+                            if (get(en, rawPath)) {
+                                validatedPaths.add(rawPath as TranslationPaths);
+                            } else {
+                                invalidPaths.push(rawPath);
+                            }
+                        }
+                        if (invalidPaths.length > 0) {
+                            throw new Error(`found the following invalid paths: ${JSON.stringify(invalidPaths)}`);
+                        }
+                        return validatedPaths;
+                    },
+                    supersedes: ['compare-ref'],
+                    required: false,
+                },
+            },
+        } as const);
+        /* eslint-enable @typescript-eslint/naming-convention */
+
+        this.targetLanguages = this.cli.namedArgs.locales;
+        this.compareRef = this.cli.namedArgs['compare-ref'];
         this.pathsToAdd = new Set<TranslationPaths>();
-        this.pathsToModify = config.paths ?? new Set<TranslationPaths>();
+        this.pathsToModify = this.cli.namedArgs.paths ?? new Set<TranslationPaths>();
         this.pathsToRemove = new Set<TranslationPaths>();
-        this.verbose = config.verbose;
+        this.verbose = this.cli.flags.verbose;
         this.isIncremental = this.pathsToModify.size > 0 || !!this.compareRef;
+
+        const sourceCode = fs.readFileSync(enSourceFile, 'utf8');
+        this.sourceFile = ts.createSourceFile(enSourceFile, sourceCode, ts.ScriptTarget.Latest, true);
+
+        if (this.cli.flags['dry-run']) {
+            console.log('🍸 Dry run enabled');
+            this.translator = new DummyTranslator();
+        } else {
+            if (!process.env.OPENAI_API_KEY) {
+                dotenv.config({path: path.resolve(__dirname, '../.env')});
+                if (!process.env.OPENAI_API_KEY) {
+                    throw new Error('❌ OPENAI_API_KEY not found in environment.');
+                }
+            }
+            this.translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
+        }
     }
 
     public async generateTranslations(): Promise<void> {
@@ -165,13 +268,16 @@ class TranslationGenerator {
             console.log(`   pathsToRemove: ${Array.from(this.pathsToRemove).join(', ')}`);
         }
 
+        // Extract strings to translate once (locale-independent)
+        const stringsToTranslate = new Map<number, StringWithContext>();
+        this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
+
+        // Estimate cost and prompt user if needed (respects --yes/--no flags)
+        await this.promptForCostApproval(stringsToTranslate);
+
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
-
-            // Extract strings to translate
-            const stringsToTranslate = new Map<number, StringWithContext>();
-            this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
             // Translate all the strings in parallel (up to 8 at a time)
             const translationPromises = [];
@@ -180,7 +286,25 @@ class TranslationGenerator {
                     // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
                     continue;
                 }
-                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translationsForLocale.set(key, result)));
+
+                // Special handling for dedent strings - preserve leading newline
+                let textToTranslate = text;
+                let hadLeadingNewline = false;
+                if (this.dedentStringKeys.has(key)) {
+                    hadLeadingNewline = text.startsWith('\n');
+                    textToTranslate = dedent(text);
+                }
+
+                const translationPromise = promisePool.add(async () => {
+                    let result = await this.translator.translate(targetLanguage, textToTranslate, context);
+
+                    // Special handling for dedent strings - add back leading newline if it was removed
+                    if (hadLeadingNewline) {
+                        result = `\n${result}`;
+                    }
+
+                    translationsForLocale.set(key, result);
+                });
                 translationPromises.push(translationPromise);
             }
             await Promise.allSettled(translationPromises);
@@ -240,10 +364,8 @@ class TranslationGenerator {
 
             // Enforce that the type of translated files matches en.ts
             let finalFileContent = fs.readFileSync(outputPath, 'utf8');
-            finalFileContent = finalFileContent.replace(
-                'export default translations satisfies TranslationDeepObject<typeof translations>;',
-                'export default translations satisfies TranslationDeepObject<typeof en>;',
-            );
+            finalFileContent = finalFileContent.replace('const translations = {', 'const translations: TranslationDeepObject<typeof en> = {');
+            finalFileContent = finalFileContent.replace('export default translations satisfies TranslationDeepObject<typeof translations>;', 'export default translations;');
 
             // Add a fun ascii art touch with a helpful message
             if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
@@ -255,7 +377,79 @@ class TranslationGenerator {
             // Format the file with prettier
             await Prettier.format(outputPath);
 
+            // Apply dedent formatting after Prettier so we have accurate source positions
+            this.formatDedentCallsInFile(outputPath);
+
+            // Format again with Prettier to ensure consistent formatting after dedent transformation
+            await Prettier.format(outputPath);
+
             console.log(`✅ Translated file created: ${outputPath}`);
+        }
+    }
+
+    /**
+     * Estimates the cost of translating the given strings and prompts the user for confirmation if the cost exceeds the threshold.
+     * If the user declines, the process exits.
+     * Skips prompting in dry-run mode since no real API calls are made.
+     */
+    private async promptForCostApproval(stringsToTranslate: Map<number, StringWithContext>): Promise<void> {
+        // Skip cost check in dry-run mode since no real API calls are made (cost is $0)
+        if (this.cli.flags['dry-run']) {
+            return;
+        }
+
+        const numStrings = stringsToTranslate.size;
+        const numLocales = this.targetLanguages.length;
+
+        // Calculate base prompt tokens (use first target language as sample since length is similar across locales)
+        const basePromptTokens = Math.ceil(baseTranslationPrompt(TRANSLATION_TARGET_LOCALES.DE).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+
+        // Calculate total input and output tokens for all strings
+        let totalInputTokens = numStrings * basePromptTokens;
+        let totalOutputTokens = 0;
+        for (const {text, context} of stringsToTranslate.values()) {
+            const tokensForString = Math.ceil(text.length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+
+            // The inputs and outputs for the string are assumed to be about the same length.
+            totalInputTokens += tokensForString;
+            totalOutputTokens += tokensForString;
+
+            // Add context prompt tokens if context exists
+            if (context) {
+                totalInputTokens += Math.ceil(contextPrompt(context).length * ChatGPTCostEstimator.TOKENS_PER_CHAR);
+            }
+        }
+
+        // Multiply total input and output tokens by the number of locales
+        totalInputTokens *= numLocales;
+        totalOutputTokens *= numLocales;
+
+        const estimatedCost = ChatGPTCostEstimator.getTotalEstimatedCost(totalInputTokens, totalOutputTokens);
+
+        if (estimatedCost > COST_CONFIRMATION_THRESHOLD) {
+            console.warn(
+                `${COLORS.YELLOW}${dedent(`
+                    ⚠️  Warning: This translation will cost approximately $${estimatedCost.toFixed(2)} USD.
+                       Strings to translate: ${stringsToTranslate.size.toLocaleString()}
+                       Target locales: ${numLocales}
+                `)}${COLORS.RESET}`,
+            );
+
+            if (!this.isIncremental) {
+                const scriptPath = path.relative(process.cwd(), path.resolve(__dirname, 'generateTranslations.ts'));
+                console.log(
+                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`npx ts-node ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
+                );
+            }
+
+            const userConfirmed = await this.cli.promptUserConfirmation(`Do you want to proceed? ${COLORS.BOLD}Estimated cost: $${estimatedCost.toFixed(2)} USD.${COLORS.RESET} (y/n) `);
+
+            if (!userConfirmed) {
+                console.log('\n❌ Translation cancelled by user.');
+                process.exit(0);
+            }
+
+            console.log('\n✅ Proceeding with translation...\n');
         }
     }
 
@@ -375,6 +569,18 @@ class TranslationGenerator {
     }
 
     /**
+     * Check if a node is a direct argument to a dedent() call.
+     */
+    private isArgumentToDedent(node: ts.Node): boolean {
+        if (!node.parent || !ts.isCallExpression(node.parent)) {
+            return false;
+        }
+
+        const callExpression = node.parent;
+        return ts.isIdentifier(callExpression.expression) && callExpression.expression.text === 'dedent' && callExpression.arguments.includes(node as ts.Expression);
+    }
+
+    /**
      * Is a given expression (i.e: template placeholder) "simple"?
      * We define an expression as "simple" if it is an identifier or property access expression. Anything else is complex.
      *
@@ -466,8 +672,8 @@ class TranslationGenerator {
         let keyBase = node
             .getText()
             .trim()
-            .replace(/^['"`]/, '')
-            .replace(/['"`]$/, '');
+            .replaceAll(/^['"`]/g, '')
+            .replaceAll(/['"`]$/g, '');
 
         const context = this.getContextForNode(node);
         if (context) {
@@ -493,6 +699,11 @@ class TranslationGenerator {
             const context = this.getContextForNode(node);
             const translationKey = this.getTranslationKey(node);
 
+            // Track if this node is an argument to dedent()
+            if (this.isArgumentToDedent(node)) {
+                this.dedentStringKeys.add(translationKey);
+            }
+
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
                 stringsToTranslate.set(translationKey, {text: node.text, context});
@@ -506,7 +717,9 @@ class TranslationGenerator {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     }
-                    node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate, currentPath));
+                    for (const span of node.templateSpans) {
+                        this.extractStringsToTranslate(span, stringsToTranslate, currentPath);
+                    }
                     stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 }
             }
@@ -628,8 +841,8 @@ class TranslationGenerator {
             this.extractPathsFromChangedLines(translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), changedLines.removedLines);
 
             // For removed paths, we need to traverse the old version of en.ts
-            if (changedLines.removedLines.size > 0 || changedLines.modifiedLines.size > 0) {
-                this.extractRemovedPaths(new Set([...changedLines.removedLines, ...changedLines.modifiedLines]));
+            if (changedLines.removedLines.size > 0) {
+                this.extractRemovedPaths(changedLines.removedLines);
             }
 
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
@@ -760,7 +973,11 @@ class TranslationGenerator {
 
         if (ts.isNoSubstitutionTemplateLiteral(node)) {
             const translatedText = translations.get(this.getTranslationKey(node));
-            return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : nodeToUse;
+            if (!translatedText) {
+                return nodeToUse;
+            }
+
+            return ts.factory.createNoSubstitutionTemplateLiteral(translatedText);
         }
 
         if (ts.isTemplateExpression(node)) {
@@ -859,6 +1076,130 @@ class TranslationGenerator {
     }
 
     /**
+     * Format all dedent() calls in a file to ensure proper indentation.
+     * This should be called after Prettier has formatted the file.
+     */
+    private formatDedentCallsInFile(filePath: string): void {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const sourceFile = ts.createSourceFile(filePath, fileContent, ts.ScriptTarget.Latest, true);
+
+        const result = ts.transform(sourceFile, [this.createDedentFormattingTransformer()]);
+        const transformedFile = result.transformed.at(0);
+
+        if (transformedFile) {
+            const formattedCode = decodeUnicode(tsPrinter.printFile(transformedFile));
+            fs.writeFileSync(filePath, formattedCode, 'utf8');
+        }
+
+        result.dispose();
+    }
+
+    /**
+     * Create a transformer that formats dedent() call arguments with proper indentation.
+     * This runs after translation to ensure that template strings inside dedent() calls
+     * have the correct indentation structure.
+     */
+    private createDedentFormattingTransformer(): ts.TransformerFactory<ts.SourceFile> {
+        return (context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
+            const visit = (node: ts.Node): ts.Node => {
+                if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression) || node.expression.text !== 'dedent' || !node.arguments[0]) {
+                    return ts.visitEachChild(node, visit, context);
+                }
+
+                const argument = node.arguments[0];
+                const templateIndentation = TSCompilerUtils.getIndentationOfNode(argument, sourceFile);
+                const contentIndentation = templateIndentation + 4;
+
+                // isTail = true for complete templates or final fragment before closing backtick
+                const formatFragment = (text: string, isTail: boolean) => this.formatDedentTemplateContent(text, contentIndentation, templateIndentation, isTail);
+
+                if (ts.isNoSubstitutionTemplateLiteral(argument)) {
+                    return ts.factory.createCallExpression(node.expression, node.typeArguments, [ts.factory.createNoSubstitutionTemplateLiteral(formatFragment(argument.text, true))]);
+                }
+
+                if (ts.isTemplateExpression(argument)) {
+                    const newHead = ts.factory.createTemplateHead(formatFragment(argument.head.text, false));
+                    const newSpans = argument.templateSpans.map((span, i) => {
+                        const isTail = i === argument.templateSpans.length - 1;
+                        const formattedText = formatFragment(span.literal.text, isTail);
+                        const newLiteral = isTail ? ts.factory.createTemplateTail(formattedText) : ts.factory.createTemplateMiddle(formattedText);
+                        return ts.factory.createTemplateSpan(span.expression, newLiteral);
+                    });
+
+                    return ts.factory.createCallExpression(node.expression, node.typeArguments, [ts.factory.createTemplateExpression(newHead, newSpans)]);
+                }
+
+                return node;
+            };
+
+            return ts.visitNode(sourceFile, visit) as ts.SourceFile;
+        };
+    }
+
+    /**
+     * Format the content of a template literal inside a dedent() call.
+     * Adds proper indentation while preserving relative indentation (e.g., bullet points with extra spaces).
+     *
+     * @param isTail - True if this is the last fragment before closing backtick (adds trailing newline if needed)
+     */
+    private formatDedentTemplateContent(text: string, contentIndentation: number, closingIndentation: number, isTail: boolean): string {
+        if (!text.includes('\n')) {
+            return text;
+        }
+
+        const lines = text.split('\n');
+        const hasLeadingNewline = text.startsWith('\n');
+
+        // Find minimum indentation (skip first line since it may be on same line as opening backtick)
+        let minIndent = Number.MAX_SAFE_INTEGER;
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines.at(i);
+            if (line?.trim()) {
+                const indent = line.match(/^ */)?.[0].length ?? 0;
+                minIndent = Math.min(minIndent, indent);
+            }
+        }
+        minIndent = minIndent === Number.MAX_SAFE_INTEGER ? 0 : minIndent;
+
+        // Apply base indentation while preserving extra indentation beyond the minimum
+        const getIndentedLine = (line: string) => {
+            const currentIndent = line.match(/^ */)?.[0].length ?? 0;
+            const relativeIndent = currentIndent - minIndent;
+            return `${' '.repeat(contentIndentation + relativeIndent)}${line.replace(/^ */, '')}`;
+        };
+
+        const formattedLines = lines.map((line, i) => {
+            const isFirstLine = i === 0;
+            const isLastLine = i === lines.length - 1;
+
+            if (isFirstLine && hasLeadingNewline) {
+                return '';
+            }
+            if (isFirstLine) {
+                return line ?? '';
+            }
+            if (!line?.trim()) {
+                return isLastLine && isTail && text.endsWith('\n') ? ' '.repeat(closingIndentation) : '';
+            }
+
+            return getIndentedLine(line);
+        });
+
+        // Add closing line with proper indentation for pretty formatting
+        if (isTail && (text.endsWith(' '.repeat(closingIndentation)) || !text.endsWith('\n'))) {
+            if (text.endsWith(' '.repeat(closingIndentation))) {
+                formattedLines.pop();
+            }
+
+            if (!text.endsWith('\n')) {
+                formattedLines.push(' '.repeat(closingIndentation));
+            }
+        }
+
+        return formattedLines.join('\n');
+    }
+
+    /**
      * Create a transformer factory for incremental translations of target files.
      * Injects pathsToAdd and pathsToModify directly into the target file by parsing the code strings for the translated paths.
      * Removes pathsToRemove from the target file.
@@ -951,111 +1292,8 @@ class TranslationGenerator {
     }
 }
 
-/**
- * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
- */
 async function main(): Promise<void> {
-    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
-    const enSourceFile = path.join(languagesDir, 'en.ts');
-
-    /* eslint-disable @typescript-eslint/naming-convention */
-    const cli = new CLI({
-        flags: {
-            'dry-run': {
-                description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
-            },
-            verbose: {
-                description: 'Should we print verbose logs?',
-            },
-        },
-        namedArgs: {
-            // By default, generate translations for all supported languages. Can be overridden with the --locales flag
-            locales: {
-                description: 'Locales to generate translations for.',
-                default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
-                parse: (val: string): TranslationTargetLocale[] => {
-                    const rawLocales = val.split(',');
-                    const validatedLocales: TranslationTargetLocale[] = [];
-                    for (const locale of rawLocales) {
-                        if (!isTranslationTargetLocale(locale)) {
-                            throw new Error(`Invalid locale ${String(locale)}`);
-                        }
-                        validatedLocales.push(locale);
-                    }
-                    return validatedLocales;
-                },
-            },
-            'compare-ref': {
-                description:
-                    'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
-                default: '',
-                parse: (val: string): string => {
-                    if (!val.trim()) {
-                        return val; // Empty string is valid (means no comparison)
-                    }
-
-                    // Validate that the ref exists using our Git utility
-                    if (!Git.isValidRef(val)) {
-                        throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
-                    }
-
-                    return val;
-                },
-            },
-            paths: {
-                description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
-                parse: (val: string): Set<TranslationPaths> => {
-                    const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
-                    const validatedPaths = new Set<TranslationPaths>();
-                    const invalidPaths: string[] = [];
-
-                    for (const rawPath of rawPaths) {
-                        if (get(en, rawPath)) {
-                            validatedPaths.add(rawPath as TranslationPaths);
-                        } else {
-                            invalidPaths.push(rawPath);
-                        }
-                    }
-
-                    if (invalidPaths.length > 0) {
-                        throw new Error(`found the following invalid paths: ${JSON.stringify(invalidPaths)}`);
-                    }
-
-                    return validatedPaths;
-                },
-                supersedes: ['compare-ref'],
-                required: false,
-            },
-        },
-    } as const);
-    /* eslint-enable @typescript-eslint/naming-convention */
-
-    let translator: Translator;
-    if (cli.flags['dry-run']) {
-        console.log('🍸 Dry run enabled');
-        translator = new DummyTranslator();
-    } else {
-        // Ensure OPEN_AI_KEY is set in environment
-        if (!process.env.OPENAI_API_KEY) {
-            // If not, try to load it from .env
-            dotenv.config({path: path.resolve(__dirname, '../.env')});
-            if (!process.env.OPENAI_API_KEY) {
-                throw new Error('❌ OPENAI_API_KEY not found in environment.');
-            }
-        }
-        translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
-    }
-
-    const generator = new TranslationGenerator({
-        targetLanguages: cli.namedArgs.locales,
-        languagesDir,
-        sourceFile: enSourceFile,
-        translator,
-        compareRef: cli.namedArgs['compare-ref'],
-        paths: cli.namedArgs.paths,
-        verbose: cli.flags.verbose,
-    });
-
+    const generator = new TranslationGenerator();
     await generator.generateTranslations();
 }
 

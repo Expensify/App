@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useCallback, useEffect, useState} from 'react';
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Button from '@components/Button';
@@ -9,13 +9,13 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -45,6 +45,7 @@ type Item = {
 function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile']);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {canBeMissing: true});
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
@@ -107,7 +108,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if ((PUBLIC_DOMAINS_SET.has(domain.toLowerCase()) || !Str.isValidEmail(userEmail)) && !isOffline) {
+        if (!Str.isValidEmail(userEmail) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {userEmail, domain});
             addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
         }
@@ -119,21 +120,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         return errors;
     };
 
-    const section: Item[] = [
-        {
-            icon: Illustrations.EnvelopeReceipt,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
-            shouldRenderEmail: true,
-        },
-        {
-            icon: Illustrations.Profile,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
-        },
-        {
-            icon: Illustrations.Gears,
-            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
-        },
-    ];
+    const section: Item[] = useMemo(
+        () => [
+            {
+                icon: illustrations.EnvelopeReceipt,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
+                shouldRenderEmail: true,
+            },
+            {
+                icon: illustrations.Profile,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
+            },
+            {
+                icon: illustrations.Gears,
+                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
+            },
+        ],
+        [illustrations.EnvelopeReceipt, illustrations.Profile, illustrations.Gears],
+    );
 
     return (
         <ScreenWrapper
@@ -146,6 +150,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             <HeaderWithBackButton
                 progressBarPercentage={10}
                 shouldShowBackButton={false}
+                shouldDisplayHelpButton={false}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -248,7 +253,5 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkEmail.displayName = 'BaseOnboardingWorkEmail';
 
 export default BaseOnboardingWorkEmail;

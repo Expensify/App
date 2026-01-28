@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
+import {Easing, interpolate, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
@@ -40,6 +41,11 @@ type Props = {
      * @default theme.border
      */
     highlightColor?: string;
+
+    /** Whether to skip the initial fade-in animation and show the component immediately
+     * @default false
+     */
+    skipInitialFade?: boolean;
 };
 
 /**
@@ -57,10 +63,12 @@ export default function useAnimatedHighlightStyle({
     height,
     highlightColor,
     backgroundColor,
+    skipInitialFade = false,
 }: Props) {
     const [startHighlight, setStartHighlight] = useState(false);
     const repeatableProgress = useSharedValue(0);
-    const nonRepeatableProgress = useSharedValue(shouldHighlight ? 0 : 1);
+    const initialNonRepeatableProgressValue = skipInitialFade || !shouldHighlight ? 1 : 0;
+    const nonRepeatableProgress = useSharedValue(initialNonRepeatableProgressValue);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const theme = useTheme();
 
@@ -86,7 +94,7 @@ export default function useAnimatedHighlightStyle({
         // We only need to add shouldHighlight as a dependency and adding startHighlight as deps will cause a loop because
         // if shouldHighlight stays at true the above early return will not be executed and this useEffect will be run
         // as long as shouldHighlight is true as we set startHighlight to false in the below useEffect.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldHighlight]);
 
     React.useEffect(() => {
@@ -94,7 +102,7 @@ export default function useAnimatedHighlightStyle({
             return;
         }
         setStartHighlight(false);
-        runOnJS(() => {
+        scheduleOnRN(() => {
             nonRepeatableProgress.set(
                 withDelay(
                     itemEnterDelay,
@@ -112,7 +120,7 @@ export default function useAnimatedHighlightStyle({
                     }),
                 ),
             );
-        })();
+        });
     }, [
         didScreenTransitionEnd,
         startHighlight,

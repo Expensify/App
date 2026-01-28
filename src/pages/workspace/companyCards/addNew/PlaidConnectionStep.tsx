@@ -22,10 +22,10 @@ import {setPlaidEvent} from '@userActions/BankAccounts';
 import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; policyID?: string; onExit?: () => void}) {
+function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWithDomainID; policyID?: string; onExit?: () => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
@@ -41,7 +41,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
     const {isOffline} = useNetwork();
     const domain = getDomainNameForPolicy(policyID);
 
-    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
+    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData?.bankAccounts?.length, plaidData?.errors]);
 
     /**
      * Blocks the keyboard shortcuts that can navigate
@@ -65,7 +65,9 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
      * Unblocks the keyboard shortcuts that can navigate
      */
     const unsubscribeToNavigationShortcuts = () => {
-        subscribedKeyboardShortcuts.current.forEach((unsubscribe) => unsubscribe());
+        for (const unsubscribe of subscribedKeyboardShortcuts.current) {
+            unsubscribe();
+        }
         subscribedKeyboardShortcuts.current = [];
     };
 
@@ -82,7 +84,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
         }
 
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -135,7 +137,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
                                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     setAssignCardStepAndData({
-                                        data: {
+                                        cardToAssign: {
                                             plaidAccessToken: publicToken,
                                             institutionId: plaidConnectedFeed,
                                             plaidConnectedFeedName,
@@ -147,7 +149,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
                                 return;
                             }
                             setAssignCardStepAndData({
-                                data: {
+                                cardToAssign: {
                                     plaidAccessToken: publicToken,
                                     institutionId: plaidConnectedFeed,
                                     plaidConnectedFeedName,
@@ -201,7 +203,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
 
     return (
         <ScreenWrapper
-            testID={PlaidConnectionStep.displayName}
+            testID="PlaidConnectionStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -218,7 +220,5 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
         </ScreenWrapper>
     );
 }
-
-PlaidConnectionStep.displayName = 'PlaidConnectionStep';
 
 export default PlaidConnectionStep;

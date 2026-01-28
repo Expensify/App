@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
@@ -39,6 +40,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const {onboardingMessages} = useOnboardingMessages();
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -48,7 +50,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const ICON_SIZE = 48;
-    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'Tag', 'ReportReceipt'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'Tag', 'ReportReceipt']);
 
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;
 
@@ -105,10 +107,13 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={BaseOnboardingWorkspaceOptional.displayName}
+            testID="BaseOnboardingWorkspaceOptional"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton progressBarPercentage={100} />
+            <HeaderWithBackButton
+                progressBarPercentage={100}
+                shouldDisplayHelpButton={false}
+            />
             <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.workspace.title')}</Text>
@@ -150,22 +155,22 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         onPress={() => completeOnboarding()}
                     />
                 </View>
-                <View>
-                    <Button
-                        success
-                        large
-                        text={translate('onboarding.workspace.createWorkspace')}
-                        onPress={() => {
-                            setOnboardingErrorMessage(null);
-                            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
-                        }}
-                    />
-                </View>
+                {!isRestrictedPolicyCreation && (
+                    <View>
+                        <Button
+                            success
+                            large
+                            text={translate('onboarding.workspace.createWorkspace')}
+                            onPress={() => {
+                                setOnboardingErrorMessage(null);
+                                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
+                            }}
+                        />
+                    </View>
+                )}
             </View>
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaceOptional.displayName = 'BaseOnboardingWorkspaceOptional';
 
 export default BaseOnboardingWorkspaceOptional;

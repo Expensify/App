@@ -1,18 +1,19 @@
 import lodashDeepClone from 'lodash/cloneDeep';
 import type {NullishDeep} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {QuickAction} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -35,7 +36,7 @@ function generateCustomUnitID(): string {
     return generateHexadecimalValue(13);
 }
 
-function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean) {
+function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean, quickAction?: QuickAction) {
     const doesCustomUnitExists = !!customUnitID;
     const finalCustomUnitID = doesCustomUnitExists ? customUnitID : generateCustomUnitID();
     const optimisticCustomUnit = {
@@ -45,7 +46,10 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
         defaultCategory: '',
         rates: {},
     };
-    const onyxData: OnyxData = {
+    const workspaceChatReportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID;
+
+    const shouldClearQuickAction = quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !enabled && workspaceChatReportID === quickAction?.chatReportID;
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -58,6 +62,15 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                     ...(doesCustomUnitExists ? {} : {customUnits: {[finalCustomUnitID]: optimisticCustomUnit}}),
                 },
             },
+            ...(shouldClearQuickAction
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                          value: null,
+                      },
+                  ]
+                : []),
         ],
         successData: [
             {
@@ -81,6 +94,15 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                     },
                 },
             },
+            ...(shouldClearQuickAction
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                          value: quickAction,
+                      },
+                  ]
+                : []),
         ],
     };
 
@@ -104,7 +126,7 @@ function openPolicyPerDiemPage(policyID?: string) {
 }
 
 function updateImportSpreadsheetData(ratesLength: number) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -112,10 +134,11 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfulDescription', {rates: ratesLength}),
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importPerDiemRatesSuccessfulDescription',
+                        promptKeyParams: {
+                            rates: ratesLength,
+                        },
                     },
                 },
             },
@@ -127,8 +150,10 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
@@ -149,7 +174,7 @@ function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[
     API.write(WRITE_COMMANDS.IMPORT_PER_DIEM_RATES, parameters, onyxData);
 }
 
-function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
+function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_PER_DIEM_CSV, {
         policyID,
     });
@@ -157,11 +182,11 @@ function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
     const fileName = 'PerDiem.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
-    fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
@@ -216,7 +241,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
         return;
     }
     const {newCustomUnit, customUnitOnyxUpdate} = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -246,7 +271,7 @@ function editPerDiemRateDestination(policyID: string, rateID: string, customUnit
     const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
     newCustomUnit.rates[rateID].name = newDestination;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -281,7 +306,7 @@ function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: str
         return subRate;
     });
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -316,7 +341,7 @@ function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: stri
         return subRate;
     });
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -346,7 +371,7 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
     newCustomUnit.rates[rateID].currency = newCurrency;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

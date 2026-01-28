@@ -1,39 +1,43 @@
-import type {SvgProps} from 'react-native-svg';
-import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
+import {getPerDiemCustomUnit} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
-const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
+const getQuickActionIcon = (
+    icons: Record<'CalendarSolid' | 'Car' | 'Task' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle', IconAsset>,
+    action: QuickActionName,
+): IconAsset => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-            return getIconForAction(CONST.IOU.TYPE.REQUEST);
+            return getIconForAction(CONST.IOU.TYPE.REQUEST, icons);
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.ReceiptScan;
+            return icons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
-            return Expensicons.CalendarSolid;
+            return icons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return getIconForAction(CONST.IOU.TYPE.SPLIT);
+            return getIconForAction(CONST.IOU.TYPE.SPLIT, icons);
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return getIconForAction(CONST.IOU.TYPE.SEND);
+            return getIconForAction(CONST.IOU.TYPE.SEND, icons);
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            return Expensicons.Task;
+            return icons.Task;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return getIconForAction(CONST.IOU.TYPE.TRACK);
+            return getIconForAction(CONST.IOU.TYPE.TRACK, icons);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return Expensicons.ReceiptScan;
+            return icons.ReceiptScan;
         default:
-            return Expensicons.MoneyCircle;
+            return icons.MoneyCircle;
     }
 };
 
@@ -97,6 +101,15 @@ const isQuickActionAllowed = (
     isReportArchived: boolean | undefined,
     isRestrictedToPreferredPolicy = false,
 ) => {
+    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
+        if (!quickActionPolicy?.arePerDiemRatesEnabled) {
+            return false;
+        }
+        const perDiemCustomUnit = getPerDiemCustomUnit(quickActionPolicy);
+        if (isEmptyObject(perDiemCustomUnit?.rates)) {
+            return false;
+        }
+    }
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
         // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
@@ -105,9 +118,6 @@ const isQuickActionAllowed = (
             return false;
         }
         return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, isRestrictedToPreferredPolicy);
-    }
-    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
-        return !!quickActionPolicy?.arePerDiemRatesEnabled;
     }
     return true;
 };

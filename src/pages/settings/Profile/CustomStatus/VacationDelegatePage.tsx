@@ -2,37 +2,40 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {useBetas} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 
-function useOptions() {
-    const betas = useBetas();
+function VacationDelegatePage() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
+    const [newVacationDelegate, setNewVacationDelegate] = useState('');
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const {options: optionsList, areOptionsInitialized} = useOptionsList();
+
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const excludeLogins = useMemo(
         () => ({
@@ -42,63 +45,26 @@ function useOptions() {
         [currentVacationDelegate],
     );
 
-    const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = getValidOptions(
-            {
-                reports: optionsList.reports,
-                personalDetails: optionsList.personalDetails,
-            },
-            draftComments,
-            {
-                betas,
-                excludeLogins,
-            },
-            countryCode,
-        );
-
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '', countryCode, false);
-
-        return {
-            userToInvite,
-            recentReports,
-            personalDetails,
-            currentUserOption,
-            headerMessage,
-        };
-    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, excludeLogins, countryCode]);
-
-    const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+        excludeLogins,
+        includeRecentReports: true,
+        getValidOptionsConfig: {
             excludeLogins,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-        const headerMessage = getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
-            !!filteredOptions.userToInvite,
-            debouncedSearchValue,
+        },
+    });
+
+    const headerMessage = useMemo(() => {
+        return getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+            !!availableOptions.userToInvite,
+            debouncedSearchTerm.trim(),
             countryCode,
             false,
         );
-
-        return {
-            ...filteredOptions,
-            headerMessage,
-        };
-    }, [debouncedSearchValue, defaultOptions, excludeLogins, countryCode]);
-
-    return {...options, vacationDelegate, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, delegatePersonalDetails};
-}
-
-function VacationDelegatePage() {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
-    const [newVacationDelegate, setNewVacationDelegate] = useState('');
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
-    const {vacationDelegate, userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized, delegatePersonalDetails} =
-        useOptions();
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -118,7 +84,7 @@ function VacationDelegatePage() {
                         shouldShowSubscript: undefined,
                         icons: [
                             {
-                                source: delegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar,
+                                source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
                                 name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
                                 type: CONST.ICON_TYPE_AVATAR,
                                 id: delegatePersonalDetails?.accountID,
@@ -132,20 +98,20 @@ function VacationDelegatePage() {
 
         sectionsList.push({
             title: translate('common.recents'),
-            data: recentReports,
-            shouldShow: recentReports?.length > 0,
+            data: availableOptions.recentReports,
+            shouldShow: availableOptions.recentReports?.length > 0,
         });
 
         sectionsList.push({
             title: translate('common.contacts'),
-            data: personalDetails,
-            shouldShow: personalDetails?.length > 0,
+            data: availableOptions.personalDetails,
+            shouldShow: availableOptions.personalDetails?.length > 0,
         });
 
-        if (userToInvite) {
+        if (availableOptions.userToInvite) {
             sectionsList.push({
                 title: undefined,
-                data: [userToInvite],
+                data: [availableOptions.userToInvite],
                 shouldShow: true,
             });
         }
@@ -163,12 +129,12 @@ function VacationDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [vacationDelegate, delegatePersonalDetails, personalDetails, recentReports, translate, userToInvite]);
+    }, [vacationDelegate, delegatePersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, icons.FallbackAvatar]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
             // Clear search to prevent "No results found" after selection
-            setSearchValue('');
+            setSearchTerm('');
 
             if (option?.login === vacationDelegate?.delegate) {
                 deleteVacationDelegate(vacationDelegate);
@@ -191,18 +157,18 @@ function VacationDelegatePage() {
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             });
         },
-        [currentUserLogin, vacationDelegate, setSearchValue],
+        [currentUserLogin, vacationDelegate, setSearchTerm],
     );
 
     useEffect(() => {
-        searchInServer(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <>
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={VacationDelegatePage.displayName}
+                testID="VacationDelegatePage"
             >
                 <HeaderWithBackButton
                     title={translate('statusPage.vacationDelegate')}
@@ -214,12 +180,13 @@ function VacationDelegatePage() {
                         ListItem={UserListItem}
                         onSelectRow={onSelectRow}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchValue}
-                        textInputValue={searchValue}
+                        onChangeText={setSearchTerm}
+                        textInputValue={searchTerm}
                         headerMessage={headerMessage}
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
+                        onEndReached={onListEndReached}
                     />
                 </View>
             </ScreenWrapper>
@@ -241,7 +208,5 @@ function VacationDelegatePage() {
         </>
     );
 }
-
-VacationDelegatePage.displayName = 'VacationDelegatePage';
 
 export default VacationDelegatePage;

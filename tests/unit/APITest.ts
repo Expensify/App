@@ -820,6 +820,7 @@ describe('APITests', () => {
             [ONYXKEYS.NETWORK]: {isOffline: false},
         })
             .then(() => {
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
                 return waitForNetworkPromises();
             })

@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
-import {CardReplacementSuccess} from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,15 +11,16 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['CardReplacementSuccess']);
 
     return (
         <ConfirmationPage
             heading={translate('reportCardLostOrDamaged.successTitle')}
             description={translate('reportCardLostOrDamaged.successDescription')}
-            illustration={CardReplacementSuccess}
+            illustration={illustrations.CardReplacementSuccess}
             shouldShowButton
             onButtonPress={() => {
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID), {forceReplace: true});
             }}
             buttonText={translate('common.buttonConfirm')}
             containerStyle={styles.h100}
@@ -30,5 +31,4 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     );
 }
 
-SuccessReportCardLost.displayName = 'SuccessReportCardLost';
 export default SuccessReportCardLost;

@@ -52,6 +52,4 @@ function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
     );
 }
 
-JobTitle.displayName = 'JobTitle';
-
 export default JobTitle;

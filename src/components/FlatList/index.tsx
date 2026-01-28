@@ -1,9 +1,12 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
+import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
+import type {CustomFlatListProps} from './types';
 
 // Changing the scroll position during a momentum scroll does not work on mobile Safari.
 // We do a best effort to avoid content jumping by using some hacks on mobile Safari only.
@@ -11,21 +14,21 @@ const IS_MOBILE_SAFARI = isMobileSafari();
 
 function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
     return function (node: FlatList) {
-        args.forEach((ref) => {
+        for (const ref of args) {
             if (ref == null) {
-                return;
+                continue;
             }
             if (typeof ref === 'function') {
                 ref(node);
-                return;
+                continue;
             }
             if (typeof ref === 'object') {
                 // eslint-disable-next-line no-param-reassign
                 ref.current = node;
-                return;
+                continue;
             }
             console.error(`mergeRefs cannot handle Refs of type boolean, number or string, received ref ${String(ref)}`);
-        });
+        }
     };
 }
 
@@ -41,12 +44,16 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-type CustomFlatListProps<T> = FlatListProps<T> & {
-    ref?: ForwardedRef<FlatList>;
-    shouldDisableVisibleContentPosition?: boolean;
-};
-
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ref, ...props}: CustomFlatListProps<TItem>) {
+function MVCPFlatList<TItem>({
+    maintainVisibleContentPosition,
+    horizontal = false,
+    onScroll: onScrollProp,
+    initialNumToRender,
+    shouldHideContent = false,
+    ref,
+    ...restProps
+}: CustomFlatListProps<TItem>) {
+    const styles = useThemeStyles();
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -55,7 +62,6 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
     const lastScrollOffsetRef = useRef(0);
     const isListRenderedRef = useRef(false);
     const mvcpAutoscrollToTopThresholdRef = useRef(mvcpAutoscrollToTopThreshold);
-    // eslint-disable-next-line react-compiler/react-compiler
     mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
 
     const getScrollOffset = useCallback((): number => {
@@ -152,20 +158,20 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             let isEditComposerAdded = false;
             // Check if the first visible view is removed and re-calculate it
             // if needed.
-            mutations.forEach((mutation) => {
-                mutation.removedNodes.forEach((node) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.removedNodes) {
                     if (node !== firstVisibleViewRef.current) {
-                        return;
+                        continue;
                     }
                     firstVisibleViewRef.current = null;
-                });
-                mutation.addedNodes.forEach((node) => {
+                }
+                for (const node of mutation.addedNodes) {
                     if (node.nodeType !== Node.ELEMENT_NODE || !(node as HTMLElement).querySelector('#composer')) {
-                        return;
+                        continue;
                     }
                     isEditComposerAdded = true;
-                });
-            });
+                }
+            }
 
             if (firstVisibleViewRef.current == null) {
                 prepareForMaintainVisibleContentPosition();
@@ -226,38 +232,37 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         };
     }, []);
 
-    const onScrollInternal = useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted: restProps.inverted});
+    const handleScroll = useCallback(
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onScrollProp?.(e);
             prepareForMaintainVisibleContentPosition();
-
-            onScroll?.(event);
+            emitComposerScrollEvents();
         },
-        [prepareForMaintainVisibleContentPosition, onScroll],
+        [emitComposerScrollEvents, onScrollProp, prepareForMaintainVisibleContentPosition],
     );
 
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...restProps}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             horizontal={horizontal}
-            onScroll={onScrollInternal}
+            onScroll={handleScroll}
             scrollEventThrottle={1}
             ref={onRef}
+            initialNumToRender={Math.max(0, initialNumToRender ?? 0) || undefined}
             onLayout={(e) => {
                 isListRenderedRef.current = true;
                 if (!mutationObserverRef.current) {
                     prepareForMaintainVisibleContentPosition();
                     setupMutationObserver();
                 }
-                props.onLayout?.(e);
+                restProps.onLayout?.(e);
             }}
+            contentContainerStyle={[restProps.contentContainerStyle, shouldHideContent && styles.visibilityHidden]}
         />
     );
 }
 
-MVCPFlatList.displayName = 'MVCPFlatList';
-
 export default MVCPFlatList;
-
-export type {CustomFlatListProps};

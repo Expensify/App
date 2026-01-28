@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+index e9a546e..a764b13 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+@@ -36,17 +36,6 @@ Size AndroidTextInputShadowNode::measureContent(
+       .surfaceId = getSurfaceId(),
+   };
+ 
+-  if (getStateData().cachedAttributedStringId != 0) {
+-    auto textSize = textLayoutManager_
+-                        ->measureCachedSpannableById(
+-                            getStateData().cachedAttributedStringId,
+-                            getConcreteProps().paragraphAttributes,
+-                            textLayoutContext,
+-                            textConstraints)
+-                        .size;
+-    return layoutConstraints.clamp(textSize);
+-  }
+-
+   // Layout is called right after measure.
+   // Measure is marked as `const`, and `layout` is not; so State can be
+   // updated during layout, but not during `measure`. If State is out-of-date

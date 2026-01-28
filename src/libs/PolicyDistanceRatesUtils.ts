@@ -1,14 +1,13 @@
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CustomUnit, Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {parseFloatAnyLocale} from './NumberUtils';
 
@@ -16,7 +15,7 @@ type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | ty
 
 type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM;
 
-function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit: (arg: string) => string): FormInputErrors<RateValueForm> {
+function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit: (arg: string) => string, translate: LocalizedTranslate): FormInputErrors<RateValueForm> {
     const errors: FormInputErrors<RateValueForm> = {};
     const parsedRate = replaceAllDigits(values.rate, toLocaleDigit);
     const decimalSeparator = toLocaleDigit('.');
@@ -24,21 +23,18 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit:
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors.rate = translateLocal('common.error.invalidRateError');
+        errors.rate = translate('common.error.invalidRateError');
     } else if (parseFloatAnyLocale(parsedRate) <= 0) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors.rate = translateLocal('common.error.lowRateError');
+        errors.rate = translate('common.error.lowRateError');
     }
     return errors;
 }
 
-function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, rate: Rate | undefined): FormInputErrors<TaxReclaimableForm> {
+function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, rate: Rate | undefined, translate: LocalizedTranslate): FormInputErrors<TaxReclaimableForm> {
     const errors: FormInputErrors<TaxReclaimableForm> = {};
 
     if (rate?.rate && Number(values.taxClaimableValue) >= rate.rate / 100) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        errors.taxClaimableValue = translateLocal('workspace.taxes.error.updateTaxClaimableFailureMessage');
+        errors.taxClaimableValue = translate('workspace.taxes.error.updateTaxClaimableFailureMessage');
     }
     return errors;
 }
@@ -65,15 +61,20 @@ type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate'> | keyof T
  * @param fieldName - The field name being updated
  * @returns Object containing optimisticData, successData, and failureData arrays
  */
-function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[], fieldName: PolicyDistanceRateUpdateField): OnyxData {
+function buildOnyxDataForPolicyDistanceRateUpdates(
+    policyID: string,
+    customUnit: CustomUnit,
+    customUnitRates: Rate[],
+    fieldName: PolicyDistanceRateUpdateField,
+): OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, NullishDeep<Rate>> = {};
-    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
+    const rateIDs = new Set(customUnitRates.map((rate) => rate.customUnitRateID));
 
     for (const rateID of Object.keys(customUnit.rates)) {
-        if (rateIDs.includes(rateID)) {
+        if (rateIDs.has(rateID)) {
             const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
             optimisticRates[rateID] = {
                 ...foundRate,
@@ -91,7 +92,7 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
         }
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -105,7 +106,7 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -119,7 +120,7 @@ function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit:
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

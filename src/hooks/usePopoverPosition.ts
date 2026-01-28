@@ -1,8 +1,9 @@
 import {useCallback} from 'react';
 import type {View} from 'react-native';
-import type {AnchorDimensions, AnchorPosition} from '@styles/index';
+import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type {Dimensions} from '@src/types/utils/Layout';
 import useResponsiveLayout from './useResponsiveLayout';
 
 const defaultAnchorAlignment = {
@@ -39,7 +40,7 @@ function usePopoverPosition() {
             if (isSmallScreenWidth || !anchorRef.current || !('measureInWindow' in anchorRef.current)) {
                 return Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
             }
-            return new Promise<AnchorPosition & AnchorDimensions>((resolve) => {
+            return new Promise<AnchorPosition & Dimensions>((resolve) => {
                 anchorRef.current?.measureInWindow((x, y, width, height) => {
                     let horizontal = x + width;
                     if (anchorAlignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {

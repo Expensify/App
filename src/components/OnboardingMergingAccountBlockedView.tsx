@@ -1,4 +1,5 @@
 import React from 'react';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
-import {ToddBehindCloud} from './Icon/Illustrations';
 
 type OnboardingMergingAccountBlockedViewProps = {
     // Work email to display in the subtitle
@@ -22,6 +22,7 @@ type OnboardingMergingAccountBlockedViewProps = {
 function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
 
     const getErrorSubtitle = () => {
@@ -35,7 +36,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
     return (
         <>
             <BlockingView
-                icon={ToddBehindCloud}
+                icon={illustrations.ToddBehindCloud}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
                 title={translate('onboarding.mergeBlockScreen.title')}
@@ -59,7 +60,5 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
         </>
     );
 }
-
-OnboardingMergingAccountBlockedView.displayName = 'OnboardingMergingAccountBlockedView';
 
 export default OnboardingMergingAccountBlockedView;

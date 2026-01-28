@@ -5,9 +5,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import {openReport} from '@libs/actions/Report';
+import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
@@ -55,7 +55,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         }
         const isEmptyReport = isEmptyObject(report);
         return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport);
-    }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata, shouldFetchReport]);
+    }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport]);
 
     const fetchReport = useCallback(() => {
         openReport(reportActionReportID, reportActionID);
@@ -91,15 +91,18 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         isAuthTokenRequired,
     });
 
-    const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
-    const modalType = useReportAttachmentModalType();
+    const source = useMemo(() => getValidatedImageSource(sourceParam), [sourceParam]);
+    const modalType = useReportAttachmentModalType(source);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID;
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
             type,
             report,
-            shouldShowNotFoundPage: !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
+            shouldShowNotFoundPage,
             isAuthTokenRequired: !!isAuthTokenRequired,
             attachmentLink: attachmentLink ?? '',
             originalFileName: originalFileName ?? '',
@@ -112,7 +115,21 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             onDownloadAttachment,
             onCarouselAttachmentChange,
         }),
-        [accountID, attachmentID, attachmentLink, headerTitle, isAuthTokenRequired, isLoading, onCarouselAttachmentChange, onDownloadAttachment, originalFileName, report, source, type],
+        [
+            accountID,
+            attachmentID,
+            attachmentLink,
+            headerTitle,
+            isAuthTokenRequired,
+            isLoading,
+            onCarouselAttachmentChange,
+            onDownloadAttachment,
+            originalFileName,
+            report,
+            shouldShowNotFoundPage,
+            source,
+            type,
+        ],
     );
 
     return (
@@ -125,6 +142,5 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         />
     );
 }
-ReportAttachmentModalContent.displayName = 'ReportAttachmentModalContent';
 
 export default ReportAttachmentModalContent;

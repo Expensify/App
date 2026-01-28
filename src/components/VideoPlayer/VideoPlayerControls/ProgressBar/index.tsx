@@ -2,7 +2,8 @@ import React, {useEffect, useState} from 'react';
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -36,7 +37,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const progressBarInteraction = (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload> | GestureStateChangeEvent<PanGestureHandlerEventPayload>) => {
         const progress = getProgress(event.x, sliderWidth);
         progressWidth.set(progress);
-        runOnJS(seekPosition)((progress * duration) / 100);
+        scheduleOnRN(seekPosition, (progress * duration) / 100);
     };
 
     const onSliderLayout = (event: LayoutChangeEvent) => {
@@ -87,7 +88,5 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         </GestureDetector>
     );
 }
-
-ProgressBar.displayName = 'ProgressBar';
 
 export default ProgressBar;

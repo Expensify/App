@@ -5,13 +5,13 @@ import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionsList from '@src/pages/home/report/ReportActionsList';
-import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -79,7 +79,7 @@ const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
 };
 
-const report = createRandomReport(1);
+const report = createRandomReport(1, undefined);
 const parentReportAction = createRandomReportAction(1);
 
 beforeEach(() => {

@@ -54,26 +54,12 @@ function KnowATeacherPage() {
             if (!isValidDisplayName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
             } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'firstName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.firstName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!isValidDisplayName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
             } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'lastName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.lastName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!values.partnerUserID) {
                 addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
@@ -87,13 +73,13 @@ function KnowATeacherPage() {
 
             return errors;
         },
-        [loginList, translate],
+        [countryCode, loginList, translate],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={KnowATeacherPage.displayName}
+            testID="KnowATeacherPage"
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}
@@ -146,7 +132,5 @@ function KnowATeacherPage() {
         </ScreenWrapper>
     );
 }
-
-KnowATeacherPage.displayName = 'KnowATeacherPage';
 
 export default KnowATeacherPage;

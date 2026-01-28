@@ -1,3 +1,4 @@
+import type {SvgProps} from 'react-native-svg';
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
@@ -48,10 +49,12 @@ import Checkbox from '@assets/images/checkbox.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
+import Clock from '@assets/images/clock.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
+import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
@@ -108,6 +111,8 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
@@ -124,6 +129,7 @@ import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
+import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
@@ -132,6 +138,7 @@ import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
+import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
@@ -149,6 +156,7 @@ import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
+import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
@@ -157,10 +165,12 @@ import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Pencil from '@assets/images/pencil.svg';
+import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
+import PlusMinus from '@assets/images/plus-minus.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
@@ -206,6 +216,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
+import TreasureChestGreenWithSparkle from '@assets/images/treasure-chest-green-with-sparkle.svg';
 import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
@@ -213,7 +224,9 @@ import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
+import UserMinus from '@assets/images/user-minus.svg';
 import UserPlus from '@assets/images/user-plus.svg';
+import UserShield from '@assets/images/user-shield.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VideoSlash from '@assets/images/video-slash.svg';
@@ -245,6 +258,7 @@ const Expensicons = {
     Bank,
     CircularArrowBackwards,
     Bill,
+    BillComSquare,
     Bell,
     Binoculars,
     Bolt,
@@ -256,13 +270,16 @@ const Expensicons = {
     Camera,
     Car,
     Cash,
+    CertiniaSquare,
     ChatBubble,
     ChatBubbles,
     Checkbox,
     Checkmark,
     Close,
+    Clock,
     ClosedSign,
     Collapse,
+    Columns,
     CommentBubbles,
     Concierge,
     ConciergeAvatar,
@@ -302,6 +319,7 @@ const Expensicons = {
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
+    Fingerprint,
     Fullscreen,
     Folder,
     Tag,
@@ -329,6 +347,7 @@ const Expensicons = {
     LinkCopy,
     Location,
     Lock,
+    UserMinus,
     Luggage,
     MagnifyingGlass,
     Mail,
@@ -354,10 +373,12 @@ const Expensicons = {
     Paperclip,
     Pause,
     Pencil,
+    Percent,
     Phone,
     Pin,
     Play,
     Plus,
+    PlusMinus,
     Printer,
     Profile,
     QBOSquare,
@@ -386,6 +407,7 @@ const Expensicons = {
     ThreeDots,
     Transfer,
     Trashcan,
+    ZenefitsSquare,
     Uber,
     Unlock,
     UpArrow,
@@ -452,6 +474,9 @@ const Expensicons = {
     SageIntacctExport,
     XeroExport,
     ArrowCircleClockwise,
+    LuggageWithLines,
+    TreasureChestGreenWithSparkle,
+    UserShield,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons
@@ -462,61 +487,8 @@ const ExpensifyIcons = Expensicons;
  * @param iconName - The name of the icon to retrieve
  * @returns The icon component or undefined if not found
  */
-function getExpensifyIcon(iconName: string): unknown {
-    // Direct return for known icons to preserve React component type
-    switch (iconName) {
-        case 'Building':
-            return Building;
-        case 'CalendarSolid':
-            return CalendarSolid;
-        case 'Car':
-            return Car;
-        case 'Coins':
-            return Coins;
-        case 'CreditCard':
-            return CreditCard;
-        case 'Document':
-            return Document;
-        case 'ExpensifyAppIcon':
-            return ExpensifyAppIcon;
-        case 'ExpensifyCard':
-            return ExpensifyCard;
-        case 'Feed':
-            return Feed;
-        case 'Folder':
-            return Folder;
-        case 'Gear':
-            return Gear;
-        case 'InvoiceGeneric':
-            return InvoiceGeneric;
-        case 'Receipt':
-            return Receipt;
-        case 'Sync':
-            return Sync;
-        case 'Tag':
-            return Tag;
-        case 'Users':
-            return Users;
-        case 'Workflows':
-            return Workflows;
-        case 'FallbackWorkspaceAvatar':
-            return FallbackWorkspaceAvatar;
-        case 'ImageCropSquareMask':
-            return ImageCropSquareMask;
-        case 'QrCode':
-            return QrCode;
-        case 'Transfer':
-            return Transfer;
-        case 'Trashcan':
-            return Trashcan;
-        case 'UserPlus':
-            return UserPlus;
-        case 'ThreeDots':
-            return ThreeDots;
-        default:
-            // Fallback to object lookup for any other cases
-            return (ExpensifyIcons as Record<string, unknown>)[iconName];
-    }
+function getExpensifyIcon(iconName: ExpensifyIconName): React.FC<SvgProps> {
+    return ExpensifyIcons[iconName];
 }
 
 /**

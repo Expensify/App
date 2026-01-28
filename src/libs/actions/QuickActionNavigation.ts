@@ -1,5 +1,6 @@
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
@@ -12,6 +13,7 @@ type NavigateToQuickActionParams = {
     quickAction: QuickAction;
     selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void;
     lastDistanceExpenseType?: DistanceExpenseType;
+    targetAccountPersonalDetails: PersonalDetails;
     currentUserAccountID: number;
 };
 
@@ -35,7 +37,7 @@ function getQuickActionRequestType(action: QuickActionName | undefined, lastDist
 }
 
 function navigateToQuickAction(params: NavigateToQuickActionParams) {
-    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, currentUserAccountID} = params;
+    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, targetAccountPersonalDetails, currentUserAccountID} = params;
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action, lastDistanceExpenseType);
 
@@ -54,7 +56,7 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
             break;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID), false);
+            selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', targetAccountPersonalDetails), false);
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:

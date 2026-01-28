@@ -47,7 +47,6 @@ For detailed setup instructions for each platform, see the following guides:
 * **🕸 Web Development**: [Web Setup Instructions](contributingGuides/SETUP_WEB.md)
 * **📱 iOS Development**: [iOS Setup Instructions](contributingGuides/SETUP_IOS.md)  
 * **🤖 Android Development**: [Android Setup Instructions](contributingGuides/SETUP_ANDROID.md)
-* **🖥 Desktop Development**: [Desktop Setup Instructions](contributingGuides/SETUP_DESKTOP.md)
 
 ## General Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
@@ -74,7 +73,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `USE_NGROK` - Flag to turn `ngrok` testing on or off
 - `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
 - `USE_REDUX_DEVTOOLS` - Flag to enable [Redux DevTools](https://github.com/reduxjs/redux-devtools) for Onyx state debugging
-- `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
+- `USE_WEB_PROXY`⚠️- Used in web development, it starts a server along the local development server to proxy
    requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
@@ -102,6 +101,6 @@ We use Reassure for monitoring performance regression. More detailed information
 
 ## CodeCov
 
-[CodeCov] is the service we use to measure and track code coverage. You can find out more about it [here](contributingGuides/CodeCov.md)
+[CodeCov](https://about.codecov.io/) is the service we use to measure and track code coverage. You can find out more about it [here](contributingGuides/CodeCov.md)
 
 ----

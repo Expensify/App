@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 
@@ -41,14 +41,12 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
             />
             <Text
                 numberOfLines={1}
-                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1, textStyle]}
+                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle]}
             >
                 {displayName}
             </Text>
         </View>
     );
 }
-
-UserInfoCell.displayName = 'UserInfoCell';
 
 export default UserInfoCell;

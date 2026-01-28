@@ -17,7 +17,7 @@ type RNTextInputResetModule = {
 
 type RNNavBarManagerModule = {
     setButtonStyle: (style: NavBarButtonStyle) => void;
-    getType(): NavigationBarType;
+    getType: () => NavigationBarType;
 };
 
 type TestToolsBridge = {
@@ -64,7 +64,7 @@ declare module 'react-native' {
         ShortcutManager: ShortcutManagerModule;
         ShareActionHandler: ShareActionHandlerModule;
         TestToolsBridge: TestToolsBridge;
-        PushNotificationBridge: PushNotificationBridge;
+        PushNotificationBridge?: PushNotificationBridge;
     }
 
     namespace Animated {

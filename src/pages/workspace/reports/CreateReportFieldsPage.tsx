@@ -13,10 +13,12 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -84,15 +86,11 @@ function WorkspaceCreateReportFieldsPage({
 
             if (!isRequiredFulfilled(name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
-            } else if (Object.values(policy?.fieldList ?? {}).some((reportField) => reportField.name === name)) {
+            } else if (isReportFieldNameExisting(policy?.fieldList, name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(
-                    errors,
-                    INPUT_IDS.NAME,
-                    translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}),
-                );
+                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
             }
 
             if (!isRequiredFulfilled(type)) {
@@ -102,10 +100,11 @@ function WorkspaceCreateReportFieldsPage({
             // formInitialValue can be undefined because the InitialValue component is rendered conditionally.
             // If it's not been rendered when the validation is executed, formInitialValue will be undefined.
             if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
-                    length: formInitialValue.length,
-                    limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
-                });
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
+            }
+
+            if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && hasCircularReferences(formInitialValue, name, policy?.fieldList)) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 
             if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
@@ -115,6 +114,40 @@ function WorkspaceCreateReportFieldsPage({
             return errors;
         },
         [availableListValuesLength, policy?.fieldList, translate],
+    );
+
+    const validateName = useCallback(
+        (values: Record<string, string>) => {
+            const errors: Record<string, string> = {};
+            const name = values[INPUT_IDS.NAME];
+            if (isReportFieldNameExisting(policy?.fieldList, name)) {
+                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
+            }
+            return errors;
+        },
+        [policy?.fieldList, translate],
+    );
+
+    const handleOnValueCommitted = useCallback(
+        (inputValues: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => (initialValue: string) => {
+            // Mirror optimisticType logic from createReportField: if user enters a formula
+            // while type is Text, automatically switch the type to Formula in the form, otherwise back to Text.
+            const isFormula = hasFormulaPartsInInitialValue(initialValue);
+            if (isFormula) {
+                formRef.current?.resetForm({
+                    ...inputValues,
+                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
+                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
+                });
+            } else {
+                formRef.current?.resetForm({
+                    ...inputValues,
+                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.TEXT,
+                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
+                });
+            }
+        },
+        [],
     );
 
     useEffect(() => {
@@ -133,7 +166,7 @@ function WorkspaceCreateReportFieldsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={WorkspaceCreateReportFieldsPage.displayName}
+                testID="WorkspaceCreateReportFieldsPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -165,6 +198,7 @@ function WorkspaceCreateReportFieldsPage({
                                 multiline={false}
                                 role={CONST.ROLE.PRESENTATION}
                                 required
+                                customValidate={validateName}
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
@@ -200,7 +234,7 @@ function WorkspaceCreateReportFieldsPage({
                                 />
                             )}
 
-                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT && (
+                            {(inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT || inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.FORMULA) && (
                                 <InputWrapper
                                     InputComponent={TextPicker}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
@@ -211,6 +245,7 @@ function WorkspaceCreateReportFieldsPage({
                                     maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
+                                    onValueCommitted={handleOnValueCommitted(inputValues)}
                                 />
                             )}
 
@@ -238,7 +273,5 @@ function WorkspaceCreateReportFieldsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCreateReportFieldsPage.displayName = 'WorkspaceCreateReportFieldsPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldsPage);

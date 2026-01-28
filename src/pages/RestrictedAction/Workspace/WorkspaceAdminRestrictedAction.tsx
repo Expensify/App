@@ -2,16 +2,15 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
@@ -20,22 +19,21 @@ type WorkspaceAdminRestrictedActionProps = {
 };
 
 function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActionProps) {
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
     const openAdminsReport = useCallback(() => {
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const reportID = PolicyUtils.getPolicy(policyID)?.chatReportIDAdmins;
+        const reportID = policy?.chatReportIDAdmins?.toString();
         Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID ? String(reportID) : undefined));
-    }, [policyID]);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    }, [policy?.chatReportIDAdmins]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={WorkspaceAdminRestrictedAction.displayName}
+            testID="WorkspaceAdminRestrictedAction"
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
@@ -47,12 +45,12 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
             >
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.mb15]}>
                     <ImageSVG
-                        src={Illustrations.LockClosedOrange}
+                        src={illustrations.LockClosedOrange}
                         width={variables.restrictedActionIllustrationHeight}
                         height={variables.restrictedActionIllustrationHeight}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>
-                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name ?? ''})}
+                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.breakWord]}>
+                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', policy?.name ?? '')}
                     </Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.textAlignCenter, styles.lh20, styles.mt2]}>
                         {translate('workspace.restrictedAction.workspaceOwnerWillNeedToAddOrUpdatePaymentCard', {workspaceOwnerName: policy?.owner ?? ''})}
@@ -68,7 +66,5 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
         </ScreenWrapper>
     );
 }
-
-WorkspaceAdminRestrictedAction.displayName = 'WorkspaceAdminRestrictedAction';
 
 export default WorkspaceAdminRestrictedAction;

@@ -2,8 +2,8 @@ import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import SearchDatePresetFilterBase from '@components/Search/SearchDatePresetFilterBase';
-import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
+import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -86,7 +86,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
                         onBackButtonPress={() => setSelectedDateModifier(null)}
                     />
                 )}
-                <SearchDatePresetFilterBase
+                <DatePresetFilterBase
                     ref={searchDatePresetFilterBaseRef}
                     defaultDateValues={value}
                     selectedDateModifier={selectedDateModifier}
@@ -113,6 +113,5 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
     );
 }
 
-DateSelectPopup.displayName = 'DateSelectPopup';
 export type {DateSelectPopupProps};
 export default DateSelectPopup;

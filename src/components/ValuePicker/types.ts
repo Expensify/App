@@ -1,4 +1,7 @@
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
+import type {ListItem} from '@components/SelectionList/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 type ValuePickerListItem = ListItem & {
     value?: string;
@@ -41,7 +44,7 @@ type ValueSelectorModalProps = {
 
 type ValueSelectionListProps = Pick<ValueSelectorModalProps, 'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips'>;
 
-type ValuePickerProps = {
+type ValuePickerProps = ForwardedFSClassProps & {
     /** Item to display */
     value?: string;
 
@@ -68,6 +71,9 @@ type ValuePickerProps = {
 
     /** Whether to show the selector modal */
     shouldShowModal?: boolean;
+
+    /** Reference to the outer element */
+    ref: ForwardedRef<View>;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

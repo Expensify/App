@@ -58,27 +58,44 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
 
     /** An accessibility label for the checkbox */
     accessibilityLabel?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function CheckboxWithLabel(
-    {errorText = '', isChecked: isCheckedProp = false, defaultValue = false, onInputChange = () => {}, LabelComponent, label, accessibilityLabel, style, value}: CheckboxWithLabelProps,
-    ref: ForwardedRef<View>,
-) {
+function CheckboxWithLabel({
+    errorText = '',
+    isChecked: isCheckedProp = false,
+    defaultValue = false,
+    onInputChange = () => {},
+    LabelComponent,
+    label,
+    accessibilityLabel,
+    style,
+    value,
+    ref,
+}: CheckboxWithLabelProps) {
     const styles = useThemeStyles();
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
     const [isChecked, setIsChecked] = useState(() => [value, defaultValue, isCheckedProp].find((item) => typeof item === 'boolean'));
 
+    const isActuallyChecked = value !== undefined && typeof value === 'boolean' ? value : isChecked;
+
     const toggleCheckbox = () => {
-        onInputChange(!isChecked);
-        setIsChecked(!isChecked);
+        const newValue = !isActuallyChecked;
+        onInputChange(newValue);
+        // Only update internal state if not controlled by value prop
+        if (value === undefined) {
+            setIsChecked(newValue);
+        }
     };
 
     return (
         <View style={style}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
                 <Checkbox
-                    isChecked={isChecked}
+                    isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={!!errorText}
@@ -104,8 +121,6 @@ function CheckboxWithLabel(
     );
 }
 
-CheckboxWithLabel.displayName = 'CheckboxWithLabel';
-
-export default React.forwardRef(CheckboxWithLabel);
+export default CheckboxWithLabel;
 
 export type {CheckboxWithLabelProps};

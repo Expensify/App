@@ -5,11 +5,11 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -34,13 +34,14 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM];
+const TRANSFER_TIER_NAMES = new Set<string>([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM]);
 
 function TransferBalancePage() {
     const styles = useThemeStyles();
-    const {numberFormat, translate} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {paddingBottom} = useSafeAreaPaddings();
+    const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
@@ -49,21 +50,22 @@ function TransferBalancePage() {
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
-        {
-            key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
-            title: translate('transferAmountPage.instant'),
-            description: translate('transferAmountPage.instantSummary', {
-                rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-                minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
-            }),
-            icon: Expensicons.Bolt,
-            type: CONST.PAYMENT_METHODS.DEBIT_CARD,
-        },
+        // Temporarily disable P2P debit card, see https://github.com/Expensify/App/pull/46323
+        // {
+        //     key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
+        //     title: translate('transferAmountPage.instant'),
+        //     description: translate('transferAmountPage.instantSummary',
+        //         numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
+        //         convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE)
+        //     ),
+        //     icon: Expensicons.Bolt,
+        //     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
+        // },
         {
             key: CONST.WALLET.TRANSFER_METHOD_TYPE.ACH,
             title: translate('transferAmountPage.ach'),
             description: translate('transferAmountPage.achSummary'),
-            icon: Expensicons.Bank,
+            icon: icons.Bank,
             type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         },
     ];
@@ -72,7 +74,7 @@ function TransferBalancePage() {
      * Get the selected/default payment method account for wallet transfer
      */
     function getSelectedPaymentMethodAccount(): PaymentMethod | undefined {
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
 
         const defaultAccount = paymentMethods.find((method) => method.isDefault);
         const selectedAccount = paymentMethods.find(
@@ -85,7 +87,7 @@ function TransferBalancePage() {
         saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const combinedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
 
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
@@ -107,12 +109,12 @@ function TransferBalancePage() {
         }
 
         saveWalletTransferAccountTypeAndID(selectedAccount?.accountType, selectedAccount?.methodID?.toString());
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want this effect to run on initial render
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
     if (walletTransfer?.shouldShowSuccess && !walletTransfer?.loading) {
         return (
-            <ScreenWrapper testID={TransferBalancePage.displayName}>
+            <ScreenWrapper testID="TransferBalancePage">
                 <HeaderWithBackButton
                     title={translate('common.transferBalance')}
                     onBackButtonPress={dismissSuccessfulTransferBalancePage}
@@ -143,11 +145,11 @@ function TransferBalancePage() {
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = getLatestErrorMessage(walletTransfer);
 
-    const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
+    const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.has(userWallet?.tierName ?? '');
 
     return (
         <ScreenWrapper
-            testID={TransferBalancePage.displayName}
+            testID="TransferBalancePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -224,7 +226,5 @@ function TransferBalancePage() {
         </ScreenWrapper>
     );
 }
-
-TransferBalancePage.displayName = 'TransferBalancePage';
 
 export default TransferBalancePage;

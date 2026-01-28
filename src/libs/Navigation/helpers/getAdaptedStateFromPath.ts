@@ -5,7 +5,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_DOMAIN, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -16,6 +16,7 @@ import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
+import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
 
 let allReports: OnyxCollection<Report>;
@@ -40,6 +41,23 @@ function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<s
 
 function isRouteWithReportID(route: NavigationPartialRoute): route is Route<string, {reportID: string}> {
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
+}
+
+/**
+ * Get the appropriate screen name for RHP_TO_SEARCH lookup.
+ * Split tabs (amount, percentage, date) are nested routes within SPLIT_EXPENSE/SPLIT_EXPENSE_SEARCH.
+ * When a split tab route is accessed from search context (path contains '/search'),
+ * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
+ */
+function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
+    const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
+    const isSplitTabRoute = splitTabNames.includes(route.name);
+
+    if (isSplitTabRoute && route.path?.includes('/search')) {
+        return SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH;
+    }
+
+    return route.name;
 }
 
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
@@ -68,11 +86,11 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         // If not, get the matching full screen route for the back to state.
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
-
-    if (RHP_TO_SEARCH[route.name]) {
-        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[route.name]);
+    const routeNameForLookup = getSearchScreenNameForRoute(route);
+    if (RHP_TO_SEARCH[routeNameForLookup]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[routeNameForLookup]);
         const searchRoute = {
-            name: RHP_TO_SEARCH[route.name],
+            name: RHP_TO_SEARCH[routeNameForLookup],
             params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
         };
         return {
@@ -90,7 +108,9 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
         return {
             name: SCREENS.WORKSPACES_LIST,
-            path: ROUTES.WORKSPACES_LIST.route,
+            // prepending a slash to ensure closing the RHP after refreshing the page
+            // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
+            path: normalizePath(ROUTES.WORKSPACES_LIST.route),
         };
     }
 
@@ -123,6 +143,21 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         );
     }
 
+    if (RHP_TO_DOMAIN[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_DOMAIN[route.name]);
+
+        return getInitialSplitNavigatorState(
+            {
+                name: SCREENS.DOMAIN.INITIAL,
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+            {
+                name: RHP_TO_DOMAIN[route.name],
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+        );
+    }
+
     return undefined;
 }
 
@@ -145,7 +180,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
 
         return getInitialSplitNavigatorState(
             {
-                name: SCREENS.HOME,
+                name: SCREENS.INBOX,
             },
             {
                 name: SCREENS.REPORT,

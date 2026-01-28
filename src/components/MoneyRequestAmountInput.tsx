@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
@@ -116,6 +117,9 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
@@ -160,8 +164,10 @@ function MoneyRequestAmountInput({
     toggleNegative,
     clearNegative,
     ref,
+    disabled,
     ...props
 }: MoneyRequestAmountInputProps) {
+    const {preferredLocale, translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
@@ -178,7 +184,7 @@ function MoneyRequestAmountInput({
         }
 
         // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
 
     const formatAmount = useCallback(() => {
@@ -192,7 +198,7 @@ function MoneyRequestAmountInput({
         numberFormRef.current?.updateNumber(formattedAmount);
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
-    const inputOnBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const inputOnBlur = (e: BlurEvent) => {
         props.onBlur?.(e);
         formatAmount();
     };
@@ -211,19 +217,19 @@ function MoneyRequestAmountInput({
                     // eslint-disable-next-line no-param-reassign
                     ref.current = newRef;
                 }
-                // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             numberFormRef={(newRef) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
                     moneyRequestAmountInputRef(newRef);
                 } else if (moneyRequestAmountInputRef && 'current' in moneyRequestAmountInputRef) {
-                    // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+                    // eslint-disable-next-line no-param-reassign
                     moneyRequestAmountInputRef.current = newRef;
                 }
                 numberFormRef.current = newRef;
             }}
-            symbol={getLocalizedCurrencySymbol(currency) ?? ''}
+            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             currency={currency}
             hideSymbol={hideCurrencySymbol}
@@ -252,11 +258,10 @@ function MoneyRequestAmountInput({
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}
+            accessibilityLabel={`${translate('iou.amount')} (${currency})`}
         />
     );
 }
-
-MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default MoneyRequestAmountInput;
 export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

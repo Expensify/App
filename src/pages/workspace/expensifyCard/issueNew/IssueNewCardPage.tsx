@@ -3,7 +3,6 @@ import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,6 +19,7 @@ import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
+import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitStep from './LimitStep';
 import LimitTypeStep from './LimitTypeStep';
 
@@ -32,6 +32,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
 
     const STEP_INDEXES: Record<IssueNewCardStep, number> = {
         [CONST.EXPENSIFY_CARD.STEP.ASSIGNEE]: 0,
+        [CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER]: 0,
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT]: 3,
@@ -45,11 +46,9 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true, initWithStoredValues: false});
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
-    const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
-    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
     const stepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
     const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
@@ -66,6 +65,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         policy={policy}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
+                        route={route}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
@@ -104,17 +104,20 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 return (
                     <ConfirmationStep
                         policyID={policyID}
-                        backTo={shouldUseBackToParam ? backTo : undefined}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
+                        backTo={backTo}
                     />
                 );
+            case CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER:
+                return <InviteNewMemberStep route={route} />;
             default:
                 return (
                     <AssigneeStep
                         policy={policy}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
+                        route={route}
                     />
                 );
         }
@@ -123,7 +126,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={IssueNewCardPage.displayName}
+                testID="IssueNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
@@ -146,5 +149,4 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     );
 }
 
-IssueNewCardPage.displayName = 'IssueNewCardPage';
 export default withPolicyAndFullscreenLoading(IssueNewCardPage);

@@ -11,6 +11,7 @@ import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {isSafari} from './Browser';
 import type EmojiTrie from './EmojiTrie';
 import memoize from './memoize';
 
@@ -57,7 +58,7 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     // treated as a separate entry due to unique emoji codes for each variant.
     // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
     const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
-    processedFrequentlyUsedEmojis.forEach((emoji) => {
+    for (const emoji of processedFrequentlyUsedEmojis) {
         const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
         if (existingEmoji) {
             existingEmoji.count += emoji.count;
@@ -65,7 +66,7 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
         } else {
             frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
         }
-    });
+    }
     return Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
         if (a.count !== b.count) {
             return b.count - a.count;
@@ -135,7 +136,7 @@ const getEmojiUnicode = memoize(
  * Validates first character is emoji in text string
  */
 function isFirstLetterEmoji(message: string): boolean {
-    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    const trimmedMessage = Str.replaceAll(message.replaceAll(' ', ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
     if (!match) {
@@ -149,7 +150,7 @@ function isFirstLetterEmoji(message: string): boolean {
  * Validates that this message contains only emojis
  */
 function containsOnlyEmojis(message: string): boolean {
-    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    const trimmedMessage = Str.replaceAll(message.replaceAll(' ', ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
     if (!match) {
@@ -181,12 +182,12 @@ function containsOnlyEmojis(message: string): boolean {
  */
 function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndices[] {
     const headerIndices: HeaderIndices[] = [];
-    emojis.forEach((emoji, index) => {
+    for (const [index, emoji] of emojis.entries()) {
         if (!('header' in emoji)) {
-            return;
+            continue;
         }
         headerIndices.push({code: emoji.code, index, icon: emoji.icon});
-    });
+    }
     return headerIndices;
 }
 
@@ -213,13 +214,13 @@ function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
  */
 function addSpacesToEmojiCategories(emojis: PickerEmojis): EmojiPickerList {
     let updatedEmojis: EmojiPickerList = [];
-    emojis.forEach((emoji, index) => {
+    for (const [index, emoji] of emojis.entries()) {
         if (emoji && typeof emoji === 'object' && 'header' in emoji) {
             updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
-            return;
+            continue;
         }
         updatedEmojis.push(emoji);
-    });
+    }
     return updatedEmojis;
 }
 
@@ -302,12 +303,12 @@ function extractEmojis(text: string): Emoji[] {
 function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] {
     const newEmojis: Emoji[] = [...currentEmojis];
     // We are removing the emojis from the newEmojis array if they were already present before.
-    formerEmojis.forEach((formerEmoji) => {
+    for (const formerEmoji of formerEmojis) {
         const indexOfAlreadyPresentEmoji = newEmojis.findIndex((newEmoji) => newEmoji.code === formerEmoji.code);
         if (indexOfAlreadyPresentEmoji >= 0) {
             newEmojis.splice(indexOfAlreadyPresentEmoji, 1);
         }
-    });
+    }
     return newEmojis;
 }
 
@@ -437,17 +438,6 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
 }
 
 /**
- * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
- */
-const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number => {
-    if (value !== null && Number.isInteger(Number(value))) {
-        return Number(value);
-    }
-
-    return CONST.EMOJI_DEFAULT_SKIN_TONE;
-};
-
-/**
  * Given an emoji object it returns the correct emoji code
  * based on the users preferred skin tone.
  */
@@ -472,14 +462,14 @@ const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: OnyxEntry<string
  */
 const getUniqueEmojiCodes = (emojiAsset: Emoji, users: UsersReactions): string[] => {
     const emojiCodes: Record<string, string> = Object.values(users ?? {}).reduce((result: Record<string, string>, userSkinTones) => {
-        Object.keys(userSkinTones?.skinTones ?? {}).forEach((skinTone) => {
+        for (const skinTone of Object.keys(userSkinTones?.skinTones ?? {})) {
             const createdAt = userSkinTones.skinTones[Number(skinTone)];
             const emojiCode = getPreferredEmojiCode(emojiAsset, Number(skinTone));
             if (!!emojiCode && (!result[emojiCode] || createdAt < result[emojiCode])) {
                 // eslint-disable-next-line no-param-reassign
                 result[emojiCode] = createdAt;
             }
-        });
+        }
         return result;
     }, {});
 
@@ -493,7 +483,7 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
     let oldestEmojiTimestamp: string | null = null;
 
     const usersWithTimestamps: UsersReactions = {};
-    Object.entries(emoji.users ?? {}).forEach(([id, user]) => {
+    for (const [id, user] of Object.entries(emoji.users ?? {})) {
         const userTimestamps = Object.values(user?.skinTones ?? {});
         const oldestUserTimestamp = userTimestamps.reduce((min, curr) => {
             if (min) {
@@ -503,7 +493,7 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
         }, userTimestamps.at(0));
 
         if (!oldestUserTimestamp) {
-            return;
+            continue;
         }
 
         if (!oldestEmojiTimestamp || oldestUserTimestamp < oldestEmojiTimestamp) {
@@ -515,7 +505,7 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
             id,
             oldestTimestamp: oldestUserTimestamp,
         };
-    });
+    }
 
     return {
         ...emoji,
@@ -572,17 +562,17 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
 /**
  * Given an emoji code, returns an base emoji code without skin tone
  */
-const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replaceAll(CONST.REGEX.EMOJI_SKIN_TONES, '');
 
 function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     const spacersIndexes: number[] = [];
-    allEmojis.forEach((emoji, index) => {
+    for (const [index, emoji] of allEmojis.entries()) {
         if (!(CONST.EMOJI_PICKER_ITEM_TYPES.SPACER in emoji)) {
-            return;
+            continue;
         }
 
         spacersIndexes.push(index);
-    });
+    }
     return spacersIndexes;
 }
 
@@ -673,6 +663,39 @@ function containsOnlyCustomEmoji(text?: string): boolean {
     return privateUseAreaRegex.test(text);
 }
 
+/**
+ * Insert ZWNJ (Zero-Width Non-Joiner) between digits and emojis to prevent Safari's automatic keycap sequence bug.
+ *
+ * Safari has a browser-specific behavior where it automatically converts a digit immediately followed by an emoji
+ * into a Unicode keycap sequence (e.g., "1" + "😄" becomes "1️⃣"). This happens at the browser's input handling level
+ * before React can process the text, causing character corruption or unexpected joining.
+ *
+ * The ZWNJ character (U+200C) is a non-printing Unicode character that prevents the formation of ligatures or
+ * unwanted character joining. By inserting it between digits and emojis, we break Safari's automatic keycap
+ * sequence detection, ensuring the text displays correctly.
+ *
+ * Example: "234😄" becomes "234\u200C😄" (ZWNJ is invisible but prevents Safari's corruption)
+ */
+function insertZWNJBetweenDigitAndEmoji(input: string): string {
+    if (!isSafari()) {
+        return input;
+    }
+    return input.replaceAll(CONST.REGEX.DIGIT_FOLLOWED_BY_EMOJI, '$1\u200C$2');
+}
+
+/**
+ * Calculate the ZWNJ offset for cursor position adjustment.
+ * Returns the number of ZWNJ characters inserted before the cursor position.
+ */
+function getZWNJCursorOffset(text: string, cursorPosition: number | undefined | null): number {
+    if (!isSafari() || cursorPosition === undefined || cursorPosition === null) {
+        return 0;
+    }
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    const textWithZWNJBeforeCursor = insertZWNJBetweenDigitAndEmoji(textBeforeCursor);
+    return textWithZWNJBeforeCursor.length - textBeforeCursor.length;
+}
+
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
@@ -686,7 +709,6 @@ export {
     replaceEmojis,
     suggestEmojis,
     getEmojiCodeWithSkinColor,
-    getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
     getEmojiReactionDetails,
@@ -701,4 +723,6 @@ export {
     containsCustomEmoji,
     containsOnlyCustomEmoji,
     processFrequentlyUsedEmojis,
+    insertZWNJBetweenDigitAndEmoji,
+    getZWNJCursorOffset,
 };

@@ -1,11 +1,12 @@
 import Onyx from 'react-native-onyx';
-import {mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import type {OnyxCollection} from 'react-native-onyx';
+import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {MergeTransaction as MergeTransactionType, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import {createExpenseReport} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -24,6 +25,23 @@ function createMockViolations(): TransactionViolation[] {
             showInReview: true,
         },
     ];
+}
+
+// Helper function to create allTransactionViolations collection
+function createAllTransactionViolations(
+    targetTransactionID: string,
+    sourceTransactionID: string,
+    targetViolations?: TransactionViolation[],
+    sourceViolations?: TransactionViolation[],
+): OnyxCollection<TransactionViolations> {
+    const allViolations: OnyxCollection<TransactionViolations> = {};
+    if (targetViolations) {
+        allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransactionID}`] = targetViolations;
+    }
+    if (sourceViolations) {
+        allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${sourceTransactionID}`] = sourceViolations;
+    }
+    return allViolations;
 }
 
 describe('mergeTransactionRequest', () => {
@@ -76,6 +94,32 @@ describe('mergeTransactionRequest', () => {
         };
         const mergeTransactionID = 'merge789';
 
+        // Sample violations for testing
+        const targetViolations: TransactionViolation[] = [
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                showInReview: true,
+            },
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                showInReview: true,
+            },
+        ];
+        const sourceViolations: TransactionViolation[] = [
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                showInReview: true,
+            },
+            {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.OVER_LIMIT,
+                showInReview: true,
+            },
+        ];
+
         // Set up initial state in Onyx
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
@@ -91,9 +135,16 @@ describe('mergeTransactionRequest', () => {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
+            targetTransactionThreadReport: {reportID: 'target-report-456'},
+            targetTransactionThreadParentReport: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
         });
 
         await mockFetch?.resume?.();
@@ -210,9 +261,16 @@ describe('mergeTransactionRequest', () => {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
+            targetTransactionThreadReport: {reportID: 'target-report-456'},
+            targetTransactionThreadParentReport: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
         });
 
         await waitForBatchedUpdates();
@@ -304,9 +362,16 @@ describe('mergeTransactionRequest', () => {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
+            targetTransactionThreadReport: {reportID: 'target123'},
+            targetTransactionThreadParentReport: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
         });
 
         await mockFetch?.resume?.();
@@ -365,6 +430,32 @@ describe('mergeTransactionRequest', () => {
             };
             const mergeTransactionID = 'merge789';
 
+            // Sample violations for testing
+            const targetViolations: TransactionViolation[] = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    showInReview: true,
+                },
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.MISSING_COMMENT,
+                    showInReview: true,
+                },
+            ];
+            const sourceViolations: TransactionViolation[] = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    showInReview: true,
+                },
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+                    showInReview: true,
+                },
+            ];
+
             // Set up initial state
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
@@ -380,9 +471,16 @@ describe('mergeTransactionRequest', () => {
                 mergeTransaction,
                 targetTransaction,
                 sourceTransaction,
+                targetTransactionThreadReport: {reportID: 'target-report-456'},
+                targetTransactionThreadParentReport: undefined,
+                targetTransactionThreadParentReportNextStep: undefined,
+                allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
                 policy: undefined,
                 policyTags: undefined,
                 policyCategories: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
             });
 
             await mockFetch?.resume?.();
@@ -478,6 +576,234 @@ describe('setMergeTransactionKey', () => {
             amount: 1000, // Preserved
             category: 'New Category', // Added
             description: 'New Description', // Added
+        });
+    });
+});
+
+describe('areTransactionsEligibleForMerge', () => {
+    describe('Card Transaction Rules', () => {
+        it('should return false when both transactions are card transactions', () => {
+            // Given two card transactions
+            const cardTransaction1 = {
+                ...createRandomTransaction(0),
+                managedCard: true,
+                amount: 1000,
+            };
+            const cardTransaction2 = {
+                ...createRandomTransaction(1),
+                managedCard: true,
+                amount: 2000,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(cardTransaction1, cardTransaction2);
+
+            // Then it should return false because both are card transactions
+            expect(result).toBe(false);
+        });
+
+        it('should return true when one is card and one is cash transaction', () => {
+            // Given one card transaction and one cash transaction
+            const cardTransaction = {
+                ...createRandomTransaction(0),
+                managedCard: true,
+                amount: 1000,
+            };
+            const cashTransaction = {
+                ...createRandomTransaction(1),
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                amount: 2000,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(cardTransaction, cashTransaction);
+
+            // Then it should return true because one is card and one is cash
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('Zero Amount Rules', () => {
+        it('should return false when both transactions have $0 amount', () => {
+            // Given two transactions with $0 amount
+            const zeroTransaction1 = {
+                ...createRandomTransaction(0),
+                amount: 0,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            };
+            const zeroTransaction2 = {
+                ...createRandomTransaction(1),
+                amount: 0,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(zeroTransaction1, zeroTransaction2);
+
+            // Then it should return false because both have $0 amount
+            expect(result).toBe(false);
+        });
+
+        it('should return true when only one transaction has $0 amount', () => {
+            // Given one transaction with $0 amount and one with non-zero amount
+            const zeroTransaction = {
+                ...createRandomTransaction(0),
+                amount: 0,
+                currency: CONST.CURRENCY.USD,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            };
+            const nonZeroTransaction = {
+                ...createRandomTransaction(1),
+                amount: -1000, // Negative amount as stored in database
+                currency: CONST.CURRENCY.USD,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(zeroTransaction, nonZeroTransaction);
+
+            // Then it should return true because only one has $0 amount
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('Distance Request Rules', () => {
+        it('should return false when one is distance request and other is not', () => {
+            // Given one distance request and one regular transaction
+            const distanceTransaction = createRandomDistanceRequestTransaction(0);
+            const regularTransaction = createRandomTransaction(1);
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(distanceTransaction, regularTransaction);
+
+            // Then it should return false because one is distance request and other is not
+            expect(result).toBe(false);
+        });
+
+        it('should return true when both are distance requests with valid amounts', () => {
+            // Given two distance request transactions with non-zero amounts
+            const distanceTransaction1 = {
+                ...createRandomDistanceRequestTransaction(0),
+                amount: 1000,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            };
+            const distanceTransaction2 = {
+                ...createRandomDistanceRequestTransaction(1),
+                amount: 2000,
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(distanceTransaction1, distanceTransaction2);
+
+            // Then it should return true because both are distance requests
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('Valid Merge Cases', () => {
+        it('should return true when both are cash transactions with non-zero amounts', () => {
+            // Given two cash transactions with non-zero amounts
+            const cashTransaction1 = {
+                ...createRandomTransaction(0),
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                amount: 1000,
+            };
+            const cashTransaction2 = {
+                ...createRandomTransaction(1),
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                managedCard: false,
+                amount: 2000,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(cashTransaction1, cashTransaction2);
+
+            // Then it should return true because both are cash transactions with non-zero amounts
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('Split Expense Rules', () => {
+        it('can not merge 2 split expenses', () => {
+            const splitExpenseTransaction1 = {
+                ...createRandomTransaction(1),
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-1',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            } as Transaction;
+            const splitExpenseTransaction2 = {
+                ...createRandomTransaction(2),
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                comment: {
+                    ...createRandomTransaction(2).comment,
+                    originalTransactionID: 'original-2',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            } as Transaction;
+
+            const result = areTransactionsEligibleForMerge(splitExpenseTransaction1, splitExpenseTransaction2);
+            expect(result).toBe(false);
+        });
+
+        it('can merge split expense with cash transaction', () => {
+            const splitExpenseTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                managedCard: false,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-split-transaction',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+                reportID: 'expense-report-123',
+            } as Transaction;
+            const cashTransaction = {
+                ...createRandomTransaction(2),
+                amount: 1500,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                managedCard: false,
+                reportID: 'expense-report-456',
+            } as Transaction;
+
+            const result = areTransactionsEligibleForMerge(splitExpenseTransaction, cashTransaction);
+            expect(result).toBe(true);
+        });
+
+        it('can merge split expense with card transaction', () => {
+            const splitExpenseTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                managedCard: false,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-split-transaction',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            } as Transaction;
+            const cardTransaction = {
+                ...createRandomTransaction(2),
+                amount: 2000,
+                managedCard: true,
+            } as Transaction;
+
+            const result = areTransactionsEligibleForMerge(splitExpenseTransaction, cardTransaction);
+            expect(result).toBe(true);
         });
     });
 });

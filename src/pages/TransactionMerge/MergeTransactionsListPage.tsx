@@ -19,7 +19,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         return <FullScreenLoadingIndicator />;
@@ -27,7 +27,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
 
     return (
         <ScreenWrapper
-            testID={MergeTransactionsListPage.displayName}
+            testID="MergeTransactionsListPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -46,7 +46,5 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
         </ScreenWrapper>
     );
 }
-
-MergeTransactionsListPage.displayName = 'MergeTransactionsListPage';
 
 export default MergeTransactionsListPage;

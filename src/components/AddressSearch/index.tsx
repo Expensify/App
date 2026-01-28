@@ -1,11 +1,9 @@
-import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {Keyboard, LogBox, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import ActivityIndicator from '@components/ActivityIndicator';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -49,40 +47,39 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-function AddressSearch(
-    {
-        canUseCurrentLocation = false,
-        containerStyles,
-        defaultValue,
-        errorText = '',
-        hint = '',
-        inputID,
-        limitSearchesToCountry,
-        label,
-        maxInputLength,
-        onFocus,
-        onBlur,
-        onInputChange,
-        onPress,
-        onCountryChange,
-        predefinedPlaces = [],
-        renamedInputKeys = {
-            street: 'addressStreet',
-            street2: 'addressStreet2',
-            city: 'addressCity',
-            state: 'addressState',
-            zipCode: 'addressZipCode',
-            lat: 'addressLat',
-            lng: 'addressLng',
-        },
-        resultTypes = 'address',
-        shouldSaveDraft = false,
-        value,
-        locationBias,
-        caretHidden,
-    }: AddressSearchProps,
-    ref: ForwardedRef<HTMLElement>,
-) {
+function AddressSearch({
+    canUseCurrentLocation = false,
+    containerStyles,
+    defaultValue,
+    errorText = '',
+    hint = '',
+    inputID,
+    limitSearchesToCountry,
+    label,
+    maxInputLength,
+    onFocus,
+    onBlur,
+    onInputChange,
+    onPress,
+    onCountryChange,
+    predefinedPlaces = [],
+    renamedInputKeys = {
+        street: 'addressStreet',
+        street2: 'addressStreet2',
+        city: 'addressCity',
+        state: 'addressState',
+        zipCode: 'addressZipCode',
+        lat: 'addressLat',
+        lng: 'addressLng',
+    },
+    resultTypes = 'address',
+    shouldSaveDraft = false,
+    value,
+    locationBias,
+    caretHidden,
+    forwardedFSClass,
+    ref,
+}: AddressSearchProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -231,13 +228,13 @@ function AddressSearch(
         }
 
         if (inputID) {
-            Object.entries(values).forEach(([key, inputValue]) => {
+            for (const [key, inputValue] of Object.entries(values)) {
                 const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
                 if (!inputKey) {
-                    return;
+                    continue;
                 }
                 onInputChange?.(inputValue, inputKey);
-            });
+            }
         } else {
             onInputChange?.(values);
         }
@@ -288,10 +285,6 @@ function AddressSearch(
 
                 setIsFetchingCurrentLocation(false);
                 setLocationErrorCode(errorData?.code ?? null);
-            },
-            {
-                maximumAge: 0, // No cache, always get fresh location info
-                timeout: 30000,
             },
         );
     };
@@ -366,6 +359,7 @@ function AddressSearch(
                 <View
                     style={styles.w100}
                     ref={containerRef}
+                    fsClass={forwardedFSClass}
                 >
                     <GooglePlacesAutocomplete
                         disableScroll
@@ -483,13 +477,15 @@ function AddressSearch(
                     </GooglePlacesAutocomplete>
                 </View>
             </ScrollView>
-            {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}
+            {isFetchingCurrentLocation && (
+                <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
+            )}
         </>
     );
 }
 
-AddressSearch.displayName = 'AddressSearchWithRef';
-
-export default forwardRef(AddressSearch);
+export default AddressSearch;
 
 export type {AddressSearchProps};

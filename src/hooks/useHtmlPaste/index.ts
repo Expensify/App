@@ -83,7 +83,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 // eslint-disable-next-line no-empty
             } catch (e) {}
             // We only need to set the callback once.
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [maxLength, textInputRef],
     );
@@ -106,7 +106,8 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
-            const clipboardText = event.clipboardData?.getData('text/plain')?.trim();
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const clipboardText = event.clipboardData?.getData('text/plain') || event.clipboardData?.getData('text/uri-list');
             if (!clipboardText) {
                 return;
             }
@@ -170,7 +171,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             }
             handlePastePlainText(event);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
 

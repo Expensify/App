@@ -180,7 +180,9 @@ function validateSvgFiles(filePaths: string[]): string[] {
 
     if (errors.length) {
         console.error('Validation errors:');
-        errors.forEach((error) => console.error(`   ${error}`));
+        for (const error of errors) {
+            console.error(`   ${error}`);
+        }
         throw new Error('SVG file validation failed');
     }
 
@@ -230,9 +232,9 @@ function logIgnoredFiles(ignoredFiles: string[]) {
     }
 
     console.log('\nFiles skipped (ignore-compression):');
-    ignoredFiles.forEach((filePath) => {
+    for (const filePath of ignoredFiles) {
         console.log(`${filePath}: ⏭️  Skipped`);
-    });
+    }
 }
 
 function logSummary(summary: CompressionSummary) {
@@ -242,10 +244,10 @@ function logSummary(summary: CompressionSummary) {
 
     if (totalCompressedFilesLength) {
         console.log('\nFiles compressed:');
-        results.forEach((result) => {
+        for (const result of results) {
             const {compressedSize, originalSize, savings, savingsPercent, filePath} = result;
             if (!result.savings) {
-                return;
+                continue;
             }
             const prefix = `${filePath}: ✅`;
             console.log(
@@ -257,7 +259,7 @@ function logSummary(summary: CompressionSummary) {
                     savingsPercent,
                 }),
             );
-        });
+        }
 
         const ignoreFilesLength = ignoredFiles.length;
 
@@ -283,10 +285,10 @@ function logSummaryCheck(summary: CompressionSummary) {
     const {totalFiles, totalCompressedFilesLength, results, ignoredFiles} = summary;
 
     console.log('');
-    results.forEach((result) => {
+    for (const result of results) {
         const {filePath, savings} = result;
         console.log(`${filePath}: ${savings > 0 ? 'Not properly compressed ❌' : 'Compressed ✅'}`);
-    });
+    }
     logIgnoredFiles(ignoredFiles);
 
     console.log(`\nFiles processed: ${totalFiles}`);

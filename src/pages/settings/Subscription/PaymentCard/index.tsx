@@ -5,12 +5,14 @@ import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
@@ -33,6 +35,7 @@ function AddPaymentCard() {
     const {translate} = useLocalize();
     const privateSubscription = usePrivateSubscription();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: false});
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -41,7 +44,7 @@ function AddPaymentCard() {
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const subscriptionPricingInfo =
         hasTeam2025Pricing && isCollect
             ? translate('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
@@ -69,9 +72,9 @@ function AddPaymentCard() {
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
-            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData);
+            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList);
         },
-        [accountID],
+        [accountID, fundList],
     );
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: true});
@@ -86,7 +89,7 @@ function AddPaymentCard() {
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
-        <ScreenWrapper testID={AddPaymentCard.displayName}>
+        <ScreenWrapper testID="AddPaymentCard">
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
                 <View style={styles.containerWithSpaceBetween}>
@@ -101,7 +104,7 @@ function AddPaymentCard() {
                         footerContent={
                             <>
                                 <Section
-                                    icon={Illustrations.ShieldYellow}
+                                    icon={ShieldYellow}
                                     cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
                                     iconContainerStyles={styles.mr4}
                                     containerStyles={[styles.mh0, styles.mt5]}
@@ -127,7 +130,5 @@ function AddPaymentCard() {
         </ScreenWrapper>
     );
 }
-
-AddPaymentCard.displayName = 'AddPaymentCard';
 
 export default AddPaymentCard;

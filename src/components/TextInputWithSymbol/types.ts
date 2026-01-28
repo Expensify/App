@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
@@ -33,7 +33,7 @@ type BaseTextInputWithSymbolProps = {
     selection?: TextSelection;
 
     /** Function to call when selection in text input is changed */
-    onSelectionChange?: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
+    onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
 
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
@@ -101,7 +101,9 @@ type BaseTextInputWithSymbolProps = {
     | 'shouldUseDefaultLineHeightForPrefix'
     | 'onFocus'
     | 'onBlur'
+    | 'disabled'
     | 'ref'
+    | 'accessibilityLabel'
 >;
 
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {

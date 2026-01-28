@@ -43,7 +43,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isDisplayedInModal: jest.fn(() => false),
 }));
 
-jest.mock('@src/hooks/useRootNavigationState');
+jest.mock('@src/hooks/useRootNavigationState', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+}));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
@@ -75,7 +79,7 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
+        (index) => createRandomReport(index, undefined),
         length,
     );
 
@@ -86,10 +90,12 @@ const getMockedPersonalDetails = (length = 100) =>
         length,
     );
 
+const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
+
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
-const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, mockedReports);
 
 beforeAll(() =>
     Onyx.init({

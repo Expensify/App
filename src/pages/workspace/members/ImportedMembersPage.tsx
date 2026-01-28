@@ -1,9 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -33,6 +34,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const isFocused = useIsFocused();
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -54,11 +56,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         let errors: Record<string, string | null> = {};
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
+            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicate});
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
                 errors = {};
             }
@@ -79,15 +81,19 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const columns = Object.values(spreadsheet?.columns ?? {});
 
-        const containsAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
+        const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
+        const hasAuditorRole =
+            membersRolesColumn !== -1 &&
+            spreadsheet?.data
+                ?.at(membersRolesColumn)
+                ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
 
-        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
+        if (hasAuditorRole && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias, Navigation.getActiveRoute()));
             return;
         }
 
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
-        const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => email);
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
@@ -123,27 +129,29 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const allMembers = [...(members ?? [])];
 
         // Add submitsTo and forwardsTo members if they are not in the workspace
-        members?.forEach((member) => {
-            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
-                isRoleMissing = true;
-                allMembers.push({
-                    email: member.submitsTo,
-                    role: '',
-                    submitsTo: '',
-                    forwardsTo: '',
-                });
-            }
+        if (members) {
+            for (const member of members) {
+                if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.submitsTo,
+                        role: '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    });
+                }
 
-            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
-                isRoleMissing = true;
-                allMembers.push({
-                    email: member.forwardsTo,
-                    role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
-                    submitsTo: '',
-                    forwardsTo: '',
-                });
+                if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.forwardsTo,
+                        role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    });
+                }
             }
-        });
+        }
 
         if (isRoleMissing) {
             setImportedSpreadsheetMemberData(allMembers);
@@ -171,7 +179,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedMembersPage.displayName}
+            testID="ImportedMembersPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -188,15 +196,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 isButtonLoading={isImporting}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
-            <ConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                shouldHandleNavigationBack
+            <ImportSpreadsheetConfirmModal
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
+                closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
@@ -205,7 +207,5 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         </ScreenWrapper>
     );
 }
-
-ImportedMembersPage.displayName = 'ImportedMembersPage';
 
 export default ImportedMembersPage;

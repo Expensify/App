@@ -95,7 +95,7 @@ Yes, but each workspace must have its **own settlement account**. For example, u
 ## Can an employee have multiple cards?
 
 - **Yes**: Employees can have unlimited **virtual cards** (e.g. for trips or subscriptions).
-- **No**: Only **one active, physical card** is allowed per employee.
+- **Yes**: Employees can be issued multiple physical cards with different limit types.
 
 ## How is the Expensify Card limit determined?
 

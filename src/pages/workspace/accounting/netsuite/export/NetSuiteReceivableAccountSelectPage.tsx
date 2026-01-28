@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -24,7 +24,7 @@ import type SCREENS from '@src/SCREENS';
 function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_RECEIVABLE_ACCOUNT_SELECT>>();
@@ -69,8 +69,8 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteReceivableAccountSelectPage.displayName}
-            sections={netsuiteReceivableAccountOptions.length ? [{data: netsuiteReceivableAccountOptions}] : []}
+            displayName="NetSuiteReceivableAccountSelectPage"
+            data={netsuiteReceivableAccountOptions}
             listItem={RadioListItem}
             onSelectRow={updateReceivableAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
@@ -85,7 +85,5 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
         />
     );
 }
-
-NetSuiteReceivableAccountSelectPage.displayName = 'NetSuiteReceivableAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteReceivableAccountSelectPage);

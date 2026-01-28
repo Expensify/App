@@ -66,25 +66,27 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            accountHolderDetailsFields?.forEach((field) => {
-                const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
+            if (accountHolderDetailsFields) {
+                for (const field of accountHolderDetailsFields) {
+                    const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
-                if (field.isRequired && !values[fieldID]) {
-                    errors[fieldID] = translate('common.error.fieldRequired');
+                    if (field.isRequired && !values[fieldID]) {
+                        errors[fieldID] = translate('common.error.fieldRequired');
+                    }
+
+                    for (const rule of field.validationRules) {
+                        if (!rule.regEx) {
+                            continue;
+                        }
+
+                        if (new RegExp(rule.regEx).test(values[fieldID] ? SafeString(values[fieldID]) : '')) {
+                            continue;
+                        }
+
+                        errors[fieldID] = rule.errorMessage;
+                    }
                 }
-
-                field.validationRules.forEach((rule) => {
-                    if (!rule.regEx) {
-                        return;
-                    }
-
-                    if (new RegExp(rule.regEx).test(values[fieldID] ? SafeString(values[fieldID]) : '')) {
-                        return;
-                    }
-
-                    errors[fieldID] = rule.errorMessage;
-                });
-            });
+            }
 
             return errors;
         },
@@ -136,6 +138,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             city: 'accountHolderCity',
                         }}
                         hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </View>
             );
@@ -158,7 +161,5 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         </FormProvider>
     );
 }
-
-AccountHolderDetails.displayName = 'AccountHolderDetails';
 
 export default AccountHolderDetails;

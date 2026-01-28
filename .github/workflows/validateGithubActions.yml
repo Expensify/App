@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['.github/**', 'package.json', 'package-lock.json', 'tsconfig.json']
+    paths: ['.github/**', 'scripts/**', 'package.json', 'package-lock.json', 'tsconfig.json']
 
 jobs:
   verify:
@@ -22,6 +22,3 @@ jobs:
       # because that would be a sign that the PR author did not rebuild the Github Actions
       - name: Verify Javascript Action Builds
         run: ./.github/scripts/verifyActions.sh
-
-      - name: Validate actions and workflows
-        run: npm run gh-actions-validate

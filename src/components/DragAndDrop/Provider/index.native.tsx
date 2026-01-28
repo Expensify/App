@@ -7,7 +7,5 @@ function DragAndDropProvider({children}: DragAndDropProviderProps) {
     return children;
 }
 
-DragAndDropProvider.displayName = 'DragAndDropProvider';
-
 export default DragAndDropProvider;
 export {DragAndDropContext};

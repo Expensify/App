@@ -162,7 +162,7 @@ Commercial feeds are more stable and reliable but require setup by your bank. Di
 Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
 
 ## Unassigning Cards: What happens when I unassign a card?
-Unassigning a card deletes all open or unreported expenses linked to it. Submitted or processed expenses remain unaffected.
+Unassigning a card deletes all draft or unreported expenses linked to it. Submitted or processed expenses remain unaffected.
 
 ## Connection Issues: Why is my card connection broken?
 Check for changes to bank credentials, security questions, or login details. Update the information in Expensify and re-establish the connection via **Fix Card**.

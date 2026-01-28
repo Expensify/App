@@ -15,25 +15,25 @@ Onyx.connect({
             return;
         }
 
-        Object.values(value).forEach((report) => {
+        for (const report of Object.values(value)) {
             if (!report) {
-                return;
+                continue;
             }
             reportIDToNameMap[report.reportID] = report.reportName ?? report.reportID;
-        });
+        }
     },
 });
 
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (personalDetailsList) => {
-        Object.values(personalDetailsList ?? {}).forEach((personalDetails) => {
+        for (const personalDetails of Object.values(personalDetailsList ?? {})) {
             if (!personalDetails) {
-                return;
+                continue;
             }
 
             accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? personalDetails.displayName ?? '';
-        });
+        }
     },
 });
 

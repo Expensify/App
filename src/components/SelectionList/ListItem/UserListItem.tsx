@@ -1,12 +1,14 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,8 +17,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
+
+const reportExistsSelector = (report: OnyxEntry<Report>) => !!report;
 
 function UserListItem<TItem extends ListItem>({
     item,
@@ -36,6 +41,7 @@ function UserListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
 }: UserListItemProps<TItem>) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -56,7 +62,7 @@ function UserListItem<TItem extends ListItem>({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
         canBeMissing: true,
-        selector: (report) => !!report,
+        selector: reportExistsSelector,
     });
 
     const reportExists = isReportInOnyx && !!item.reportID;
@@ -158,7 +164,7 @@ function UserListItem<TItem extends ListItem>({
                     {!!item.shouldShowRightCaret && (
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={icons.ArrowRight}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, false, false, !!isDisabled, item.isInteractive !== false))}
                             />
                         </View>
@@ -189,7 +195,5 @@ function UserListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-UserListItem.displayName = 'UserListItem';
 
 export default UserListItem;

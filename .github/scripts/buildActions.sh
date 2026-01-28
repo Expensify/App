@@ -16,6 +16,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/checkDeployBlockers/checkDeployBlockers.ts"
     "$ACTIONS_DIR/checkSVGCompression/checkSVGCompression.ts"
     "$ACTIONS_DIR/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.ts"
+    "$ACTIONS_DIR/formatCodeCovComment/formatCodeCovComment.ts"
     "$ACTIONS_DIR/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"
     "$ACTIONS_DIR/getArtifactInfo/getArtifactInfo.ts"
     "$ACTIONS_DIR/getDeployPullRequestList/getDeployPullRequestList.ts"

@@ -10,6 +10,7 @@ import DuplicateTransactionItem from './DuplicateTransactionItem';
 
 type DuplicateTransactionsListProps = {
     transactions: Array<OnyxEntry<Transaction>>;
+    onPreviewPressed: (reportID: string) => void;
 };
 
 const keyExtractor: FlatListProps<OnyxEntry<Transaction>>['keyExtractor'] = (item, index) => `${item?.transactionID}+${index}`;
@@ -18,7 +19,7 @@ const maintainVisibleContentPosition: ScrollViewProps['maintainVisibleContentPos
     minIndexForVisible: 1,
 };
 
-function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProps) {
+function DuplicateTransactionsList({transactions, onPreviewPressed}: DuplicateTransactionsListProps) {
     const styles = useThemeStyles();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -31,9 +32,10 @@ function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProp
                 index={index}
                 allReports={allReports}
                 policies={policies}
+                onPreviewPressed={onPreviewPressed}
             />
         ),
-        [allReports, policies],
+        [allReports, onPreviewPressed, policies],
     );
 
     return (
@@ -47,5 +49,4 @@ function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProp
     );
 }
 
-DuplicateTransactionsList.displayName = 'DuplicateTransactionsList';
 export default DuplicateTransactionsList;

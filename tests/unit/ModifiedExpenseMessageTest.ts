@@ -1,11 +1,17 @@
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
+import type {Policy} from '@src/types/onyx';
+import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const MOVED_TO_REPORT_ID = '1';
@@ -89,20 +95,14 @@ describe('ModifiedExpenseMessage', () => {
     describe('getMovedFromOrToReportMessage', () => {
         describe('when moving to a report', () => {
             it('returns "moved expense to personal space" message when moving an expense to selfDM', () => {
-                const selfDMReport = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-                };
-                const result = getMovedFromOrToReportMessage(undefined, selfDMReport);
+                const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
-                const policyExpenseReport = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                };
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const policyExpenseReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
                     reportName: policyExpenseReport.reportName,
                 });
@@ -110,11 +110,10 @@ describe('ModifiedExpenseMessage', () => {
             });
             it('returns "moved expense from personal space to policyName" message when moving an expense to policy expense chat with reportName and policyName', () => {
                 const policyExpenseReport = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyName: 'Policy',
                 };
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
                     reportName: policyExpenseReport.reportName,
                     workspaceName: policyExpenseReport.policyName,
@@ -123,11 +122,10 @@ describe('ModifiedExpenseMessage', () => {
             });
             it('returns "changed the expense" message when moving an expense to policy expense chat without reportName', () => {
                 const policyExpenseReport = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
                 expect(result).toEqual(expectedResult);
             });
@@ -135,11 +133,11 @@ describe('ModifiedExpenseMessage', () => {
 
         describe('when moving from a report', () => {
             const movedFromReport = {
-                ...createRandomReport(1),
+                ...createRandomReport(1, undefined),
             };
 
             it('returns "moved expense from reportName" message', () => {
-                const result = getMovedFromOrToReportMessage(movedFromReport, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
                     reportName: movedFromReport.reportName ?? '',
                 });
@@ -148,11 +146,10 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns "moved an expense" when reportName is empty', () => {
                 const reportWithoutName = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     reportName: '',
-                    chatType: undefined,
                 };
-                const result = getMovedFromOrToReportMessage(reportWithoutName, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
                     reportName: '',
                 });
@@ -162,13 +159,13 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         it('returns undefined when neither movedToReport nor movedFromReport is provided', () => {
-            const result = getMovedFromOrToReportMessage(undefined, undefined);
+            const result = getMovedFromOrToReportMessage(translateLocal, undefined, undefined);
             expect(result).toBeUndefined();
         });
     });
 
     describe('getForAction', () => {
-        const report = createRandomReport(1);
+        const report = createRandomReport(1, undefined);
         describe('when the amount is changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -190,7 +187,7 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
-        describe('when the amount is changed while the original value was partial', () => {
+        describe('when the amount is changed from zero', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -203,7 +200,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the amount to $18.00`;
+                const expectedResult = `changed the amount to $18.00 (previously $0.00)`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -608,12 +605,349 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'moved an expense';
 
                 const movedFromReport = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     reportName: '',
-                    chatType: undefined,
                 };
 
                 const result = getForReportAction({reportAction, policyID: report.policyID, movedFromReport});
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the description is set with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldComment: '',
+                    newComment: 'Flight to client meeting',
+                    aiGenerated: true,
+                },
+            };
+
+            it('returns the correct text message with AI attribution when setting description', () => {
+                const expectedResult = 'set the description based on past activity to "Flight to client meeting"';
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the description is changed with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldComment: 'Old description',
+                    newComment: 'New description',
+                    aiGenerated: true,
+                },
+            };
+
+            it('returns the correct text message with AI attribution when changing description', () => {
+                const expectedResult = 'changed the description based on past activity to "New description" (previously "Old description")';
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: 'Food',
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message with AI attribution', () => {
+                const expectedResult = `changed the category based on past activity to "Travel" (previously "Food")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed with MCC attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: 'Food',
+                    source: CONST.CATEGORY_SOURCE.MCC,
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message with MCC attribution for non-admin', () => {
+                const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct workspace rules link for admin', () => {
+                // The shouldConvertToLowercase: !source parameter prevents buildMessageFragmentForValue
+                // from calling .toLowerCase() on the entire HTML anchor tag, which would corrupt
+                // the policyID in the href attribute and cause navigation to fail.
+
+                const mockPolicy: Policy = {
+                    id: 'AbC123XyZ789', // Mixed case to verify exact preservation
+                    name: 'Test Policy',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    owner: 'test@example.com',
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                };
+
+                jest.spyOn(PolicyUtils, 'getPolicy').mockReturnValue(mockPolicy);
+                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
+
+                const result = getForReportAction({reportAction, policyID: mockPolicy.id});
+
+                // Verify the policyID in the URL exactly matches the policy.id (case-preserved)
+                expect(result).toContain(`workspaces/${mockPolicy.id}/rules`);
+                expect(result).toContain('href=');
+                expect(result).toContain('workspace rules</a>');
+            });
+        });
+
+        describe('when the category is set with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: '',
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message with AI attribution', () => {
+                const expectedResult = `set the category based on past activity to "Travel"`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed from Uncategorized with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: '6403 Travel - Member Services',
+                    oldCategory: 'Uncategorized',
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message without showing previously uncategorized', () => {
+                const expectedResult = `set the category based on past activity to "6403 Travel - Member Services"`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is cleared from Uncategorized (both missing)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: '',
+                    oldCategory: 'Uncategorized',
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the generic changed expense message since no meaningful change occurred', () => {
+                const expectedResult = `changed the expense`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is removed with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: '',
+                    oldCategory: 'Travel',
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message with AI attribution', () => {
+                const expectedResult = `removed the category based on past activity (previously "Travel")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when policy rules modify an expense', () => {
+            let environmentURL: string;
+            beforeAll(async () => {
+                environmentURL = await getEnvironmentURL();
+            });
+
+            it('returns the correct text message with multiple overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            category: 'Travel',
+                            merchant: "McDonald's",
+                            billable: true,
+                            reimbursable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the category to "Travel", merchant to "McDonald's", marked the expense as "billable", and marked the expense as "reimbursable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with tax rate overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            tax: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                field_id_TAX: {
+                                    externalID: '',
+                                    name: 'New Tax Rate',
+                                    value: '10',
+                                },
+                            },
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the tax rate to "New Tax Rate" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with two overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            category: 'Travel',
+                            merchant: "McDonald's",
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the category to "Travel" and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with a single override', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            billable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with boolean overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            reimbursable: true,
+                            billable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `marked the expense as "reimbursable" and marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed without source (backward compatibility)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: 'Food',
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message without attribution', () => {
+                const expectedResult = `changed the category to "Travel" (previously "Food")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed with manual source', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: 'Travel',
+                    oldCategory: 'Food',
+                    source: CONST.CATEGORY_SOURCE.MANUAL,
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message without attribution', () => {
+                const expectedResult = `changed the category to "Travel" (previously "Food")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
                 expect(result).toEqual(expectedResult);
             });
         });

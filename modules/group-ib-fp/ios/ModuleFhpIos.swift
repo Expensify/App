@@ -165,10 +165,10 @@ class ModuleFhpIos: NSObject {
         }
     }
     
-    @objc(setAttributeTitle:withValue:andFormat:errorHandler:)
-    func setAttributeTitle(title: String, value: String, format: Int, errorHandler: @escaping RCTResponseSenderBlock) {
+    @objc(setAttributeTitle:withValue:andFormat:isSendOnce:errorHandler:)
+    func setAttributeTitle(title: String, value: String, format: Int, isSendOnce: Bool, errorHandler: @escaping RCTResponseSenderBlock) {
         DispatchQueue.main.async {
-            let attribute = GIBAttribute(title: GIBAttributeTitleKey(rawValue: title), value: value, andFormat: GIBAttributeFormat(rawValue: format))
+            let attribute = GIBAttribute(title: GIBAttributeTitleKey(rawValue: title), value: value, andFormat: GIBAttributeFormat(rawValue: format), isSendOnce: isSendOnce)
             do {
                 try GIBMobileSDK.setAttribute(attribute)
             } catch {

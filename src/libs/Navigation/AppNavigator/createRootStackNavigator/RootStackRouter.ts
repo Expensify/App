@@ -9,6 +9,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
+    handleOpenDomainSplitAction,
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
@@ -17,6 +18,7 @@ import {
 import syncBrowserHistory from './syncBrowserHistory';
 import type {
     DismissModalActionType,
+    OpenDomainSplitActionType,
     OpenWorkspaceSplitActionType,
     PreloadActionType,
     PushActionType,
@@ -28,6 +30,10 @@ import type {
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
+}
+
+function isOpenDomainSplitAction(action: RootStackNavigatorAction): action is OpenDomainSplitActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
 }
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
@@ -94,6 +100,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isOpenWorkspaceSplitAction(action)) {
                 return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
+            }
+
+            if (isOpenDomainSplitAction(action)) {
+                return handleOpenDomainSplitAction(state, action, configOptions, stackRouter);
             }
 
             if (isDismissModalAction(action)) {

@@ -7,6 +7,8 @@ import {expandedRHPProgress} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -19,7 +21,7 @@ type RootNavigatorScreenOptions = {
     basicModalNavigator: PlatformStackNavigationOptions;
     splitNavigator: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
-    workspacesListPage: PlatformStackNavigationOptions;
+    fullScreenTabPage: PlatformStackNavigationOptions;
 };
 
 const commonScreenOptions: PlatformStackNavigationOptions = {
@@ -28,12 +30,21 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
     },
 };
 
+function abs(a: Animated.AnimatedSubtraction<number | string>) {
+    const b = Animated.multiply(a, -1);
+    const clampedA = Animated.diffClamp(a, 0, Number.MAX_SAFE_INTEGER);
+    const clampedB = Animated.diffClamp(b, 0, Number.MAX_SAFE_INTEGER);
+
+    return Animated.add(clampedA, clampedB);
+}
+
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
 
     return {
         rightModalNavigator: {
@@ -45,16 +56,31 @@ const useRootNavigatorScreenOptions = () => {
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) =>
-                    // Add 1 to change range from [0, 1] to [1, 2]
                     // Don't use outputMultiplier for the narrow layout
                     modalCardStyleInterpolator({
                         props,
                         shouldAnimateSidePanel: true,
-
-                        // Adjust output range to match the wide RHP size
+                        // On a wide layout, the output range multiplier is multiplied inside useModalCardStyleInterpolator by the width of a single RHP.
+                        // Depending on the value of expandedRHPProgress, after multiplication the appropriate RHP width should be obtained.
+                        // To achieve this, the following function was used:
+                        // y = (1 - |x - 1|) * receiptPaneWidth/sidebarWidth + Max((x - 1), 0)) * (superWideRHPWidth / sidebarWidth - 1) + 1
+                        // For expandedRHPProgress equal to:
+                        // 0 - Single RHP, y = 1
+                        // 1 - Wide RHP, y = receiptPaneWidth / sidebarWidth + 1
+                        // 2 - Super Wide RHP, y = superWideRHPWidth / sidebarWidth
+                        // For the given values, after multiplying by sidebarWidth inside useModalCardStyleInterpolator, the correct widths are obtained.
                         outputRangeMultiplier: isSmallScreenWidth
                             ? undefined
-                            : Animated.add(Animated.multiply(expandedRHPProgress, variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
+                            : Animated.add(
+                                  Animated.add(
+                                      Animated.multiply(Animated.subtract(1, abs(Animated.subtract(1, expandedRHPProgress))), variables.receiptPaneRHPMaxWidth / variables.sideBarWidth),
+                                      Animated.multiply(
+                                          expandedRHPProgress.interpolate({inputRange: [1, 2], outputRange: [0, 1], extrapolate: 'clamp'}),
+                                          calculateSuperWideRHPWidth(windowWidth) / variables.sideBarWidth - 1,
+                                      ),
+                                  ),
+                                  1,
+                              ),
                     }),
             },
         },
@@ -93,7 +119,7 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
             },
         },
-        workspacesListPage: {
+        fullScreenTabPage: {
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,

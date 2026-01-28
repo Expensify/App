@@ -27,7 +27,7 @@ class NavBarManagerModule(
         }
     }
 
-    @ReactMethod
+    @ReactMethod(isBlockingSynchronousMethod = true)
     fun getType(): String {
         val resources = mReactContext.resources
         val resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
@@ -38,6 +38,6 @@ class NavBarManagerModule(
                 2 -> return "gesture-bar"
             }
         }
-        return "soft-keys";
+        return "soft-keys"
     }
 }

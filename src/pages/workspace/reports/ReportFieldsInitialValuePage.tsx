@@ -10,10 +10,10 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {getReportFieldInitialValue} from '@libs/WorkspaceReportFieldUtils';
@@ -40,10 +40,9 @@ function ReportFieldsInitialValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
-    const currentInitialValue = getReportFieldInitialValue(reportField);
+    const currentInitialValue = getReportFieldInitialValue(reportField, translate);
     const [initialValue, setInitialValue] = useState(currentInitialValue);
 
     const submitForm = useCallback(
@@ -67,10 +66,14 @@ function ReportFieldsInitialValuePage({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
             if (formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
-                    length: formInitialValue.length,
-                    limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
-                });
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
+            }
+
+            if (
+                (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
+                hasCircularReferences(formInitialValue, reportField?.name, policy?.fieldList)
+            ) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 
             if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
@@ -79,10 +82,10 @@ function ReportFieldsInitialValuePage({
 
             return errors;
         },
-        [availableListValuesLength, reportField?.type, translate],
+        [availableListValuesLength, reportField?.name, reportField?.type, policy?.fieldList, translate],
     );
 
-    if (!reportField || hasAccountingConnections) {
+    if (!reportField) {
         return <NotFoundPage />;
     }
 
@@ -99,7 +102,7 @@ function ReportFieldsInitialValuePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsInitialValuePage.displayName}
+                testID="ReportFieldsInitialValuePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -151,7 +154,5 @@ function ReportFieldsInitialValuePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsInitialValuePage.displayName = 'ReportFieldsInitialValuePage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsInitialValuePage);

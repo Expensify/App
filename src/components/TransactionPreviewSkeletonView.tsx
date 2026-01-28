@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
@@ -13,6 +14,7 @@ type TransactionPreviewSkeletonViewProps = {
 function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPreviewSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    useSkeletonSpan('TransactionPreviewSkeletonView');
 
     const height = variables.transactionPreviewSkeletonHeight;
     const widthOfTheLeftSkeleton = 120;
@@ -21,7 +23,7 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
     return (
         <View style={[styles.p4, styles.mtn1, styles.justifyContentBetween, {width: transactionPreviewWidth}]}>
             <SkeletonViewContentLoader
-                testID={TransactionPreviewSkeletonView.displayName}
+                testID="TransactionPreviewSkeletonView"
                 animate
                 width={widthOfTheLeftSkeleton}
                 height={height}
@@ -29,20 +31,17 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
                 foregroundColor={theme.skeletonLHNOut}
             >
                 <Rect
-                    x="0"
-                    y="4"
+                    transform={[{translateY: 4}]}
                     width="64"
                     height="8"
                 />
                 <Rect
-                    x="0"
-                    y="24"
+                    transform={[{translateY: 24}]}
                     width={widthOfTheLeftSkeleton}
                     height="20"
                 />
                 <Rect
-                    x="0"
-                    y="54.75"
+                    transform={[{translateY: 54.75}]}
                     width="80"
                     height="7"
                 />
@@ -55,8 +54,7 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
                     backgroundColor={theme.skeletonLHNIn}
                 >
                     <Rect
-                        x="0"
-                        y="24"
+                        transform={[{translateY: 24}]}
                         width={widthOfTheRightSkeleton}
                         height="20"
                     />
@@ -66,5 +64,4 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
     );
 }
 
-TransactionPreviewSkeletonView.displayName = 'TransactionPreviewSkeletonView';
 export default TransactionPreviewSkeletonView;

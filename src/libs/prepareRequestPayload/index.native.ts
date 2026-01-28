@@ -1,3 +1,4 @@
+import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
@@ -10,7 +11,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
     const formData = new FormData();
     let promiseChain = Promise.resolve();
 
-    Object.keys(data).forEach((key) => {
+    for (const key of Object.keys(data)) {
         promiseChain = promiseChain.then(() => {
             const value = data[key];
 
@@ -18,15 +19,35 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
-            if ((key === 'receipt' || key === 'file') && initiatedOffline) {
-                const {uri: path = '', source} = value as File;
+            if (key === 'receipt') {
+                const {source, name, type, uri} = value as File;
+                if (source) {
+                    return checkFileExists(source).then((exists) => {
+                        if (!exists) {
+                            return;
+                        }
+                        const receiptFormData = {
+                            uri,
+                            name,
+                            type,
+                        };
+                        validateFormDataParameter(command, key, receiptFormData);
+                        formData.append(key, receiptFormData as File);
+                    });
+                }
+            }
+
+            if (key === 'file' && initiatedOffline) {
+                const {uri: path = '', source, name, type} = value as File;
                 if (!source) {
                     validateFormDataParameter(command, key, value);
                     formData.append(key, value as string | Blob);
 
                     return Promise.resolve();
                 }
-                return readFileAsync(source, path, () => {}).then((file) => {
+                // Use the actual file name if available, otherwise fall back to extracting from path/uri
+                const fileName = name || (path ? (path.split('/').pop() ?? '') : '') || '';
+                return readFileAsync(source, fileName, () => {}, undefined, type).then((file) => {
                     if (!file) {
                         return;
                     }
@@ -41,7 +62,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
 
             return Promise.resolve();
         });
-    });
+    }
 
     return promiseChain.then(() => formData);
 };

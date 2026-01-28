@@ -59,6 +59,27 @@ type InvoiceReceiverType = InvoiceReceiver['type'];
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
+/** Report next step */
+type ReportNextStep = {
+    /** The message key */
+    messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
+
+    /** The icon */
+    icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
+
+    /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
+    actorAccountID?: number;
+
+    /** The ETA (if applicable, e.g. expected reimbursement date) */
+    eta?: {
+        /** The ETA key */
+        etaKey?: ValueOf<typeof CONST.NEXT_STEP.ETA_KEY>;
+
+        /** The ETA date time */
+        dateTime?: string;
+    };
+};
+
 /** Model of report data */
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -67,6 +88,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The date the report was created */
         created?: string;
+
+        /** The date the report was submitted */
+        submitted?: string;
+
+        /** The date the report was approved */
+        approved?: string;
 
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -146,6 +173,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        /** Number of transactions in the report */
+        transactionCount?: number;
+
         /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
 
@@ -222,7 +252,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         privateNotes?: Record<number, Note>;
 
         /** Collection of policy report fields, indexed by their fieldID */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
@@ -244,8 +274,11 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The report's welcome message */
         welcomeMessage?: string;
+
+        /** The report's next step */
+        nextStep?: ReportNextStep;
     },
-    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport'
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport' | 'reportName'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */
@@ -253,4 +286,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType, ReportNextStep};

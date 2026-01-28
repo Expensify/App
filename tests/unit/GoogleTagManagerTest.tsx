@@ -156,16 +156,16 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace({});
+        createWorkspace({introSelected: undefined, currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com'});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined});
         await waitForBatchedUpdatesWithAct();
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, 123456);
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
@@ -191,6 +191,12 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
+            isASAPSubmitBetaEnabled: false,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: 'test@test.com',
+            introSelected: undefined,
+            activePolicyID: undefined,
+            quickAction: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -218,16 +224,20 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('paid_adoption - addSubscriptionPaymentCard', async () => {
-        // When we add a payment card
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        // When we add a payment card (with no existing billing card)
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            undefined,
+        );
 
         await waitForBatchedUpdatesWithAct();
 
@@ -243,19 +253,23 @@ describe('GoogleTagManagerTest', () => {
             });
         });
 
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            FUND_LIST,
+        );
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(!!getCardForSubscriptionBilling()).toBe(true);
+        expect(!!getCardForSubscriptionBilling(FUND_LIST)).toBe(true);
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(0);
     });
 });

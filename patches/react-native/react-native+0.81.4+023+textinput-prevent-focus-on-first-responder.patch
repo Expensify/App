@@ -1,0 +1,242 @@
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTMultilineTextInputNativeComponent.js b/node_modules/react-native/Libraries/Components/TextInput/RCTMultilineTextInputNativeComponent.js
+index 8c40af6..2a32cd4 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/RCTMultilineTextInputNativeComponent.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/RCTMultilineTextInputNativeComponent.js
+@@ -21,7 +21,7 @@ type NativeType = HostComponent<{...}>;
+ type NativeCommands = TextInputNativeCommands<NativeType>;
+ 
+ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
+-  supportedCommands: ['focus', 'blur', 'setTextAndSelection'],
++  supportedCommands: ['focus', 'blur', 'setTextAndSelection', 'preventFocusOnFirstResponderOnce'],
+ });
+ 
+ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTSingelineTextInputNativeComponent.js b/node_modules/react-native/Libraries/Components/TextInput/RCTSingelineTextInputNativeComponent.js
+index a52be63..820153a 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/RCTSingelineTextInputNativeComponent.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/RCTSingelineTextInputNativeComponent.js
+@@ -21,7 +21,7 @@ type NativeType = HostComponent<{...}>;
+ type NativeCommands = TextInputNativeCommands<NativeType>;
+ 
+ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
+-  supportedCommands: ['focus', 'blur', 'setTextAndSelection'],
++  supportedCommands: ['focus', 'blur', 'setTextAndSelection', 'preventFocusOnFirstResponderOnce'],
+ });
+ 
+ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+index 9143695..046b753 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+@@ -161,6 +161,7 @@ const RCTTextInputViewConfig: PartialViewConfigWithoutName = {
+     lineBreakStrategyIOS: true,
+     lineBreakModeIOS: true,
+     smartInsertDelete: true,
++    preventFocusOnFirstResponder: true,
+     ...ConditionallyIgnoredEventHandlers({
+       onClear: true,
+       onChange: true,
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+index 3ea6d67..61309ef 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+@@ -820,6 +820,11 @@ export interface TextInputProps
+    */
+   multiline?: boolean | undefined;
+ 
++  /**
++   * If true, the text input will not restore focus when the input becomes first responder.
++   */
++  preventFocusOnFirstResponder?: boolean | undefined;
++
+   /**
+    * Callback that is called when the text input is blurred
+    *
+@@ -1077,4 +1082,9 @@ export class TextInput extends TextInputBase {
+    * Sets the start and end positions of text selection.
+    */
+   setSelection: (start: number, end: number) => void;
++
++  /**
++   * Prevents the text input once from restoring focus when the input becomes first responder.
++   */
++  preventFocusOnFirstResponderOnce: () => void;
+ }
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
+index ad2bf61..2ca6e97 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
+@@ -1059,6 +1059,7 @@ export interface TextInputInstance extends HostInstance {
+   +isFocused: () => boolean;
+   +getNativeRef: () => ?HostInstance;
+   +setSelection: (start: number, end: number) => void;
++  +preventFocusOnFirstResponderOnce: () => void;
+ }
+ 
+ /**
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+index fb29328..90fc6f2 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+@@ -481,6 +481,11 @@ function InternalTextInput(props: TextInputProps): React.Node {
+               );
+             }
+           },
++          preventFocusOnFirstResponderOnce: () => {
++            if (inputRef.current != null && Platform.OS !== 'android') {
++              viewCommands.preventFocusOnFirstResponderOnce(inputRef.current);
++            }
++          },
+         });
+       }
+     },
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInputNativeCommands.js b/node_modules/react-native/Libraries/Components/TextInput/TextInputNativeCommands.js
+index 9da8899..bf87ffd 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInputNativeCommands.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInputNativeCommands.js
+@@ -22,8 +22,9 @@ export interface TextInputNativeCommands<T> {
+     start: Int32,
+     end: Int32,
+   ) => void;
++  +preventFocusOnFirstResponderOnce: (viewRef: React.ElementRef<T>) => void;
+ }
+ 
+-const supportedCommands = ['focus', 'blur', 'setTextAndSelection'] as string[];
++const supportedCommands = ['focus', 'blur', 'setTextAndSelection', 'preventFocusOnFirstResponderOnce'] as string[];
+ 
+ export default supportedCommands;
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index 9f4863a..18980d7 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -76,6 +76,16 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+ 
+   BOOL _hasInputAccessoryView;
+   CGSize _previousContentSize;
++
++  /**
++   * Prevents automatic focus of the text input once it becomes the first responder (e.g. on modal dismissal).
++   */
++  BOOL _preventFocusOnFirstResponder;
++
++  /**
++   * Same as above but is only used to prevent focus once
++   */
++  BOOL _preventFocusOnFirstResponderOnce;
+ }
+ 
+ #pragma mark - UIView overrides
+@@ -316,6 +326,10 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+     _backedTextInputView.disableKeyboardShortcuts = newTextInputProps.disableKeyboardShortcuts;
+   }
+ 
++  if (newTextInputProps.preventFocusOnFirstResponder != oldTextInputProps.preventFocusOnFirstResponder) {
++    _preventFocusOnFirstResponder = newTextInputProps.preventFocusOnFirstResponder;
++  }
++
+   if (newTextInputProps.acceptDragAndDropTypes != oldTextInputProps.acceptDragAndDropTypes) {
+     if (!newTextInputProps.acceptDragAndDropTypes.has_value()) {
+       _backedTextInputView.acceptDragAndDropTypes = nil;
+@@ -390,6 +404,15 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+ 
+ - (BOOL)textInputShouldBeginEditing
+ {
++  if (_preventFocusOnFirstResponderOnce) {
++    _preventFocusOnFirstResponderOnce = NO;
++    return NO;
++  }
++
++  if (_preventFocusOnFirstResponder) {
++    return NO;
++  }
++
+   return YES;
+ }
+ 
+@@ -613,6 +636,16 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+   _comingFromJS = NO;
+ }
+ 
++- (void)preventFocusOnFirstResponderOnce
++{
++  _preventFocusOnFirstResponderOnce = YES;
++
++  // Also resign first responder to prevent automatic restoration
++  if (_backedTextInputView.isFirstResponder) {
++    [_backedTextInputView resignFirstResponder];
++  }
++}
++
+ #pragma mark - Default input accessory view
+ 
+ - (NSString *)returnKeyTypeToString:(UIReturnKeyType)returnKeyType
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
+index f674d98..6ad10ec 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
+@@ -19,6 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
+                       value:(NSString *__nullable)value
+                       start:(NSInteger)start
+                         end:(NSInteger)end;
++- (void)preventFocusOnFirstResponderOnce;
+ @end
+ 
+ RCT_EXTERN inline void
+@@ -109,6 +110,19 @@ RCTTextInputHandleCommand(id<RCTTextInputViewProtocol> componentView, const NSSt
+     return;
+   }
+ 
++  if ([commandName isEqualToString:@"preventFocusOnFirstResponderOnce"]) {
++#if RCT_DEBUG
++    if ([args count] != 0) {
++      RCTLogError(
++                  @"%@ command %@ received %d arguments, expected %d.", @"TextInput", commandName, (int)[args count], 0);
++      return;
++    }
++#endif
++
++    [componentView preventFocusOnFirstResponderOnce];
++    return;
++  }
++
+ #if RCT_DEBUG
+   RCTLogError(@"%@ received command %@, which is not a supported command.", @"TextInput", commandName);
+ #endif
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+index 6273740..211be13 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.cpp
+@@ -127,6 +127,12 @@ BaseTextInputProps::BaseTextInputProps(
+           "multiline",
+           sourceProps.multiline,
+           {false})),
++      preventFocusOnFirstResponder(convertRawProp(
++          context,
++          rawProps,
++          "preventFocusOnFirstResponder",
++          sourceProps.preventFocusOnFirstResponder,
++          {false})),
+       disableKeyboardShortcuts(convertRawProp(
+           context,
+           rawProps,
+@@ -228,6 +234,7 @@ void BaseTextInputProps::setProp(
+     RAW_SET_PROP_SWITCH_CASE_BASIC(multiline);
+     RAW_SET_PROP_SWITCH_CASE_BASIC(disableKeyboardShortcuts);
+     RAW_SET_PROP_SWITCH_CASE_BASIC(acceptDragAndDropTypes);
++    RAW_SET_PROP_SWITCH_CASE_BASIC(preventFocusOnFirstResponder);
+   }
+ }
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
+index 5802350..b3f34cc 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
+@@ -80,6 +80,8 @@ class BaseTextInputProps : public ViewProps, public BaseTextProps {
+ 
+   bool multiline{false};
+ 
++  bool preventFocusOnFirstResponder{false};
++
+   bool disableKeyboardShortcuts{false};
+ 
+   std::optional<std::vector<std::string>> acceptDragAndDropTypes{};

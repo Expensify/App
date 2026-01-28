@@ -1,5 +1,5 @@
 import React from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import SymbolButton from '@components/SymbolButton';
 import Text from '@components/Text';
@@ -25,6 +25,7 @@ function BaseTextInputWithSymbol({
     symbolTextStyle,
     isNegative = false,
     ref,
+    disabled,
     ...rest
 }: BaseTextInputWithSymbolProps) {
     const {fromLocaleDigit} = useLocalize();
@@ -58,8 +59,9 @@ function BaseTextInputWithSymbol({
                 onChangeAmount={setFormattedAmount}
                 placeholder={placeholder}
                 ref={ref}
+                disabled={disabled}
                 selection={selection}
-                onSelectionChange={(event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                onSelectionChange={(event: TextInputSelectionChangeEvent) => {
                     onSelectionChange(event);
                 }}
                 onKeyPress={onKeyPress}
@@ -78,7 +80,5 @@ function BaseTextInputWithSymbol({
         </>
     );
 }
-
-BaseTextInputWithSymbol.displayName = 'BaseTextInputWithSymbol';
 
 export default BaseTextInputWithSymbol;

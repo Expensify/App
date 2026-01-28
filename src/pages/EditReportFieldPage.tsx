@@ -21,6 +21,7 @@ import {
     isInvoiceReport,
     isPaidGroupPolicyExpenseReport,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -39,14 +40,15 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const fieldKey = getReportFieldKey(route.params.fieldID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
-    const isDisabled = isReportFieldDisabled(report, reportField, policy);
+    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -60,7 +62,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
-                testID={EditReportFieldPage.displayName}
+                testID="EditReportFieldPage"
             >
                 <FullPageNotFoundView shouldShow />
             </ScreenWrapper>
@@ -76,9 +78,11 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     };
 
     const handleReportFieldDelete = () => {
-        deleteReportField(report.reportID, reportField);
         setIsDeleteModalVisible(false);
         goBack();
+        setTimeout(() => {
+            deleteReportField(report.reportID, reportField);
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
@@ -104,6 +108,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
                     hasViolations,
+                    recentlyUsedReportFields,
                     hasOtherViolations,
                 );
             }
@@ -125,7 +130,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={EditReportFieldPage.displayName}
+            testID="EditReportFieldPage"
         >
             <HeaderWithBackButton
                 title={fieldName}
@@ -146,17 +151,18 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                 shouldEnableNewFocusManagement
             />
 
-            {(reportField.type === 'text' || isReportFieldTitle) && (
+            {(reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || isReportFieldTitle) && (
                 <EditReportFieldText
-                    fieldName={Str.UCFirst(reportField.name)}
+                    fieldName={reportField.name}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
                     isRequired={!isReportFieldDeletable}
                     onSubmit={handleReportFieldChange}
+                    fieldList={policy?.fieldList}
                 />
             )}
 
-            {reportField.type === 'date' && (
+            {reportField.type === CONST.REPORT_FIELD_TYPES.DATE && (
                 <EditReportFieldDate
                     fieldName={Str.UCFirst(reportField.name)}
                     fieldKey={fieldKey}
@@ -166,7 +172,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                 />
             )}
 
-            {reportField.type === 'dropdown' && (
+            {reportField.type === CONST.REPORT_FIELD_TYPES.LIST && (
                 <EditReportFieldDropdown
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
@@ -174,10 +180,20 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     onSubmit={handleReportFieldChange}
                 />
             )}
+
+            {reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA && !isReportFieldTitle && (
+                <EditReportFieldText
+                    fieldName={reportField.name}
+                    fieldKey={fieldKey}
+                    fieldValue={fieldValue}
+                    isRequired={!isReportFieldDeletable}
+                    onSubmit={handleReportFieldChange}
+                    fieldList={policy?.fieldList}
+                    disabled
+                />
+            )}
         </ScreenWrapper>
     );
 }
-
-EditReportFieldPage.displayName = 'EditReportFieldPage';
 
 export default EditReportFieldPage;

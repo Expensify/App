@@ -58,6 +58,8 @@ Please be aware that compensation for any support in solving an issue is provide
 
 **Important:** Payment amounts are variable, dependent on if there are any [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions). Your PR will be reviewed by a [Contributor+ (C+)](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
 
+Contributors are eligible to be paid via Expensify 18 months after they were first assigned to a job. More details at [PAYMENT_VIA_EXPENSIFY.md](https://github.com/Expensify/App/blob/main/contributingGuides/PAYMENT_VIA_EXPENSIFY.md)
+
 ### Regressions
 
 If a PR causes a regression at any point within the regression period (starting when the code is merged and ending 168 hours (that's 7 days) after being deployed to production): 
@@ -130,9 +132,9 @@ Additionally, if you want to discuss an idea with the open source community with
 * You'll need a Mac to test the iOS and MacOS app.
 * In case you don't have one, here's a helpful [document](https://github.com/Expensify/App/blob/main/contributingGuides/TESTING_MACOS_AND_IOS.md) on how you might test all platforms on a Windows/Linux device.
 
-### Check GitHub for existing proposals from other users
+### Check GitHub for existing proposals
 
-1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
+1. Expensify reviews all solution proposals on a first come first serve basis. If you see proposals are already posted on an issue, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
 
 ### Make sure you can reproduce the problem
 2. Use your test account(s) to reproduce the problem by following the steps in the GitHub issue.
@@ -178,8 +180,8 @@ Additionally, if you want to discuss an idea with the open source community with
 	3. Lint - All code must pass lint checks before a merge of a pull request
 15. Please never force push when a PR review has already started (because this messes with the PR review history)
 16. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
-17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
-18. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
+17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
+18. Please add a screenshot of the app running on each platform (Web, iOS, Android, Mobile Web).
 
 ### Completing the final checklist
 19. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.

@@ -23,9 +23,9 @@ class Memoize {
             return;
         }
         this.isMonitoringEnabled = true;
-        Memoize.memoizedList.forEach(({memoized}) => {
+        for (const {memoized} of Memoize.memoizedList) {
             memoized.startMonitoring();
-        });
+        }
     }
 
     static stopMonitoring() {

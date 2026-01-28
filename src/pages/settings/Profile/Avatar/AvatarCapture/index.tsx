@@ -1,11 +1,12 @@
-import React, {forwardRef, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import type {View as RNView} from 'react-native';
-import type {AvatarCaptureHandle, AvatarCaptureProps} from './types';
+import variables from '@styles/variables';
+import type {AvatarCaptureProps} from './types';
 
 /**
  * Web implementation of AvatarCapture using HTML Canvas
  */
-function AvatarCapture({children, fileName: name}: AvatarCaptureProps, ref: React.ForwardedRef<AvatarCaptureHandle>) {
+function AvatarCapture({children, fileName: name, ref}: AvatarCaptureProps) {
     const containerRef = useRef<RNView>(null);
 
     useImperativeHandle(
@@ -34,24 +35,20 @@ function AvatarCapture({children, fileName: name}: AvatarCaptureProps, ref: Reac
                     }
 
                     // Get dimensions and background color
-                    const bbox = coloredAvatarElement.getBoundingClientRect();
-                    const width = bbox.width;
-                    const height = bbox.height;
+                    const width = variables.avatarSizeXXLarge;
+                    const height = variables.avatarSizeXXLarge;
                     const backgroundColor = globalThis.getComputedStyle(coloredAvatarElement).backgroundColor;
 
                     // Create canvas with 2x resolution for better quality
                     const canvas = document.createElement('canvas');
-                    const scale = 2;
-                    canvas.width = width * scale;
-                    canvas.height = height * scale;
+                    canvas.width = width;
+                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
 
                     if (!ctx) {
                         reject(new Error('Could not get canvas context'));
                         return;
                     }
-
-                    ctx.scale(scale, scale);
 
                     // Draw circular background
                     ctx.fillStyle = backgroundColor;
@@ -100,8 +97,4 @@ function AvatarCapture({children, fileName: name}: AvatarCaptureProps, ref: Reac
     return <div ref={containerRef as unknown as React.RefObject<HTMLDivElement>}>{children}</div>;
 }
 
-const AvatarCaptureWithRef = forwardRef(AvatarCapture);
-
-AvatarCapture.displayName = 'AvatarCapture';
-
-export default AvatarCaptureWithRef;
+export default AvatarCapture;

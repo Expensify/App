@@ -11,6 +11,4 @@ function SearchFiltersGroupCurrencyPage() {
     );
 }
 
-SearchFiltersGroupCurrencyPage.displayName = 'SearchFiltersGroupCurrencyPage';
-
 export default SearchFiltersGroupCurrencyPage;

@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
@@ -68,6 +68,7 @@ function BaseModal({
     shouldIgnoreBackHandlerDuringTransition = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
+    shouldDisplayBelowModals = false,
 }: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -108,6 +109,7 @@ function BaseModal({
     const hideModal = useCallback(
         (callHideCallback = true) => {
             shouldCallHideModalOnUnmount.current = false;
+            willAlertModalBecomeVisible(false);
             if (areAllModalsHidden()) {
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
                     setModalVisibility(false);
@@ -122,6 +124,10 @@ function BaseModal({
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
 
+    const handleDismissModal = useCallback(() => {
+        ComposerFocusManager.setReadyToFocus(uniqueModalId);
+    }, [uniqueModalId]);
+
     useEffect(() => {
         let removeOnCloseListener: () => void;
         if (isVisible) {
@@ -133,13 +139,18 @@ function BaseModal({
             }
         }
 
+        // When the modal becomes not visible, run dismiss logic to setReadyToFocus after it fully closes.
+        if (!isVisible && wasVisible) {
+            handleDismissModal();
+        }
+
         return () => {
             if (!removeOnCloseListener) {
                 return;
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type]);
+    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -152,9 +163,11 @@ function BaseModal({
             }
             hideModalCallbackRef.current?.(true);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
+
+    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
@@ -173,10 +186,6 @@ function BaseModal({
         } else {
             onClose?.();
         }
-    };
-
-    const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
@@ -233,6 +242,7 @@ function BaseModal({
                     modalOverlapsWithTopSafeArea,
                     shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
                 },
+                shouldDisplayBelowModals,
             ),
         [
             StyleUtils,
@@ -247,6 +257,7 @@ function BaseModal({
             shouldUseModalPaddingStyle,
             modalOverlapsWithTopSafeArea,
             shouldDisableBottomSafeAreaPadding,
+            shouldDisplayBelowModals,
         ],
     );
 
@@ -294,6 +305,8 @@ function BaseModal({
             ? 0
             : backdropOpacity;
 
+    const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -306,11 +319,11 @@ function BaseModal({
                     style={[styles.pAbsolute, {zIndex: 1}]}
                 >
                     <ReanimatedModal
-                        dataSet={{dragArea: false}}
+                        dataSet={{dragArea}}
                         // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                         onClick={(e) => e.stopPropagation()}
                         onBackdropPress={handleBackdropPress}
-                        // Note: Escape key on web/desktop will trigger onBackButtonPress callback
+                        // Note: Escape key on web will trigger onBackButtonPress callback
                         onBackButtonPress={closeTop}
                         onModalShow={handleShowModal}
                         onModalHide={hideModal}
@@ -371,7 +384,5 @@ function BaseModal({
         </ModalContext.Provider>
     );
 }
-
-BaseModal.displayName = 'BaseModalWithRef';
 
 export default BaseModal;

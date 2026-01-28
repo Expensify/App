@@ -1,9 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import {Shield} from '@components/Icon/Expensicons';
-import {ShieldYellow} from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +20,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
 
     return (
         <Section
@@ -42,7 +45,5 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
         </Section>
     );
 }
-
-Enable2FACard.displayName = 'Enable2FAPrompt';
 
 export default Enable2FACard;

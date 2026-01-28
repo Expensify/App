@@ -1,16 +1,13 @@
 import type {ParamListBase} from '@react-navigation/native';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import FloatingCameraButton from '@components/FloatingCameraButton';
-import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
+import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import CONST from '@src/CONST';
 import getIsNavigationTabBarVisibleDirectly from './getIsNavigationTabBarVisibleDirectly';
 import getIsScreenWithNavigationTabBarFocused from './getIsScreenWithNavigationTabBarFocused';
 import getSelectedTab from './getSelectedTab';
@@ -34,7 +31,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>(undefined);
-    const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
+    const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const StyleUtils = useStyleUtils();
 
     // That means it's visible and it's not covered by the overlay.
@@ -45,10 +42,6 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithNavigationTabFocused : isNavigationTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
     const shouldDisplayLHB = !shouldUseNarrowLayout;
-
-    const platform = getPlatform(true);
-    // We want to display the floating camera button on mobile devices (both web and native)
-    const shouldShowFloatingCameraButton = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.DESKTOP;
 
     useEffect(() => {
         if (!shouldDisplayBottomBar) {
@@ -67,6 +60,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
 
     return (
         <View
+            testID="TopLevelNavigationTabBar"
             style={[
                 styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom),
                 // There is a missing border right on the wide layout
@@ -81,11 +75,8 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
                 selectedTab={selectedTab}
                 isTopLevelBar
             />
-            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
         </View>
     );
 }
-
-TopLevelNavigationTabBar.displayName = 'TopLevelNavigationTabBar';
 
 export default TopLevelNavigationTabBar;

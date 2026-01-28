@@ -1,0 +1,77 @@
+diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
+index 836958c..29531c5 100644
+--- a/node_modules/expo-secure-store/build/SecureStore.d.ts
++++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
+@@ -177,6 +177,18 @@ export type SecureStoreOptions = {
+      * @platform android
+      */
+     failOnUpdate?: boolean;
++    /**
++     * The LocalAuthentication behaves slightly differently on iOS simulators.
++     * In numerous cases, the authentication prompts are skipped on simulators (as opposed to real devices).
++     * Setting this flag to true forces the prompt to appear on simulators when a value with the `requireAuthentication` flag set to true is read.
++     * This is purely for testing the app on simulators, in cases where the prompt does not appear when the value is read.
++     * This has no effect on real devices.
++     *
++     * @warning: This flag only works for the asynchronous version of the SecureStore read method.
++     * @default false
++     * @platform ios
++     */
++    forceReadAuthenticationOnSimulators?: boolean;
+ };
+ /**
+  * Returns whether the SecureStore API is enabled on the current device. This does not check the app
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+index 47282db..dcbe242 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+@@ -19,6 +19,11 @@ public final class SecureStoreModule: Module {
+     ])
+ 
+     AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) in
++      #if targetEnvironment(simulator)
++        if options.requireAuthentication && options.forceReadAuthenticationOnSimulators {
++          try await triggerPolicy(options: options)
++        }
++      #endif
+       let result = try get(with: key, options: options)
+ 
+       return wrapResultWithFeedback(action: .get, result: result, options: options).value
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
+index 6a787b0..8f110dd 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
+@@ -27,6 +27,9 @@ internal struct SecureStoreOptions: Record {
+ 
+   @Field
+   var failOnUpdate: Bool = false
++
++  @Field
++  var forceReadAuthenticationOnSimulators: Bool = false
+ }
+ 
+ @available(iOS 11.2, *)
+diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
+index 0bedcaa..bae5580 100644
+--- a/node_modules/expo-secure-store/src/SecureStore.ts
++++ b/node_modules/expo-secure-store/src/SecureStore.ts
+@@ -211,6 +211,19 @@ export type SecureStoreOptions = {
+    * @platform android
+    */
+   failOnUpdate?: boolean;
++
++  /**
++   * The LocalAuthentication behaves slightly differently on iOS simulators.
++   * In numerous cases, the authentication prompts are skipped on simulators (as opposed to real devices).
++   * Setting this flag to true forces the prompt to appear on simulators when a value with the `requireAuthentication` flag set to true is read.
++   * This is purely for testing the app on simulators, in cases where the prompt does not appear when the value is read.
++   * This has no effect on real devices.
++   *
++   * @warning: This flag only works for the asynchronous version of the SecureStore read method.
++   * @default false
++   * @platform ios
++   */
++  forceReadAuthenticationOnSimulators?: boolean;
+ };
+ 
+ // @needsAudit

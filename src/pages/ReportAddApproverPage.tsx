@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
+import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -26,22 +26,24 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type ReportAddApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER>;
 
 function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddApproverPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`, {canBeMissing: true});
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {
@@ -58,16 +60,16 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 if (!email) {
                     return null;
                 }
-                const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? CONST.DEFAULT_NUMBER_ID);
-                const isPendingDelete = employeeList?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const accountID = policyMemberEmailsToAccountIDs[email];
+                const isPendingDelete = employee?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-                // Filter the current report approver and members which are pending for deletion
-                if (report.managerID === accountID || isPendingDelete || !isAllowedToApproveExpenseReport(report, accountID, policy)) {
+                // Filter the current report approver, members which are pending for deletion, or members we cannot map to an account
+                if (!accountID || report.managerID === accountID || isPendingDelete || !isAllowedToApproveExpenseReport(report, accountID, policy)) {
                     return null;
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
+                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber});
                 return {
                     text: displayName,
                     alternateText: email,
@@ -75,12 +77,12 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                     isSelected: selectedApproverEmail === email,
                     login: email,
                     value: accountID,
-                    icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                    icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate]);
+    }, [employeeList, report, policy, personalDetails, formatPhoneNumber, selectedApproverEmail, icons.FallbackAvatar, translate]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
@@ -96,9 +98,10 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             policy,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            reportNextStep,
         );
-        Navigation.dismissModal();
-    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled]);
+        Navigation.dismissToPreviousRHP();
+    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
 
     const button = useMemo(() => {
         return (
@@ -114,7 +117,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     }, [addApprover, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
     const toggleApprover = useCallback((approvers: SelectionListApprover[]) => {
-        setSelectedApproverEmail(approvers.length ? approvers.at(0)?.login : undefined);
+        setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
     }, []);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -122,7 +125,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
 
     return (
         <ApproverSelectionList
-            testID={ReportAddApproverPage.displayName}
+            testID="ReportAddApproverPage"
             headerTitle={translate('iou.changeApprover.actions.addApprover')}
             onBackButtonPress={() => {
                 Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
@@ -141,7 +144,5 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         />
     );
 }
-
-ReportAddApproverPage.displayName = 'ReportAddApproverPage';
 
 export default withReportOrNotFound()(ReportAddApproverPage);

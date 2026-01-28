@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +17,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
 
     useEffect(() => {
         if (hasDeniedContactImportPrompt) {
@@ -31,7 +32,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
             }
             setIsModalVisible(true);
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleGrantPermission = () => {
@@ -77,7 +78,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
             title={translate('contact.importContactsTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
             titleStyles={[styles.textHeadline]}
-            iconSource={Illustrations.ToddWithPhones}
+            iconSource={illustrations.ToddWithPhones}
             iconFill={false}
             iconWidth={176}
             iconHeight={178}
@@ -86,7 +87,5 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         />
     );
 }
-
-ContactPermissionModal.displayName = 'ContactPermissionModal';
 
 export default ContactPermissionModal;

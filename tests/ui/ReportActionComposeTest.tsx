@@ -1,5 +1,3 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
@@ -7,56 +5,28 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import ReportScreen from '@pages/home/ReportScreen';
+import {forceClearInput} from '@libs/ComponentUtils';
+import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import ReportActionCompose, {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('expo-image-manipulator', () => ({
-    manipulateAsync: jest.fn(),
+const mockForceClearInput = jest.mocked(forceClearInput);
+
+jest.mock('@libs/ComponentUtils', () => ({
+    forceClearInput: jest.fn(),
 }));
 
-jest.mock('expo-image', () => ({
-    Image: () => null,
-}));
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: jest.fn((key: string) => key),
+        numberFormat: jest.fn((num: number) => num.toString()),
+    })),
+);
 
-jest.mock('expo-av', () => ({
-    Video: () => null,
-    ResizeMode: {COVER: 'cover'},
-    VideoFullscreenUpdate: {},
-}));
-jest.mock('pusher-js', () => ({
-    Pusher: {
-        subscribe: jest.fn(() => ({
-            bind: jest.fn(),
-            unbind: jest.fn(),
-        })),
-        unsubscribe: jest.fn(),
-    },
-}));
-
-// Mock dependencies
-jest.mock('@libs/ReportUtils', () => ({
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-    ...((): typeof import('@libs/ReportUtils') => {
-        return jest.requireActual('@libs/ReportUtils');
-    })(),
-    canUserPerformWriteAction: jest.fn(() => true),
-    isChatRoom: jest.fn(() => false),
-    isGroupChat: jest.fn(() => false),
-    isSettled: jest.fn(() => false),
-    isReportApproved: jest.fn(() => false),
-    isMoneyRequestAction: jest.fn(() => false),
-    isSentMoneyReportAction: jest.fn(() => false),
-    isSelfDM: jest.fn(() => false),
-    getParentReport: jest.fn(() => ({})),
-    temporaryGetMoneyRequestOptions: jest.fn(() => []),
-}));
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => {
         return jest.requireActual('@react-navigation/native');
@@ -71,57 +41,23 @@ jest.mock('@react-navigation/native', () => ({
 
 TestHelper.setupGlobalFetchMock();
 
-const Stack = createPlatformStackNavigator<ReportsSplitNavigatorParamList>();
-
-// Constants for test data
-const REPORT_ID = '1';
-const POLICY_ID = 'policy1';
-const USER_EMAIL = 'user1@example.com';
-const mockReport = {
-    reportID: REPORT_ID,
-    policyID: POLICY_ID,
-    participants: {},
-    type: CONST.REPORT.TYPE.CHAT,
+const defaultReport = LHNTestUtils.getFakeReport();
+const defaultProps: ReportActionComposeProps = {
+    onSubmit: jest.fn(),
+    isComposerFullSize: false,
+    reportID: defaultReport.reportID,
+    report: defaultReport,
 };
 
-const mockPersonalDetailsList = {
-    [USER_EMAIL]: {
-        login: USER_EMAIL,
-        displayName: 'User One',
-        firstName: 'User',
-        lastName: 'One',
-    },
-};
-const mockReportActions = {
-    [REPORT_ID]: {},
-};
-
-// Helper function to set up Onyx data
-const setupOnyxData = async () => {
-    await act(async () => {
-        await Onyx.merge(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, true);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, mockReport);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, mockPersonalDetailsList);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, mockReportActions[REPORT_ID]);
-    });
-};
-
-// Helper function to render the page
-const renderPage = (initialRouteName: typeof SCREENS.REPORT, initialParams: {reportID: string; onSubmit: () => void}) => {
+const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
-            <PortalProvider>
-                <NavigationContainer>
-                    <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
-                            name={initialRouteName}
-                            component={ReportScreen}
-                            initialParams={initialParams}
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
-            </PortalProvider>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <ReportActionCompose
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...defaultProps}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
         </ComposeProviders>,
     );
 };
@@ -141,10 +77,6 @@ describe('ReportActionCompose Integration Tests', () => {
         });
     });
 
-    beforeEach(async () => {
-        await setupOnyxData();
-    });
-
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
@@ -154,8 +86,7 @@ describe('ReportActionCompose Integration Tests', () => {
 
     describe('Paste Behavior with Selection updateComment logic', () => {
         it('should format pasted URL as Markdown link when text is selected', async () => {
-            const onSubmit = jest.fn();
-            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
             const composer = screen.getByTestId('composer');
@@ -172,8 +103,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
 
         it('should insert raw URL when no text is selected', async () => {
-            const onSubmit = jest.fn();
-            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
             const composer = screen.getByTestId('composer');
@@ -189,8 +119,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
 
         it('should insert raw text when non-URL text is pasted', async () => {
-            const onSubmit = jest.fn();
-            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
             const composer = screen.getByTestId('composer');
@@ -210,8 +139,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
 
         it('should format pasted URL as Markdown link when replacing entire selected text', async () => {
-            const onSubmit = jest.fn();
-            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
             const composer = screen.getByTestId('composer');
@@ -228,8 +156,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
 
         it('should insert raw URL with emoji when pasted with selection', async () => {
-            const onSubmit = jest.fn();
-            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
             const composer = screen.getByTestId('composer');
@@ -249,8 +176,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
 
         it('should format pasted URL as Markdown link when selected text contains square brackets', async () => {
-            const onSubmit = jest.fn();
-            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
             const composer = screen.getByTestId('composer');
@@ -267,8 +193,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
 
         it('should format pasted URL as Markdown link when selected text contains parentheses', async () => {
-            const onSubmit = jest.fn();
-            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
             const composer = screen.getByTestId('composer');
@@ -285,8 +210,7 @@ describe('ReportActionCompose Integration Tests', () => {
         });
 
         it('should format pasted URL as Markdown link when selected text contains curly braces', async () => {
-            const onSubmit = jest.fn();
-            const {unmount} = renderPage(SCREENS.REPORT, {reportID: REPORT_ID, onSubmit});
+            const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
             const composer = screen.getByTestId('composer');
@@ -300,6 +224,54 @@ describe('ReportActionCompose Integration Tests', () => {
 
             unmount();
             await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('Message validation', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should send when length is within the limit', async () => {
+            renderReportActionCompose();
+            const composer = screen.getByTestId('composer');
+
+            // Given a message that is within the length limit
+            const validMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH);
+            fireEvent.changeText(composer, validMessage);
+
+            // When the message is submitted
+            act(onSubmitAction);
+
+            // scheduleOnUI mock uses setTimeout(() => ..., 0)
+            act(() => {
+                jest.advanceTimersByTime(1);
+            });
+
+            // Then the message should be sent
+            expect(mockForceClearInput).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not send when length exceeds the limit', async () => {
+            renderReportActionCompose();
+            const composer = screen.getByTestId('composer');
+
+            // Given a message that is over the length limit
+            const invalidMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1);
+            fireEvent.changeText(composer, invalidMessage);
+
+            // When the message is submitted
+            act(onSubmitAction);
+
+            // Then the message should NOT be sent
+            expect(mockForceClearInput).toHaveBeenCalledTimes(0);
+
+            // And the error should be displayed
+            expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
         });
     });
 });

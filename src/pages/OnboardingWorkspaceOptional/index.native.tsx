@@ -12,6 +12,4 @@ function OnboardingWorkspaceOptional(props: OnboardingWorkspaceOptionalProps) {
     );
 }
 
-OnboardingWorkspaceOptional.displayName = 'OnboardingWorkspaceOptional';
-
 export default OnboardingWorkspaceOptional;

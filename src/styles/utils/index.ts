@@ -6,7 +6,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -17,6 +17,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
@@ -38,6 +39,7 @@ import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
+import splitPercentageInputStyles from './splitPercentageInputStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -385,36 +387,36 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
     return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
 }
 
-function getZoomSizingStyle(
-    isZoomed: boolean,
-    imgWidth: number,
-    imgHeight: number,
-    zoomScale: number,
-    containerHeight: number,
-    containerWidth: number,
-    isLoading: boolean,
-): ViewStyle | undefined {
+type GetZoomSizingStyleParams = {
+    isZoomed: boolean;
+    imageSize: Dimensions;
+    containerSize: Dimensions;
+    zoomScale: number;
+    isLoading: boolean;
+};
+
+function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLoading}: GetZoomSizingStyleParams): ViewStyle | undefined {
     // Hide image until finished loading to prevent showing preview with wrong dimensions
-    if (isLoading || imgWidth === 0 || imgHeight === 0) {
+    if (isLoading || imageSize.width === 0 || imageSize.height === 0) {
         return undefined;
     }
-    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
-    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
+    const top = `${Math.max((containerSize.height - imageSize.height) / 2, 0)}px`;
+    const left = `${Math.max((containerSize.width - imageSize.width) / 2, 0)}px`;
 
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale >= 1) {
             return {
-                height: `${imgHeight * zoomScale}px`,
-                width: `${imgWidth * zoomScale}px`,
+                height: `${imageSize.height * zoomScale}px`,
+                width: `${imageSize.width * zoomScale}px`,
             };
         }
 
         // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
         return {
-            height: `${imgHeight}px`,
-            width: `${imgWidth}px`,
+            height: `${imageSize.height}px`,
+            width: `${imageSize.width}px`,
             top,
             left,
         };
@@ -423,8 +425,8 @@ function getZoomSizingStyle(
     // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
         return {
-            height: `${imgHeight}px`,
-            width: `${imgWidth}px`,
+            height: `${imageSize.height}px`,
+            width: `${imageSize.width}px`,
             top,
             left,
         };
@@ -432,11 +434,11 @@ function getZoomSizingStyle(
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px`;
-    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px`;
+    const scaledTop = `${Math.max((containerSize.height - imageSize.height * zoomScale) / 2, 0)}px`;
+    const scaledLeft = `${Math.max((containerSize.width - imageSize.width * zoomScale) / 2, 0)}px`;
     return {
-        height: `${imgHeight * zoomScale}px`,
-        width: `${imgWidth * zoomScale}px`,
+        height: `${imageSize.height * zoomScale}px`,
+        width: `${imageSize.width * zoomScale}px`,
         top: scaledTop,
         left: scaledLeft,
     };
@@ -533,10 +535,20 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(
+    extraSmall: boolean,
+    small: boolean,
+    medium: boolean,
+    large: boolean,
+    width: number,
+    height: number,
+    isButtonIcon: boolean,
+): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
+        case extraSmall:
+            return {width: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall, height: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall};
         case small:
-            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall};
         case medium:
             return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
@@ -549,6 +561,7 @@ function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: bool
 
 function getButtonStyleWithIcon(
     styles: ThemeStyles,
+    extraSmall: boolean,
     small: boolean,
     medium: boolean,
     large: boolean,
@@ -558,6 +571,10 @@ function getButtonStyleWithIcon(
 ): ViewStyle | undefined {
     const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
     switch (true) {
+        case extraSmall: {
+            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
+            return useDefaultButtonStyles ? styles.buttonExtraSmall : {...styles.buttonExtraSmall, ...(hasText ? verticalStyle : styles.ph0)};
+        }
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
             return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? verticalStyle : styles.ph0)};
@@ -686,9 +703,9 @@ function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallb
  */
 function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
     let finalStyles: T[] = [];
-    allStyles.forEach((style) => {
+    for (const style of allStyles) {
         finalStyles = finalStyles.concat(parseStyleAsArray(style));
-    });
+    }
     return finalStyles;
 }
 
@@ -739,8 +756,8 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
-    const heightsIPhonesWithNotches = [812, 896, 844, 926];
-    return heightsIPhonesWithNotches.includes(windowHeight) || heightsIPhonesWithNotches.includes(windowWidth);
+    const heightsIPhonesWithNotches = new Set([812, 896, 844, 926]);
+    return heightsIPhonesWithNotches.has(windowHeight) || heightsIPhonesWithNotches.has(windowWidth);
 }
 
 /**
@@ -1083,6 +1100,12 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
         };
     }
 
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL) {
+        return {
+            height: variables.componentSizeXSmall,
+        };
+    }
+
     return {
         height: variables.componentSizeNormal,
     };
@@ -1314,6 +1337,7 @@ const staticStyleUtils = {
     getNavigationModalCardStyle,
     getCardStyles,
     getSearchPageNarrowHeaderStyles,
+    splitPercentageInputStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getIconWidthAndHeightStyle,
@@ -1700,20 +1724,97 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false, isDateColumnFullWidth = false): ViewStyle => {
+    getReportTableColumnStyles: (
+        columnName: string,
+        isDateColumnWide = false,
+        isAmountColumnWide = false,
+        isTaxAmountColumnWide = false,
+        isSubmittedColumnWide = false,
+        isApprovedColumnWide = false,
+        isPostedColumnWide = false,
+        isExportedColumnWide = false,
+        shouldRemoveTotalColumnFlex = false,
+    ): ViewStyle => {
         let columnWidth;
         switch (columnName) {
-            case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
+            case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
+                columnWidth = {...getWidthStyle(variables.w40), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
+                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
+                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                if (isDateColumnFullWidth) {
-                    columnWidth = styles.flex1;
-                    break;
-                }
                 columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
+                columnWidth = {...getWidthStyle(variables.w96)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
+            case CONST.SEARCH.TABLE_COLUMNS.TAG:
+                columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
+                columnWidth = {...getWidthStyle(variables.w130)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.TYPE:
+                columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+                columnWidth = {...getWidthStyle(variables.w92)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+                columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.ACTION:
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
+                columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.FEED:
+            case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
+            case CONST.SEARCH.TABLE_COLUMNS.CARD:
+            case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -1721,24 +1822,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             case CONST.SEARCH.TABLE_COLUMNS.IN:
-                columnWidth = styles.flex1;
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
-            case CONST.SEARCH.TABLE_COLUMNS.TAG:
-                columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TYPE:
-                columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.ACTION:
-                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
-                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             default:
                 columnWidth = styles.flex1;
         }
@@ -1795,7 +1879,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             return {};
         }
 
-        const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+        const composerLineHeight = variables.lineHeightXLarge ?? 0;
 
         return {
             maxHeight: maxLines * composerLineHeight,
@@ -1826,13 +1910,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getCharacterPadding: (prefix: string): number => {
         let padding = 0;
-        prefix.split('').forEach((char) => {
+        for (const char of prefix.split('')) {
             if (char.match(/[a-z]/i) && char === char.toUpperCase()) {
                 padding += 11;
             } else {
                 padding += 8;
             }
-        });
+        }
 
         return padding;
     },

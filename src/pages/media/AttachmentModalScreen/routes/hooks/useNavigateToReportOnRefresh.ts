@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -21,7 +21,7 @@ function useNavigateToReportOnRefresh({source, file, reportID}: UseReportNavigat
             if (reportID) {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             } else {
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack(ROUTES.INBOX);
             }
         });
     }, [source, reportID, file]);

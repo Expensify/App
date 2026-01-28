@@ -2,26 +2,47 @@ import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {CompanyCardFeed} from './CardFeeds';
+import type PersonalDetails from './PersonalDetails';
 
 /** Assign card flow steps */
 type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
 
-/** Data required to be sent to issue a new card */
+/**
+ * Data required to assign a company card.
+ *
+ * Note on card identifiers:
+ * - `cardName`: The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234")
+ * - `encryptedCardNumber`: The identifier sent to backend
+ *   - For direct feeds (Plaid/OAuth): equals cardName
+ *   - For commercial feeds (Visa/Mastercard/Amex): encrypted value from cardList
+ */
 type AssignCardData = {
+    /** The cardholder personal details */
+    cardholder?: PersonalDetails;
+
     /** The email address of the assignee */
     email: string;
 
-    /** Encrypted number of the selected card */
+    /**
+     * The identifier sent to backend for card assignment.
+     * For direct feeds: equals cardName
+     * For commercial feeds: encrypted value from cardList
+     */
     encryptedCardNumber: string;
 
-    /** Number of the selected card */
-    cardNumber: string;
-
     /** The name of the feed */
-    bankName: string;
+    bankName: CompanyCardFeed;
 
-    /** The name of the card */
+    /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234"). This is the original card identifier and should not be edited. */
     cardName: string;
+
+    /**
+     * The custom card name that can be edited by the user.
+     * Initially set to cardName, but can be changed in CardNameStep.
+     * This value is sent to the backend as the card name when assigning.
+     */
+    customCardName: string;
 
     /** The transaction start date of the card */
     startDate: string;
@@ -29,10 +50,10 @@ type AssignCardData = {
     /** An option based on which the transaction start date is chosen */
     dateOption: string;
 
-    /** bank id for Plaid */
+    /** Bank ID for Plaid */
     institutionId?: string;
 
-    /** access token for Plaid bank */
+    /** Access token for Plaid bank */
     plaidAccessToken?: string;
 
     /** Plaid feed name */
@@ -40,6 +61,12 @@ type AssignCardData = {
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
+
+    /** The email address of the inviting member */
+    invitingMemberEmail: string;
+
+    /** The accountID of the inviting member */
+    invitingMemberAccountID: number;
 };
 
 /** Model of assign card flow */
@@ -48,13 +75,13 @@ type AssignCard = {
     currentStep: AssignCardStep;
 
     /** Data required to be sent to assign a card */
-    data: Partial<AssignCardData>;
+    cardToAssign: Partial<AssignCardData>;
 
     /** Whether the user is editing step */
     isEditing: boolean;
 
-    /** Whether the card is successfully assigned */
-    isAssigned?: boolean;
+    /** Whether the assignment flow has finished */
+    isAssignmentFinished?: boolean;
 
     /** Whether the card is assigning */
     isAssigning?: boolean;

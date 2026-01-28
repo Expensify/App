@@ -36,9 +36,9 @@ function VideoPopoverMenu({
             menuItems={menuItems}
             anchorRef={videoPlayerMenuRef}
             shouldUseScrollView
+            shouldMaintainFocusAfterSubItemSelect={false}
         />
     );
 }
-VideoPopoverMenu.displayName = 'VideoPopoverMenu';
 
 export default VideoPopoverMenu;

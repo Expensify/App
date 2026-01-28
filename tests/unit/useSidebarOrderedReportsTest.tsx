@@ -86,7 +86,7 @@ describe('useSidebarOrderedReports', () => {
 
     const createMockReports = (reports: Record<string, Partial<Report>>) => {
         const mockReports: Record<string, Report> = {};
-        Object.entries(reports).forEach(([key, report]) => {
+        for (const [key, report] of Object.entries(reports)) {
             const reportId = key.replace('report', '');
             mockReports[reportId] = {
                 reportID: reportId,
@@ -95,7 +95,7 @@ describe('useSidebarOrderedReports', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 ...report,
             } as Report;
-        });
+        }
         return mockReports;
     };
 
@@ -202,7 +202,6 @@ describe('useSidebarOrderedReports', () => {
             expect.any(Function), // localeCompare
             expect.any(Object), // reportsDrafts
             expect.any(Object), // reportNameValuePairs
-            expect.any(Object), // reportAttributes
         );
     });
 

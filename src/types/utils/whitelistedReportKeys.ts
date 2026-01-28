@@ -32,6 +32,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         writeCapability: unknown;
         type: unknown;
         created: unknown;
+        submitted: unknown;
+        approved: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
         parentReportID: unknown;
@@ -69,6 +71,16 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         private_isArchived: unknown;
         welcomeMessage: unknown;
         agentZeroProcessingRequestIndicator: unknown;
+        nextStep: {
+            messageKey: unknown;
+            icon: unknown;
+            actorAccountID: unknown;
+            eta: {
+                etaKey: unknown;
+                dateTime: unknown;
+            };
+        };
+        transactionCount: unknown;
     },
     PolicyReportField['fieldID']
 >;

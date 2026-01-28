@@ -78,7 +78,7 @@ function PhoneNumberPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={PhoneNumberPage.displayName}
+            testID="PhoneNumberPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -106,19 +106,19 @@ function PhoneNumberPage() {
                                 InputComponent={TextInput}
                                 ref={inputCallbackRef}
                                 inputID={INPUT_IDS.PHONE_NUMBER}
-                                name="legalFirstName"
+                                name="phoneNumber"
                                 label={translate('common.phoneNumber')}
                                 aria-label={translate('common.phoneNumber')}
                                 role={CONST.ROLE.PRESENTATION}
                                 defaultValue={phoneNumber}
                                 spellCheck={false}
+                                inputMode={CONST.INPUT_MODE.TEL}
                                 onBlur={() => {
                                     if (!validateLoginError) {
                                         return;
                                     }
                                     clearPhoneNumberError();
                                 }}
-                                inputMode={CONST.INPUT_MODE.TEL}
                             />
                         </OfflineWithFeedback>
                     </FormProvider>
@@ -127,7 +127,5 @@ function PhoneNumberPage() {
         </ScreenWrapper>
     );
 }
-
-PhoneNumberPage.displayName = 'PhoneNumberPage';
 
 export default PhoneNumberPage;

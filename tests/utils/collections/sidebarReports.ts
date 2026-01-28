@@ -17,6 +17,7 @@ function createSidebarReport(
         type?: ValueOf<typeof CONST.REPORT.TYPE>;
         isPinned?: boolean;
         hasErrorsOtherThanFailedReceipt?: boolean;
+        requiresAttention?: boolean;
         lastVisibleActionCreated?: string;
         isOwnPolicyExpenseChat?: boolean;
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -24,9 +25,9 @@ function createSidebarReport(
         policyID?: string;
         currency?: string;
     } = {},
-): Report & {hasErrorsOtherThanFailedReceipt?: boolean} {
+): Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean} {
     const reportID = index.toString();
-    const baseReport = createRandomReport(index);
+    const baseReport = createRandomReport(index, options.chatType ?? CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
 
     return {
         ...baseReport,
@@ -35,9 +36,9 @@ function createSidebarReport(
         type: options.type ?? CONST.REPORT.TYPE.CHAT,
         isPinned: options.isPinned ?? false,
         hasErrorsOtherThanFailedReceipt: options.hasErrorsOtherThanFailedReceipt ?? false,
+        requiresAttention: options.requiresAttention ?? false,
         lastVisibleActionCreated: options.lastVisibleActionCreated ?? '2024-01-01 10:00:00',
         isOwnPolicyExpenseChat: options.isOwnPolicyExpenseChat ?? false,
-        chatType: options.chatType ?? CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         ownerAccountID: options.ownerAccountID ?? index,
         policyID: options.policyID ?? reportID,
         currency: options.currency ?? 'USD',
@@ -59,9 +60,10 @@ function createSidebarReportsCollection(
         ownerAccountID?: number;
         policyID?: string;
         currency?: string;
+        requiresAttention?: boolean;
     }>,
 ): ReportsToDisplayInLHN {
-    return createCollection<Report & {hasErrorsOtherThanFailedReceipt?: boolean}>(
+    return createCollection<Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>(
         (item) => item.reportID,
         (index) => createSidebarReport(index, reportConfigs.at(index) ?? {}),
         reportConfigs.length,

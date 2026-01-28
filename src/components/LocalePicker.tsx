@@ -50,6 +50,4 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     );
 }
 
-LocalePicker.displayName = 'LocalePicker';
-
 export default LocalePicker;

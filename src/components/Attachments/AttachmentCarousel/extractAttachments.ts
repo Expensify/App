@@ -116,9 +116,9 @@ function extractAttachments(
     }
 
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...getSortedReportActions(Object.values(reportActions ?? {}))];
-    actions.forEach((action, key) => {
+    for (const [key, action] of actions.entries()) {
         if (!shouldReportActionBeVisible(action, key, canUserPerformAction) || isMoneyRequestAction(action)) {
-            return;
+            continue;
         }
 
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
@@ -127,7 +127,7 @@ function extractAttachments(
             .replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
             .replaceAll('<video ', `<video data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}" `);
         htmlParser.write(getHtmlWithAttachmentID(html, action.reportActionID));
-    });
+    }
     htmlParser.end();
 
     return attachments.reverse();

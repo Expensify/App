@@ -114,8 +114,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009023902
-        versionName "9.2.39-2"
+        versionCode 1009031003
+        versionName "9.3.10-3"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -249,8 +249,8 @@ dependencies {
     implementation "com.google.firebase:firebase-crashlytics"
 
     // GIF support
-    implementation 'com.facebook.fresco:fresco:2.5.0'
-    implementation 'com.facebook.fresco:animated-gif:2.5.0'
+    implementation 'com.facebook.fresco:fresco:3.4.0'
+    implementation 'com.facebook.fresco:animated-gif:3.4.0'
 
     // AndroidX support library
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'

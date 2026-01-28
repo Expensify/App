@@ -1,8 +1,7 @@
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
@@ -11,17 +10,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getBrowser, isMobile} from '@libs/Browser';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import CONST from '@src/CONST';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
 type Props = {
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props, forwardedRef: ForwardedRef<LottieView>) {
+function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props) {
     const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
-    const {splashScreenState} = useSplashScreenStateContext();
+    const {splashScreenState} = useSplashScreenState();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
 
@@ -47,7 +46,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
@@ -117,14 +116,8 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             {...props}
             source={animationFile}
             key={`${hasNavigatedAway}`}
-            ref={(ref) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
-                    // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
-                }
-                animationRef.current = ref;
+            ref={(newRef) => {
+                animationRef.current = newRef;
             }}
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
@@ -134,6 +127,4 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
     );
 }
 
-Lottie.displayName = 'Lottie';
-
-export default forwardRef(Lottie);
+export default Lottie;

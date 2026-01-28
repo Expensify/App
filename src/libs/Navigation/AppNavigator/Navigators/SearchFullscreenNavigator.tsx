@@ -12,7 +12,6 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
-const loadSearchMoneyReportPage = () => require<ReactComponentModule>('@pages/Search/SearchMoneyRequestReportPage').default;
 
 const Stack = createSearchFullscreenNavigator<SearchFullscreenNavigatorParamList>();
 
@@ -36,15 +35,9 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
                     initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
                     options={{animation: Animations.NONE}}
                 />
-                <Stack.Screen
-                    name={SCREENS.SEARCH.MONEY_REQUEST_REPORT}
-                    getComponent={loadSearchMoneyReportPage}
-                />
             </Stack.Navigator>
         </FreezeWrapper>
     );
 }
-
-SearchFullscreenNavigator.displayName = 'SearchFullscreenNavigator';
 
 export default SearchFullscreenNavigator;

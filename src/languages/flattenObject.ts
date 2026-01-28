@@ -20,10 +20,10 @@ function flattenObject<TTranslations>(obj: TranslationDeepObject<TTranslations>)
             let isEmpty = true;
 
             // Recursive call to the keys and connect to the respective data
-            Object.keys(data).forEach((k) => {
+            for (const k of Object.keys(data)) {
                 isEmpty = false;
                 recursive(data[k] as TranslationDeepObject, key ? `${key}.${k}` : k);
-            });
+            }
 
             // Check for when the object is empty but a key exists, so that
             // it defaults to an empty object

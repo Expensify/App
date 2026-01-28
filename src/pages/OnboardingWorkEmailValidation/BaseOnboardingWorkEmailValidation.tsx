@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
@@ -65,22 +65,19 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues, isVsb, isSmb, isFocused]);
+    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb, isFocused]);
 
-    const sendValidateCode = useCallback(() => {
+    const sendValidateCode = () => {
         if (!credentials?.login) {
             return;
         }
         resendValidateCode(credentials.login);
-    }, [credentials?.login]);
+    };
 
-    const validateAccountAndMerge = useCallback(
-        (validateCode: string) => {
-            setOnboardingErrorMessage(null);
-            MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
-        },
-        [workEmail, session?.accountID],
-    );
+    const validateAccountAndMerge = (validateCode: string) => {
+        setOnboardingErrorMessage(null);
+        MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
+    };
 
     return (
         <ScreenWrapper
@@ -94,6 +91,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                 onBackButtonPress={() => {
                     updateOnboardingValuesAndNavigation(onboardingValues);
                 }}
+                shouldDisplayHelpButton={false}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -125,7 +123,5 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkEmailValidation.displayName = 'BaseOnboardingWorkEmailValidation';
 
 export default BaseOnboardingWorkEmailValidation;

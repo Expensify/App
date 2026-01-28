@@ -4,14 +4,14 @@ import {Str} from 'expensify-common';
  * Returns true if `text` is a single token URL (no whitespace), allowing optional angle-bracket wrappers.
  */
 const isStandaloneURL = (text: string): boolean => {
-    if (!text) {
+    const trimmed = text.trim();
+    if (!trimmed) {
         return false;
     }
-    const trimmed = text.trim();
     if (/\s/.test(trimmed)) {
         return false;
     }
-    const unwrapped = trimmed.replace(/^<|>$/g, '');
+    const unwrapped = trimmed.replaceAll(/^<|>$/g, '');
 
     // Reject if contains emoji or any non-ASCII characters
     // (valid URLs per RFC 3986 should be ASCII-only)
@@ -32,10 +32,10 @@ const escapeLinkText = (text: string): string => {
         return '';
     }
     const collapsed = text
-        .replace(/\r?\n+/g, ' ')
-        .replace(/\s+/g, ' ')
+        .replaceAll(/\r?\n+/g, ' ')
+        .replaceAll(/\s+/g, ' ')
         .trim();
-    return collapsed.replace(/\[/g, '&#91;').replace(/\]/g, '&#93;');
+    return collapsed.replaceAll('[', '&#91;').replaceAll(']', '&#93;');
 };
 
 /**
@@ -49,7 +49,7 @@ const sanitizeUrlForMarkdown = (url: string): string => {
     }
 
     const trimmed = (url || '').trim();
-    const unwrapped = trimmed.replace(/^<|>$/g, '');
+    const unwrapped = trimmed.replaceAll(/^<|>$/g, '');
 
     try {
         return encodeURI(unwrapped);

@@ -58,6 +58,12 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the report is an archived room */
     private_isArchived?: string;
 
+    /** Identifies where the report originated from */
+    origin?: string;
+
+    /** Original reportID that spawned the current report */
+    originalID?: string;
+
     /** Scheduled calls for the user on #admin rooms */
     calendlyCalls?: CalendlyCall[];
 

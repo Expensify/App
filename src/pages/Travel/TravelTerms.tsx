@@ -8,10 +8,10 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {RocketDude} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -37,6 +37,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
@@ -46,9 +47,11 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
+    const policyID = route.params.policyID;
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {canBeMissing: true});
 
     const createTravelEnablementIssue = useCallback(() => {
         if (!conciergeReportID) {
@@ -57,9 +60,9 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
-        addComment(conciergeReportID, conciergeReportID, message, CONST.DEFAULT_TIME_ZONE);
+        addComment(conciergeReport, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
-    }, [translate, account?.primaryLogin, conciergeReportID]);
+    }, [translate, account?.primaryLogin, conciergeReportID, conciergeReport]);
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
@@ -97,7 +100,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         <>
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={TravelTerms.displayName}
+                testID="TravelTerms"
             >
                 <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
                     <HeaderWithBackButton
@@ -131,7 +134,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                 }
 
                                 asyncOpenURL(
-                                    acceptSpotnanaTerms(domain).then((response) => {
+                                    acceptSpotnanaTerms(domain, policyID).then((response) => {
                                         if (response?.jsonCode !== 200) {
                                             return Promise.reject();
                                         }
@@ -167,13 +170,11 @@ function TravelTerms({route}: TravelTermsPageProps) {
                 promptStyles={styles.mb2}
                 confirmText={translate('travel.verifyCompany.confirmText')}
                 shouldShowCancelButton={false}
-                image={RocketDude}
+                image={illustrations.RocketDude}
                 imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
             />
         </>
     );
 }
-
-TravelTerms.displayName = 'TravelMenu';
 
 export default TravelTerms;

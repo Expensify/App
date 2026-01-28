@@ -20,9 +20,11 @@ import FullScreenLoaderContextProvider from './components/FullScreenLoaderContex
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
+import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import KYCWallContextProvider from './components/KYCWall/KYCWallContext';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
+import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -51,6 +53,7 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
+import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
@@ -96,6 +99,7 @@ function App() {
                                     components={[
                                         OnyxListItemProvider,
                                         CurrentUserPersonalDetailsProvider,
+                                        LocaleContextProvider,
                                         ThemeProvider,
                                         ThemeStylesProvider,
                                         ThemeIllustrationsProvider,
@@ -103,7 +107,6 @@ function App() {
                                         HTMLEngineProvider,
                                         PortalProvider,
                                         SafeArea,
-                                        LocaleContextProvider,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
                                         ScrollOffsetContextProvider,
@@ -119,11 +122,13 @@ function App() {
                                         VideoPopoverMenuContextProvider,
                                         KeyboardProvider,
                                         KeyboardStateProvider,
+                                        KeyboardDismissibleFlatListContextProvider,
                                         SearchRouterContextProvider,
                                         ProductTrainingContextProvider,
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
+                                        ModalProvider,
                                         SidePanelContextProvider,
                                         ExpensifyCardContextProvider,
                                         KYCWallContextProvider,
@@ -146,8 +151,6 @@ function App() {
         </StrictModeWrapper>
     );
 }
-
-App.displayName = 'App';
 
 const WrappedApp = Sentry.wrap(App);
 WrappedApp.displayName = 'App';

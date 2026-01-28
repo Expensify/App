@@ -67,6 +67,4 @@ function ExpenseLimitTypeSelector({defaultValue, wrapperStyle, label, setNewExpe
     );
 }
 
-ExpenseLimitTypeSelector.displayName = 'ExpenseLimitTypeSelector';
-
 export default ExpenseLimitTypeSelector;

@@ -6,8 +6,9 @@ import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type IconButtonProps = {
+type IconButtonProps = WithSentryLabel & {
     src: IconAsset;
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
     fill?: string;
@@ -18,7 +19,7 @@ type IconButtonProps = {
     shouldForceRenderingTooltipBelow?: boolean;
 };
 
-function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false}: IconButtonProps) {
+function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false, sentryLabel}: IconButtonProps) {
     const styles = useThemeStyles();
     return (
         <Tooltip
@@ -31,6 +32,7 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
                 style={[styles.videoIconButton, style]}
                 hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={sentryLabel}
             >
                 <Icon
                     src={src}
@@ -41,7 +43,5 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
         </Tooltip>
     );
 }
-
-IconButton.displayName = 'IconButton';
 
 export default IconButton;

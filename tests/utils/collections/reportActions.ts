@@ -7,13 +7,13 @@ import type DeepRecord from '@src/types/utils/DeepRecord';
 
 const flattenActionNamesValues = (actionNames: DeepRecord<string, ReportActionName>): ReportActionName[] => {
     let result: ReportActionName[] = [];
-    Object.values(actionNames).forEach((value) => {
+    for (const value of Object.values(actionNames)) {
         if (typeof value === 'object') {
             result = result.concat(flattenActionNamesValues(value));
         } else {
             result.push(value);
         }
-    });
+    }
     return result;
 };
 

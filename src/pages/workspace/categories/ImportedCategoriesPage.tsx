@@ -1,8 +1,8 @@
 import React, {useCallback, useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -66,7 +66,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
+            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
             const duplicate = findDuplicate(columns);
             const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
@@ -76,9 +76,9 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             const containsEmptyName = categoriesNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
 
             if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicateColumn.text});
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
             } else if (containsEmptyName) {
-                errors.emptyNames = translate('spreadsheet.emptyMappedField', {fieldName: translate('common.name')});
+                errors.emptyNames = translate('spreadsheet.emptyMappedField', translate('common.name'));
             } else {
                 errors = {};
             }
@@ -136,7 +136,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedCategoriesPage.displayName}
+            testID="ImportedCategoriesPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -156,20 +156,13 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
 
-            <ConfirmModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                shouldHandleNavigationBack
+                closeImportPageAndModal={closeImportPageAndModal}
+                shouldHandleNavigationBack={false}
             />
         </ScreenWrapper>
     );
 }
-
-ImportedCategoriesPage.displayName = 'ImportedCategoriesPage';
 
 export default ImportedCategoriesPage;

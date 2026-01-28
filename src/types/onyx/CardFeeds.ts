@@ -7,8 +7,11 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
+/** Company card feed with domain ID */
+type CompanyCardFeedWithDomainID = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+
 /** Custom card feed with a number */
-type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
+type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CompanyCardFeedWithDomainID;
 
 /** Statement period end */
 type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
@@ -133,7 +136,25 @@ type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
 /** Custom feed names */
 type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
 
-/** Card feeds model */
+/** Domain settings model */
+type DomainSettings = {
+    /** Domain settings */
+    settings: {
+        /** Whether logging in with SAML is enabled for the domain */
+        samlEnabled?: boolean;
+
+        /** Whether logging in with SAML is required for the domain */
+        samlRequired?: boolean;
+
+        /** Encrypted SCIM token, exists only when Okta is enabled for the domain by support */
+        oktaSCIM?: string;
+
+        /** Email to primary contact from the domain */
+        technicalContactEmail?: string;
+    };
+};
+
+/** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
     settings: {
@@ -145,11 +166,17 @@ type CardFeeds = {
 
         /** Account details */
         oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
+
+        /** Email address of the technical contact for the domain */
+        technicalContactEmail?: string;
+
+        /** Whether to use the technical contact's billing card */
+        useTechnicalContactBillingCard?: boolean;
     };
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
-};
+} & DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
@@ -214,6 +241,19 @@ type AddNewCompanyCardFeed = {
 /** Card fund ID */
 type FundID = number;
 
+/** Combined card feed type */
+type CombinedCardFeed = CustomCardFeedData &
+    Partial<DirectCardFeedData> & {
+        /** Custom feed name, originally coming from settings.companyCardNicknames */
+        customFeedName?: string;
+
+        /** Feed name */
+        feed: CompanyCardFeedWithNumber;
+    };
+
+/** Card feeds combined by domain ID into one object */
+type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
+
 export default CardFeeds;
 export type {
     AddNewCardFeedStep,
@@ -225,9 +265,14 @@ export type {
     CardFeedProvider,
     CardFeedData,
     CompanyFeeds,
+    CompanyCardFeedWithDomainID,
+    CustomCardFeedData,
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,
     FundID,
     StatementPeriodEnd,
     StatementPeriodEndDay,
+    DomainSettings,
+    CombinedCardFeed,
+    CombinedCardFeeds,
 };

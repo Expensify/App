@@ -11,8 +11,8 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import DateUtils from '@libs/DateUtils';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
-import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
-import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+import ReportActionItemSingle from '@pages/inbox/report/ReportActionItemSingle';
+import SidebarLinksData from '@pages/inbox/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
@@ -133,12 +133,12 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 
     const participants = buildParticipantsFromAccountIDs(participantAccountIDs);
 
-    adminIDs.forEach((id) => {
+    for (const id of adminIDs) {
         participants[id] = {
             notificationPreference: 'always',
             role: CONST.REPORT.ROLE.ADMIN,
         };
-    });
+    }
 
     return {
         type: CONST.REPORT.TYPE.CHAT,

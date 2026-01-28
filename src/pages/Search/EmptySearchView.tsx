@@ -1,26 +1,31 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useState} from 'react';
+import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
-import ConfirmModal from '@components/ConfirmModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
-import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+import type {SearchQueryJSON} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
@@ -33,23 +38,26 @@ import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
-import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
+import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
     type: SearchDataTypes;
     hasResults: boolean;
+    queryJSON?: SearchQueryJSON;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -57,15 +65,16 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
     isUserPaidPolicyMember: boolean;
-    activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     introSelected: OnyxEntry<IntroSelected>;
     hasSeenTour: boolean;
+    searchMenuCreateReportConfirmationModal: ReactNode;
 };
 
 type EmptySearchViewItem = {
-    headerMedia: DotLottieAnimation;
+    headerMediaType: MediaTypes;
+    headerMedia: HeaderMedia;
     title: string;
     subtitle?: string;
     headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
@@ -77,27 +86,18 @@ type EmptySearchViewItem = {
     children?: React.ReactNode;
 };
 
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Alert,
-        translationKey: 'travel.features.alerts',
-    },
-];
+type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
-function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
-    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -105,21 +105,7 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
         canBeMissing: true,
     });
 
-    const isUserPaidPolicyMemberSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
-        },
-        [currentUserPersonalDetails.login],
-    );
-
-    const [isUserPaidPolicyMember = false] = useOnyx(
-        ONYXKEYS.COLLECTION.POLICY,
-        {
-            canBeMissing: true,
-            selector: isUserPaidPolicyMemberSelector,
-        },
-        [isUserPaidPolicyMemberSelector],
-    );
+    const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
 
     return (
         <SearchScopeProvider>
@@ -131,11 +117,12 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
                 typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
                 isUserPaidPolicyMember={isUserPaidPolicyMember}
-                activePolicyID={activePolicyID}
                 activePolicy={activePolicy}
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
+                searchMenuCreateReportConfirmationModal={SearchMenuCreateReportConfirmationModal}
+                queryJSON={queryJSON}
             />
         </SearchScopeProvider>
     );
@@ -145,8 +132,7 @@ const hasTransactionsSelector = (transactions: OnyxCollection<Transaction>) =>
     Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
 const hasExpenseReportsSelector = (reports: OnyxCollection<Report>) =>
-    Object.values(reports ?? {}).filter((report) => report?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length >
-    0;
+    Object.values(reports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
 function EmptySearchViewContent({
     similarSearchHash,
@@ -156,22 +142,37 @@ function EmptySearchViewContent({
     typeMenuSections,
     allPolicies,
     isUserPaidPolicyMember,
-    activePolicyID,
     activePolicy,
     groupPoliciesWithChatEnabled,
     introSelected,
     hasSeenTour,
+    searchMenuCreateReportConfirmationModal,
+    queryJSON,
 }: EmptySearchViewContentProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const contextMenuAnchor = useRef<RNText>(null);
-    const [modalVisible, setModalVisible] = useState(false);
+
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
+
+    const tripsFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.PiggyBank,
+            translationKey: 'travel.features.saveMoney',
+        },
+        {
+            icon: illustrations.TravelAlerts,
+            translationKey: 'travel.features.alerts',
+        },
+    ];
+    const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
+    const {showConfirmModal} = useConfirmModal();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
@@ -183,124 +184,184 @@ function EmptySearchViewContent({
     });
 
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-    const {
-        taskReport: viewTourTaskReport,
-        taskParentReport: viewTourTaskParentReport,
-        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
-    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
-    const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
-    }, [allPolicies]);
+    const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
-    const typeMenuItems = useMemo(() => {
-        return typeMenuSections.map((section) => section.menuItems).flat();
-    }, [typeMenuSections]);
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
 
-    const tripViewChildren = useMemo(() => {
-        const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
-            showContextMenu({
-                type: CONST.CONTEXT_MENU_TYPES.LINK,
-                event,
-                selection: CONST.BOOK_TRAVEL_DEMO_URL,
-                contextMenuAnchor: contextMenuAnchor.current,
-            });
-        };
+    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-        return (
-            <>
-                <Text style={[styles.textSupporting, styles.textNormal]}>
-                    {translate('travel.subtitle')}{' '}
-                    <PressableWithSecondaryInteraction
-                        inline
-                        onSecondaryInteraction={onLongPress}
-                        accessible
-                        accessibilityLabel={translate('travel.bookADemo')}
-                    >
-                        <TextLink
-                            onLongPress={onLongPress}
-                            onPress={() => {
-                                Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
-                            }}
-                            ref={contextMenuAnchor}
-                        >
-                            {translate('travel.bookADemo')}
-                        </TextLink>
-                    </PressableWithSecondaryInteraction>
-                    {translate('travel.toLearnMore')}
-                </Text>
-                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1, styles.mb5]}>
-                    {tripsFeatures.map((tripsFeature) => (
-                        <View
-                            key={tripsFeature.translationKey}
-                            style={styles.w100}
-                        >
-                            <MenuItem
-                                title={translate(tripsFeature.translationKey)}
-                                icon={tripsFeature.icon}
-                                iconWidth={variables.menuIconSize}
-                                iconHeight={variables.menuIconSize}
-                                interactive={false}
-                                displayInDefaultIconColor
-                                wrapperStyle={[styles.p0, styles.cursorAuto]}
-                                containerStyle={[styles.m0, styles.wAuto]}
-                                numberOfLinesTitle={0}
-                            />
-                        </View>
-                    ))}
-                </View>
-                <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
-            </>
-        );
-    }, [styles, translate]);
+    const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: reportSummariesOnyxSelector,
+    });
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const shouldShowEmptyReportConfirmation = hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID) && hasDismissedEmptyReportsConfirmation !== true;
 
-    // Default 'Folder' lottie animation, along with its background styles
-    const defaultViewItemHeader = useMemo(
-        () => ({
-            headerMedia: LottieAnimations.GenericEmptyState,
-            headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-            lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
-        }),
-        [StyleUtils, styles.emptyStateFolderWebStyles, theme.emptyFolderBG],
-    );
+    const filteredPolicyID = queryJSON?.policyID;
+    let isFilteredWorkspaceAccessible = true;
+    if (filteredPolicyID) {
+        const policyIDToCheck = Array.isArray(filteredPolicyID) ? filteredPolicyID.at(0) : filteredPolicyID;
+        const filteredPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToCheck}`];
+        isFilteredWorkspaceAccessible = !!filteredPolicy;
+    }
 
-    const content: EmptySearchViewItem = useMemo(() => {
-        // Begin by going through all of our To-do searches, and returning their empty state
-        // if it exists
-        for (const menuItem of typeMenuItems) {
-            if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
-                return {
-                    headerMedia: menuItem.emptyState.headerMedia,
-                    title: translate(menuItem.emptyState.title),
-                    subtitle: translate(menuItem.emptyState.subtitle),
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
-                    lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
-                    buttons: menuItem.emptyState.buttons?.map((button) => ({
-                        ...button,
-                        buttonText: translate(button.buttonText),
-                    })),
-                };
-            }
+    const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!defaultChatEnabledPolicy?.id) {
+            return;
         }
 
-        const startTestDriveAction = () => {
-            startTestDrive(
-                introSelected,
-                false,
-                tryNewDot?.hasBeenAddedToNudgeMigration ?? false,
-                isUserPaidPolicyMember,
-                viewTourTaskReport,
-                viewTourTaskParentReport,
-                isViewTourTaskParentReportArchived,
-                currentUserPersonalDetails.accountID,
-            );
-        };
+        const {reportID: createdReportID} = createNewReport(
+            currentUserPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            defaultChatEnabledPolicy,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+        });
+    };
 
-        // If we didn't match a specific search hash, show a specific message based on the type of the data
+    const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: defaultChatEnabledPolicyID,
+        policyName: defaultChatEnabledPolicy?.name ?? '',
+        onConfirm: handleCreateWorkspaceReport,
+    });
+
+    const handleCreateReportClick = () => {
+        if (shouldShowEmptyReportConfirmation) {
+            openCreateReportFromSearch();
+        } else {
+            handleCreateWorkspaceReport(false);
+        }
+    };
+
+    const handleRedirectToExpensifyClassic = () => {
+        showConfirmModal({
+            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+            confirmText: translate('exitSurvey.goToExpensifyClassic'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        });
+    };
+
+    const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
+        interceptAnonymousUser(() => {
+            if (shouldRedirectToExpensifyClassic) {
+                handleRedirectToExpensifyClassic();
+                return;
+            }
+            startMoneyRequest(iouType, generateReportID());
+        });
+    };
+
+    const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
+
+    const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
+        if (!contextMenuAnchor) {
+            return;
+        }
+
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.LINK,
+            event,
+            selection: CONST.BOOK_TRAVEL_DEMO_URL,
+            contextMenuAnchor,
+        });
+    };
+
+    const tripViewChildren = (
+        <>
+            <Text style={[styles.textSupporting, styles.textNormal]}>
+                {translate('travel.subtitle')}{' '}
+                <PressableWithSecondaryInteraction
+                    inline
+                    onSecondaryInteraction={onLongPress}
+                    accessible
+                    accessibilityLabel={translate('travel.bookADemo')}
+                >
+                    <TextLink
+                        onLongPress={onLongPress}
+                        onPress={() => {
+                            Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
+                        }}
+                        ref={setContextMenuAnchor}
+                    >
+                        {translate('travel.bookADemo')}
+                    </TextLink>
+                </PressableWithSecondaryInteraction>
+                {translate('travel.toLearnMore')}
+            </Text>
+            <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1, styles.mb5]}>
+                {tripsFeatures.map((tripsFeature) => (
+                    <View
+                        key={tripsFeature.translationKey}
+                        style={styles.w100}
+                    >
+                        <MenuItem
+                            title={translate(tripsFeature.translationKey)}
+                            icon={tripsFeature.icon}
+                            iconWidth={variables.menuIconSize}
+                            iconHeight={variables.menuIconSize}
+                            interactive={false}
+                            displayInDefaultIconColor
+                            wrapperStyle={[styles.p0, styles.cursorAuto]}
+                            containerStyle={[styles.m0, styles.wAuto]}
+                            numberOfLinesTitle={0}
+                        />
+                    </View>
+                ))}
+            </View>
+            {!!activePolicy?.isTravelEnabled && (
+                <SearchScopeProvider isOnSearch={false}>
+                    <BookTravelButton
+                        text={translate('search.searchResults.emptyTripResults.buttonText')}
+                        activePolicyID={activePolicy?.id}
+                    />
+                </SearchScopeProvider>
+            )}
+        </>
+    );
+
+    // Default 'Folder' lottie animation, along with its background styles
+    const defaultViewItemHeader = useSearchEmptyStateIllustration();
+
+    const startTestDriveAction = () => {
+        startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
+    };
+
+    let content: EmptySearchViewItem | undefined;
+
+    // Begin by going through all of our To-do searches, and returning their empty state
+    // if it exists
+    for (const menuItem of typeMenuItems) {
+        if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
+            content = {
+                ...defaultViewItemHeader.fireworks,
+                title: translate(menuItem.emptyState.title),
+                subtitle: translate(menuItem.emptyState.subtitle),
+                buttons: menuItem.emptyState.buttons?.map((button) => ({
+                    ...button,
+                    buttonText: translate(button.buttonText),
+                })),
+            };
+            break;
+        }
+    }
+
+    // If we didn't match a specific search hash, show a specific message based on the type of the data
+    if (!content) {
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
-                return {
+                content = {
+                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
                     headerMedia: LottieAnimations.TripsEmptyState,
                     headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
@@ -308,17 +369,23 @@ function EmptySearchViewContent({
                     children: tripViewChildren,
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
+                break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-                if (hasResults) {
-                    return {
-                        ...defaultViewItemHeader,
+                if (!isFilteredWorkspaceAccessible) {
+                    content = {
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
-                }
-                if (!hasResults || !hasExpenseReports) {
-                    return {
-                        ...defaultViewItemHeader,
+                } else if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
+                    content = {
+                        ...defaultViewItemHeader.folder,
+                        title: translate('search.searchResults.emptyResults.title'),
+                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    };
+                } else if (!hasResults || !hasExpenseReports) {
+                    content = {
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyReportResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
                         buttons: [
@@ -336,15 +403,7 @@ function EmptySearchViewContent({
                                           buttonText: translate('quickAction.createReport'),
                                           buttonAction: () => {
                                               interceptAnonymousUser(() => {
-                                                  let workspaceIDForReportCreation: string | undefined;
-
-                                                  if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                                      // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                                      workspaceIDForReportCreation = activePolicyID;
-                                                  } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                                      // If the user has only one paid group workspace with chat enabled, we create a report with it
-                                                      workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                                  }
+                                                  const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
                                                   if (
                                                       !workspaceIDForReportCreation ||
@@ -356,15 +415,7 @@ function EmptySearchViewContent({
                                                   }
 
                                                   if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                                      const createdReportID = createNewReport(
-                                                          currentUserPersonalDetails,
-                                                          isASAPSubmitBetaEnabled,
-                                                          hasViolations,
-                                                          workspaceIDForReportCreation,
-                                                      );
-                                                      Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                          Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                                      });
+                                                      handleCreateReportClick();
                                                   } else {
                                                       Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                                                   }
@@ -379,47 +430,48 @@ function EmptySearchViewContent({
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (hasResults) {
-                    return {
-                        ...defaultViewItemHeader,
-                        title: translate('search.searchResults.emptyResults.title'),
-                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    };
+                if (!content) {
+                    if (!isFilteredWorkspaceAccessible) {
+                        content = {
+                            ...defaultViewItemHeader.folder,
+                            title: translate('search.searchResults.emptyResults.title'),
+                            subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                        };
+                    } else if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
+                        content = {
+                            ...defaultViewItemHeader.folder,
+                            title: translate('search.searchResults.emptyResults.title'),
+                            subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                        };
+                    } else if (!hasResults || !hasTransactions) {
+                        content = {
+                            ...defaultViewItemHeader.folder,
+                            title: translate('search.searchResults.emptyExpenseResults.title'),
+                            subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
+                            buttons: [
+                                ...(!hasSeenTour
+                                    ? [
+                                          {
+                                              buttonText: translate('emptySearchView.takeATestDrive'),
+                                              buttonAction: startTestDriveAction,
+                                          },
+                                      ]
+                                    : []),
+                                {
+                                    buttonText: translate('iou.createExpense'),
+                                    buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
+                                    success: true,
+                                },
+                            ],
+                        };
+                    }
                 }
-                if (!hasResults || !hasTransactions) {
-                    return {
-                        ...defaultViewItemHeader,
-                        title: translate('search.searchResults.emptyExpenseResults.title'),
-                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
-                        buttons: [
-                            ...(!hasSeenTour
-                                ? [
-                                      {
-                                          buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: startTestDriveAction,
-                                      },
-                                  ]
-                                : []),
-                            {
-                                buttonText: translate('iou.createExpense'),
-                                buttonAction: () =>
-                                    interceptAnonymousUser(() => {
-                                        if (shouldRedirectToExpensifyClassic) {
-                                            setModalVisible(true);
-                                            return;
-                                        }
-                                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
-                                    }),
-                                success: true,
-                            },
-                        ],
-                    };
-                }
+                break;
             // We want to display the default nothing to show message if there is any filter applied.
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.INVOICE:
-                if (!hasResults) {
-                    return {
+                if (!content && !hasResults) {
+                    content = {
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
@@ -433,71 +485,47 @@ function EmptySearchViewContent({
                                 : []),
                             {
                                 buttonText: translate('workspace.invoices.sendInvoice'),
-                                buttonAction: () =>
-                                    interceptAnonymousUser(() => {
-                                        if (shouldRedirectToExpensifyClassic) {
-                                            setModalVisible(true);
-                                            return;
-                                        }
-                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
-                                    }),
+                                buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
                                 success: true,
                             },
                         ],
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                     };
                 }
+                break;
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
-                return {
-                    ...defaultViewItemHeader,
-                    title: translate('search.searchResults.emptyResults.title'),
-                    subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                };
+                if (!content) {
+                    content = {
+                        ...defaultViewItemHeader.folder,
+                        title: translate('search.searchResults.emptyResults.title'),
+                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    };
+                }
+                break;
         }
-    }, [
-        type,
-        typeMenuItems,
-        similarSearchHash,
-        translate,
-        StyleUtils,
-        theme.todoBG,
-        theme.travelBG,
-        styles.emptyStateFireworksWebStyles,
-        styles.emptyStateFolderWebStyles,
-        styles.textAlignLeft,
-        styles.tripEmptyStateLottieWebView,
-        introSelected,
-        tryNewDot?.hasBeenAddedToNudgeMigration,
-        isUserPaidPolicyMember,
-        viewTourTaskReport,
-        viewTourTaskParentReport,
-        isViewTourTaskParentReportArchived,
-        hasResults,
-        defaultViewItemHeader,
-        hasSeenTour,
-        groupPoliciesWithChatEnabled,
-        activePolicy,
-        activePolicyID,
-        currentUserPersonalDetails,
-        isASAPSubmitBetaEnabled,
-        hasViolations,
-        tripViewChildren,
-        hasTransactions,
-        shouldRedirectToExpensifyClassic,
-        hasExpenseReports,
-    ]);
+    }
+
+    // Fallback to default content if somehow not set (should never happen in practice)
+    if (!content) {
+        content = {
+            ...defaultViewItemHeader.folder,
+            title: translate('search.searchResults.emptyResults.title'),
+            subtitle: translate('search.searchResults.emptyResults.subtitle'),
+        };
+    }
 
     return (
         <>
+            {searchMenuCreateReportConfirmationModal}
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
-                <EmptyStateComponent
+                <GenericEmptyStateComponent
                     SkeletonComponent={SearchRowSkeleton}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}
                     title={content.title}
@@ -508,24 +536,12 @@ function EmptySearchViewContent({
                     lottieWebViewStyles={content.lottieWebViewStyles}
                 >
                     {content.children}
-                </EmptyStateComponent>
+                </GenericEmptyStateComponent>
             </ScrollView>
-            <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-                isVisible={modalVisible}
-                onConfirm={() => {
-                    setModalVisible(false);
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
-                confirmText={translate('exitSurvey.goToExpensifyClassic')}
-                cancelText={translate('common.cancel')}
-            />
+            {CreateReportConfirmationModal}
         </>
     );
 }
 
-EmptySearchView.displayName = 'EmptySearchView';
-
+export type {EmptySearchViewItem};
 export default EmptySearchView;

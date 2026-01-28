@@ -5,88 +5,67 @@ permissions:
   pull-requests: write
 
 on:
-  pull_request:
-      types: [opened, ready_for_review]
-  pull_request_review_comment:
-      types: [created]
-  workflow_dispatch:
-    inputs:
-      PULL_REQUEST_URL:
-        description: 'The full URL of the E/App pull request.'
-        required: true
-        type: string
+  pull_request_target:
+    types: [opened, ready_for_review]
 
 concurrency:
-  group: claude-review-${{ github.event_name == 'workflow_dispatch' && inputs.PULL_REQUEST_URL || github.event.pull_request.html_url }}
+  group: claude-review-${{ github.event.pull_request.html_url }}
   cancel-in-progress: true
 
 jobs:
   review:
+    if: github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'workflow_dispatch' || (!github.event.pull_request.head.repo.fork && !github.event.pull_request.draft)) }}
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
-      - name: Check for excluded PRs
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          if [[ "$PR_TITLE" == *"Revert"* ]]; then
-            echo "::notice::Skipping review because the PR is a revert"
-            exit 0
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
         with:
           fetch-depth: 1
 
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
       - name: Filter paths
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
         with:
-            filters: |
-              code:
-                - 'src/**'
-              docs:
-                - 'docs/**/*.md'
-                - 'docs/**/*.csv'
+          filters: |
+            code:
+              - 'src/**'
+            docs:
+              - 'docs/**/*.md'
+              - 'docs/**/*.csv'
 
-
-      - name: Validate that user is an Expensify employee
-        uses: ./.github/actions/composite/validateActor
-        if: github.event_name == 'workflow_dispatch'
-        with:
-          REQUIRE_APP_DEPLOYER: false
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-      - name: Get PR details
-        if: github.event_name == 'workflow_dispatch'
-        id: pr-data
+      - name: Add claude utility scripts to PATH
         run: |
-          echo "::notice::🔧 Manual workflow dispatch triggered"
-          PR_INFO=$(gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json number)
-          {
-            echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')"
-          } >> "$GITHUB_OUTPUT"
-          echo "::notice::✅ Processing PR #$(echo "$PR_INFO" | jq -r '.number')"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
+
+      - name: Extract allowed rules from code-inline-reviewer.md
+        run: |
+          "$GITHUB_WORKSPACE/.github/scripts/extractAllowedRules.sh" \
+            "$GITHUB_WORKSPACE/.claude/agents/code-inline-reviewer.md" \
+            "$GITHUB_WORKSPACE/.claude/allowed-rules.txt"
 
       - name: Run Claude Code (code)
         if: steps.filter.outputs.code == 'true'
-        uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a # v1.0.8
+        uses: anthropics/claude-code-action@a7e4c51380c42dd89b127f5e5f9be7b54020bc6b # v1.0.21
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ steps.pr-data.outputs.PR_NUMBER || github.event.pull_request.number }}"
+          allowed_non_write_users: "*"
+          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*)"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(addPrReaction.sh:*),Bash(createInlineComment.sh:*)"
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'
-        uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a # v1.0.8
+        uses: anthropics/claude-code-action@a7e4c51380c42dd89b127f5e5f9be7b54020bc6b # v1.0.21
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ steps.pr-data.outputs.PR_NUMBER || github.event.pull_request.number }}"
+          allowed_non_write_users: "*"
+          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*)"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"

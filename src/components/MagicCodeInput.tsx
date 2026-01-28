@@ -1,9 +1,10 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -99,6 +100,12 @@ type MagicCodeInputProps = {
 
     /** TestID for test */
     testID?: string;
+
+    /** Accessibility label for the input */
+    accessibilityLabel?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<MagicCodeInputHandle>;
 };
 
 type MagicCodeInputHandle = {
@@ -132,27 +139,27 @@ const composeToString = (value: string[]): string => value.map((v) => v ?? CONST
 
 const getInputPlaceholderSlots = (length: number): number[] => Array.from(Array(length).keys());
 
-function MagicCodeInput(
-    {
-        value = '',
-        name = '',
-        autoFocus = true,
-        errorText = '',
-        shouldSubmitOnComplete = true,
-        onChangeText: onChangeTextProp = () => {},
-        onFocus: onFocusProps,
-        maxLength = CONST.MAGIC_CODE_LENGTH,
-        onFulfill = () => {},
-        isDisableKeyboard = false,
-        lastPressedDigit = '',
-        autoComplete,
-        hasError = false,
-        testID = '',
-    }: MagicCodeInputProps,
-    ref: ForwardedRef<MagicCodeInputHandle>,
-) {
+function MagicCodeInput({
+    value = '',
+    name = '',
+    autoFocus = true,
+    errorText = '',
+    shouldSubmitOnComplete = true,
+    onChangeText: onChangeTextProp = () => {},
+    onFocus: onFocusProps,
+    maxLength = CONST.MAGIC_CODE_LENGTH,
+    onFulfill = () => {},
+    isDisableKeyboard = false,
+    lastPressedDigit = '',
+    autoComplete,
+    hasError = false,
+    testID = '',
+    accessibilityLabel,
+    ref,
+}: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
@@ -164,11 +171,9 @@ function MagicCodeInput(
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
-    useMagicCodePaste(inputRef, onChangeTextProp);
-
     useEffect(() => {
         lastValue.current = input.length;
-    }, [input]);
+    }, [input.length]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet
@@ -183,7 +188,7 @@ function MagicCodeInput(
             return;
         }
         setWasSubmitted(false);
-    }, [value, maxLength]);
+    }, [value.length, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -250,19 +255,19 @@ function MagicCodeInput(
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // + the onFulfill as the dependency because onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, shouldSubmitOnComplete]);
 
     /**
      * Focuses on the input when it is pressed.
      */
-    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onFocus = (e: FocusEvent) => {
         if (shouldFocusLast.current) {
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
             setInputAndIndex(lastFocusedIndex.current);
         }
         onFocusProps?.();
-        event.preventDefault();
+        e.preventDefault();
     };
 
     /**
@@ -271,7 +276,6 @@ function MagicCodeInput(
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
-        // eslint-disable-next-line react-compiler/react-compiler
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
@@ -327,13 +331,15 @@ function MagicCodeInput(
         valueRef.current = finalInput;
     };
 
+    useMagicCodePaste(inputRef, onChangeText);
+
     /**
      * Handles logic related to certain key presses.
      *
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    const onKeyPress = (event: Partial<NativeSyntheticEvent<TextInputKeyPressEventData>>) => {
+    const onKeyPress = (event: Partial<TextInputKeyPressEvent>) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(value, maxLength);
@@ -433,14 +439,14 @@ function MagicCodeInput(
 
         // We have not added:
         // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
     const cursorOpacity = useSharedValue(1);
 
     useEffect(() => {
         cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedCursorStyle = useAnimatedStyle(() => ({
@@ -486,7 +492,7 @@ function MagicCodeInput(
                             }}
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
-                            role={CONST.ROLE.PRESENTATION}
+                            accessibilityLabel={`${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
@@ -516,7 +522,12 @@ function MagicCodeInput(
                                 <View style={styles.magicCodeInputValueContainer}>
                                     <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
                                     {isFocused && !isDisableKeyboard && (
-                                        <View style={[styles.magicCodeInputCursorContainer]}>
+                                        <View
+                                            style={[styles.magicCodeInputCursorContainer]}
+                                            accessibilityElementsHidden
+                                            importantForAccessibility="no-hide-descendants"
+                                            accessible={false}
+                                        >
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>
                                             <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle, cursorMargin]}>│</Animated.Text>
@@ -538,7 +549,5 @@ function MagicCodeInput(
     );
 }
 
-MagicCodeInput.displayName = 'MagicCodeInput';
-
-export default forwardRef(MagicCodeInput);
+export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

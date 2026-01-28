@@ -23,7 +23,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
   ]);
 }
 
@@ -65,6 +65,12 @@ defaultFilter
         }));
     }
 
+reportFieldDynamic
+  = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {
+      const suffix = rest.replaceAll(/^-+/g, "");
+      return "reportField-" + (suffix ? suffix : "");
+    }
+    
 freeTextFilter = _ (identifier / ",") _ { autocomplete = null; }
 
 autocompleteKey "key"
@@ -111,6 +117,9 @@ autocompleteKey "key"
       / reportID
       / withdrawalID
       / title
+      / reportFieldDynamic
+      / columns
+      / limit
     )
 
 filterKey

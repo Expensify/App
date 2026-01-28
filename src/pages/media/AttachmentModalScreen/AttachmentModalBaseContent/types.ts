@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -18,11 +18,11 @@ type AttachmentModalContentData = {
     file: FileObject | undefined;
 };
 
-type ThreeDotsMenuItemGeneratorProps = AttachmentModalContentData & {
+type ThreeDotsMenuItemFactoryProps = AttachmentModalContentData & {
     isLocalSource: boolean;
 };
 
-type ThreeDotsMenuItemGenerator = (props: ThreeDotsMenuItemGeneratorProps) => PopoverMenuItem[];
+type ThreeDotsMenuItemFactory = (props: ThreeDotsMenuItemFactoryProps) => PopoverMenuItem[];
 
 type DownloadAttachmentCallback = (props: AttachmentModalContentData) => void;
 
@@ -58,7 +58,7 @@ type AttachmentModalBaseContentProps = {
     headerTitle?: string;
 
     /** The menu items for the three dots button */
-    threeDotsMenuItems?: PopoverMenuItem[] | ThreeDotsMenuItemGenerator;
+    threeDotsMenuItems?: PopoverMenuItem[] | ThreeDotsMenuItemFactory;
 
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
@@ -90,11 +90,23 @@ type AttachmentModalBaseContentProps = {
     /** Whether to show download button */
     shouldShowDownloadButton?: boolean;
 
+    /** Whether to show rotate button */
+    shouldShowRotateButton?: boolean;
+
+    /** Callback triggered when the rotate button is pressed */
+    onRotateButtonPress?: () => void;
+
+    /** Whether we should show a loading indicator replacing the rotate button */
+    isRotating?: boolean;
+
     /** Whether to disable send button */
     shouldDisableSendButton?: boolean;
 
     /** Whether to display help button */
     shouldDisplayHelpButton?: boolean;
+
+    /** Whether to minimize menu button */
+    shouldMinimizeMenuButton?: boolean;
 
     /** The link of the attachment */
     attachmentLink?: string;
@@ -115,6 +127,12 @@ type AttachmentModalBaseContentProps = {
 
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
+
+    /** Transaction object. When provided, will be used instead of fetching from Onyx. */
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Allows users to swipe down to close the modal */
+    shouldCloseOnSwipeDown?: boolean;
 };
 
 export type {
@@ -123,6 +141,6 @@ export type {
     DownloadAttachmentCallback,
     AttachmentContent,
     AttachmentContentProps,
-    ThreeDotsMenuItemGenerator,
-    ThreeDotsMenuItemGeneratorProps,
+    ThreeDotsMenuItemFactory,
+    ThreeDotsMenuItemFactoryProps,
 };

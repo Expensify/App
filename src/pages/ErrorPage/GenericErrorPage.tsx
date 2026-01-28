@@ -1,14 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
-import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -27,6 +26,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const {translate} = useLocalize();
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Bug']);
 
     return (
         <SafeAreaConsumer>
@@ -36,7 +36,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                         <View>
                             <View style={styles.mb5}>
                                 <Icon
-                                    src={Expensicons.Bug}
+                                    src={icons.Bug}
                                     height={variables.componentSizeNormal}
                                     width={variables.componentSizeNormal}
                                     fill={theme.iconSuccessFill}
@@ -82,7 +82,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
                             <ImageSVG
                                 contentFit="contain"
-                                src={LogoWordmark}
+                                src={icons.ExpensifyWordmark}
                                 height={30}
                                 width={80}
                                 fill={theme.text}
@@ -94,7 +94,5 @@ function GenericErrorPage({error}: {error?: Error}) {
         </SafeAreaConsumer>
     );
 }
-
-GenericErrorPage.displayName = 'ErrorPage';
 
 export default GenericErrorPage;

@@ -1,6 +1,7 @@
 import type {OnfidoResult} from '@onfido/react-native-sdk';
 import type {Handle} from 'onfido-sdk-ui/types/Onfido';
 import type {CompleteData} from 'onfido-sdk-ui/types/shared/SdkParameters';
+import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type OnfidoData = CompleteData | OnfidoResult;
@@ -23,6 +24,9 @@ type OnfidoProps = {
 
     /** Called when Onfido throws an error */
     onError: (error?: string) => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<OnfidoElement>;
 };
 
 type OnfidoError = Error & {

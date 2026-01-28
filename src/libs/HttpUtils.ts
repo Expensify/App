@@ -42,7 +42,7 @@ abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 /**
  * The API commands that require the skew calculation
  */
-const addSkewList: string[] = [WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP];
+const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP]);
 
 /**
  * Regex to get API command from the command
@@ -69,7 +69,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         .then((response) => {
             // We are calculating the skew to minimize the delay when posting the messages
             const match = url.match(APICommandRegex)?.[1];
-            if (match && addSkewList.includes(match) && response.headers) {
+            if (match && addSkewList.has(match) && response.headers) {
                 const dateHeaderValue = response.headers.get('Date');
                 const serverTime = dateHeaderValue ? new Date(dateHeaderValue).valueOf() : new Date().valueOf();
                 const endTime = new Date().valueOf();

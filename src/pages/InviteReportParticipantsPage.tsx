@@ -1,9 +1,10 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
@@ -23,25 +24,27 @@ import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
+import {getGroupChatName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getGroupChatName, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
 type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 
-function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
+function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProps) {
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
@@ -56,19 +59,20 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         return res;
     }, [report]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-        includeUserToInvite: true,
-        excludeLogins: excludedUsers,
-        includeRecentReports: true,
-        shouldInitialize: didScreenTransitionEnd,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+            includeUserToInvite: true,
+            excludeLogins: excludedUsers,
+            includeRecentReports: true,
+            shouldInitialize: didScreenTransitionEnd,
+        });
 
     useEffect(() => {
-        updateUserSearchPhrase(searchTerm);
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        updateUserSearchPhrase(debouncedSearchTerm);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const sections = useMemo(() => {
         const sectionsArray: Sections = [];
@@ -110,7 +114,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         }
 
         return sectionsArray;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -119,10 +123,10 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         [toggleSelection],
     );
 
-    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
+    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions.length]);
 
     const reportID = report.reportID;
-    const reportName = useMemo(() => getGroupChatName(undefined, true, report), [report]);
+    const reportName = useMemo(() => getGroupChatName(formatPhoneNumber, undefined, true, report), [formatPhoneNumber, report]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
@@ -133,20 +137,20 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             return;
         }
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        selectedOptions.forEach((option) => {
+        for (const option of selectedOptions) {
             const login = option.login ?? '';
             const accountID = option.accountID;
             if (!login.toLowerCase().trim() || !accountID) {
-                return;
+                continue;
             }
             invitedEmailsToAccountIDs[login] = accountID;
-        });
-        inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+        }
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
-    }, [selectedOptions, goBack, reportID, validate, formatPhoneNumber]);
+    }, [selectedOptions, goBack, report, validate, formatPhoneNumber]);
 
     const headerMessage = useMemo(() => {
-        const processedLogin = searchTerm.trim().toLowerCase();
+        const processedLogin = debouncedSearchTerm.trim().toLowerCase();
         const expensifyEmails = CONST.EXPENSIFY_EMAILS;
         if (!availableOptions.userToInvite && expensifyEmails.includes(processedLogin)) {
             return translate('messages.errorMessageInvalidEmail');
@@ -166,7 +170,17 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             countryCode,
             false,
         );
-    }, [searchTerm, availableOptions, selectedOptionsForDisplay, excludedUsers, translate, reportName, countryCode]);
+    }, [
+        debouncedSearchTerm,
+        availableOptions.userToInvite,
+        availableOptions.recentReports.length,
+        availableOptions.personalDetails.length,
+        selectedOptionsForDisplay.length,
+        excludedUsers,
+        translate,
+        reportName,
+        countryCode,
+    ]);
 
     const footerContent = useMemo(
         () => (
@@ -187,7 +201,8 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={InviteReportParticipantsPage.displayName}
+            testID="InviteReportParticipantsPage"
+            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}
@@ -214,7 +229,5 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         </ScreenWrapper>
     );
 }
-
-InviteReportParticipantsPage.displayName = 'InviteReportParticipantsPage';
 
 export default withNavigationTransitionEnd(withReportOrNotFound()(InviteReportParticipantsPage));

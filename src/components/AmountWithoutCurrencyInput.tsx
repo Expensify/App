@@ -1,10 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
-import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
 import {handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
 import TextInput from './TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -23,10 +22,21 @@ type AmountFormProps = {
     toggleNegative?: () => void;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyInput(
-    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, allowFlippingAmount, toggleNegative, ...rest}: AmountFormProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function AmountWithoutCurrencyInput({
+    value: amount,
+    shouldAllowNegative = false,
+    inputID,
+    name,
+    defaultValue,
+    accessibilityLabel,
+    role,
+    label,
+    onInputChange,
+    allowFlippingAmount,
+    toggleNegative,
+    ref,
+    ...rest
+}: AmountFormProps) {
     const {toLocaleDigit} = useLocalize();
     const separator = useMemo(
         () =>
@@ -92,6 +102,4 @@ function AmountWithoutCurrencyInput(
     );
 }
 
-AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyInput';
-
-export default React.forwardRef(AmountWithoutCurrencyInput);
+export default AmountWithoutCurrencyInput;

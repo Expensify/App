@@ -15,6 +15,4 @@ function AnchorForAttachmentsOnly(props: AnchorForAttachmentsOnlyProps) {
     );
 }
 
-AnchorForAttachmentsOnly.displayName = 'AnchorForAttachmentsOnly';
-
 export default AnchorForAttachmentsOnly;

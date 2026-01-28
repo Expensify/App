@@ -13,7 +13,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
@@ -23,7 +23,7 @@ const PERSONAL_DETAILS_LIST_COUNT = 1000;
 const allReports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (index) => ({
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: rand(Object.values(CONST.REPORT.TYPE)),
         lastVisibleActionCreated: getRandomDate(),
         // add status and state to every 5th report to mock non-archived reports
@@ -68,7 +68,7 @@ describe('SidebarUtils', () => {
     });
 
     test('[SidebarUtils] getOptionData', async () => {
-        const report = createRandomReport(1);
+        const report = createRandomReport(1, undefined);
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
         const reportNameValuePairs = {};
@@ -86,9 +86,11 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 lastAction: undefined,
+                translate: translateLocal,
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 1,
             }),
         );
     });

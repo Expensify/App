@@ -112,9 +112,9 @@ const createServerInstance = (): ServerInstance => {
     };
 
     const forceTestCompletion = () => {
-        testDoneListeners.forEach((listener) => {
+        for (const listener of testDoneListeners) {
             listener();
-        });
+        }
     };
 
     let activeTestConfig: TestConfig | undefined;
@@ -135,7 +135,9 @@ const createServerInstance = (): ServerInstance => {
         res.statusCode = 200;
         switch (req.url) {
             case Routes.testConfig: {
-                testStartedListeners.forEach((listener) => listener(activeTestConfig));
+                for (const listener of testStartedListeners) {
+                    listener(activeTestConfig);
+                }
                 if (!activeTestConfig) {
                     throw new Error('No test config set');
                 }
@@ -153,9 +155,9 @@ const createServerInstance = (): ServerInstance => {
                         return;
                     }
 
-                    testResultListeners.forEach((listener) => {
+                    for (const listener of testResultListeners) {
                         listener(data);
-                    });
+                    }
 
                     res.end('ok');
                 });

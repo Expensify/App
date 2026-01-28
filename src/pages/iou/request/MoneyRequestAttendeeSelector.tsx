@@ -1,30 +1,28 @@
 import reportsSelector from '@selectors/Attributes';
 import {deepEqual} from 'fast-equals';
-import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {SectionListDataType} from '@components/SelectionListWithSections/types';
-import useDebouncedState from '@hooks/useDebouncedState';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import type {Option} from '@libs/OptionsListUtils';
 import {
-    filterAndOrderOptions,
     formatSectionsFromSearchTerm,
-    getAttendeeOptions,
-    getEmptyOptions,
+    getFilteredRecentAttendees,
     getHeaderMessage,
     getParticipantsOption,
     getPersonalDetailSearchTerms,
@@ -34,7 +32,7 @@ import {
 } from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
-import {searchInServer} from '@userActions/Report';
+import type {OptionData} from '@libs/ReportUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,246 +59,122 @@ type MoneyRequestAttendeesSelectorProps = {
 function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const {options, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: didScreenTransitionEnd,
-    });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
+
+    const recentAttendeeLists = useMemo(
+        () => getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID),
+        [personalDetails, attendees, recentAttendees, currentUserEmail, currentUserAccountID],
+    );
+    const initialSelectedOptions = useMemo(
+        () =>
+            attendees.map((attendee) => ({
+                ...attendee,
+                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+                selected: true,
+                login: attendee.email ? attendee.email : attendee.displayName,
+                ...getPersonalDetailByEmail(attendee.email),
+            })),
+        [attendees],
+    );
+
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
+        includeUserToInvite: true,
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        includeRecentReports: false,
+        includeCurrentUser: true,
+        getValidOptionsConfig: {
+            includeSelfDM: false,
+            includeInvoiceRooms: false,
+            action,
+            recentAttendees: recentAttendeeLists,
+        },
+        initialSelected: initialSelectedOptions,
+        shouldInitialize: didScreenTransitionEnd,
+        onSelectionChange: (newSelectedOptions) => {
+            const newAttendees: Attendee[] = newSelectedOptions.map((option) => {
+                const iconSource = option.icons?.[0]?.source;
+                const icon = typeof iconSource === 'function' ? '' : SafeString(iconSource);
+                return {
+                    accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    login: option.login,
+                    email: option.login ?? '',
+                    displayName: option.displayName ?? option.text ?? option.login ?? '',
+                    selected: true,
+                    searchText: option.searchText,
+                    avatarUrl: option.avatarUrl ?? icon,
+                    iouType,
+                };
+            });
+            onAttendeesAdded(newAttendees);
+        },
+        maxRecentReportsToShow: 5,
+    });
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const defaultOptions = useMemo(() => {
-        if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            getEmptyOptions();
+    const orderedAvailableOptions = useMemo(() => {
+        if (!isPaidGroupPolicy || !areOptionsInitialized) {
+            return availableOptions;
         }
-        const optionList = getAttendeeOptions({
-            reports: options.reports,
-            personalDetails: options.personalDetails,
-            betas,
-            attendees,
-            recentAttendees: recentAttendees ?? [],
-            draftComments: draftComments ?? {},
-            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT,
-            includeP2P: true,
-            includeInvoiceRooms: false,
-            action,
-            countryCode,
-        });
-        if (isPaidGroupPolicy) {
-            const orderedOptions = orderOptions(optionList, searchTerm, {
+
+        const orderedOptions = orderOptions(
+            {
+                recentReports: availableOptions.recentReports,
+                personalDetails: availableOptions.personalDetails,
+                workspaceChats: availableOptions.workspaceChats ?? [],
+            },
+            searchTerm,
+            {
                 preferChatRoomsOverThreads: true,
                 preferPolicyExpenseChat: !!action,
                 preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
-            });
-            optionList.recentReports = orderedOptions.recentReports;
-            optionList.personalDetails = orderedOptions.personalDetails;
-        }
-        return optionList;
-    }, [
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        options.reports,
-        options.personalDetails,
-        betas,
-        attendees,
-        recentAttendees,
-        draftComments,
-        iouType,
-        action,
-        isPaidGroupPolicy,
-        searchTerm,
-        countryCode,
-    ]);
-
-    const chatOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return {
-                userToInvite: null,
-                recentReports: [],
-                personalDetails: [],
-                currentUserOption: null,
-                headerMessage: '',
-            };
-        }
-        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            preferPolicyExpenseChat: isPaidGroupPolicy,
-            shouldAcceptName: true,
-            selectedOptions: attendees.map((attendee) => ({
-                ...attendee,
-                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-                selected: true,
-                login: attendee.email,
-                ...getPersonalDetailByEmail(attendee.email),
-            })),
-        });
-        return newOptions;
-    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees, countryCode]);
-
-    /**
-     * Returns the sections needed for the OptionsSelector
-     */
-    const [sections, header] = useMemo(() => {
-        const newSections: Array<SectionListDataType<Option>> = [];
-        if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return [newSections, ''];
-        }
-
-        const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
-        const restOfRecents = [...chatOptions.recentReports].slice(5);
-        const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
-
-        const formatResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            attendees.map((attendee) => ({
-                ...attendee,
-                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-                selected: true,
-                login: attendee.email,
-                ...getPersonalDetailByEmail(attendee.email),
-            })),
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
-        );
-        newSections.push(formatResults.section);
-
-        newSections.push({
-            title: translate('common.recents'),
-            data: fiveRecents,
-            shouldShow: fiveRecents.length > 0,
-        });
-
-        newSections.push({
-            title: translate('common.contacts'),
-            data: contactsWithRestOfRecents,
-            shouldShow: contactsWithRestOfRecents.length > 0,
-        });
-
-        if (
-            chatOptions.userToInvite &&
-            !isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined})
-        ) {
-            newSections.push({
-                title: undefined,
-                data: [chatOptions.userToInvite].map((participant) => {
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: true,
-            });
-        }
-
-        const headerMessage = getHeaderMessage(
-            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
-            !!chatOptions?.userToInvite,
-            cleanSearchTerm,
-            countryCode,
-            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            },
         );
 
-        return [newSections, headerMessage];
-    }, [
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        chatOptions.recentReports,
-        chatOptions.personalDetails,
-        chatOptions.userToInvite,
-        cleanSearchTerm,
-        attendees,
-        personalDetails,
-        reportAttributesDerived,
-        translate,
-        countryCode,
-    ]);
+        return {
+            ...availableOptions,
+            recentReports: orderedOptions.recentReports,
+            personalDetails: orderedOptions.personalDetails,
+            workspaceChats: orderedOptions.workspaceChats,
+        };
+    }, [availableOptions, isPaidGroupPolicy, areOptionsInitialized, searchTerm, action]);
 
-    const addAttendeeToSelection = useCallback(
-        (option: Option) => {
-            const isOptionSelected = (selectedOption: Attendee) => {
-                if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
-                    return true;
-                }
-
-                if (selectedOption.email && selectedOption.email === option?.login) {
-                    return true;
-                }
-
-                return false;
-            };
-            const isOptionInList = attendees.some(isOptionSelected);
-            let newSelectedOptions: Attendee[];
-
-            if (isOptionInList) {
-                newSelectedOptions = lodashReject(attendees, isOptionSelected);
-            } else {
-                const iconSource = option.icons?.[0]?.source;
-                const icon = typeof iconSource === 'function' ? '' : SafeString(iconSource);
-                newSelectedOptions = [
-                    ...attendees,
-                    {
-                        accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        login: option.login || option.text,
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        email: option.login || (option.text ?? ''),
-                        displayName: option.text ?? '',
-                        selected: true,
-                        searchText: option.searchText,
-                        avatarUrl: option.avatarUrl ?? icon,
-                        iouType,
-                    },
-                ];
-            }
-            onAttendeesAdded(newSelectedOptions);
-        },
-        [attendees, iouType, onAttendeesAdded],
-    );
-
-    const shouldShowErrorMessage = attendees.length < 1;
+    const shouldShowErrorMessage = selectedOptions.length < 1;
 
     const handleConfirmSelection = useCallback(
-        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Option) => {
-            if (shouldShowErrorMessage || (!attendees.length && !option)) {
+        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
+            if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
                 return;
             }
 
             onFinish(CONST.IOU.TYPE.SUBMIT);
         },
-        [shouldShowErrorMessage, onFinish, attendees],
+        [shouldShowErrorMessage, onFinish, selectedOptions.length],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
 
-    const optionLength = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return 0;
-        }
-        return sections.reduce((acc, section) => acc + section.data.length, 0);
-    }, [areOptionsInitialized, sections]);
-
-    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
-
     const footerContent = useMemo(() => {
-        if (!shouldShowErrorMessage && !attendees.length) {
+        if (!shouldShowErrorMessage && !selectedOptions.length) {
             return;
         }
 
@@ -323,7 +197,108 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 />
             </>
         );
-    }, [handleConfirmSelection, attendees.length, shouldShowErrorMessage, styles, translate]);
+    }, [handleConfirmSelection, selectedOptions.length, shouldShowErrorMessage, styles, translate]);
+
+    /**
+     * Returns the sections needed for the OptionsSelector
+     */
+    const [sections, header] = useMemo(() => {
+        const newSections: Array<SectionListDataType<OptionData>> = [];
+        if (!areOptionsInitialized || !didScreenTransitionEnd) {
+            return [newSections, ''];
+        }
+
+        const cleanSearchTerm = searchTerm.trim().toLowerCase();
+        const formatResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            initialSelectedOptions,
+            orderedAvailableOptions.recentReports,
+            orderedAvailableOptions.personalDetails,
+            currentUserAccountID,
+            personalDetails,
+            true,
+            undefined,
+            reportAttributesDerived,
+        );
+
+        newSections.push({
+            ...formatResults.section,
+            data: formatResults.section.data as OptionData[],
+        });
+
+        if (orderedAvailableOptions.recentReports.length > 0) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: orderedAvailableOptions.recentReports,
+            });
+        }
+
+        if (orderedAvailableOptions.personalDetails.length > 0) {
+            newSections.push({
+                title: translate('common.contacts'),
+                data: orderedAvailableOptions.personalDetails,
+            });
+        }
+
+        if (
+            orderedAvailableOptions.userToInvite &&
+            !isCurrentUser(
+                {
+                    ...orderedAvailableOptions.userToInvite,
+                    accountID: orderedAvailableOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    status: orderedAvailableOptions.userToInvite?.status ?? undefined,
+                },
+                loginList,
+                currentUserEmail,
+            )
+        ) {
+            newSections.push({
+                title: undefined,
+                data: [orderedAvailableOptions.userToInvite].map((participant) => {
+                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    return isPolicyExpenseChat
+                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        : getParticipantsOption(participant, personalDetails);
+                }) as OptionData[],
+                shouldShow: true,
+            });
+        }
+
+        const headerMessage = getHeaderMessage(
+            formatResults.section.data.length + (orderedAvailableOptions.personalDetails ?? []).length + (orderedAvailableOptions.recentReports ?? []).length !== 0,
+            !!orderedAvailableOptions?.userToInvite,
+            cleanSearchTerm,
+            countryCode,
+            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
+        );
+
+        return [newSections, headerMessage];
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        searchTerm,
+        initialSelectedOptions,
+        attendees,
+        orderedAvailableOptions.recentReports,
+        orderedAvailableOptions.personalDetails,
+        orderedAvailableOptions.userToInvite,
+        personalDetails,
+        reportAttributesDerived,
+        loginList,
+        countryCode,
+        translate,
+        currentUserAccountID,
+        currentUserEmail,
+    ]);
+
+    const optionLength = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return 0;
+        }
+        return sections.reduce((acc, section) => acc + (section.data?.length ?? 0), 0);
+    }, [areOptionsInitialized, sections]);
+
+    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
 
     return (
         <SelectionList
@@ -335,7 +310,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={addAttendeeToSelection}
+            onSelectRow={toggleSelection}
             shouldSingleExecuteRowSelect
             footerContent={footerContent}
             autoCorrect={false}
@@ -345,10 +320,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             canSelectMultiple
             isLoadingNewOptions={!!isSearchingForReports}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
+            onEndReached={onListEndReached}
         />
     );
 }
 
-MoneyRequestAttendeeSelector.displayName = 'MoneyRequestAttendeeSelector';
-
+// eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- attendees array is derived and may have unstable references
 export default memo(MoneyRequestAttendeeSelector, (prevProps, nextProps) => deepEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouType === nextProps.iouType);

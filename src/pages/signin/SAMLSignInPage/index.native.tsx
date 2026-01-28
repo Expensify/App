@@ -79,7 +79,7 @@ function SAMLSignInPage() {
                 Navigation.isNavigationReady().then(() => {
                     // We must call goBack() to remove the /transition route from history
                     Navigation.goBack();
-                    Navigation.navigate(ROUTES.HOME);
+                    Navigation.navigate(ROUTES.INBOX);
                 });
             }
         },
@@ -90,7 +90,7 @@ function SAMLSignInPage() {
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={false}
-            testID={SAMLSignInPage.displayName}
+            testID="SAMLSignInPage"
         >
             {showNavigation && (
                 <HeaderWithBackButton
@@ -122,7 +122,5 @@ function SAMLSignInPage() {
         </ScreenWrapper>
     );
 }
-
-SAMLSignInPage.displayName = 'SAMLSignInPage';
 
 export default SAMLSignInPage;

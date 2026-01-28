@@ -1,10 +1,13 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React from 'react';
 import type {RefObject} from 'react';
+import React from 'react';
 import type {TextInput} from 'react-native';
 import SCREENS from '@src/SCREENS';
 import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
 import navigationRef from './Navigation/navigationRef';
+import preventTextInputFocusOnFirstResponderOnce from './preventTextInputFocusOnFirstResponderOnce';
+
+type ComposerType = 'main' | 'edit';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
@@ -39,7 +42,7 @@ function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
     /** Do not trigger the refocusing when the active route is not the report screen */
     const navigationState = navigationRef.getState();
     const focusedRoute = findFocusedRoute(navigationState);
-    if (!navigationState || (!isReportOpenInRHP(navigationState) && focusedRoute?.name !== SCREENS.REPORT && focusedRoute?.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT)) {
+    if (!navigationState || (!isReportOpenInRHP(navigationState) && focusedRoute?.name !== SCREENS.REPORT)) {
         return;
     }
 
@@ -83,6 +86,22 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+/**
+ * This will prevent the composer's text input from focusing the next time it becomes the
+ * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ */
+function preventComposerFocusOnFirstResponderOnce() {
+    preventTextInputFocusOnFirstResponderOnce(composerRef);
+}
+
+/**
+ * This will prevent the edit composer's text input from focusing the next time it becomes the
+ * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ */
+function preventEditComposerFocusOnFirstResponderOnce() {
+    preventTextInputFocusOnFirstResponderOnce(editComposerRef);
+}
+
 export default {
     composerRef,
     onComposerFocus,
@@ -91,4 +110,8 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
+    preventComposerFocusOnFirstResponderOnce,
+    preventEditComposerFocusOnFirstResponderOnce,
 };
+
+export type {ComposerType};

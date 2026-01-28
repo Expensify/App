@@ -1,13 +1,15 @@
 import {useRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -24,6 +26,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -43,6 +46,11 @@ function EmployeeTestDriveModal() {
     const [formError, setFormError] = useState<string | undefined>();
     const [isLoading, setIsLoading] = useState(false);
     const {testDrive} = useOnboardingMessages();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -70,11 +78,15 @@ function EmployeeTestDriveModal() {
 
                         initMoneyRequest({
                             reportID,
+                            personalPolicy,
                             isFromGlobalCreate: false,
                             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                             report,
                             parentReport,
                             currentDate,
+                            currentUserPersonalDetails,
+                            hasOnlyPersonalPolicies,
+                            draftTransactions,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
@@ -142,7 +154,5 @@ function EmployeeTestDriveModal() {
         </BaseTestDriveModal>
     );
 }
-
-EmployeeTestDriveModal.displayName = 'EmployeeTestDriveModal';
 
 export default EmployeeTestDriveModal;

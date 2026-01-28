@@ -1,28 +1,28 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAdvancedFilters} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
-import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
+import {setSearchContext} from '@libs/actions/Search';
+import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
 type SearchAutocompleteInputProps = {
@@ -68,6 +68,9 @@ type SearchAutocompleteInputProps = {
     /** Map of autocomplete suggestions. Required for highlighting to work properly */
     substitutionMap: SubstitutionMap;
 
+    /** Whether the focus should be delayed */
+    shouldDelayFocus?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
@@ -79,8 +82,9 @@ function SearchAutocompleteInput({
     autocompleteListRef,
     isFullWidth,
     disabled = false,
-    shouldShowOfflineMessage = false,
+    shouldDelayFocus = false,
     autoFocus = true,
+    shouldShowOfflineMessage = false,
     onFocus,
     onBlur,
     caretHidden = false,
@@ -97,9 +101,10 @@ function SearchAutocompleteInput({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
+    const inputRef = useRef<AnimatedTextInputRef>(null);
+    const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
+    const {currencyList} = useCurrencyList();
+    const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
@@ -135,35 +140,35 @@ function SearchAutocompleteInput({
     });
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             emailListSharedValue.set(emailList);
-        })();
+        });
     }, [emailList, emailListSharedValue]);
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             currencySharedValue.set(currencyAutocompleteList);
-        })();
+        });
     }, [currencyAutocompleteList, currencySharedValue]);
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             categorySharedValue.set(categoryAutocompleteList);
-        })();
+        });
     }, [categorySharedValue, categoryAutocompleteList]);
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             tagSharedValue.set(tagAutocompleteList);
-        })();
+        });
     }, [tagSharedValue, tagAutocompleteList]);
 
     const parser = useCallback(
@@ -175,22 +180,9 @@ function SearchAutocompleteInput({
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
-    const clearFilters = useCallback(() => {
-        clearAdvancedFilters();
+    const clearInput = useCallback(() => {
         onSearchQueryChange('');
-
-        // Check if we are on the search page before clearing query. If we are using the popup search menu,
-        // then the clear button is ONLY available when the search is *not* saved, so we don't have to navigate
-        const currentRoute = Navigation.getActiveRouteWithoutParams();
-        const isSearchPage = currentRoute === `/${ROUTES.SEARCH_ROOT.route}`;
-
-        if (isSearchPage) {
-            Navigation.navigate(
-                ROUTES.SEARCH_ROOT.getRoute({
-                    query: buildCannedSearchQuery(),
-                }),
-            );
-        }
+        setSearchContext(false);
     }, [onSearchQueryChange]);
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -203,9 +195,9 @@ function SearchAutocompleteInput({
                         testID="search-autocomplete-text-input"
                         value={value}
                         onChangeText={onSearchQueryChange}
-                        autoFocus={autoFocus}
+                        autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
                         caretHidden={caretHidden}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ROLE.SEARCHBOX}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -232,15 +224,28 @@ function SearchAutocompleteInput({
                             onBlur?.();
                         }}
                         isLoading={isSearchingForReports}
-                        ref={ref}
+                        ref={(element) => {
+                            if (!ref) {
+                                return;
+                            }
+
+                            inputRef.current = element as AnimatedTextInputRef;
+
+                            if (typeof ref === 'function') {
+                                ref(element);
+                                return;
+                            }
+
+                            // eslint-disable-next-line no-param-reassign
+                            ref.current = element;
+                        }}
                         type="markdown"
                         multiline={false}
                         parser={parser}
                         selection={selection}
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
-                        onClearInput={clearFilters}
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+                        onClearInput={clearInput}
                     />
                 </View>
             </Animated.View>
@@ -252,8 +257,6 @@ function SearchAutocompleteInput({
         </View>
     );
 }
-
-SearchAutocompleteInput.displayName = 'SearchAutocompleteInput';
 
 export type {SearchAutocompleteInputProps};
 export default SearchAutocompleteInput;

@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {clearErrorField, setFeedStatementPeriodEndDay} from '@libs/actions/CompanyCards';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -29,6 +29,7 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
@@ -50,13 +51,13 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const submit = useCallback(
         (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
             const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
-            if (selectedFeed && isChangedValue) {
-                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
+            if (feed && isChangedValue) {
+                setFeedStatementPeriodEndDay(policyID, feed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
             }
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
         },
-        [policyID, selectedFeed, statementPeriodEndDay, domainOrWorkspaceAccountID],
+        [policyID, feed, statementPeriodEndDay, domainOrWorkspaceAccountID],
     );
 
     const goBack = useCallback(() => {
@@ -64,12 +65,12 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     }, [policyID]);
 
     const clearError = useCallback(() => {
-        if (!selectedFeed) {
+        if (!feed) {
             return;
         }
 
-        clearErrorField(selectedFeed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
-    }, [selectedFeed, domainOrWorkspaceAccountID]);
+        clearErrorField(feed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
+    }, [feed, domainOrWorkspaceAccountID]);
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
         return <FullScreenLoadingIndicator />;
@@ -95,7 +96,5 @@ function WorkspaceCompanyCardStatementCloseDatePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardStatementCloseDatePage.displayName = 'WorkspaceCompanyCardStatementCloseDatePage';
 
 export default WorkspaceCompanyCardStatementCloseDatePage;

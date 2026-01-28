@@ -3,10 +3,9 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheet from '@components/ImportSpreadsheet';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -79,11 +78,12 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                testID={ImportSpreadsheet.displayName}
+                testID="ImportSpreadsheet"
                 shouldEnableMaxHeight={canUseTouchScreen()}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -146,22 +146,14 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                             large
                         />
                     </FixedFooter>
-                    <ConfirmModal
+                    <ImportSpreadsheetConfirmModal
                         isVisible={isFocused && (spreadsheet?.shouldFinalModalBeOpened ?? false)}
-                        title={spreadsheet?.importFinalModal?.title ?? ''}
-                        prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                        onConfirm={closeImportPageAndModal}
-                        onCancel={closeImportPageAndModal}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                        shouldHandleNavigationBack
+                        closeImportPageAndModal={closeImportPageAndModal}
                     />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-ImportMultiLevelTagsSettingsPage.displayName = 'ImportMultiLevelTagsSettingsPage';
 
 export default ImportMultiLevelTagsSettingsPage;

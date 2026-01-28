@@ -17,6 +17,17 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
 }));
 
+// Mock RenderHTML component
+jest.mock('@components/RenderHTML', () => {
+    const ReactMock = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+
+    return ({html}: {html: string}) => {
+        const plainText = html.replaceAll(/<[^>]*>/g, '');
+        return ReactMock.createElement(Text, null, plainText);
+    };
+});
+
 // Replace MenuItem with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItem', () => {
     const ReactMock = require('react') as typeof React;

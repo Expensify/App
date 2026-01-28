@@ -4,6 +4,7 @@ import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
@@ -17,7 +18,7 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {DismissedProductTraining, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -66,6 +67,59 @@ function setupApp() {
             authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         });
     });
+}
+
+function getNvpDismissedProductTraining(): OnyxEntry<DismissedProductTraining> {
+    return {
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER]: {
+            timestamp: DateUtils.getDBTime(new Date().valueOf()),
+            dismissedMethod: 'click',
+        },
+        [CONST.MIGRATED_USER_WELCOME_MODAL]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSTANDING_FILTER]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+    };
 }
 
 function buildPersonalDetails(login: string, accountID: number, firstName = 'Test'): PersonalDetails {
@@ -266,7 +320,9 @@ function getGlobalFetchMock(): typeof fetch {
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {
         isPaused = false;
-        queue.forEach(({resolve, input}) => resolve(getResponse(input)));
+        for (const {resolve, input} of queue) {
+            resolve(getResponse(input));
+        }
         return waitForBatchedUpdates();
     };
     mockFetch.fail = () => (shouldFail = true);
@@ -401,4 +457,5 @@ export {
     formatPhoneNumber,
     localeCompare,
     STRIPE_CUSTOMER_ID,
+    getNvpDismissedProductTraining,
 };

@@ -39,6 +39,7 @@ function GenericPressable({
     ref,
     dataSet,
     forwardedFSClass,
+    accessibilityState,
     ...rest
 }: PressableProps) {
     const styles = useThemeStyles();
@@ -154,7 +155,6 @@ function GenericPressable({
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
             disabled={fullDisabled}
-            // eslint-disable-next-line react-compiler/react-compiler
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}
@@ -174,9 +174,10 @@ function GenericPressable({
             // accessibility props
             accessibilityState={{
                 disabled: isDisabled,
-                ...rest.accessibilityState,
+                ...accessibilityState,
             }}
             aria-disabled={isDisabled}
+            aria-selected={accessibilityState?.selected}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
@@ -205,7 +206,5 @@ function GenericPressable({
         </Pressable>
     );
 }
-
-GenericPressable.displayName = 'GenericPressable';
 
 export default GenericPressable;

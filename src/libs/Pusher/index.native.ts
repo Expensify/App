@@ -40,7 +40,9 @@ let channels: Record<string, ValueOf<typeof CONST.PUSHER.CHANNEL_STATUS>> = {};
  * Trigger each of the socket event callbacks with the event information
  */
 function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallbackError | States) {
-    socketEventCallbacks.forEach((cb) => cb(eventName, data));
+    for (const cb of socketEventCallbacks) {
+        cb(eventName, data);
+    }
 }
 
 /**

@@ -10,7 +10,7 @@ import {parsePhoneNumber} from './PhoneNumber';
  * Remove the special chars from the phone number
  */
 function getPhoneNumberWithoutSpecialChars(phone: string): string {
-    return phone.replace(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
+    return phone.replaceAll(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
 }
 
 /**
@@ -35,8 +35,19 @@ function appendCountryCode(phone: string, countryCode: number): string {
  * Check email is public domain or not
  */
 function isEmailPublicDomain(email: string): boolean {
-    const emailDomain = Str.extractEmailDomain(email).toLowerCase();
+    const emailDomain = getEmailDomain(email);
     return PUBLIC_DOMAINS_SET.has(emailDomain);
+}
+
+function isDomainPublic(domain: string): boolean {
+    return PUBLIC_DOMAINS_SET.has(domain);
+}
+
+/**
+ * Get the domain for an email
+ */
+function getEmailDomain(email: string): string {
+    return Str.extractEmailDomain(email).toLowerCase();
 }
 
 /**
@@ -94,7 +105,7 @@ function handleSAMLLoginError(errorMessage: string, shouldClearSignInData: boole
     }
 
     setAccountError(errorMessage);
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(ROUTES.INBOX);
 }
 
 function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
@@ -102,6 +113,22 @@ function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     return parsedPhoneNumber.number?.e164;
+}
+
+/**
+ * Format a login string by removing SMS domain if applicable
+ * @param login - The login string to format
+ * @returns The formatted login string, or empty string if no login provided
+ */
+function normalizeLogin(login: string | undefined): string {
+    if (!login) {
+        return '';
+    }
+    return Str.isSMSLogin(login) ? Str.removeSMSDomain(login) : login;
+}
+
+function sanitizePhoneOrEmail(phoneOrEmail: string) {
+    return phoneOrEmail.replaceAll(CONST.REGEX.WHITESPACE, '').toLowerCase();
 }
 
 export {
@@ -114,4 +141,8 @@ export {
     postSAMLLogin,
     handleSAMLLoginError,
     formatE164PhoneNumber,
+    getEmailDomain,
+    isDomainPublic,
+    normalizeLogin,
+    sanitizePhoneOrEmail,
 };

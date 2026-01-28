@@ -2028,5 +2028,176 @@ describe('generateTranslations', () => {
             // Should NOT retranslate since it's just a regular comment change
             expect(translateSpy).not.toHaveBeenCalled();
         });
+
+        it('works with multiline dedent template strings', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                import dedent from '@libs/StringUtils/dedent';
+
+                const strings = {
+                    codesLoseAccess: dedent(\`
+                        If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
+
+                            1. Sometimes we have further indentation
+                            2. With bulleted lists and such
+
+                        Note: Setting up two-factor authentication will log you out of all other active sessions.
+                    \`),
+                };
+
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // The translated output should preserve the dedent structure with proper indentation on empty lines
+            // The empty line between the two paragraphs should have the same indentation as the content lines
+            const expectedFormat = `codesLoseAccess: dedent(\`
+        [it] If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
+
+            1. Sometimes we have further indentation
+            2. With bulleted lists and such
+
+        Note: Setting up two-factor authentication will log you out of all other active sessions.
+    \`),`;
+            expect(itContent).toContain(expectedFormat);
+        });
+
+        it('works with simple template expressions in dedent calls', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                import dedent from '@libs/StringUtils/dedent';
+
+                const strings = {
+                    welcomeMessage: (name: string, company: string) =>
+                        dedent(\`
+                            Welcome to \${company}, \${name}!
+
+                            We're excited to have you here.
+                        \`),
+                };
+
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            expect(itContent).toContain(`
+    welcomeMessage: (name: string, company: string) =>
+        dedent(\`
+            [it] Welcome to \${company}, \${name}!
+
+            We're excited to have you here.
+        \`),`);
+        });
+
+        it('does not retranslate unchanged nested properties when nearby properties are modified', async () => {
+            // This test reproduces a bug where unchanged properties get incorrectly
+            // flagged as changed when nearby properties are modified and cause line number shifts
+
+            // OLD file (before changes) - line numbers before dedent():
+            // 1: const strings = {
+            // 2:     prop1: 'First property',
+            // 3:     prop2: 'Second property',
+            // 4:     prop3: 'Third property',
+            // 5: };
+            // 6: export default strings;
+            const oldEnContent = dedent(`
+                const strings = {
+                    prop1: 'First property',
+                    prop2: 'Second property',
+                    prop3: 'Third property',
+                };
+                export default strings;
+            `);
+
+            // NEW file (after changes) - line numbers after dedent():
+            // 1: import dedent from '@libs/StringUtils/dedent';
+            // 2: (empty line)
+            // 3: const strings = {
+            // 4:     prop1: dedent(`
+            // 5:         First property
+            // 6:     `),
+            // 7:     prop2: 'Second property',
+            // 8:     prop3: 'Third property',
+            // 9: };
+            // 10: export default strings;
+            //
+            // Only prop1 was actually changed (single-line -> dedent multi-line)
+            // prop2 and prop3 are unchanged, just shifted to new line numbers
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                    import dedent from '@libs/StringUtils/dedent';
+
+                    const strings = {
+                        prop1: dedent(\`
+                            First property
+                        \`),
+                        prop2: 'Second property',
+                        prop3: 'Third property',
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
+
+            // Existing Italian translation (all properties already translated)
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                    import dedent from '@libs/StringUtils/dedent';
+                    import type en from './en';
+
+                    const strings = {
+                        prop1: '[it] First property',
+                        prop2: '[it] Second property',
+                        prop3: '[it] Third property',
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
+
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([1, 2, 5, 6]), // Import, empty, dedent middle/end
+                        removedLines: new Set([2]), // Old line 2: prop1: 'First property',
+                        modifiedLines: new Set([4]), // NEW line 4 (dedent opening) paired with OLD line 2
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            mockShow.mockReturnValue(oldEnContent);
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+
+            // Only prop1 should be translated (it actually changed)
+            expect(translateSpy).toHaveBeenCalledWith('it', 'First property\n', undefined);
+
+            // prop2 and prop3 should NOT be translated (they didn't change, just moved line numbers)
+            // BUG: Due to the bug, these WILL be called, causing this test to FAIL
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Second property', undefined);
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Third property', undefined);
+
+            // Verify only 1 translation was requested
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+        });
     });
 });

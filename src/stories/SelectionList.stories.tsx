@@ -1,6 +1,7 @@
-import type {Meta} from '@storybook/react';
+import type {Meta} from '@storybook/react-webpack5';
 import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
@@ -84,13 +85,13 @@ function Default(props: SelectionListProps<ListItem>) {
     });
 
     const onSelectRow = (item: ListItem) => {
-        sections.forEach((section) => {
+        for (const section of sections) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
                 setSelectedIndex(newSelectedIndex);
             }
-        });
+        }
     };
 
     return (
@@ -129,13 +130,13 @@ function WithTextInput(props: SelectionListProps<ListItem>) {
     });
 
     const onSelectRow = (item: ListItem) => {
-        sections.forEach((section) => {
+        for (const section of sections) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
                 setSelectedIndex(newSelectedIndex);
             }
-        });
+        }
     };
 
     return (
@@ -195,13 +196,13 @@ function WithAlternateText(props: SelectionListProps<ListItem>) {
     });
 
     const onSelectRow = (item: ListItem) => {
-        sections.forEach((section) => {
+        for (const section of sections) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
                 setSelectedIndex(newSelectedIndex);
             }
-        });
+        }
     };
     return (
         <SelectionListWithNavigation

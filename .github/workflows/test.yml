@@ -17,10 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
+      NODE_OPTIONS: "--experimental-vm-modules --max-old-space-size=8192"
     strategy:
       fail-fast: false
       matrix:
-        chunk: [ 1, 2, 3 ]
+        chunk: [1, 2, 3, 4, 5, 6, 7, 8]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
       - name: Checkout
@@ -36,14 +37,14 @@ jobs:
 
       - name: Cache Jest cache
         id: cache-jest-cache
-        # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }} --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}

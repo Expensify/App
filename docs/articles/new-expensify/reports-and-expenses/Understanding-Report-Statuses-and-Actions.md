@@ -14,10 +14,10 @@ Each report status reflects a different stage in the reporting workflow:
 
 - **Draft**: The report is a draft. You can still add or remove expenses.
 - **Submitted**: The report is awaiting approval from another person.
-- **Processing**: The report is in progress—under review, held, or partially completed.
+- **Outstanding**: The report is in progress—under review, held, or partially completed.
 - **Approved**: The report is approved and ready for payment or export. This is the final status for reports containing only non-reimbursable (e.g. company card) expenses.
 - **Paid**: The report has been paid. All actions are complete.
-- **Closed**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
+- **Done**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
 
 ---
 
@@ -111,8 +111,10 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 If no green button appears, it means no immediate action is required. Tap the **More** button to find available options.
 
 ## Can I delete reports?  
-Yes—if the report is a **Draft** or is **Processing**. **Closed** or **Paid** reports cannot be deleted.
+Yes—if the report is a **Draft** or is **Outstanding**. **Done** or **Paid** reports cannot be deleted.
 
 ## Can I view report details?  
 Yes. Tap the report title or select **View Details** from the **More** menu.
 
+## An employee sent an IOU before our company had a company workspace. How do we report their expenses on the workspace instead?
+The employee can move their IOU to the company workspace by selecting **More** > **Change Workspace**. This will convert the IOU into a regular expense report on the selected workspace.

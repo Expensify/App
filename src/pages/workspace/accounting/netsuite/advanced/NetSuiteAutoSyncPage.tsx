@@ -47,11 +47,11 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
                 style={[styles.defaultModalContainer]}
-                testID={NetSuiteAutoSyncPage.displayName}
+                testID="NetSuiteAutoSyncPage"
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
@@ -93,7 +93,5 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-NetSuiteAutoSyncPage.displayName = 'NetSuiteAutoSyncPage';
 
 export default withPolicyConnections(NetSuiteAutoSyncPage);

@@ -1,15 +1,15 @@
-import React, {useCallback, useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
-import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -49,6 +49,7 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
 type ImportedPerDiemPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORTED>;
 function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const {translate} = useLocalize();
+    const {currencyList} = useCurrencyList();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImportingPerDiemRates, setIsImportingPerDiemRates] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -76,26 +77,34 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
-    const validate = useCallback(() => {
+    const sanitizeCurrencyCode = (currencyCode: string) => {
+        if (currencyList[currencyCode]) {
+            return currencyCode;
+        }
+        // If the currency code is not found in the currency list, default to USD
+        return CONST.CURRENCY.USD;
+    };
+
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
+            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
             const duplicate = findDuplicate(columns);
             const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
             if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicateColumn.text});
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
+    };
 
-    const importRates = useCallback(() => {
+    const importRates = () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
@@ -124,7 +133,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             setIsImportingPerDiemRates(true);
             importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
         }
-    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -143,7 +152,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedPerDiemPage.displayName}
+            testID="ImportedPerDiemPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -161,19 +170,12 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
 
-            <ConfirmModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
+                closeImportPageAndModal={closeImportPageAndModal}
             />
         </ScreenWrapper>
     );
 }
-
-ImportedPerDiemPage.displayName = 'ImportedPerDiemPage';
 
 export default ImportedPerDiemPage;
