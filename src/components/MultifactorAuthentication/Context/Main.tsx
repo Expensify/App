@@ -84,7 +84,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         if (needsRegistration) {
             // Need validate code before registration
-            if (validateCode === undefined) {
+            if (!validateCode) {
                 requestValidateCodeAction();
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_MAGIC_CODE);
                 return;
@@ -100,15 +100,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
             const nativePromptTitle = translate(nativePromptTitleTPath);
-
-            // Capture validateCode in a local variable to ensure it's available in the callback
-            const currentValidateCode = validateCode;
-            if (!currentValidateCode) {
-                setError({
-                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.VALIDATE_CODE_MISSING,
-                });
-                return;
-            }
 
             await biometrics.register({nativePromptTitle}, async (result: RegisterResult) => {
                 if (!result.success) {
@@ -128,7 +119,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
                 const registrationResult = await processRegistration({
                     publicKey: result.publicKey,
-                    validateCode: currentValidateCode,
+                    validateCode,
                     authenticationMethod: result.authenticationMethod as MarqetaAuthTypeName,
                     challenge: result.challenge,
                 });
