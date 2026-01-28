@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -638,6 +640,8 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analisi',
         duplicateExpense: 'Spesa duplicata',
         newFeature: 'Nuova funzionalità',
+        month: 'Mese',
+        home: 'Home',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -759,6 +763,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: 'Abilita una verifica rapida e sicura utilizzando il tuo viso o impronta digitale. Nessuna password o codice necessario.',
+        },
+        revoke: {
+            revoke: 'Revoca',
+            title: 'Riconoscimento facciale/impronta digitale & passkey',
+            explanation:
+                'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo',
+            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo',
+            cta: 'Revoca accesso',
+            noDevices: 'Non hai alcun dispositivo registrato per la verifica con volto/impronta digitale o passkey. Se ne registri uno, potrai revocare tale accesso da qui.',
+            dismiss: 'Ho capito',
+            error: 'Richiesta non riuscita. Riprova più tardi.',
         },
     },
     validateCodeModal: {
@@ -883,6 +898,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Sei sicuro di voler eliminare questo ${type}?`;
         },
         onlyVisible: 'Visibile solo a',
+        explain: 'Spiega',
+        explainMessage: 'Per favore, spiegami questo.',
         replyInThread: 'Rispondi nel thread',
         joinThread: 'Unisciti al thread',
         leaveThread: 'Abbandona conversazione',
@@ -912,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per note, attività, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Configuriamo il tuo account.',
         chatWithAccountManager: 'Chatta qui con il tuo account manager',
+        askMeAnything: 'Chiedimi qualsiasi cosa!',
         sayHello: "Di' ciao!",
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
@@ -1481,6 +1499,33 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'L’importo totale è troppo elevato. Riduci le ore o diminuisci la tariffa.',
         },
         correctDistanceRateError: "Correggi l'errore nella tariffa della distanza e riprova.",
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'ha contrassegnato la spesa come "rimborsabile"' : 'ha contrassegnato la spesa come "non rimborsabile"';
+                }
+                if (key === 'billable') {
+                    return value ? 'ha contrassegnato la spesa come "fatturabile"' : 'ha contrassegnato la spesa come "non addebitabile"';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `imposta l'aliquota fiscale su "${taxRateName}"`;
+                    }
+                    return `aliquota fiscale in "${taxRateName}"`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `imposta ${translations.common[key].toLowerCase()} su "${updatedValue}"`;
+                }
+                return `${translations.common[key].toLowerCase()} a "${updatedValue}"`;
+            });
+            return `${formatList(fragments)} tramite <a href="${policyRulesRoute}">regole dello spazio di lavoro</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4890,14 +4935,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
-                workspaceFeedsCouldNotBeLoadedMessage:
-                    'Si è verificato un errore durante il caricamento dei feed della scheda dell’area di lavoro. Riprova o contatta il tuo amministratore.',
-                feedCouldNotBeLoadedTitle: 'Impossibile caricare questo feed',
-                feedCouldNotBeLoadedMessage: 'Si è verificato un errore durante il caricamento di questo feed. Riprova o contatta il tuo amministratore.',
-                tryAgain: 'Riprova',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -6330,6 +6367,17 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Contrassegna come "${billable ? 'fatturabile' : 'non fatturabile'}"`,
+                addRuleTitle: 'Aggiungi regola',
+                expensesWith: 'Per spese con:',
+                applyUpdates: 'Applica questi aggiornamenti:',
+                merchantHint: 'Abbina un nome commerciante con una corrispondenza "contiene" che non distingue tra maiuscole e minuscole',
+                saveRule: 'Salva regola',
+                confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
+                confirmErrorMerchant: 'Per favore inserisci l’esercente',
+                confirmErrorUpdate: 'Applica almeno un aggiornamento',
+                editRuleTitle: 'Modifica regola',
+                deleteRule: 'Elimina regola',
+                deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
             },
         },
         planTypePage: {
@@ -6734,6 +6782,11 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `imposta età massima della spesa a "${newValue}" giorni`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima della spesa cambiata a "${newValue}" giorni (in precedenza "${oldValue}")`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `età massima spesa rimossa (precedentemente "${oldValue}" giorni)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} report approvati con pagamento automatico`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `imposta la soglia per il pagamento automatico dei report approvati su "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `ha modificato la soglia per il pagamento automatico dei report approvati in "${newLimit}" (in precedenza "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: "rimosso la soglia per l'approvazione automatica dei report di pagamento",
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -6888,8 +6941,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 on: (date?: string) => `Su ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Lo scorso mese',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Da inizio anno',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultimo estratto conto',
                 },
             },
@@ -6929,8 +6983,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -8121,6 +8177,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             title: 'Tieni traccia della distanza sul tuo telefono',
             subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
             button: 'Scarica l’app',
+        },
+        continueGpsTripModal: {
+            title: 'Continuare la registrazione del viaggio GPS?',
+            prompt: 'Sembra che l’app si sia chiusa durante il tuo ultimo viaggio GPS. Vuoi continuare a registrare da quel viaggio?',
+            confirm: 'Continua viaggio',
+            cancel: 'Visualizza viaggio',
         },
         notification: {title: 'Tracciamento GPS in corso', body: "Vai all'app per terminare"},
         signOutWarningTripInProgress: {title: 'Tracciamento GPS in corso', prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?', confirm: 'Annulla e disconnettiti'},

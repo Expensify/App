@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -637,6 +639,8 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Einblicke',
         duplicateExpense: 'Doppelte Ausgabe',
         newFeature: 'Neue Funktion',
+        month: 'Monat',
+        home: 'Startseite',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -758,6 +762,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: 'Schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck aktivieren. Keine Passwörter oder Codes erforderlich.',
+        },
+        revoke: {
+            revoke: 'Widerrufen',
+            title: 'Gesicht/Fingerabdruck & Passkeys',
+            explanation:
+                'Die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Durch das Widerrufen des Zugriffs wird für die nächste Verifizierung auf jedem Gerät ein magischer Code erforderlich',
+            confirmationPrompt: 'Bist du sicher? Du benötigst einen magischen Code für die nächste Verifizierung auf jedem Gerät',
+            cta: 'Zugriff widerrufen',
+            noDevices: 'Du hast keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn du welche registrierst, kannst du den Zugriff hier widerrufen.',
+            dismiss: 'Verstanden',
+            error: 'Anfrage fehlgeschlagen. Versuchen Sie es später noch einmal.',
         },
     },
     validateCodeModal: {
@@ -883,6 +898,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?`;
         },
         onlyVisible: 'Nur sichtbar für',
+        explain: 'Erklären',
+        explainMessage: 'Bitte erkläre mir das.',
         replyInThread: 'Im Thread antworten',
         joinThread: 'Thread beitreten',
         leaveThread: 'Thread verlassen',
@@ -912,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Dies ist dein persönlicher Bereich. Verwende ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lass uns alles für dich einrichten.',
         chatWithAccountManager: 'Chatten Sie hier mit Ihrem Account Manager',
+        askMeAnything: 'Frag mich alles!',
         sayHello: 'Sag Hallo!',
         yourSpace: 'Ihr Bereich',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Willkommen bei ${roomName}!`,
@@ -1206,7 +1224,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Sind Sie sicher, dass Sie diese Ausgaben löschen möchten?',
         }),
         deleteReport: 'Bericht löschen',
-        deleteReportConfirmation: 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?',
+        deleteReportConfirmation: 'Möchten Sie diesen Bericht wirklich löschen?',
         settledExpensify: 'Bezahlt',
         done: 'Fertig',
         settledElsewhere: 'Anderswo bezahlt',
@@ -1484,6 +1502,33 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
         correctDistanceRateError: 'Beheben Sie den Fehler beim Entfernungssatz und versuchen Sie es erneut.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'hat die Ausgabe als „erstattungsfähig“ markiert' : 'hat die Ausgabe als „nicht erstattungsfähig“ markiert';
+                }
+                if (key === 'billable') {
+                    return value ? 'hat die Ausgabe als „verrechenbar“ markiert' : 'hat die Ausgabe als „nicht abrechenbar“ markiert';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `Steuersatz auf „${taxRateName}“ festlegen`;
+                    }
+                    return `Steuersatz zu „${taxRateName}“`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `Setzen Sie ${translations.common[key].toLowerCase()} auf „${updatedValue}“`;
+                }
+                return `${translations.common[key].toLowerCase()} zu "${updatedValue}"`;
+            });
+            return `${formatList(fragments)} über <a href="${policyRulesRoute}">Workspace-Regeln</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4904,14 +4949,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
-            error: {
-                workspaceFeedsCouldNotBeLoadedTitle: 'Kartenfeeds konnten nicht geladen werden',
-                workspaceFeedsCouldNotBeLoadedMessage:
-                    'Beim Laden der Workspace-Kartenfeeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder wende dich an deine Administratorin bzw. deinen Administrator.',
-                feedCouldNotBeLoadedTitle: 'Dieser Feed konnte nicht geladen werden',
-                feedCouldNotBeLoadedMessage: 'Beim Laden dieses Feeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder kontaktiere deine Administratorin/deinen Administrator.',
-                tryAgain: 'Erneut versuchen',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',
@@ -6347,6 +6384,17 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Als „${billable ? 'Abrechenbar' : 'nicht abrechenbar'}“ markieren`,
+                addRuleTitle: 'Regel hinzufügen',
+                expensesWith: 'Für Ausgaben mit:',
+                applyUpdates: 'Diese Updates anwenden:',
+                merchantHint: 'Einem Händlernamen mit groß-/kleinschreibungsunabhängiger „Enthält“-Übereinstimmung zuordnen',
+                saveRule: 'Regel speichern',
+                confirmError: 'Geben Sie den Händler ein und nehmen Sie mindestens eine Änderung vor',
+                confirmErrorMerchant: 'Bitte geben Sie den Händler ein',
+                confirmErrorUpdate: 'Bitte wenden Sie mindestens eine Aktualisierung an',
+                editRuleTitle: 'Regel bearbeiten',
+                deleteRule: 'Regel löschen',
+                deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
             },
         },
         planTypePage: {
@@ -6744,6 +6792,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage festlegen`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter entfernt (zuvor „${oldValue}“ Tage)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'Deaktiviert'} automatisch bezahlte genehmigte Berichte`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `Stelle den Schwellenwert für die automatische Zahlung genehmigter Berichte auf „${newLimit}“ ein`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `den Schwellenwert für die automatische Bezahlung genehmigter Berichte auf „${newLimit}“ geändert (zuvor „${oldLimit}“)`,
+        removedAutoPayApprovedReportsLimit: 'den Grenzwert für automatisch bezahlte genehmigte Reports entfernt',
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -6899,7 +6952,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nie',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
-                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Diesen Monat',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Dieser Monat',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Laufendes Jahr',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzter Kontoauszug',
                 },
             },
@@ -6941,6 +6995,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Stichwort',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -8134,6 +8190,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             title: 'Entfernung auf deinem Handy verfolgen',
             subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
             button: 'App herunterladen',
+        },
+        continueGpsTripModal: {
+            title: 'GPS-Aufzeichnung der Fahrt fortsetzen?',
+            prompt: 'Es sieht so aus, als ob die App während deiner letzten GPS-Fahrt geschlossen wurde. Möchtest du die Aufzeichnung dieser Fahrt fortsetzen?',
+            confirm: 'Reise fortsetzen',
+            cancel: 'Reise anzeigen',
         },
         notification: {title: 'GPS-Tracking läuft', body: 'Zur App gehen, um abzuschließen'},
         signOutWarningTripInProgress: {title: 'GPS-Tracking läuft', prompt: 'Sind Sie sicher, dass Sie die Reise verwerfen und sich abmelden möchten?', confirm: 'Verwerfen und abmelden'},
