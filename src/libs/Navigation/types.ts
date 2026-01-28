@@ -1844,6 +1844,12 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.MONEY_REQUEST.ODOMETER_IMAGE]: {
+        transactionID: string;
+        readingType: 'start' | 'end';
+        action?: IOUAction;
+        iouType?: IOUType;
+    };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
         reportID: string;
