@@ -265,14 +265,12 @@ const transactionTagGroupColumnNamesToSortingProperty: TransactionTagGroupSortin
 const transactionMerchantGroupColumnNamesToSortingProperty: TransactionMerchantGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+    ...transactionGroupBaseSortingProperties,
 };
 
 const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'sortKey' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+    ...transactionGroupBaseSortingProperties,
 };
 
 const expenseStatusActionMapping = {
