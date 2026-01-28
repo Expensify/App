@@ -44,8 +44,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const [categoryID, setCategoryID] = useState<string>();
     const [groupID, setGroupID] = useState<string>();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS;
-    const toggleSubtitle =
-        isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
+    const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', currentConnectionName) : undefined;
 
     const updateWorkspaceRequiresCategory = useCallback(
         (value: boolean) => {

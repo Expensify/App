@@ -56,10 +56,7 @@ function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
                 style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset, styles.pre]}
                 numberOfLines={1}
             >
-                {translate('reportActionCompose.localTime', {
-                    user: reportRecipientDisplayName,
-                    time: localTime,
-                })}
+                {translate('reportActionCompose.localTime', reportRecipientDisplayName, localTime)}
             </Text>
         </View>
     );

@@ -354,7 +354,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         } else if (!isConnectionVerified) {
             connectionMessage = translate('workspace.accounting.notSync');
         } else {
-            connectionMessage = translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
+            connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
         const configurationOptions = [
