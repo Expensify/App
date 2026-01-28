@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -15,6 +16,10 @@ import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, Section} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -52,7 +57,7 @@ type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
-type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
+type MembersSection = Section<MemberOption>;
 
 function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -141,18 +146,18 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 {
                     title: undefined,
                     data: filteredOptions,
-                    shouldShow: true,
+                    sectionIndex: 0,
                 },
             ];
         }
         sectionsArray.push({
             data: formattedAuthorizedPayer,
-            shouldShow: true,
+            sectionIndex: 1,
         });
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
-            shouldShow: true,
+            sectionIndex: 2,
         });
         return sectionsArray;
     };
@@ -227,7 +232,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     });
 
     const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const textInputLabel = shouldShowSearchInput ? translate('selectionList.findMember') : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -267,6 +271,19 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                             initiallyFocusedOptionKey={formattedAuthorizedPayer.at(0)?.keyForList}
                             shouldSingleExecuteRowSelect
                             showScrollIndicator
+                            addBottomSafeAreaPadding
+                            sections={sections}
+                            ListItem={UserListItem}
+                            onSelectRow={setPolicyAuthorizedPayer}
+                            shouldShowTextInput={shouldShowSearchInput}
+                            textInputOptions={{
+                                label: translate('selectionList.findMember'),
+                                value: searchTerm,
+                                onChangeText: setSearchTerm,
+                                headerMessage,
+                            }}
+                            initiallyFocusedItemKey={formattedAuthorizedPayer.at(0)?.keyForList}
+                            shouldSingleExecuteRowSelect
                             addBottomSafeAreaPadding
                             footerContent={
                                 <FormAlertWithSubmitButton
