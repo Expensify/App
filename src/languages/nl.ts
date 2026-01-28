@@ -7013,7 +7013,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
-        view: {label: 'Bekijken', table: 'Tabel', bar: 'Grafiek'},
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar'},
     },
     genericErrorPage: {
         title: 'O jee, er is iets misgegaan!',

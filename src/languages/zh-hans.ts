@@ -6850,7 +6850,7 @@ ${reportName}
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
         topSpenders: '最高支出者',
-        view: {label: '查看', table: '表', bar: '图表'},
+        view: {label: '查看', table: '表格', bar: '栏'},
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
