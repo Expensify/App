@@ -16,7 +16,9 @@ function MultifactorAuthenticationBiometricsTestPage() {
         }, LOADING_DELAY_MS);
 
         return () => clearTimeout(timeoutId);
-    }, [proceed]);
+        // This should only fire once - on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationBiometricsTestPage.displayName}>

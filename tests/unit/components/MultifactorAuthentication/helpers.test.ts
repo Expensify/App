@@ -7,17 +7,18 @@ import {
     getOutcomeRoute,
     isBiometryConfigured,
     isValidScenario,
+    processRegistration,
     resetKeys,
     shouldAllowBiometrics,
     shouldClearScenario,
 } from '@components/MultifactorAuthentication/helpers';
+import {registerAuthenticationKey, requestAuthenticationChallenge} from '@libs/actions/MultifactorAuthentication';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import type {MultifactorAuthenticationPartialStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
-import {requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore');
-jest.mock('@userActions/MultifactorAuthentication');
+jest.mock('@libs/actions/MultifactorAuthentication');
 jest.mock('@libs/MultifactorAuthentication/Biometrics/SecureStore', () => ({
     SECURE_STORE_VALUES: {
         AUTH_TYPE: {
@@ -287,6 +288,87 @@ describe('MultifactorAuthentication helpers', () => {
             const result = getOutcomePath(undefined, 'success');
             expect(result).toContain('biometrics-test');
             expect(result).toContain('success');
+        });
+    });
+
+    describe('processRegistration', () => {
+        beforeEach(() => {
+            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
+                httpCode: 200,
+                reason: 'Registration successful',
+            });
+        });
+
+        it('should return failure when validateCode is missing', async () => {
+            const result = await processRegistration({
+                publicKey: 'public-key-123',
+                validateCode: '',
+                authenticationMethod: 'BIOMETRIC_FACE',
+                challenge: 'challenge-123',
+            });
+
+            expect(result.success).toBe(false);
+        });
+
+        it('should return failure when challenge is missing', async () => {
+            const result = await processRegistration({
+                publicKey: 'public-key-123',
+                validateCode: '123456',
+                authenticationMethod: 'BIOMETRIC_FACE',
+                challenge: '',
+            });
+
+            expect(result.success).toBe(false);
+        });
+
+        it('should call registerAuthenticationKey with correct parameters', async () => {
+            await processRegistration({
+                publicKey: 'public-key-123',
+                validateCode: '123456',
+                authenticationMethod: 'BIOMETRIC_FACE',
+                challenge: 'challenge-123',
+            });
+
+            expect(registerAuthenticationKey).toHaveBeenCalledWith({
+                keyInfo: expect.objectContaining({
+                    rawId: 'public-key-123',
+                    type: 'biometric',
+                }),
+                validateCode: 123456,
+                authenticationMethod: 'BIOMETRIC_FACE',
+            });
+        });
+
+        it('should return success when HTTP response starts with 2xx', async () => {
+            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
+                httpCode: 201,
+                reason: 'Created',
+            });
+
+            const result = await processRegistration({
+                publicKey: 'public-key-123',
+                validateCode: '123456',
+                authenticationMethod: 'BIOMETRIC_FACE',
+                challenge: 'challenge-123',
+            });
+
+            expect(result.success).toBe(true);
+        });
+
+        it('should return failure when HTTP response does not start with 2xx', async () => {
+            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
+                httpCode: 400,
+                reason: 'Bad request',
+            });
+
+            const result = await processRegistration({
+                publicKey: 'public-key-123',
+                validateCode: '123456',
+                authenticationMethod: 'BIOMETRIC_FACE',
+                challenge: 'challenge-123',
+            });
+
+            expect(result.success).toBe(false);
         });
     });
 });

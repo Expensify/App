@@ -76,19 +76,13 @@ type UseMultifactorAuthentication = {
             headerTitle: string;
             scenario: MultifactorAuthenticationScenario | undefined;
         };
-    proceed: <T extends MultifactorAuthenticationScenario>(
-        scenario: T,
-        params?: MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>,
-    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+    proceed: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>) => Promise<void>;
     update: (
         params: Partial<AllMultifactorAuthenticationFactors> & {
             softPromptDecision?: boolean;
         },
-    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
-    trigger: <T extends MultifactorAuthenticationTrigger>(
-        triggerType: T,
-        argument?: MultifactorTriggerArgument<T>,
-    ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
+    ) => Promise<void>;
+    trigger: <T extends MultifactorAuthenticationTrigger>(triggerType: T, argument?: MultifactorTriggerArgument<T>) => Promise<void>;
 };
 
 type MultifactorAuthenticationScenarioStatus = {

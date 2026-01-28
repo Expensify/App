@@ -1,21 +1,25 @@
 import type {ValueOf} from 'type-fest';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import Navigation from '@navigation/Navigation';
-import {requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
+import {registerAuthenticationKey, requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 import ROUTES, {MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import Base64URL from '@src/utils/Base64URL';
 import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
 import type {
     AllMultifactorAuthenticationOutcomeType,
     MultifactorAuthenticationOutcomeSuffixes,
+    MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationScenarioParams,
 } from './config/types';
-import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, NoScenarioForStatusReason, OutcomePaths} from './types';
+import type {AuthTypeName, MarqetaAuthTypeName, NoScenarioForStatusReason, OutcomePaths} from './types';
 
 /**
  * Checks if the device supports biometric authentication methods.
@@ -134,27 +138,6 @@ const getOutcomeRoute = (path: AllMultifactorAuthenticationOutcomeType | undefin
 };
 
 /**
- * Creates a cancel status based on the current authentication scenario type.
- * Delegates to either authorization or setup cancel depending on the type.
- * @param type - The current multifactor authentication scenario type.
- * @param wasRecentStepSuccessful - Whether the recent step was successful before cancellation.
- * @param nativeBiometricsCancel - Cancel function for native biometrics authorization.
- * @param setupCancel - Cancel function for biometric setup.
- * @returns The appropriate cancel status for the scenario type.
- */
-const getCancelStatus = (
-    type: MultifactorAuthenticationScenarioStatus['type'],
-    wasRecentStepSuccessful: boolean | undefined,
-    nativeBiometricsCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<boolean>,
-    setupCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<BiometricsStatus>,
-): MultifactorAuthenticationStatus<boolean | BiometricsStatus> => {
-    if (type === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION) {
-        return nativeBiometricsCancel(wasRecentStepSuccessful);
-    }
-    return setupCancel(wasRecentStepSuccessful);
-};
-
-/**
  * Retrieves the cancel confirmation modal configuration for a given scenario.
  * Falls back to default UI configuration if scenario-specific config doesn't exist.
  * @param scenario - The authentication scenario (optional).
@@ -211,6 +194,106 @@ async function resetKeys(accountID: number) {
     await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
 }
 
+type ProcessResult = {
+    success: boolean;
+    reason: MultifactorAuthenticationReason;
+};
+
+type RegistrationParams = {
+    publicKey: string;
+    validateCode: string;
+    authenticationMethod: MarqetaAuthTypeName;
+    challenge: string;
+};
+
+type RegistrationKeyInfo = {
+    rawId: Base64URLString;
+    type: 'biometric';
+    response: {
+        clientDataJSON: Base64URLString;
+        biometric: {
+            publicKey: Base64URLString;
+            algorithm: -8;
+        };
+    };
+};
+
+function createKeyInfoObject({publicKey, challenge}: {publicKey: string; challenge: string}): RegistrationKeyInfo {
+    const rawId: Base64URLString = publicKey;
+
+    // Create clientDataJSON with the challenge
+    const clientDataJSON = JSON.stringify({challenge});
+    const clientDataJSONBase64 = Base64URL.encode(clientDataJSON);
+
+    return {
+        rawId,
+        type: 'biometric' as const,
+        response: {
+            clientDataJSON: clientDataJSONBase64,
+            biometric: {
+                publicKey,
+                algorithm: -8 as const,
+            },
+        },
+    };
+}
+
+async function processRegistration(params: RegistrationParams): Promise<ProcessResult> {
+    if (!params.validateCode) {
+        return {
+            success: false,
+            reason: VALUES.REASON.GENERIC.VALIDATE_CODE_MISSING,
+        };
+    }
+
+    if (!params.challenge) {
+        return {
+            success: false,
+            reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
+        };
+    }
+
+    const keyInfo = createKeyInfoObject({
+        publicKey: params.publicKey,
+        challenge: params.challenge,
+    });
+
+    const {httpCode, reason} = await registerAuthenticationKey({
+        keyInfo,
+        validateCode: Number(params.validateCode),
+        authenticationMethod: params.authenticationMethod,
+    });
+
+    const success = String(httpCode).startsWith('2');
+
+    return {
+        success,
+        reason,
+    };
+}
+
+async function processScenario<T extends MultifactorAuthenticationScenario>(
+    scenario: T,
+    params: MultifactorAuthenticationProcessScenarioParameters<T> & {authenticationMethod: MarqetaAuthTypeName},
+): Promise<ProcessResult> {
+    const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] as MultifactorAuthenticationScenarioConfig;
+
+    if (!params.signedChallenge) {
+        return {
+            success: false,
+            reason: VALUES.REASON.GENERIC.SIGNATURE_MISSING,
+        };
+    }
+
+    const {httpCode, reason} = await currentScenario.action(params);
+    const success = String(httpCode).startsWith('2');
+
+    return {
+        success,
+        reason,
+    };
+}
+
 export {
     getAuthTypeName,
     doesDeviceSupportBiometrics,
@@ -225,6 +308,8 @@ export {
     isOnProtectedRoute,
     getMultifactorCancelConfirmModalConfig,
     isProtectedRoute,
-    getCancelStatus,
     extractAdditionalParameters,
+    processRegistration,
+    processScenario,
 };
+export type {ProcessResult, RegistrationParams};
