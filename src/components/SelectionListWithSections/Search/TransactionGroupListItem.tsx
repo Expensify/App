@@ -20,12 +20,12 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-    TransactionQuarterGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -50,13 +50,13 @@ import CategoryListItemHeader from './CategoryListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
+import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import WeekListItemHeader from './WeekListItemHeader';
-import QuarterListItemHeader from './QuarterListItemHeader';
-import YearListItemHeader from './YearListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
+import YearListItemHeader from './YearListItemHeader';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,

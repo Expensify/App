@@ -40,8 +40,8 @@ import type {
     SearchTask,
     SearchTransactionAction,
     SearchWeekGroup,
-    SearchYearGroup,
     SearchWithdrawalIDGroup,
+    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';

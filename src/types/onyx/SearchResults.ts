@@ -299,7 +299,16 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
         PrefixedRecord<
             typeof CONST.SEARCH.GROUP_PREFIX,
-            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup | SearchWeekGroup | SearchYearGroup | SearchQuarterGroup
+            | SearchMemberGroup
+            | SearchCardGroup
+            | SearchWithdrawalIDGroup
+            | SearchCategoryGroup
+            | SearchMerchantGroup
+            | SearchTagGroup
+            | SearchMonthGroup
+            | SearchWeekGroup
+            | SearchYearGroup
+            | SearchQuarterGroup
         >;
 
     /** Whether search data is being fetched from server */

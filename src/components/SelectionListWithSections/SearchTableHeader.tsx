@@ -261,7 +261,6 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
 ];
 
 const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderIcons): SearchColumnConfig[] => {
-
     const commonGroupHeaders: SearchColumnConfig[] = [
         {
             columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,

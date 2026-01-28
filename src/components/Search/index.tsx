@@ -60,11 +60,11 @@ import {
     isTransactionMemberGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionMonthGroupListItemType,
+    isTransactionQuarterGroupListItemType,
     isTransactionTagGroupListItemType,
     isTransactionWeekGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
     isTransactionYearGroupListItemType,
-    isTransactionQuarterGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
