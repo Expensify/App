@@ -127,7 +127,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     <AccountSwitcherSkeletonView
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
                         width={FEED_SELECTOR_SKELETON_WIDTH}
-                        style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : styles.mb11, styles.mw100]}
+                        style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : [styles.mb11, styles.mt2], styles.mw100]}
                     />
                 ) : (
                     <FeedSelector
