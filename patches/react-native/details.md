@@ -189,3 +189,17 @@
 - Upstream PR/issue: There won't be any upstream changes. We need to get rid of InteractionManager
 - E/App issue: https://github.com/Expensify/App/issues/71913
 - PR introducing patch: https://github.com/Expensify/App/pull/69535
+
+### [react-native+0.81.4+026+perf-increase-initial-heap-size.patch](react-native+0.81.4+026+perf-increase-initial-heap-size.patch)
+
+- Reason: This patch increases the initial heap size of the Hermes runtime. This allows us to disable Hermes Young-Gen Garbage Collection (GC) in a separate patch, which improves initial TTI and app startup time.
+- Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
+- E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
+- PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
+
+### [react-native+0.81.4+027+perf-disable-hermes-young-gc-before-tti-reached.patch](react-native+0.81.4+027+perf-disable-hermes-young-gc-before-tti-reached.patch)
+
+- Reason: This patch disables Hermes Young-Gen Garbage Collection (GC), which improves initial TTI and app startup time, by delaying GC for early allocated memory to the first Old-Gen GC run. 
+- Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
+- E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
+- PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
