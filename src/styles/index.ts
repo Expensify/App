@@ -5710,7 +5710,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
         barChartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
-            padding: variables.qrShareHorizontalPadding,
         },
         barChartChartContainer: {
             minHeight: 250,

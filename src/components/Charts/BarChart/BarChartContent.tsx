@@ -26,6 +26,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartColors, useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
 import type {BarChartProps} from '@components/Charts/types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -48,6 +49,7 @@ function calculateMinDomainPadding(chartWidth: number, barCount: number, innerPa
 function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
@@ -211,7 +213,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
 
     if (isLoading || !font) {
         return (
-            <View style={[styles.barChartContainer, styles.highlightBG, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <ActivityIndicator size="large" />
             </View>
         );
@@ -221,7 +223,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return null;
     }
     return (
-        <View style={[styles.barChartContainer, styles.highlightBG]}>
+        <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
             <ChartHeader
                 title={title}
                 titleIcon={titleIcon}
