@@ -31,7 +31,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearShareBankAccountErrors, getBankAccountFromID, shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccountErrors, shareBankAccount} from '@userActions/BankAccounts';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
@@ -58,8 +58,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
     const policyID = policy?.id;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policyID);
     const bankAccountID = policy?.achAccount?.bankAccountID;
-    const bankAccountInfo = getBankAccountFromID(bankAccountID);
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -189,19 +190,20 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
         const isSelectedPayerOwner = policy?.owner === selectedPayer;
-        const isAccountAlreadyShared = bankAccountInfo?.accountData?.sharees ? bankAccountInfo?.accountData.sharees.includes(selectedPayer) : false;
-        if (isAccountAlreadyShared || isSelectedPayerOwner) {
+        const isSelectedAlreadyAPayer = policy?.achAccount?.reimburser === selectedPayer;
+        const isAccountAlreadyShared = bankAccountConnectedToWorkspace?.accountData?.sharees ? bankAccountConnectedToWorkspace?.accountData.sharees.includes(selectedPayer) : false;
+        if (isAccountAlreadyShared || isSelectedPayerOwner || isSelectedAlreadyAPayer) {
             onButtonPress();
             return;
         }
-        console.log('bankAccountInfo');
-        console.log(bankAccountInfo);
-        if (bankAccountInfo?.accountData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+        if (bankAccountConnectedToWorkspace?.accountData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
             setShowValidationModal(true);
             return;
         }
         const isAccountAlreadySharedWithCurrentUser =
-            bankAccountInfo?.accountData?.sharees && currentUserPersonalDetails?.login ? bankAccountInfo?.accountData?.sharees.includes(currentUserPersonalDetails?.login) : false;
+            bankAccountConnectedToWorkspace?.accountData?.sharees && currentUserPersonalDetails?.login
+                ? bankAccountConnectedToWorkspace?.accountData?.sharees.includes(currentUserPersonalDetails?.login)
+                : false;
         const isOwner = policy?.owner === currentUserPersonalDetails?.login;
         if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
