@@ -29,6 +29,7 @@ import type {
     TransactionCategoryGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
+    TransactionMonthGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -42,6 +43,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import DateUtils from '@libs/DateUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -156,6 +158,11 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
         return (transaction.category ?? '') === ((groupItem as TransactionCategoryGroupListItemType).category ?? '');
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
+        const monthGroup = groupItem as TransactionMonthGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        return DateUtils.isDateStringInMonth(transactionDateString, monthGroup.year, monthGroup.month);
     }
     return false;
 }

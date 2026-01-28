@@ -8,7 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
 import CONST from '@src/CONST';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
 import type BackgroundImageProps from './types';
 
 function BackgroundImage({width}: BackgroundImageProps) {
@@ -45,7 +45,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const {splashScreenState} = useSplashScreenStateContext();
+    const {splashScreenState} = useSplashScreenState();
     // Prevent rendering the background image until the splash screen is hidden.
     // See issue: https://github.com/Expensify/App/issues/34696
     if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && isAnonymous)) {

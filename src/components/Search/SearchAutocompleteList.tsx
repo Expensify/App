@@ -110,7 +110,7 @@ type SearchAutocompleteListProps = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
 
     /** All cards */
-    allCards: CardList;
+    allCards: CardList | undefined;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
@@ -183,7 +183,7 @@ function SearchAutocompleteList({
     personalDetails,
     reports,
     allFeeds,
-    allCards,
+    allCards = CONST.EMPTY_OBJECT,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();

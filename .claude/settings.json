@@ -19,5 +19,8 @@
             "mcp__playwright__browser_evaluate",
             "mcp__playwright__browser_handle_dialog"
         ]
+    },
+    "enabledPlugins": {
+        "react-native-best-practices@callstack-agent-skills": true
     }
 }

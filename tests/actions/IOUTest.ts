@@ -8091,6 +8091,7 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
+                        draftTransactions: undefined,
                     });
                 })
                 .then(async () => {
@@ -8113,6 +8114,7 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
+                        draftTransactions: undefined,
                     });
                 })
                 .then(async () => {
@@ -8136,6 +8138,7 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
+                        draftTransactions: undefined,
                     });
                 })
                 .then(async () => {
@@ -8143,6 +8146,134 @@ describe('actions/IOU', () => {
                         ...transactionResult,
                         currency: fakePersonalPolicy.outputCurrency,
                     });
+                });
+        });
+
+        it('should remove non-optimistic draft transactions when draftTransactions is provided', async () => {
+            const otherDraftTransactionID = '123456';
+            const otherDraftTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: otherDraftTransactionID,
+            };
+
+            // Set up an additional draft transaction
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`, otherDraftTransaction);
+
+            const draftTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`]: otherDraftTransaction,
+            };
+
+            await waitForBatchedUpdates()
+                .then(() => {
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        personalPolicy: fakePersonalPolicy,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
+                        currentDate,
+                        currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
+                        draftTransactions,
+                    });
+                })
+                .then(async () => {
+                    // The other draft transaction should be removed (Onyx returns undefined for removed keys)
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`)).toBeUndefined();
+                    // The optimistic transaction should be created
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
+                });
+        });
+
+        it('should preserve optimistic transaction in draftTransactions while removing others', async () => {
+            const otherDraftTransactionID = '789012';
+            const otherDraftTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: otherDraftTransactionID,
+            };
+            const existingOptimisticTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            };
+
+            // Set up both draft transactions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`, otherDraftTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, existingOptimisticTransaction);
+
+            const draftTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`]: otherDraftTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`]: existingOptimisticTransaction,
+            };
+
+            await waitForBatchedUpdates()
+                .then(() => {
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        personalPolicy: fakePersonalPolicy,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
+                        currentDate,
+                        currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
+                        draftTransactions,
+                    });
+                })
+                .then(async () => {
+                    // The other draft transaction should be removed (Onyx returns undefined for removed keys)
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`)).toBeUndefined();
+                    // The optimistic transaction should be updated with the new transaction result (not removed)
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
+                });
+        });
+
+        it('should remove multiple draft transactions when draftTransactions contains several entries', async () => {
+            const draftTransactionID1 = '111111';
+            const draftTransactionID2 = '222222';
+            const draftTransaction1: Transaction = {
+                ...createRandomTransaction(4),
+                transactionID: draftTransactionID1,
+            };
+            const draftTransaction2: Transaction = {
+                ...createRandomTransaction(5),
+                transactionID: draftTransactionID2,
+            };
+
+            // Set up multiple draft transactions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID1}`, draftTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID2}`, draftTransaction2);
+
+            const draftTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID1}`]: draftTransaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID2}`]: draftTransaction2,
+            };
+
+            await waitForBatchedUpdates()
+                .then(() => {
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        personalPolicy: fakePersonalPolicy,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
+                        currentDate,
+                        currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
+                        draftTransactions,
+                    });
+                })
+                .then(async () => {
+                    // Both draft transactions should be removed (Onyx returns undefined for removed keys)
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID1}`)).toBeUndefined();
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID2}`)).toBeUndefined();
+                    // The optimistic transaction should be created
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
                 });
         });
     });
