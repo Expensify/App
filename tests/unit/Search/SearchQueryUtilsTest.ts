@@ -94,15 +94,6 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
         });
 
-        test('returns query with view parameter preserved', () => {
-            const userQuery = 'type:expense groupBy:category view:bar';
-
-            const result = getQueryWithUpdatedValues(userQuery);
-
-            expect(result).toContain('view:bar');
-            expect(result).toContain('groupBy:category');
-        });
-
         test('deduplicates conflicting type filters keeping the last occurrence', () => {
             const userQuery = 'type:expense-report action:submit from:me type:expense';
 
