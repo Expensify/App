@@ -8,11 +8,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 describe('TravelInvoicing', () => {
     let spyAPIWrite: jest.SpyInstance;
-    let spyOnyxUpdate: jest.SpyInstance;
+    let spyOnyxMerge: jest.SpyInstance;
 
     beforeEach(() => {
         spyAPIWrite = jest.spyOn(API, 'write');
-        spyOnyxUpdate = jest.spyOn(Onyx, 'update');
+        spyOnyxMerge = jest.spyOn(Onyx, 'merge');
     });
 
     afterEach(() => {
@@ -80,18 +80,11 @@ describe('TravelInvoicing', () => {
 
         clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, restoredAccountID);
 
-        expect(spyOnyxUpdate).toHaveBeenCalledWith(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    key: cardSettingsKey,
-                    value: {
-                        errors: null,
-                        pendingAction: null,
-                        paymentBankAccountID: restoredAccountID,
-                        previousPaymentBankAccountID: null,
-                    },
-                }),
-            ]),
-        );
+        expect(spyOnyxMerge).toHaveBeenCalledWith(cardSettingsKey, {
+            errors: null,
+            pendingAction: null,
+            paymentBankAccountID: restoredAccountID,
+            previousPaymentBankAccountID: null,
+        });
     });
 });
