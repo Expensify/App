@@ -1,5 +1,4 @@
 import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {getCompanyCardFeed, getCompanyFeeds, getSelectedFeed} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

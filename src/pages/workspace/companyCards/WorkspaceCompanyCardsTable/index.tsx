@@ -113,7 +113,6 @@ function WorkspaceCompanyCardsTable({policyID, isPolicyLoaded, domainOrWorkspace
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (Object.entries(cardNamesToEncryptedCardNumber ?? {}).map(([cardName, encryptedCardNumber]) => {
-              // For direct feeds cardID equals cardName, for commercial feeds it's looked up from cardList
               const failedCompanyCardAssignment = failedCompanyCardAssignments?.[encryptedCardNumber];
 
               if (failedCompanyCardAssignment) {
