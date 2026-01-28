@@ -63,6 +63,8 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                 return matchingReports;
             }, new Set<string>());
         },
+        // We need to update the available reports when the merchant changes, since the transaction selector changes when the merchant changes, and it
+        // relies on the available reports
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [policyID, merchant],
     );
