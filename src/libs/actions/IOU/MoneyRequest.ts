@@ -235,7 +235,9 @@ function getMoneyRequestParticipantOptions(
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived);
+        return participantAccountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, reportAttributesDerived);
     });
 }
 
@@ -275,7 +277,7 @@ function handleMoneyRequestStepScanParticipants({
     }
 
     if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID) ?? {};
         let reportIDParam = managerMcTestParticipant.reportID;
         if (!managerMcTestParticipant.reportID && report?.reportID) {
             reportIDParam = generateReportID();

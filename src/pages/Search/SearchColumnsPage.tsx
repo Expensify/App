@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getCustomColumns, getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,6 +61,9 @@ function SearchColumnsPage() {
         CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
     ]);
 
     const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
@@ -183,7 +186,12 @@ function SearchColumnsPage() {
             columns: selectedColumnIds,
         };
 
-        const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
+        const currentQueryJSON = getCurrentSearchQueryJSON();
+        const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters, {
+            sortBy: currentQueryJSON?.sortBy,
+            sortOrder: currentQueryJSON?.sortOrder,
+            limit: currentQueryJSON?.limit,
+        });
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };
