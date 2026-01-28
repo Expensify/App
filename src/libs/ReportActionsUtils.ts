@@ -2680,8 +2680,8 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
             };
             return translate('workspaceActions.updateCategoryMaxAmountNoItemizedReceipt', {
                 categoryName: decodedOptionName,
-                oldValue: getTranslation(oldValue),
-                newValue: getTranslation(newValue),
+                oldValue: getTranslation(oldValue as string),
+                newValue: getTranslation(newValue as string),
             });
         }
     }
