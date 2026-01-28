@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
