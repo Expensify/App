@@ -80,14 +80,7 @@ function MultifactorAuthenticationProviderInner({children}: MultifactorAuthentic
             return;
         }
 
-        // 4. Check if keys need to be reset (registered locally but not in auth)
-        // Skip this check if registration was just completed - the refresh state might not have propagated yet
-        if (!isRegistrationComplete && biometrics.isRegisteredLocally() && !biometrics.isRegisteredInAuth()) {
-            await biometrics.resetKeysForAccount();
-            await biometrics.refresh();
-        }
-
-        // 5. Check if registration is required (not registered yet)
+        // 4. Check if registration is required (not registered yet)
         const needsRegistration = !biometrics.isRegisteredInAuth() && !isRegistrationComplete;
 
         if (needsRegistration) {
@@ -148,14 +141,12 @@ function MultifactorAuthenticationProviderInner({children}: MultifactorAuthentic
                     return;
                 }
 
-                // Refresh biometrics info BEFORE setting state to prevent keys from being deleted
-                await biometrics.refresh();
                 setIsRegistrationComplete(true);
             });
             return;
         }
 
-        // 6. Check if authorization is required
+        // 5. Check if authorization is required
         const needsAuthorization = !isAuthorizationComplete;
 
         if (needsAuthorization) {
@@ -203,7 +194,7 @@ function MultifactorAuthenticationProviderInner({children}: MultifactorAuthentic
             return;
         }
 
-        // 7. All steps completed - success
+        // 6. All steps completed - success
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome));
         setIsFlowComplete(true);
     }, [biometrics, setError, setIsAuthorizationComplete, setIsFlowComplete, setIsRegistrationComplete, state, translate]);

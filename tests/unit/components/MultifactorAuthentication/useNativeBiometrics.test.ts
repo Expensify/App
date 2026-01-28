@@ -22,6 +22,14 @@ jest.mock('@hooks/useLocalize', () => ({
     }),
 }));
 
+let mockMultifactorAuthenticationPublicKeyIDs: string[] | undefined = [];
+
+jest.mock('@hooks/useOnyx', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => [mockMultifactorAuthenticationPublicKeyIDs],
+}));
+
 jest.mock('@userActions/MultifactorAuthentication');
 jest.mock('@libs/MultifactorAuthentication/Biometrics/ED25519');
 jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore', () => ({
@@ -59,6 +67,8 @@ describe('useNativeBiometrics hook', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        // Reset the Onyx mock
+        mockMultifactorAuthenticationPublicKeyIDs = [];
         // Reset PublicKeyStore.supportedAuthentication to default
         Object.defineProperty(PublicKeyStore, 'supportedAuthentication', {
             value: {biometrics: true, deviceCredentials: true},
@@ -80,10 +90,10 @@ describe('useNativeBiometrics hook', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             expect(result.current).toHaveProperty('info');
+            expect(result.current).toHaveProperty('isAnyDeviceRegistered');
             expect(result.current).toHaveProperty('doesDeviceSupportBiometrics');
             expect(result.current).toHaveProperty('isRegisteredLocally');
             expect(result.current).toHaveProperty('isRegisteredInAuth');
-            expect(result.current).toHaveProperty('refresh');
             expect(result.current).toHaveProperty('register');
             expect(result.current).toHaveProperty('authorize');
             expect(result.current).toHaveProperty('resetKeysForAccount');
@@ -96,8 +106,21 @@ describe('useNativeBiometrics hook', () => {
                 deviceSupportsBiometrics: true,
                 isBiometryRegisteredLocally: false,
                 isLocalPublicKeyInAuth: false,
-                isAnyDeviceRegistered: false,
             });
+        });
+
+        it('should derive isAnyDeviceRegistered from Onyx state', () => {
+            mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
+            const {result} = renderHook(() => useNativeBiometrics());
+
+            expect(result.current.isAnyDeviceRegistered).toBe(true);
+        });
+
+        it('should return false for isAnyDeviceRegistered when Onyx state is empty', () => {
+            mockMultifactorAuthenticationPublicKeyIDs = [];
+            const {result} = renderHook(() => useNativeBiometrics());
+
+            expect(result.current.isAnyDeviceRegistered).toBe(false);
         });
     });
 
@@ -136,38 +159,32 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
-    describe('refresh', () => {
-        it('should update info', async () => {
+    describe('local state refresh', () => {
+        it('should update info based on local key storage and Onyx state', async () => {
+            mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
             (PublicKeyStore.get as jest.Mock).mockResolvedValue({
                 value: 'public-key-123',
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
             });
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {user: {id: '123'}, rp: {name: 'Expensify'}},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-                publicKeys: ['public-key-123'],
-            });
 
             const {result} = renderHook(() => useNativeBiometrics());
 
+            // Wait for useEffect to run
             await act(async () => {
-                await result.current.refresh();
+                await Promise.resolve();
             });
 
-            expect(result.current.info.isAnyDeviceRegistered).toBe(true);
+            expect(result.current.isAnyDeviceRegistered).toBe(true);
             expect(result.current.info.isBiometryRegisteredLocally).toBe(true);
             expect(result.current.info.isLocalPublicKeyInAuth).toBe(true);
         });
 
-        it('should call public key store with the accountID', async () => {
-            (PublicKeyStore.get as jest.Mock).mockResolvedValue({
-                value: 'public-key-123',
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
-            });
-            const {result} = renderHook(() => useNativeBiometrics());
+        it('should call public key store with the accountID on mount', async () => {
+            renderHook(() => useNativeBiometrics());
 
+            // Wait for useEffect to run
             await act(async () => {
-                await result.current.refresh();
+                await Promise.resolve();
             });
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -549,7 +566,7 @@ describe('useNativeBiometrics hook', () => {
     });
 
     describe('resetKeysForAccount', () => {
-        it('should call resetKeys and refresh', async () => {
+        it('should delete keys and refresh local state', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             await act(async () => {
@@ -558,6 +575,7 @@ describe('useNativeBiometrics hook', () => {
 
             expect(publicKeyStoreDelete).toHaveBeenCalledWith(12345);
             expect(privateKeyStoreDelete).toHaveBeenCalledWith(12345);
+            // Local state refresh calls PublicKeyStore.get
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PublicKeyStore.get).toHaveBeenCalledWith(12345);
         });
