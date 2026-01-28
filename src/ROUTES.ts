@@ -2706,6 +2706,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/new/billable',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/billable` as const,
     },
+    RULES_MERCHANT_PREVIEW_MATCHES: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/preview-matches',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/preview-matches` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',
