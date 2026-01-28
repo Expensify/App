@@ -365,6 +365,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                         name: 'heicTo',
                         chunks: 'all',
+                        priority: 10, // ensure this chunk has always its own group
                     },
                     // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
                     expensifyIcons: {

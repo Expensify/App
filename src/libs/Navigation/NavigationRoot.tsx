@@ -1,7 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnboardingValues} from '@components/OnyxListItemProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
@@ -26,13 +26,15 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import AppNavigator from './AppNavigator';
+import lazyRetry from '@src/utils/lazyRetry';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
+
+const AppNavigator = lazy(() => lazyRetry(() => import(/* webpackChunkName: "appNavigator.prefetch" */ './AppNavigator')));
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
@@ -282,7 +284,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 enabled: false,
             }}
         >
-            <AppNavigator authenticated={authenticated} />
+            <Suspense fallback={null}>
+                <AppNavigator authenticated={authenticated} />
+            </Suspense>
         </NavigationContainer>
     );
 }
