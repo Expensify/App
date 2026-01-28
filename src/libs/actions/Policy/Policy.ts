@@ -89,7 +89,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
-import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
+import type {PolicySelector} from '@pages/inbox/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -137,9 +137,13 @@ type ReportCreationData = Record<
 >;
 
 type WorkspaceMembersChats = {
-    onyxSuccessData: OnyxUpdate[];
-    onyxOptimisticData: OnyxUpdate[];
-    onyxFailureData: OnyxUpdate[];
+    onyxSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    onyxOptimisticData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+        >
+    >;
+    onyxFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>;
     reportCreationData: ReportCreationData;
 };
 
@@ -374,7 +378,21 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         return acc;
     }, {});
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.BANK_ACCOUNT_LIST
+            | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
+            | typeof ONYXKEYS.NVP_ACTIVE_POLICY_ID
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -412,7 +430,20 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     ];
 
     // Restore the old report stateNum and statusNum
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.BANK_ACCOUNT_LIST
+            | typeof ONYXKEYS.NVP_ACTIVE_POLICY_ID
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
@@ -548,7 +579,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: transactionViolation?.filter((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION),
             });
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -1303,11 +1333,11 @@ function createPolicyExpenseChats(
                     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 },
             });
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             workspaceMembersChats.onyxOptimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${oldChat.reportID}`,
                 value: {
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     private_isArchived: false,
                 },
             });
@@ -2122,7 +2152,22 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
     const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS
+            | typeof ONYXKEYS.NVP_ACTIVE_POLICY_ID
+            | typeof ONYXKEYS.NVP_INTRO_SELECTED
+            | typeof ONYXKEYS.NVP_ONBOARDING
+            | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT
+            | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+            | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -2274,7 +2319,20 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         });
     }
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+            | typeof ONYXKEYS.NVP_ONBOARDING
+            | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+            | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -2358,7 +2416,21 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.NVP_ACTIVE_POLICY_ID
+            | typeof ONYXKEYS.NVP_INTRO_SELECTED
+            | typeof ONYXKEYS.NVP_ONBOARDING
+            | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+            | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -2713,7 +2785,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         policyCategories && isCategoriesOptionSelected ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories) : defaultOptimisticCategoriesData;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2821,8 +2892,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         ...announceRoomChat.onyxOptimisticData,
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2898,8 +2967,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         ...announceRoomChat.onyxSuccessData,
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4395,8 +4462,9 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
-const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
+const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmountNoItemizedReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
     maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+    maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
     maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
@@ -4439,6 +4507,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
                     ...(!enabled
                         ? {
                               maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt,
+                              maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt,
                               maxExpenseAmount: policy?.maxExpenseAmount,
                               maxExpenseAge: policy?.maxExpenseAge,
                           }
@@ -4575,6 +4644,63 @@ function enablePolicyInvoicing(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyInvoicingParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_INVOICING, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        goBackWhenEnableFeature(policyID);
+    }
+}
+
+/**
+ * Enable/disable the Time Tracking feature for the policy.
+ */
+function enablePolicyTimeTracking(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    units: {
+                        time: {
+                            enabled,
+                        },
+                    },
+                    pendingFields: {
+                        isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isTimeTrackingEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    units: {
+                        time: {
+                            enabled: !enabled,
+                        },
+                    },
+                    pendingFields: {
+                        isTimeTrackingEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TIME_TRACKING, {policyID, enabled}, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -4781,6 +4907,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
                 maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
                 maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+                maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
                 glCodes: true,
                 eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
                 harvesting: {
@@ -4811,6 +4938,7 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
                 maxExpenseAge: policy?.maxExpenseAge ?? null,
                 maxExpenseAmount: policy?.maxExpenseAmount ?? null,
                 maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
+                maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
                 harvesting: policy?.harvesting ?? null,
                 isAttendeeTrackingEnabled: null,
@@ -4987,6 +5115,62 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, onyxData);
+}
+
+/**
+ * Call the API to set the itemized receipt required amount for the given policy
+ * @param policyID - id of the policy to set the itemized receipt required amount
+ * @param maxExpenseAmountNoItemizedReceipt - new value of the itemized receipt required amount
+ */
+function setPolicyMaxExpenseAmountNoItemizedReceipt(policyID: string, maxExpenseAmountNoItemizedReceipt: string) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
+    const parsedMaxExpenseAmountNoItemizedReceipt =
+        maxExpenseAmountNoItemizedReceipt === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmountNoItemizedReceipt));
+    const originalMaxExpenseAmountNoItemizedReceipt = policy?.maxExpenseAmountNoItemizedReceipt;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmountNoItemizedReceipt: parsedMaxExpenseAmountNoItemizedReceipt,
+                    pendingFields: {
+                        maxExpenseAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {maxExpenseAmountNoItemizedReceipt: null},
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmountNoItemizedReceipt: originalMaxExpenseAmountNoItemizedReceipt,
+                    pendingFields: {maxExpenseAmountNoItemizedReceipt: null},
+                    errorFields: {maxExpenseAmountNoItemizedReceipt: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        maxExpenseAmountNoItemizedReceipt: parsedMaxExpenseAmountNoItemizedReceipt,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_ITEMIZED_RECEIPT, parameters, onyxData);
 }
 
 /**
@@ -6524,6 +6708,7 @@ export {
     enablePolicyReportFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
+    enablePolicyTimeTracking,
     changePolicyUberBillingAccount,
     enableDistanceRequestTax,
     enablePolicyInvoicing,
@@ -6571,6 +6756,7 @@ export {
     enablePolicyAutoReimbursementLimit,
     enableAutoApprovalOptions,
     setPolicyMaxExpenseAmountNoReceipt,
+    setPolicyMaxExpenseAmountNoItemizedReceipt,
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     updateCustomRules,
