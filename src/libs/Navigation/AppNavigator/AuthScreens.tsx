@@ -8,7 +8,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
+import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -86,6 +86,7 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
+const loadHomePage = () => require<ReactComponentModule>('../../../pages/HomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
@@ -155,7 +156,8 @@ function AuthScreens() {
         canBeMissing: true,
     });
     const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
-    const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
+    const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
+    const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
@@ -523,6 +525,7 @@ function AuthScreens() {
                     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
                     SCREENS.WORKSPACES_LIST,
+                    SCREENS.HOME,
                     SCREENS.SEARCH.ROOT,
                 ]}
             >
@@ -531,6 +534,11 @@ function AuthScreens() {
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                     options={getFullscreenNavigatorOptions}
                     getComponent={loadReportSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={SCREENS.HOME}
+                    options={rootNavigatorScreenOptions.fullScreenTabPage}
+                    getComponent={loadHomePage}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
@@ -564,7 +572,7 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={SCREENS.WORKSPACES_LIST}
-                    options={rootNavigatorScreenOptions.workspacesListPage}
+                    options={rootNavigatorScreenOptions.fullScreenTabPage}
                     component={WorkspacesListPage}
                 />
                 <RootStack.Screen

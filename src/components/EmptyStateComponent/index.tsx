@@ -11,7 +11,7 @@ import VideoPlayer from '@components/VideoPlayer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps} from './types';
 

@@ -89,7 +89,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
-import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
+import type {PolicySelector} from '@pages/inbox/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -3087,8 +3087,37 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     }
 
     const params: OpenPolicyReceiptPartnersPageParams = {policyID};
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoadingReceiptPartners: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoadingReceiptPartners: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoadingReceiptPartners: null,
+                },
+            },
+        ],
+    };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params, onyxData);
 }
 
 function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
