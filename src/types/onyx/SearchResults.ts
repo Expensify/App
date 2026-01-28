@@ -265,11 +265,8 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
         PrefixedRecord<
-            
             typeof CONST.SEARCH.GROUP_PREFIX,
-           
-            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup
-         | SearchWeekGroup
+            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup | SearchWeekGroup
         >;
 
     /** Whether search data is being fetched from server */
