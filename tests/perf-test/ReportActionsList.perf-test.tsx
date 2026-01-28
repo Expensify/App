@@ -9,8 +9,8 @@ import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionsList from '@src/pages/home/report/ReportActionsList';
-import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';

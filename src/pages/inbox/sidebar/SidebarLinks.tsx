@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';

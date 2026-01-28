@@ -60,9 +60,9 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
-import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
-import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
+import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroProcessingRequestIndicator';
+import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
+import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';

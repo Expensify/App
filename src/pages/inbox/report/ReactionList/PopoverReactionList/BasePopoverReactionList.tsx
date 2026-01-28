@@ -6,7 +6,7 @@ import useBasePopoverReactionList from '@hooks/useBasePopoverReactionList';
 import type {BasePopoverReactionListProps} from '@hooks/useBasePopoverReactionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
+import BaseReactionList from '@pages/inbox/report/ReactionList/BaseReactionList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
