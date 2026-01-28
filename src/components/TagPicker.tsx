@@ -132,13 +132,15 @@ function TagPicker({
         label: translate('common.search'),
     };
 
+    const listItemTitleStyles = [styles.breakAll, styles.w100];
+
     return (
         <SelectionList
             sections={sections}
             ListItem={RadioListItem}
             style={{
                 sectionTitleStyles: styles.mt5,
-                listItemTitleStyles: styles.breakAll,
+                listItemTitleStyles,
             }}
             textInputOptions={textInputOptions}
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
