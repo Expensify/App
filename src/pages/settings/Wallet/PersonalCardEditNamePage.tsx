@@ -1,4 +1,5 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -22,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditPersonalCardNameForm';
+import type {CardList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME>;
@@ -29,10 +31,8 @@ type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorP
 function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true, selector: (cardList: OnyxEntry<CardList>) => cardList?.[cardID]});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-
-    const card = cardList?.[cardID];
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const defaultValue = customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName);
 

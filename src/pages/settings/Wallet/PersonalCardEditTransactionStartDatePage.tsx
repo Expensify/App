@@ -1,6 +1,7 @@
 import {format, parseISO, subDays} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CardList} from '@src/types/onyx';
 
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
 type PersonalCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE>;
@@ -31,8 +33,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const card = cardList?.[cardID];
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true, selector: (cardList: OnyxEntry<CardList>) => cardList?.[cardID]});
     const currentStartDate = card?.scrapeMinDate;
 
     const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
