@@ -5813,19 +5813,6 @@ const CONST = {
     },
 
     /**
-     * Feature flag to enable the missingAttendees violation feature.
-     * Currently enabled only on staging for testing.
-     * When true:
-     * - Enables new missingAttendees violations to be created
-     * - Shows existing missingAttendees violations in transaction lists
-     * - Shows "Require attendees" toggle in category settings
-     * Note: Config?.ENVIRONMENT is undefined in local dev when .env doesn't set it, so we treat undefined as dev
-     */
-    // We can't use nullish coalescing for boolean comparison
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    IS_ATTENDEES_REQUIRED_ENABLED: !Config?.ENVIRONMENT || Config?.ENVIRONMENT === 'staging' || Config?.ENVIRONMENT === 'development',
-
-    /**
      * Constants for types of violation.
      */
     VIOLATION_TYPES: {

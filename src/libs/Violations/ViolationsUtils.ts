@@ -242,7 +242,7 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
  * Returns true if the violation should be cleared, false if it should persist.
  */
 function getIsViolationFixed(violationError: string, params: ViolationFixParams): boolean {
-    const {category, tag, taxCode, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled} = params;
+    const {category, tag, taxCode, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy} = params;
 
     const violationValidators: Record<string, () => boolean> = {
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY}`]: () => {
@@ -267,7 +267,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => {
             // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
-            return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled);
+            return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
         },
     };
 
@@ -597,22 +597,15 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
-        const shouldProcessMissingAttendees = CONST.IS_ATTENDEES_REQUIRED_ENABLED;
+        if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
 
-        if (shouldProcessMissingAttendees) {
-            if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
-                newTransactionViolations.push({
-                    name: CONST.VIOLATIONS.MISSING_ATTENDEES,
-                    type: CONST.VIOLATION_TYPES.VIOLATION,
-                    showInReview: true,
-                });
-            }
-
-            if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
-                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
-            }
-        } else if (hasMissingAttendeesViolation) {
-            // Feature flag is disabled - always remove missingAttendees violations
+        if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
         }
 
@@ -822,8 +815,7 @@ const ViolationsUtils = {
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction) &&
-                    (CONST.IS_ATTENDEES_REQUIRED_ENABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES)
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
                 );
             });
         });
