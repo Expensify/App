@@ -58,11 +58,11 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
             // We error if the user doesn't enter a task name
             addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
         } else if (values.taskTitle.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', values.taskTitle.length, CONST.TASK_TITLE_CHARACTER_LIMIT));
         }
         const taskDescriptionLength = getCommentLength(values.taskDescription);
         if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', taskDescriptionLength, CONST.DESCRIPTION_LIMIT));
         }
 
         return errors;
@@ -76,7 +76,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
             createTaskAndNavigate({
-                parentReportID: task?.parentReportID,
+                parentReport,
                 title: values.taskTitle,
                 description: values.taskDescription ?? '',
                 assigneeEmail: task?.assignee ?? '',
@@ -98,7 +98,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={NewTaskDetailsPage.displayName}
+            testID="NewTaskDetailsPage"
         >
             <HeaderWithBackButton
                 title={translate('newTaskPage.assignTask')}
@@ -152,7 +152,5 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskDetailsPage.displayName = 'NewTaskDetailsPage';
 
 export default NewTaskDetailsPage;

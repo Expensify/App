@@ -18,6 +18,4 @@ function FreezeWrapper({children}: ChildrenProps) {
     return <Freeze freeze={isScreenBlurred}>{children}</Freeze>;
 }
 
-FreezeWrapper.displayName = 'FreezeWrapper';
-
 export default FreezeWrapper;

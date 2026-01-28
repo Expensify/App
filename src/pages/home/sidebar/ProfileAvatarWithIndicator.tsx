@@ -43,6 +43,4 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: Profi
     );
 }
 
-ProfileAvatarWithIndicator.displayName = 'ProfileAvatarWithIndicator';
-
 export default ProfileAvatarWithIndicator;

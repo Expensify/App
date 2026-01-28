@@ -10,6 +10,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const MOVED_TO_REPORT_ID = '1';
@@ -94,13 +95,13 @@ describe('ModifiedExpenseMessage', () => {
         describe('when moving to a report', () => {
             it('returns "moved expense to personal space" message when moving an expense to selfDM', () => {
                 const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
-                const result = getMovedFromOrToReportMessage(undefined, selfDMReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
                 const policyExpenseReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
                     reportName: policyExpenseReport.reportName,
                 });
@@ -111,7 +112,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyName: 'Policy',
                 };
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
                     reportName: policyExpenseReport.reportName,
                     workspaceName: policyExpenseReport.policyName,
@@ -123,7 +124,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
                 expect(result).toEqual(expectedResult);
             });
@@ -135,7 +136,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns "moved expense from reportName" message', () => {
-                const result = getMovedFromOrToReportMessage(movedFromReport, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
                     reportName: movedFromReport.reportName ?? '',
                 });
@@ -147,7 +148,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, undefined),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(reportWithoutName, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
                     reportName: '',
                 });
@@ -157,7 +158,7 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         it('returns undefined when neither movedToReport nor movedFromReport is provided', () => {
-            const result = getMovedFromOrToReportMessage(undefined, undefined);
+            const result = getMovedFromOrToReportMessage(translateLocal, undefined, undefined);
             expect(result).toBeUndefined();
         });
     });
@@ -185,7 +186,7 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
-        describe('when the amount is changed while the original value was partial', () => {
+        describe('when the amount is changed from zero', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -198,7 +199,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the amount to $18.00`;
+                const expectedResult = `changed the amount to $18.00 (previously $0.00)`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -731,6 +732,45 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns the correct text message with AI attribution', () => {
                 const expectedResult = `set the category based on past activity to "Travel"`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is changed from Uncategorized with AI attribution', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: '6403 Travel - Member Services',
+                    oldCategory: 'Uncategorized',
+                    source: CONST.CATEGORY_SOURCE.AI,
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the correct text message without showing previously uncategorized', () => {
+                const expectedResult = `set the category based on past activity to "6403 Travel - Member Services"`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the category is cleared from Uncategorized (both missing)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    category: '',
+                    oldCategory: 'Uncategorized',
+                } as OriginalMessageModifiedExpense,
+            };
+
+            it('returns the generic changed expense message since no meaningful change occurred', () => {
+                const expectedResult = `changed the expense`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 

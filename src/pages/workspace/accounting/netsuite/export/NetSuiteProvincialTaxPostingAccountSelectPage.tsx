@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
 
@@ -64,8 +64,8 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteProvincialTaxPostingAccountSelectPage.displayName}
-            sections={netsuiteTaxAccountOptions.length ? [{data: netsuiteTaxAccountOptions}] : []}
+            displayName="NetSuiteProvincialTaxPostingAccountSelectPage"
+            data={netsuiteTaxAccountOptions}
             listItem={RadioListItem}
             onSelectRow={updateTaxAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
@@ -81,7 +81,5 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
         />
     );
 }
-
-NetSuiteProvincialTaxPostingAccountSelectPage.displayName = 'NetSuiteProvincialTaxPostingAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteProvincialTaxPostingAccountSelectPage);

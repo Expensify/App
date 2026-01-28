@@ -2,11 +2,12 @@ import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMon
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCurrencySymbol} from './CurrencyUtils';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
+import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
@@ -25,11 +26,18 @@ type FormulaPart = {
     functions: string[];
 };
 
+type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant' | 'pendingAction'>;
+
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    submitterPersonalDetails?: PersonalDetails;
+    managerPersonalDetails?: PersonalDetails;
     allTransactions?: Record<string, Transaction>;
+    fieldValues?: Record<string, string>;
+    fieldsByName?: Record<string, PolicyReportField>;
+    visitedFields?: Set<string>;
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -258,6 +266,13 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
 }
 
 /**
+ * Check if a formula part is a submission info part (report:submit:*)
+ */
+function isSubmissionInfoPart(part: FormulaPart): boolean {
+    return part.type === FORMULA_PART_TYPES.REPORT && part.fieldPath.at(0)?.toLowerCase() === 'submit';
+}
+
+/**
  * Compute the value of a formula given a context
  */
 function compute(formula?: string, context?: FormulaContext): string {
@@ -277,10 +292,14 @@ function compute(formula?: string, context?: FormulaContext): string {
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                value = value === '' ? part.definition : value;
+                // Apply fallback to formula definition for empty values, except for submission info
+                // Submission info explicitly returns empty strings when data is missing (matches backend)
+                if (value === '' && !isSubmissionInfoPart(part)) {
+                    value = part.definition;
+                }
                 break;
             case FORMULA_PART_TYPES.FIELD:
-                value = computeFieldPart(part);
+                value = computeFieldPart(part, context);
                 break;
             case FORMULA_PART_TYPES.USER:
                 value = computeUserPart(part);
@@ -350,10 +369,15 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             return formatDate(getOldestTransactionDate(report.reportID, context), format);
         case 'enddate':
             return formatDate(getNewestTransactionDate(report.reportID, context), format);
-        case 'total':
-            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
-        case 'reimbursable':
-            return formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, getCurrencySymbol(report.currency ?? '') ?? report.currency);
+        case 'total': {
+            const formattedAmount = formatAmount(report.total, report.currency, format);
+            // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
+            return formattedAmount ?? '';
+        }
+        case 'reimbursable': {
+            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format);
+            return formattedAmount ?? '';
+        }
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -363,6 +387,9 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
+        case 'submit': {
+            return computeSubmitPart(additionalPath, context);
+        }
         case 'autoreporting': {
             const subField = additionalPath.at(0);
             // For multi-part formulas, format is everything after the subfield
@@ -404,10 +431,48 @@ function formatStatus(statusNum: number | undefined): string {
 }
 
 /**
- * Compute the value of a field formula part
+ * Check if a formula string contains field references ({field:X})
+ * Uses quick string check before expensive parsing for performance
  */
-function computeFieldPart(part: FormulaPart): string {
-    // Field computation will be implemented later
+function hasFieldReferences(formula: string | undefined): boolean {
+    if (!formula?.includes('{field:')) {
+        return false;
+    }
+    const parsed = parse(formula);
+    return parsed.some((part) => part.type === FORMULA_PART_TYPES.FIELD);
+}
+
+/**
+ * Compute the value of a field formula part with recursive resolution support
+ */
+function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
+    const fieldName = part.fieldPath.at(0)?.toLowerCase();
+
+    if (!fieldName) {
+        return part.definition;
+    }
+
+    // Prevent circular references by tracking visited fields
+    const visited = context?.visitedFields ?? new Set<string>();
+    if (visited.has(fieldName)) {
+        return part.definition;
+    }
+
+    // If we have the full field definitions, we can recursively resolve dependencies
+    if (context?.fieldsByName?.[fieldName]) {
+        const field = context.fieldsByName[fieldName];
+        if (hasFieldReferences(field.defaultValue)) {
+            visited.add(fieldName);
+            return compute(field.defaultValue, {...context, visitedFields: visited});
+        }
+        return field.value ?? field.defaultValue ?? '';
+    }
+
+    // Fallback to flat value map
+    if (context?.fieldValues?.[fieldName]) {
+        return context.fieldValues[fieldName];
+    }
+
     return part.definition;
 }
 
@@ -492,20 +557,46 @@ function getSubstring(value: string, args: string[]): string {
 
 /**
  * Format an amount value
+ * @returns The formatted amount string, or null if currency conversion is needed (unavailable on frontend)
  */
-function formatAmount(amount: number | undefined, currency: string | undefined): string {
+function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string): string | null {
     if (amount === undefined) {
         return '';
     }
 
     const absoluteAmount = Math.abs(amount);
-    const formattedAmount = (absoluteAmount / 100).toFixed(2);
 
-    if (currency) {
-        return `${currency}${formattedAmount}`;
+    try {
+        const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
+        if (trimmedDisplayCurrency) {
+            if (trimmedDisplayCurrency === 'NOSYMBOL') {
+                return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+            }
+
+            // Check if format is a valid currency code (e.g., USD, EUR, eur)
+            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
+                return '';
+            }
+
+            // If a currency conversion is needed (displayCurrency differs from the source),
+            // return null so the backend can compute it.
+            // We can only compute the value optimistically when the amount is 0.
+            if (absoluteAmount !== 0 && currency !== trimmedDisplayCurrency) {
+                return null;
+            }
+
+            return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
+        }
+
+        if (currency && isValidCurrencyCode(currency)) {
+            return convertToDisplayString(absoluteAmount, currency);
+        }
+
+        return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+    } catch (error) {
+        Log.hmmm('[Formula] formatAmount failed', {error, amount, currency, displayCurrency});
+        return '';
     }
-
-    return formattedAmount;
 }
 
 /**
@@ -784,6 +875,102 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     return newestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences};
+/**
+ * Compute the value of a report:submit:* formula part
+ * Handles nested paths like submit:from:firstname, submit:to:email, submit:date
+ */
+function computeSubmitPart(path: string[], context: FormulaContext): string {
+    const [direction, ...subPath] = path;
 
-export type {FormulaContext, FormulaPart, FieldList};
+    if (!direction) {
+        return '';
+    }
+
+    switch (direction.toLowerCase()) {
+        case 'from':
+            return computePersonalDetailsField(subPath, context.submitterPersonalDetails, context.policy);
+        case 'to':
+            return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
+        case 'date': {
+            // TODO: Use report.submitted once backend adds it (issue #568267)
+            // Using report.created as placeholder until then
+            const submittedDate = context.report.created;
+            const format = subPath.length > 0 ? subPath.join(':') : undefined;
+            return formatDate(submittedDate, format);
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Compute personal details information for either submitter (from) or manager (to)
+ */
+function computePersonalDetailsField(path: string[], personalDetails: PersonalDetails | undefined, policy: OnyxEntry<Policy>): string {
+    const [field] = path;
+
+    if (!personalDetails || !field) {
+        return '';
+    }
+
+    switch (field.toLowerCase()) {
+        case 'firstname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.firstName || personalDetails.login || '';
+        case 'lastname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.lastName || personalDetails.login || '';
+        case 'fullname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.displayName || personalDetails.login || '';
+        case 'email':
+            return personalDetails.login ?? '';
+        // userid/customfield1 returns employeeUserID from policy.employeeList
+        case 'userid':
+        case 'customfield1': {
+            const email = personalDetails.login;
+            const isGlCodesEnabled = policy?.glCodes === true;
+            if (!isGlCodesEnabled || !email || !policy?.employeeList) {
+                return '';
+            }
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeeUserID ?? '';
+        }
+        // payrollid/customfield2 returns employeePayrollID from policy.employeeList
+        case 'payrollid':
+        case 'customfield2': {
+            const email = personalDetails.login;
+            const isGlCodesEnabled = policy?.glCodes === true;
+            if (!isGlCodesEnabled || !email || !policy?.employeeList) {
+                return '';
+            }
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeePayrollID ?? '';
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Resolve the display value for a report field, handling {field:X} references
+ */
+function resolveReportFieldValue(
+    field: PolicyReportField,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    fieldValues: Record<string, string>,
+    fieldsByName: Record<string, PolicyReportField>,
+): string {
+    const fieldValue = field.value ?? field.defaultValue ?? '';
+
+    if (!report || !hasFieldReferences(field.defaultValue)) {
+        return fieldValue;
+    }
+
+    return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
+}
+
+export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
+
+export type {FormulaContext, FieldList, MinimalTransaction};

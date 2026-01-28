@@ -215,7 +215,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
     newLogins: string[],
     newAccountIDs: number[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+): OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
@@ -236,7 +236,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsCleanup[accountID] = null;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -244,7 +244,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -386,9 +386,9 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
 function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
     const userDetails = getPersonalDetailByEmail(email);
     if (userDetails) {
-        return userDetails[nameToDisplay] ? userDetails[nameToDisplay] : userDetails.login;
+        return userDetails[nameToDisplay] ? Str.removeSMSDomain(userDetails[nameToDisplay]) : Str.removeSMSDomain(userDetails.login ?? '');
     }
-    return email;
+    return Str.removeSMSDomain(email);
 }
 
 const getShortMentionIfFound = (displayText: string, userAccountID: string, currentUserPersonalDetails: OnyxEntry<PersonalDetails>, userLogin = '') => {

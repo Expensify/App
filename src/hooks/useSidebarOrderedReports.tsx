@@ -31,15 +31,17 @@ type SidebarOrderedReportsContextValue = {
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
+    clearLHNCache: () => void;
 };
 
-type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
+type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],
     orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
+    clearLHNCache: () => {},
 });
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
@@ -78,8 +80,12 @@ function SidebarOrderedReportsContextProvider({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
-    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
+
+    // we need to force reportsToDisplayInLHN to re-compute when we clear currentReportsToDisplay, but the way it currently works relies on not having currentReportsToDisplay as a memo dependency, so we just need something we can change to trigger it
+    // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
+    const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
@@ -94,25 +100,43 @@ function SidebarOrderedReportsContextProvider({
      * Find the reports that need to be updated in the LHN
      */
     const getUpdatedReports = useCallback(() => {
-        let reportsToUpdate: string[] = [];
+        const reportsToUpdate = new Set<string>();
 
         if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
-            reportsToUpdate = Object.keys(chatReports ?? {});
-        } else if (reportUpdates) {
-            reportsToUpdate = Object.keys(reportUpdates ?? {});
-        } else if (reportNameValuePairsUpdates) {
-            reportsToUpdate = Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT));
-        } else if (transactionsUpdates) {
-            reportsToUpdate = Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-        } else if (transactionViolationsUpdates) {
-            reportsToUpdate = Object.keys(transactionViolationsUpdates ?? {})
-                .map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
-                .map((key) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[key]?.reportID}`);
-        } else if (reportsDraftsUpdates) {
-            reportsToUpdate = Object.keys(reportsDraftsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT));
-        } else if (policiesUpdates) {
-            const updatedPolicies = new Set(Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, '')));
-            reportsToUpdate = Object.entries(chatReports ?? {})
+            for (const key of Object.keys(chatReports ?? {})) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportUpdates) {
+            for (const key of Object.keys(reportUpdates ?? {})) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportNameValuePairsUpdates) {
+            for (const key of Object.keys(reportNameValuePairsUpdates ?? {}).map((reportKey) => reportKey.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT))) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (transactionsUpdates) {
+            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (transactionViolationsUpdates) {
+            for (const key of Object.keys(transactionViolationsUpdates ?? {})
+                .map((violationKey) => violationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
+                .map((transactionKey) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[transactionKey]?.reportID}`)) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportsDraftsUpdates) {
+            for (const key of Object.keys(reportsDraftsUpdates).map((draftKey) => draftKey.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT))) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (policiesUpdates) {
+            const updatedPolicies = new Set(Object.keys(policiesUpdates).map((policyKey) => policyKey.replace(ONYXKEYS.COLLECTION.POLICY, '')));
+            for (const key of Object.entries(chatReports ?? {})
                 .filter(([, value]) => {
                     if (!value?.policyID) {
                         return;
@@ -120,15 +144,18 @@ function SidebarOrderedReportsContextProvider({
 
                     return updatedPolicies.has(value.policyID);
                 })
-                .map(([key]) => key);
+                .map(([reportKey]) => reportKey)) {
+                reportsToUpdate.add(key);
+            }
         }
 
         // Make sure the previous and current reports are always included in the updates when we switch reports.
         if (prevDerivedCurrentReportID !== derivedCurrentReportID) {
-            reportsToUpdate.push(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`);
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
         }
 
-        return reportsToUpdate;
+        return Array.from(reportsToUpdate);
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,
@@ -164,6 +191,7 @@ function SidebarOrderedReportsContextProvider({
                 draftComments: reportsDrafts,
             });
         } else {
+            Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
                 derivedCurrentReportID,
                 chatReports,
@@ -179,8 +207,20 @@ function SidebarOrderedReportsContextProvider({
 
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        getUpdatedReports,
+        chatReports,
+        derivedCurrentReportID,
+        priorityMode,
+        betas,
+        policies,
+        transactionViolations,
+        reportNameValuePairs,
+        reportAttributes,
+        reportsDrafts,
+        clearCacheDummyCounter,
+    ]);
 
     const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
     const deepComparedReportsDrafts = useDeepCompareRef(reportsDrafts);
@@ -190,9 +230,9 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts],
     );
 
@@ -211,6 +251,12 @@ function SidebarOrderedReportsContextProvider({
 
     const orderedReports = useMemo(() => getOrderedReports(orderedReportIDs), [getOrderedReports, orderedReportIDs]);
 
+    const clearLHNCache = useCallback(() => {
+        Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
+        setCurrentReportsToDisplay({});
+        setClearCacheDummyCounter((current) => current + 1);
+    }, []);
+
     const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
@@ -219,8 +265,8 @@ function SidebarOrderedReportsContextProvider({
         // case we re-generate the list a 2nd time with the current report included.
 
         // We also execute the following logic if `shouldUseNarrowLayout` is false because this is
-        // requirement for web and desktop. Consider a case, where we have report with expenses and we click on
-        // any expense, a new LHN item is added in the list and is visible on web and desktop. But on mobile, we
+        // requirement for web. Consider a case, where we have report with expenses and we click on
+        // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
         if (
             (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
@@ -235,6 +281,7 @@ function SidebarOrderedReportsContextProvider({
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
+                clearLHNCache,
             };
         }
 
@@ -243,8 +290,9 @@ function SidebarOrderedReportsContextProvider({
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
+            clearLHNCache,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearLHNCache]);
 
     const currentDeps = {
         priorityMode,

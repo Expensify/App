@@ -26,7 +26,7 @@ function BaseSidebarScreen() {
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
-            testID={BaseSidebarScreen.displayName}
+            testID="BaseSidebarScreen"
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         >
             {({insets}) => (
@@ -45,7 +45,5 @@ function BaseSidebarScreen() {
         </ScreenWrapper>
     );
 }
-
-BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
 export default BaseSidebarScreen;

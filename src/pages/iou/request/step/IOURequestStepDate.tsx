@@ -14,6 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedCreated} from '@libs/TransactionUtils';
@@ -49,6 +50,9 @@ function IOURequestStepDate({
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
@@ -91,7 +95,8 @@ function IOURequestStepDate({
         if (isEditing) {
             updateMoneyRequestDate({
                 transactionID,
-                transactionThreadReportID: reportID,
+                transactionThreadReport: report,
+                parentReport,
                 transactions: duplicateTransactions,
                 transactionViolations: duplicateTransactionViolations,
                 value: newCreated,
@@ -101,6 +106,7 @@ function IOURequestStepDate({
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 isASAPSubmitBetaEnabled,
+                parentReportNextStep,
             });
         }
 
@@ -124,7 +130,7 @@ function IOURequestStepDate({
             onBackButtonPress={navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
-            testID={IOURequestStepDate.displayName}
+            testID="IOURequestStepDate"
             includeSafeAreaPaddingBottom
         >
             <FormProvider
@@ -149,8 +155,6 @@ function IOURequestStepDate({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDate.displayName = 'IOURequestStepDate';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDate);

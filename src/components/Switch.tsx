@@ -1,10 +1,10 @@
 import React, {useEffect} from 'react';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type SwitchProps = {
@@ -36,6 +36,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     const styles = useThemeStyles();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
     useEffect(() => {
         offsetX.set(withTiming(isOn ? OFFSET_X.ON : OFFSET_X.OFF, {duration: 300}));
@@ -75,7 +76,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
                     {(!!disabled || !!showLockIcon) && (
                         <Icon
-                            src={Expensicons.Lock}
+                            src={expensifyIcons.Lock}
                             fill={isOn ? theme.text : theme.icon}
                             width={styles.toggleSwitchLockIcon.width}
                             height={styles.toggleSwitchLockIcon.height}
@@ -87,5 +88,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     );
 }
 
-Switch.displayName = 'Switch';
 export default Switch;

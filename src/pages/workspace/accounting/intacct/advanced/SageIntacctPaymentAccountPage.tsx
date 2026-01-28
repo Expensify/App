@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -24,7 +24,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const {config} = policy?.connections?.intacct ?? {};
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID), [policy, config?.sync?.reimbursementAccountID]);
 
@@ -55,8 +55,8 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctPaymentAccountPage.displayName}
-            sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
+            displayName="SageIntacctPaymentAccountPage"
+            data={vendorSelectorOptions ?? []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
@@ -71,7 +71,5 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-SageIntacctPaymentAccountPage.displayName = 'SageIntacctPaymentAccountPage';
 
 export default withPolicyConnections(SageIntacctPaymentAccountPage);

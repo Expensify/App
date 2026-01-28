@@ -12,8 +12,6 @@ import CONST from '@src/CONST';
 import {addLeadingForwardSlash} from '@src/libs/Url';
 import ROUTES from '@src/ROUTES';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import {ChatBubbles, Mail} from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -22,7 +20,7 @@ type ReceiptAlternativeMethodsProps = {
 };
 
 function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Mail', 'ChatBubbles']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
@@ -63,7 +61,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                 <View style={[styles.mr3]}>
                     <Icon
-                        src={Mail}
+                        src={icons.Mail}
                         width={16}
                         height={16}
                         fill={theme.icon}
@@ -78,7 +76,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb0]}>
                     <View style={[styles.mr3]}>
                         <Icon
-                            src={ChatBubbles}
+                            src={icons.ChatBubbles}
                             width={16}
                             height={16}
                             fill={theme.icon}
@@ -94,7 +92,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb0]}>
                     <View style={[styles.mr3]}>
                         <Icon
-                            src={ChatBubbles}
+                            src={icons.ChatBubbles}
                             width={16}
                             height={16}
                             fill={theme.icon}
@@ -108,7 +106,5 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
         </View>
     );
 }
-
-ReceiptAlternativeMethods.displayName = 'ReceiptAlternativeMethods';
 
 export default ReceiptAlternativeMethods;

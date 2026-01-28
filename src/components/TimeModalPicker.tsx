@@ -64,7 +64,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
                     style={styles.pb0}
                     includePaddingTop={false}
                     includeSafeAreaPaddingBottom
-                    testID={TimeModalPicker.displayName}
+                    testID="TimeModalPicker"
                 >
                     <HeaderWithBackButton
                         title={label}
@@ -83,5 +83,4 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
     );
 }
 
-TimeModalPicker.displayName = 'TimeModalPicker';
 export default TimeModalPicker;

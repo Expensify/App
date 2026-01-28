@@ -7,7 +7,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -18,7 +17,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MigratedUserModalNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +26,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
@@ -37,11 +36,10 @@ function MigratedUserWelcomeModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {typeMenuSections} = useSearchTypeMenuSections();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
@@ -55,11 +53,11 @@ function MigratedUserWelcomeModal() {
                 translationKey: 'migratedUserWelcomeModal.features.concierge',
             },
             {
-                icon: Illustrations.ChatBubbles,
+                icon: illustrations.ChatBubbles,
                 translationKey: 'migratedUserWelcomeModal.features.chat',
             },
         ],
-        [illustrations.ExpensifyMobileApp],
+        [illustrations.ChatBubbles],
     );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -85,11 +83,8 @@ function MigratedUserWelcomeModal() {
 
         Log.hmmm('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
         setIsModalDisabled(false);
-        const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
-        const defaultActionableSearchQuery =
-            getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultActionableSearchQuery ?? buildCannedSearchQuery()}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch, typeMenuSections]);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch]);
 
     return (
         <FeatureTrainingModal
@@ -119,6 +114,7 @@ function MigratedUserWelcomeModal() {
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
             isModalDisabled={isModalDisabled}
+            shouldUseScrollView
         >
             <View
                 style={[styles.gap3, styles.pt1, styles.pl1]}
@@ -144,5 +140,4 @@ function MigratedUserWelcomeModal() {
     );
 }
 
-MigratedUserWelcomeModal.displayName = 'MigratedUserWelcomeModal';
 export default MigratedUserWelcomeModal;

@@ -69,9 +69,10 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
         <PressableWithFeedback
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
-            accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
+            accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}`}
             wrapperStyle={styles.flex1}
             style={({hovered}) => [style, hovered && styles.navigationTabBarItemHovered]}
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
                 <>
@@ -85,5 +86,4 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     );
 }
 
-NavigationTabBarAvatar.displayName = 'NavigationTabBarAvatar';
 export default NavigationTabBarAvatar;

@@ -175,7 +175,7 @@ index 6e9c384..2c509eb 100644
 +      }
 +    }
 +  } else {
-+    if (clipboard.hasStrings) {
++    if (clipboard.hasStrings && clipboard.string != nil) {
 +      [_textInputDelegateAdapter didPaste:@"text/plain" withData:clipboard.string];
 +    }
 +    [super paste:sender];
@@ -361,7 +361,7 @@ index 377f41e..b8f48e6 100644
 +      }
 +    }
 +  } else {
-+    if (clipboard.hasStrings) {
++    if (clipboard.hasStrings && clipboard.string != nil) {
 +      [_textInputDelegateAdapter didPaste:@"text/plain" withData:clipboard.string];
 +    }
 +    [super paste:sender];
@@ -499,7 +499,7 @@ index 42f6e03..ffba031 100644
 +      }
 +    }
 +  }
-+    return super.onTextContextMenuItem(id)
++    return super.onTextContextMenuItem(modifiedId)
 + }
  
    internal fun clearFocusAndMaybeRefocus() {

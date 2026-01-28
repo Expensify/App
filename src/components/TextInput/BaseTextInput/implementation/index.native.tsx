@@ -280,6 +280,7 @@ function BaseTextInput({
 
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
+    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
 
     return (
         <>
@@ -291,7 +292,7 @@ function BaseTextInput({
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
-                    accessibilityLabel={label}
+                    accessibilityLabel={accessibilityLabel}
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
@@ -314,18 +315,13 @@ function BaseTextInput({
                         ]}
                     >
                         {hasLabel ? (
-                            <>
-                                {/* Adding this background to the label only for multiline text input,
-                to prevent text overlapping with label when scrolling */}
-                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone, inputProps.disabled && styles.textInputDisabledContainer]} />}
-                                <TextInputLabel
-                                    label={label}
-                                    labelTranslateY={labelTranslateY}
-                                    labelScale={labelScale}
-                                    for={inputProps.nativeID}
-                                    isMultiline={isMultiline}
-                                />
-                            </>
+                            <TextInputLabel
+                                label={label}
+                                labelTranslateY={labelTranslateY}
+                                labelScale={labelScale}
+                                for={inputProps.nativeID}
+                                isMultiline={isMultiline}
+                            />
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
@@ -372,6 +368,7 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
@@ -433,15 +430,10 @@ function BaseTextInput({
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
                                 />
                             )}
-                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
+                            {!!inputProps.isLoading && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
-                                    style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
-                                        styles.ml1,
-                                        loadingSpinnerStyle,
-                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
-                                    ]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
@@ -501,7 +493,5 @@ function BaseTextInput({
         </>
     );
 }
-
-BaseTextInput.displayName = 'BaseTextInput';
 
 export default BaseTextInput;

@@ -17,6 +17,7 @@ import {setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type CardNameStepProps = {
     /** ID of the policy */
@@ -45,36 +46,40 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
         const length = values.cardTitle.length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));
         }
         return errors;
     };
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-            setIssueNewCardStepAndData({
-                step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
-                data: {
-                    cardTitle: values.cardTitle,
-                },
-                isEditing: false,
-                policyID,
+            KeyboardUtils.dismiss().then(() => {
+                setIssueNewCardStepAndData({
+                    step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+                    data: {
+                        cardTitle: values.cardTitle,
+                    },
+                    isEditing: false,
+                    policyID,
+                });
             });
         },
         [policyID],
     );
 
     const handleBackButtonPress = useCallback(() => {
-        if (isEditing) {
-            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
-            return;
-        }
-        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT, policyID});
+        KeyboardUtils.dismiss().then(() => {
+            if (isEditing) {
+                setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
+                return;
+            }
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT, policyID});
+        });
     }, [isEditing, policyID]);
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardNameStep.displayName}
+            wrapperID="CardNameStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
@@ -109,7 +114,5 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
         </InteractiveStepWrapper>
     );
 }
-
-CardNameStep.displayName = 'CardNameStep';
 
 export default CardNameStep;

@@ -51,6 +51,4 @@ function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
     );
 }
 
-ExpensifyWordmark.displayName = 'ExpensifyWordmark';
-
 export default ExpensifyWordmark;

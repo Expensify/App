@@ -17,7 +17,6 @@ import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@li
 // eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchPage from '@pages/Search/SearchPage';
-import SearchPageNarrow from '@pages/Search/SearchPageNarrow';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -101,14 +100,17 @@ describe('SearchPageNarrow', () => {
         });
     });
 
-    afterAll(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
     });
 
     it('NavigationTabBar should be hidden when the search input is focused', async () => {
         renderPage();
 
-        expect(screen.getByTestId(SearchPageNarrow.displayName)).toBeTruthy();
+        expect(screen.getByTestId('SearchPageNarrow')).toBeTruthy();
 
         // Initially, there are two NavigationTabBars on screen: one from TopLevelNavigationTabBar and one from SearchPageNarrow.
         let navigationTabBars = screen.getAllByTestId('NavigationTabBar');

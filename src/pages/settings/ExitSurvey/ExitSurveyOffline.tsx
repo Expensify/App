@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 function ExitSurveyOffline() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     return (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
             <Icon
@@ -23,7 +23,5 @@ function ExitSurveyOffline() {
         </View>
     );
 }
-
-ExitSurveyOffline.displayName = 'ExitSurveyOffline';
 
 export default memo(ExitSurveyOffline);

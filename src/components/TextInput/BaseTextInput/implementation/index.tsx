@@ -8,7 +8,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -22,6 +21,7 @@ import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 import useHtmlPaste from '@hooks/useHtmlPaste';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -45,6 +45,7 @@ function BaseTextInput({
     errorText = '',
     icon = null,
     iconLeft = null,
+    includeIconPadding = true,
     textInputContainerStyles,
     shouldApplyPaddingToContainer = true,
     touchableInputWrapperStyle,
@@ -82,6 +83,7 @@ function BaseTextInput({
     iconContainerStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
+    sentryLabel,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -94,6 +96,7 @@ function BaseTextInput({
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled'] as const);
 
     // Disabling this line for safeness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -126,7 +129,7 @@ function BaseTextInput({
 
         input.current.focus();
         // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animateLabel = useCallback(
@@ -286,6 +289,7 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
+    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
     return (
         <>
             <View
@@ -297,7 +301,7 @@ function BaseTextInput({
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={label}
+                    accessibilityLabel={accessibilityLabel}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -313,6 +317,7 @@ function BaseTextInput({
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
+                    sentryLabel={sentryLabel}
                 >
                     <View
                         style={[
@@ -373,7 +378,13 @@ function BaseTextInput({
                                             setIsPrefixCharacterPaddingCalculated(true);
                                         }}
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
+                                        style={[
+                                            styles.textInputPrefix,
+                                            !hasLabel && styles.pv0,
+                                            styles.pointerEventsNone,
+                                            inputProps.disabled && shouldUseDisabledStyles && styles.textSupporting,
+                                            prefixStyle,
+                                        ]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
                                     >
@@ -437,6 +448,7 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                accessibilityLabel={inputProps.accessibilityLabel}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -465,18 +477,14 @@ function BaseTextInput({
                                             onClearInput?.();
                                         }}
                                         style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                        sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
                                     />
                                 </View>
                             )}
-                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
+                            {!!inputProps.isLoading && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
-                                    style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
-                                        styles.ml1,
-                                        loadingSpinnerStyle,
-                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
-                                    ]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
@@ -489,7 +497,7 @@ function BaseTextInput({
                                     accessibilityLabel={translate('common.visible')}
                                 >
                                     <Icon
-                                        src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                        src={passwordHidden ? expensifyIcons.Eye : expensifyIcons.EyeDisabled}
                                         fill={theme.icon}
                                     />
                                 </Checkbox>
@@ -497,7 +505,7 @@ function BaseTextInput({
                             {!inputProps.secureTextEntry && !!icon && (
                                 <View
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, includeIconPadding, verticalPaddingDiff),
                                         !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
                                         iconContainerStyle,
                                     ]}
@@ -536,7 +544,5 @@ function BaseTextInput({
         </>
     );
 }
-
-BaseTextInput.displayName = 'BaseTextInput';
 
 export default BaseTextInput;

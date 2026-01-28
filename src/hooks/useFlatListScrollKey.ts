@@ -4,10 +4,10 @@ import type {ForwardedRef} from 'react';
 import type {ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollView} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {View} from 'react-native';
-import RenderTaskQueue from '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
+import getInitialPaginationSize from '@components/InvertedFlatList/getInitialPaginationSize';
+import RenderTaskQueue from '@components/InvertedFlatList/RenderTaskQueue';
 import type {ScrollViewProps} from '@components/ScrollView';
 import getPlatform from '@libs/getPlatform';
-import getInitialPaginationSize from '@src/components/InvertedFlatList/BaseInvertedFlatList/getInitialPaginationSize';
 import CONST from '@src/CONST';
 import usePrevious from './usePrevious';
 
@@ -50,10 +50,7 @@ export default function useFlatListScrollKey<T>({
 
     // On the web platform, when data.length === 1, `maintainVisibleContentPosition` does not work.
     // Therefore, we need to duplicate the data to ensure data.length >= 2
-    const shouldDuplicateData = useMemo(
-        () => !inverted && data.length === 1 && isInitialData && (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP),
-        [data.length, inverted, isInitialData],
-    );
+    const shouldDuplicateData = useMemo(() => !inverted && data.length === 1 && isInitialData && getPlatform() === CONST.PLATFORM.WEB, [data.length, inverted, isInitialData]);
 
     const displayedData = useMemo(() => {
         if (shouldDuplicateData) {
@@ -110,7 +107,7 @@ export default function useFlatListScrollKey<T>({
             return;
         }
         handleStartReached({distanceFromStart: 0});
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const [shouldPreserveVisibleContentPosition, setShouldPreserveVisibleContentPosition] = useState(true);

@@ -73,29 +73,6 @@ To set up an Amex Corporate Feed, you’ll need to complete and email their requ
 
 ---
 
-# Assign Company Cards
-
-## Assign commercial cards to employees
-
-1. Go to **Company Cards** in your workspace.
-2. Click the **feed name** (top-left) to select a card feed if more than one is present.
-3. Click **Assign Card** next to any unassigned card.
-4. Select a **member** to assign the card to.
-5. Choose a **transaction start date**:
-   - **From the beginning** – All available transactions will import.
-   - **Custom date** – Select a specific start date.
-6. Click **Assign Card**.
-
-**Expenses will begin importing immediately.**
-
-![Click the feed name to view the feed selector]({{site.url}}/assets/images/commfeed/commfeed-01-updated.png){:width="100%"}
-  
-![Select your transaction start date]({{site.url}}/assets/images/commfeed/commfeed-05-updated.png){:width="100%"}
-
-![Double check the selections and assign the card]({{site.url}}/assets/images/commfeed/commfeed-06-updated.png){:width="100%"}
-
----
-
 ## Manage commercial card settings
 
 You can update individual cards under **Company Cards > [Card Name]**.

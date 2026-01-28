@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import {useCallback, useContext, useEffect} from 'react';
-import {InteractionManager} from 'react-native';
-import useBeforeRemove from '@hooks/useBeforeRemove';
-import {WideRHPContext} from '..';
+import {navigationRef} from '@libs/Navigation/Navigation';
+import NAVIGATORS from '@src/NAVIGATORS';
+import {expandedRHPProgress, WideRHPContext} from '..';
 
 /**
  * Hook that manages super wide RHP display for a screen based on condition or optimistic state.
@@ -14,18 +14,29 @@ import {WideRHPContext} from '..';
 function useShowSuperWideRHPVersion(condition: boolean) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
-    const {showWideRHPVersion, showSuperWideRHPVersion, removeWideRHPRouteKey, removeSuperWideRHPRouteKey, isReportIDMarkedAsExpense, isReportIDMarkedAsMultiTransactionExpense} =
-        useContext(WideRHPContext);
+    const {
+        showWideRHPVersion,
+        showSuperWideRHPVersion,
+        removeWideRHPRouteKey,
+        unmarkReportIDAsMultiTransactionExpense,
+        removeSuperWideRHPRouteKey,
+        isReportIDMarkedAsExpense,
+        isReportIDMarkedAsMultiTransactionExpense,
+    } = useContext(WideRHPContext);
 
     const onSuperWideRHPClose = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            removeWideRHPRouteKey(route);
-            removeSuperWideRHPRouteKey(route);
-        });
+        removeWideRHPRouteKey(route);
+        removeSuperWideRHPRouteKey(route);
+        // When the RHP has been closed, expandedRHPProgress should be set to 0.
+        if (navigationRef?.getRootState()?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            expandedRHPProgress.setValue(0);
+        }
     }, [removeSuperWideRHPRouteKey, removeWideRHPRouteKey, route]);
 
-    useBeforeRemove(onSuperWideRHPClose);
+    /**
+     * Effect that sets up cleanup when the screen is unmounted.
+     */
+    useEffect(() => () => onSuperWideRHPClose(), [onSuperWideRHPClose]);
 
     /**
      * Effect that determines whether to show wide RHP based on condition or optimistic state.
@@ -33,12 +44,28 @@ function useShowSuperWideRHPVersion(condition: boolean) {
      */
     useEffect(() => {
         // Check if we should show wide RHP based on condition OR if reportID is in optimistic set
-        if (condition || (reportID && isReportIDMarkedAsMultiTransactionExpense(reportID))) {
+        const isReportMultiTransactionExpense = reportID && isReportIDMarkedAsMultiTransactionExpense(reportID);
+
+        if (condition || isReportMultiTransactionExpense) {
+            if (condition && isReportMultiTransactionExpense) {
+                unmarkReportIDAsMultiTransactionExpense(reportID);
+            }
+
             showSuperWideRHPVersion(route);
             return;
         }
+
         showWideRHPVersion(route);
-    }, [condition, reportID, isReportIDMarkedAsExpense, route, showWideRHPVersion, showSuperWideRHPVersion, isReportIDMarkedAsMultiTransactionExpense]);
+    }, [
+        condition,
+        reportID,
+        isReportIDMarkedAsExpense,
+        route,
+        showWideRHPVersion,
+        showSuperWideRHPVersion,
+        isReportIDMarkedAsMultiTransactionExpense,
+        unmarkReportIDAsMultiTransactionExpense,
+    ]);
 }
 
 export default useShowSuperWideRHPVersion;

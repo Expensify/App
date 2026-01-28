@@ -4,11 +4,11 @@ import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -22,6 +22,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type IconAsset from '@src/types/utils/IconAsset';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
 
@@ -34,10 +35,10 @@ type Severity = ValueOf<typeof CONST.MODERATION>;
 type SeverityItem = {
     severity: Severity;
     name: string;
-    icon: React.FC<SvgProps>;
+    icon: React.FC<SvgProps> | IconAsset;
     description: string;
     furtherDetails: string;
-    furtherDetailsIcon: React.FC<SvgProps>;
+    furtherDetailsIcon: React.FC<SvgProps> | IconAsset;
 };
 
 type SeverityItemList = SeverityItem[];
@@ -54,7 +55,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
     let reportID: string | undefined = getReportID(route);
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FlagLevelOne', 'FlagLevelTwo', 'FlagLevelThree']);
     // Handle threads if needed
     if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
         reportID = parentReport?.reportID;
@@ -67,50 +68,50 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
             name: translate('moderation.spam'),
-            icon: Expensicons.FlagLevelOne,
+            icon: expensifyIcons.FlagLevelOne,
             description: translate('moderation.spamDescription'),
             furtherDetails: translate('moderation.levelOneResult'),
-            furtherDetailsIcon: Expensicons.FlagLevelOne,
+            furtherDetailsIcon: expensifyIcons.FlagLevelOne,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE,
             name: translate('moderation.inconsiderate'),
-            icon: Expensicons.FlagLevelOne,
+            icon: expensifyIcons.FlagLevelOne,
             description: translate('moderation.inconsiderateDescription'),
             furtherDetails: translate('moderation.levelOneResult'),
-            furtherDetailsIcon: Expensicons.FlagLevelOne,
+            furtherDetailsIcon: expensifyIcons.FlagLevelOne,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_INTIMIDATION,
             name: translate('moderation.intimidation'),
-            icon: Expensicons.FlagLevelTwo,
+            icon: expensifyIcons.FlagLevelTwo,
             description: translate('moderation.intimidationDescription'),
             furtherDetails: translate('moderation.levelTwoResult'),
-            furtherDetailsIcon: Expensicons.FlagLevelTwo,
+            furtherDetailsIcon: expensifyIcons.FlagLevelTwo,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_BULLYING,
             name: translate('moderation.bullying'),
-            icon: Expensicons.FlagLevelTwo,
+            icon: expensifyIcons.FlagLevelTwo,
             description: translate('moderation.bullyingDescription'),
             furtherDetails: translate('moderation.levelTwoResult'),
-            furtherDetailsIcon: Expensicons.FlagLevelTwo,
+            furtherDetailsIcon: expensifyIcons.FlagLevelTwo,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_HARASSMENT,
             name: translate('moderation.harassment'),
-            icon: Expensicons.FlagLevelThree,
+            icon: expensifyIcons.FlagLevelThree,
             description: translate('moderation.harassmentDescription'),
             furtherDetails: translate('moderation.levelThreeResult'),
-            furtherDetailsIcon: Expensicons.FlagLevelThree,
+            furtherDetailsIcon: expensifyIcons.FlagLevelThree,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_ASSAULT,
             name: translate('moderation.assault'),
-            icon: Expensicons.FlagLevelThree,
+            icon: expensifyIcons.FlagLevelThree,
             description: translate('moderation.assaultDescription'),
             furtherDetails: translate('moderation.levelThreeResult'),
-            furtherDetailsIcon: Expensicons.FlagLevelThree,
+            furtherDetailsIcon: expensifyIcons.FlagLevelThree,
         },
     ];
 
@@ -138,7 +139,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={FlagCommentPage.displayName}
+            testID="FlagCommentPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, isReportArchived)}>
@@ -163,7 +164,5 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         </ScreenWrapper>
     );
 }
-
-FlagCommentPage.displayName = 'FlagCommentPage';
 
 export default withReportAndReportActionOrNotFound(FlagCommentPage);

@@ -56,6 +56,4 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     );
 }
 
-ReportTypingIndicator.displayName = 'ReportTypingIndicator';
-
 export default memo(ReportTypingIndicator);

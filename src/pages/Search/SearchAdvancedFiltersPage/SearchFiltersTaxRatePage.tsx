@@ -22,16 +22,16 @@ function SearchFiltersTaxRatePage() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const allTaxRates = getAllTaxRates(policies);
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.entries(allTaxRates).forEach(([taxRateName, taxRateKeys]) => {
-        // eslint-disable-next-line unicorn/no-array-for-each
-        searchAdvancedFiltersForm?.taxRate?.forEach((taxRateKey) => {
-            if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
-                return;
+    for (const [taxRateName, taxRateKeys] of Object.entries(allTaxRates)) {
+        if (searchAdvancedFiltersForm?.taxRate) {
+            for (const taxRateKey of searchAdvancedFiltersForm.taxRate) {
+                if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
+                    continue;
+                }
+                selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
             }
-            selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
-        });
-    });
+        }
+    }
     const policyIDs = useMemo(() => searchAdvancedFiltersForm?.policyID ?? [], [searchAdvancedFiltersForm?.policyID]);
 
     const selectedPoliciesMap = useMemo(() => {
@@ -62,7 +62,7 @@ function SearchFiltersTaxRatePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersTaxRatePage.displayName}
+            testID="SearchFiltersTaxRatePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -83,7 +83,5 @@ function SearchFiltersTaxRatePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersTaxRatePage.displayName = 'SearchFiltersTaxRatePage';
 
 export default SearchFiltersTaxRatePage;

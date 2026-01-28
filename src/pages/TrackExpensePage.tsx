@@ -60,7 +60,7 @@ function TrackExpensePage() {
     );
 
     return (
-        <ScreenWrapper testID={TrackExpensePage.displayName}>
+        <ScreenWrapper testID="TrackExpensePage">
             <View style={[styles.borderBottom]}>
                 <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
@@ -68,7 +68,5 @@ function TrackExpensePage() {
         </ScreenWrapper>
     );
 }
-
-TrackExpensePage.displayName = 'TrackExpensePage';
 
 export default TrackExpensePage;

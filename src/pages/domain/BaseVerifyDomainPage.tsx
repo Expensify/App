@@ -38,56 +38,55 @@ function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
 
 type BaseVerifyDomainPageProps = {
     /** The accountID of the domain */
-    accountID: number;
+    domainAccountID: number;
 
     /** Route to navigate to after successful verification */
     forwardTo: Route;
 };
 
-function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps) {
+function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
-    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
     const doesDomainExist = !!domain;
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
     useEffect(() => {
-        if (!domain?.validated) {
+        if (!domain?.hasValidationSucceeded) {
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
-    }, [accountID, domain?.validated, forwardTo]);
+    }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
     useEffect(() => {
         if (!doesDomainExist) {
             return;
         }
-        getDomainValidationCode(accountID, domainName);
-    }, [accountID, domainName, doesDomainExist]);
+        getDomainValidationCode(domainAccountID, domainName);
+    }, [domainAccountID, domainName, doesDomainExist]);
 
     useEffect(() => {
         if (!doesDomainExist) {
             return;
         }
-        resetDomainValidationError(accountID);
-    }, [accountID, doesDomainExist]);
+        resetDomainValidationError(domainAccountID);
+    }, [domainAccountID, doesDomainExist]);
 
-    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
+    if (isLoadingOnyxValue(domainMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!domain || !isAdmin) {
+    if (!domain) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 
     return (
         <ScreenWrapper
-            testID={BaseVerifyDomainPage.displayName}
+            testID="BaseVerifyDomainPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
@@ -101,15 +100,15 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
                     keyboardShouldPersistTaps="always"
                 >
                     <View style={[styles.pt3, styles.gap5]}>
-                        <Text style={styles.webViewStyles.baseFontStyle}>
+                        <View style={[styles.renderHTML, styles.webViewStyles.baseFontStyle]}>
                             <RenderHTML html={translate('domain.verifyDomain.beforeProceeding', {domainName})} />
-                        </Text>
+                        </View>
 
-                        <Text style={styles.webViewStyles.baseFontStyle}>
+                        <View style={[styles.renderHTML, styles.webViewStyles.baseFontStyle]}>
                             <OrderedListRow index={1}>
                                 <RenderHTML html={translate('domain.verifyDomain.accessYourDNS', {domainName})} />
                             </OrderedListRow>
-                        </Text>
+                        </View>
 
                         <View>
                             <OrderedListRow index={2}>
@@ -128,7 +127,7 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
                             {!!domain.validateCodeError && (
                                 <FormHelpMessageRowWithRetryButton
                                     message={getLatestErrorMessage({errors: domain.validateCodeError})}
-                                    onRetry={() => getDomainValidationCode(accountID, domainName)}
+                                    onRetry={() => getDomainValidationCode(domainAccountID, domainName)}
                                     isButtonSmall
                                 />
                             )}
@@ -146,14 +145,17 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
                                 fill={theme.icon}
                                 medium
                             />
-                            <Text style={styles.mutedNormalTextLabel}>{translate('domain.verifyDomain.warning')}</Text>
+
+                            <View style={styles.flex1}>
+                                <Text style={styles.mutedNormalTextLabel}>{translate('domain.verifyDomain.warning')}</Text>
+                            </View>
                         </View>
                     </View>
                 </ScrollView>
 
                 <FormAlertWithSubmitButton
                     buttonText={translate('domain.verifyDomain.title')}
-                    onSubmit={() => validateDomain(accountID, domainName)}
+                    onSubmit={() => validateDomain(domainAccountID, domainName)}
                     message={getLatestErrorMessage({errors: domain.domainValidationError})}
                     isAlertVisible={!!domain.domainValidationError}
                     containerStyles={styles.mb5}
@@ -164,5 +166,4 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
     );
 }
 
-BaseVerifyDomainPage.displayName = 'BaseVerifyDomainPage';
 export default BaseVerifyDomainPage;

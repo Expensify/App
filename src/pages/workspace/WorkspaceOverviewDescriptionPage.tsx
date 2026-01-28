@@ -39,7 +39,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
             const errors = {};
 
             if (values.description.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}));
+                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', values.description.length, CONST.DESCRIPTION_LIMIT));
             }
 
             return errors;
@@ -68,7 +68,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
             <ScreenWrapper
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceOverviewDescriptionPage.displayName}
+                testID="WorkspaceOverviewDescriptionPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.descriptionInputLabel')}
@@ -115,7 +115,5 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOverviewDescriptionPage.displayName = 'WorkspaceOverviewDescriptionPage';
 
 export default withPolicy(WorkspaceOverviewDescriptionPage);

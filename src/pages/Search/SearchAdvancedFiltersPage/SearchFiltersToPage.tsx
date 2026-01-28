@@ -19,7 +19,7 @@ function SearchFiltersToPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersToPage.displayName}
+            testID="SearchFiltersToPage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -44,7 +44,5 @@ function SearchFiltersToPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersToPage.displayName = 'SearchFiltersToPage';
 
 export default SearchFiltersToPage;

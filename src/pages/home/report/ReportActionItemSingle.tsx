@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -18,7 +18,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDelegateAccountIDFromReportAction, getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
+import {getDelegateAccountIDFromReportAction, getManagerOnVacation, getOriginalMessage, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
 import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +79,7 @@ function ReportActionItemSingle({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -107,6 +107,10 @@ function ReportActionItemSingle({
     const managerOnVacation = getManagerOnVacation(action);
     const vacationDelegateDetailsForApprove = getPersonalDetailByEmail(managerOnVacation ?? '');
 
+    // Check if this is an automatic action
+    const originalMessage = getOriginalMessage(action);
+    const isAutomaticAction = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
+
     const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -121,7 +125,7 @@ function ReportActionItemSingle({
           ]
         : action?.person;
 
-    const showActorDetails = useCallback(() => {
+    const showActorDetails = () => {
         if (details.isWorkspaceActor) {
             showWorkspaceDetails(reportID);
         } else {
@@ -132,14 +136,11 @@ function ReportActionItemSingle({
             }
             showUserDetails(Number(primaryAvatar.id));
         }
-    }, [details.isWorkspaceActor, reportID, iouReportID, details.shouldDisplayAllActors, primaryAvatar.id]);
+    };
 
-    const shouldDisableDetailPage = useMemo(
-        () =>
-            CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID))),
-        [action?.delegateAccountID, details.isWorkspaceActor, details.accountID],
-    );
+    const shouldDisableDetailPage =
+        CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
+        (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID)));
 
     const getBackgroundColor = () => {
         if (isActive) {
@@ -153,12 +154,7 @@ function ReportActionItemSingle({
 
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(
-        details.status?.clearAfter ?? '',
-        details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
-        currentSelectedTimezone,
-        preferredLocale,
-    );
+    const formattedDate = DateUtils.getStatusUntilDate(translate, details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
@@ -172,6 +168,7 @@ function ReportActionItemSingle({
                 disabled={shouldDisableDetailPage}
                 accessibilityLabel={details.actorHint}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON}
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
@@ -185,6 +182,7 @@ function ReportActionItemSingle({
                             isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
                         ]}
                         reportID={iouReportID}
+                        chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}
                     />
                 </OfflineWithFeedback>
@@ -200,6 +198,7 @@ function ReportActionItemSingle({
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={details.actorHint}
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON}
                         >
                             {personArray?.map((fragment, index) => (
                                 <ReportActionItemFragment
@@ -226,7 +225,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>}
+                {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
                         {translate('statusPage.toAsVacationDelegate', {
@@ -235,7 +234,7 @@ function ReportActionItemSingle({
                         })}
                     </Text>
                 )}
-                {!!managerOnVacation && (
+                {!!managerOnVacation && !isAutomaticAction && (
                     <Text style={[styles.chatDelegateMessage]}>
                         {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
                     </Text>
@@ -245,7 +244,5 @@ function ReportActionItemSingle({
         </View>
     );
 }
-
-ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
 export default ReportActionItemSingle;

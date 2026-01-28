@@ -22,6 +22,4 @@ function BaseSectionList<ItemT, SectionT>({
     );
 }
 
-BaseSectionList.displayName = 'BaseSectionList';
-
 export default BaseSectionList;

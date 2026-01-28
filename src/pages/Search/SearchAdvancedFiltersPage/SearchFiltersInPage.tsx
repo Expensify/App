@@ -23,7 +23,7 @@ function SearchFiltersInPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersInPage.displayName}
+            testID="SearchFiltersInPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             onEntryTransitionEnd={handleScreenTransitionEnd}
@@ -49,7 +49,5 @@ function SearchFiltersInPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersInPage.displayName = 'SearchFiltersInPage';
 
 export default SearchFiltersInPage;

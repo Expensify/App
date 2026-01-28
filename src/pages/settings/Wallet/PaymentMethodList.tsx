@@ -12,6 +12,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,8 +21,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
+    filterPersonalCards,
     getAssignedCardSortKey,
     getCardFeedIcon,
+    getCompanyCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
     isExpensifyCard,
     isExpensifyCardPendingAction,
@@ -34,7 +38,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -76,6 +80,9 @@ type PaymentMethodListProps = {
 
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
+
+    /** Whether the we should skip default account validation when adding bank account */
+    shouldSkipDefaultAccountValidation?: boolean;
 
     /** What to do when a menu item is pressed */
     onPress: PaymentMethodPressHandler | CardPressHandler;
@@ -139,6 +146,7 @@ function PaymentMethodList({
     onPress,
     shouldShowAddBankAccount = true,
     shouldShowAssignedCards = false,
+    shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
     listItemStyle = {},
@@ -157,8 +165,9 @@ function PaymentMethodList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
@@ -168,23 +177,12 @@ function PaymentMethodList({
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const getCardBrickRoadIndicator = useCallback(
-        (card: Card) => {
-            if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors) {
-                return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            }
-            if (isExpensifyCardPendingAction(card, privatePersonalDetails)) {
-                return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-            }
-            return undefined;
-        },
-        [privatePersonalDetails],
-    );
+    const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -197,7 +195,26 @@ function PaymentMethodList({
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
+                const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+
+                let shouldShowRBR = false;
+                if (card.fundID) {
+                    const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID);
+                    shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
+                } else {
+                    shouldShowRBR = true;
+                }
+
+                let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+                if (!card.errors) {
+                    if (shouldShowRBR) {
+                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                        brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+                    }
+                }
 
                 if (!isExpensifyCard(card)) {
                     const pressHandler = onPress as CardPressHandler;
@@ -212,14 +229,11 @@ function PaymentMethodList({
                             : getDescriptionForPolicyDomainCard(card.domainName),
                         interactive: !isDisabled,
                         disabled: isDisabled,
-                        canDismissError: false,
                         shouldShowRightIcon,
                         errors: card.errors,
+                        canDismissError: false,
                         pendingAction: card.pendingAction,
-                        brickRoadIndicator:
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : undefined,
+                        brickRoadIndicator,
                         icon,
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
@@ -292,10 +306,10 @@ function PaymentMethodList({
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
-                    canDismissError: true,
                     errors: card.errors,
+                    canDismissError: true,
                     pendingAction: card.pendingAction,
-                    brickRoadIndicator: getCardBrickRoadIndicator(card),
+                    brickRoadIndicator,
                     icon,
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
@@ -364,6 +378,7 @@ function PaymentMethodList({
                 isMethodActive,
                 iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
+                canDismissError: true,
             };
         });
         return combinedPaymentMethods;
@@ -372,35 +387,37 @@ function PaymentMethodList({
         isLoadingBankAccountList,
         bankAccountList,
         styles,
+        translate,
         isOffline,
         filterType,
         filterCurrency,
         isLoadingCardList,
         cardList,
         illustrations,
-        translate,
-        getCardBrickRoadIndicator,
+        companyCardFeedIcons,
+        shouldShowRbrForFeedNameWithDomainID,
+        privatePersonalDetails,
         onPress,
         shouldShowRightIcon,
         itemIconRight,
+        expensifyIcons.ThreeDots,
         activePaymentMethodID,
         actionPaymentMethodType,
-        expensifyIcons.ThreeDots,
         onThreeDotsMenuPress,
     ]);
 
     const onPressItem = useCallback(() => {
-        if (!isUserValidated) {
+        if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
             const path = Navigation.getActiveRoute();
             if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
                 Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
             } else {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT);
+                Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.route);
             }
             return;
         }
         onAddBankAccountPress();
-    }, [isUserValidated, onAddBankAccountPress, policyID]);
+    }, [isUserValidated, onAddBankAccountPress, policyID, shouldSkipDefaultAccountValidation]);
 
     const renderListFooterComponent = useCallback(
         () => (
@@ -486,7 +503,5 @@ function PaymentMethodList({
         </View>
     );
 }
-
-PaymentMethodList.displayName = 'PaymentMethodList';
 
 export default PaymentMethodList;

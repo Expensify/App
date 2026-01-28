@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,49 +25,46 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     const {export: exportConfig, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
     const shouldGoBackToSpecificRoute = exportConfig?.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
-    }, [backTo, shouldGoBackToSpecificRoute]);
+    };
 
-    const sections = useMemo(
-        () => [
-            {
-                description: translate('workspace.sageIntacct.preferredExporter'),
-                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.getRoute(policyID, Navigation.getActiveRoute())),
-                title: exportConfig?.exporter,
-                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.EXPORTER],
-            },
-            {
-                description: translate('workspace.sageIntacct.exportDate.label'),
-                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.getRoute(policyID, Navigation.getActiveRoute())),
-                title: exportConfig?.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : undefined,
-                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE],
-            },
-            {
-                description: translate('workspace.accounting.exportOutOfPocket'),
-                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
-                title: exportConfig?.reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`) : undefined,
-                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR],
-            },
-            {
-                description: translate('workspace.accounting.exportCompanyCard'),
-                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
-                title: exportConfig?.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`) : undefined,
-                subscribedSettings: [
-                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE,
-                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
-                    exportConfig?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                        ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
-                        : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
-                ],
-            },
-        ],
-        [exportConfig?.exporter, exportConfig?.exportDate, exportConfig?.reimbursable, exportConfig?.nonReimbursable, policyID, translate],
-    );
+    const sections = [
+        {
+            description: translate('workspace.sageIntacct.preferredExporter'),
+            action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.getRoute(policyID, Navigation.getActiveRoute())),
+            title: exportConfig?.exporter,
+            subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.EXPORTER],
+        },
+        {
+            description: translate('workspace.sageIntacct.exportDate.label'),
+            action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.getRoute(policyID, Navigation.getActiveRoute())),
+            title: exportConfig?.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : undefined,
+            subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE],
+        },
+        {
+            description: translate('workspace.accounting.exportOutOfPocket'),
+            action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
+            title: exportConfig?.reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`) : undefined,
+            subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR],
+        },
+        {
+            description: translate('workspace.accounting.exportCompanyCard'),
+            action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
+            title: exportConfig?.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`) : undefined,
+            subscribedSettings: [
+                CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE,
+                CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                exportConfig?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                    ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
+                    : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+            ],
+        },
+    ];
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctExportPage.displayName}
+            displayName="SageIntacctExportPage"
             headerTitle="workspace.accounting.export"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             title="workspace.sageIntacct.exportDescription"
@@ -96,7 +93,5 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctExportPage.displayName = 'SageIntacctExportPage';
 
 export default withPolicyConnections(SageIntacctExportPage);

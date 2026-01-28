@@ -15,6 +15,4 @@ function NativeGenericPressable({ref, ...props}: PressableProps) {
     );
 }
 
-NativeGenericPressable.displayName = 'NativeGenericPressable';
-
 export default NativeGenericPressable;

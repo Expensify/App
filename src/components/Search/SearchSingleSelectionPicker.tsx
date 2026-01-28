@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -6,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 type SearchSingleSelectionPickerItem = {
@@ -18,10 +20,20 @@ type SearchSingleSelectionPickerProps = {
     initiallySelectedItem: SearchSingleSelectionPickerItem | undefined;
     pickerTitle?: string;
     onSaveSelection: (value: string | undefined) => void;
+    backToRoute?: Route;
+    shouldAutoSave?: boolean;
     shouldShowTextInput?: boolean;
 };
 
-function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchSingleSelectionPickerProps) {
+function SearchSingleSelectionPicker({
+    items,
+    initiallySelectedItem,
+    pickerTitle,
+    onSaveSelection,
+    backToRoute,
+    shouldAutoSave,
+    shouldShowTextInput = true,
+}: SearchSingleSelectionPickerProps) {
     const {translate} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -72,14 +84,22 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
         };
     }, [initiallySelectedItem, selectedItem?.value, items, pickerTitle, debouncedSearchTerm]);
 
-    const onSelectItem = useCallback((item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
-        if (!item.text || !item.keyForList || !item.value) {
-            return;
-        }
-        if (!item.isSelected) {
-            setSelectedItem({name: item.text, value: item.value});
-        }
-    }, []);
+    const onSelectItem = useCallback(
+        (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
+            if (!item.text || !item.keyForList || !item.value) {
+                return;
+            }
+            if (shouldAutoSave) {
+                onSaveSelection(item.isSelected ? '' : item.value);
+                Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                return;
+            }
+            if (!item.isSelected) {
+                setSelectedItem({name: item.text, value: item.value});
+            }
+        },
+        [shouldAutoSave, backToRoute, onSaveSelection],
+    );
 
     const resetChanges = useCallback(() => {
         setSelectedItem(undefined);
@@ -87,8 +107,8 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
 
     const applyChanges = useCallback(() => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onSaveSelection, selectedItem?.value]);
+        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+    }, [onSaveSelection, selectedItem?.value, backToRoute]);
 
     const footerContent = useMemo(
         () => (
@@ -108,7 +128,7 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onSelectRow={onSelectItem}
             headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
-            footerContent={footerContent}
+            footerContent={shouldAutoSave ? undefined : footerContent}
             shouldStopPropagation
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
@@ -117,8 +137,6 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
         />
     );
 }
-
-SearchSingleSelectionPicker.displayName = 'SearchSingleSelectionPicker';
 
 export default SearchSingleSelectionPicker;
 export type {SearchSingleSelectionPickerItem};

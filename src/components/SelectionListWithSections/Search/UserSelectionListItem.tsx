@@ -3,12 +3,12 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {ListItem, UserSelectionListItemProps} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -37,7 +37,9 @@ function UserSelectionListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {formatPhoneNumber} = useLocalize();
+
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
@@ -124,7 +126,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                         {!!item.isSelected && (
                             <Icon
-                                src={Expensicons.Checkmark}
+                                src={icons.Checkmark}
                                 fill={theme.textLight}
                                 height={14}
                                 width={14}
@@ -138,7 +140,5 @@ function UserSelectionListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-UserSelectionListItem.displayName = 'UserSelectionListItem';
 
 export default UserSelectionListItem;

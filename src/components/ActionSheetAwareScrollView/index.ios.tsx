@@ -1,36 +1,26 @@
-import React, {useCallback} from 'react';
-import Reanimated, {useAnimatedRef, useAnimatedStyle} from 'react-native-reanimated';
+import React from 'react';
+import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
+import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
+import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-function ActionSheetAwareScrollView({style, children, ref, ...props}: ActionSheetAwareScrollViewProps) {
-    const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
+function ActionSheetAwareScrollView({style, children, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
+    const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
 
-    const onRef = useCallback(
-        (assignedRef: Reanimated.ScrollView) => {
-            if (typeof ref === 'function') {
-                ref(assignedRef);
-            } else if (ref) {
-                // eslint-disable-next-line no-param-reassign
-                ref.current = assignedRef;
-            }
-
-            scrollViewAnimatedRef(assignedRef);
-        },
-        [ref, scrollViewAnimatedRef],
-    );
-
-    const spacing = useActionSheetKeyboardSpacing(scrollViewAnimatedRef);
+    const spacing = useActionSheetKeyboardSpacing(animatedRef);
     const animatedStyle = useAnimatedStyle(() => ({
         paddingTop: spacing.get(),
     }));
 
+    usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
+
     return (
         <Reanimated.ScrollView
-            ref={onRef}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...restProps}
+            ref={onRef}
             style={[style, animatedStyle]}
         >
             {children}

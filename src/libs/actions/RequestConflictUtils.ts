@@ -34,6 +34,8 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
     WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
     WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
+    WRITE_COMMANDS.ENABLE_POLICY_TRAVEL,
+    WRITE_COMMANDS.ENABLE_POLICY_TIME_TRACKING,
 ] as const;
 
 type EnablePolicyFeatureCommand = TupleToUnion<typeof enablePolicyFeatureCommand>;
@@ -137,7 +139,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
 
     if (addCommentFound) {
         // The new message performs some changes in Onyx, so we need to rollback those changes.
-        const rollbackData: OnyxUpdate[] = [
+        const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,

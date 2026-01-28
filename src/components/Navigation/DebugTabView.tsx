@@ -7,9 +7,9 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
+import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -162,7 +162,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
 
     return (
         <View
-            testID={DebugTabView.displayName}
+            testID="DebugTabView"
             style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
         >
             <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
@@ -179,7 +179,5 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         </View>
     );
 }
-
-DebugTabView.displayName = 'DebugTabView';
 
 export default DebugTabView;

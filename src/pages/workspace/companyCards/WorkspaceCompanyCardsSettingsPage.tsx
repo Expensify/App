@@ -48,7 +48,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
 
     const [cardsList] = useCardsList(selectedFeed);
-    const feedName = selectedFeed ? getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
+    const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const liabilityType = selectedFeedData?.liabilityType;
@@ -109,7 +109,7 @@ function WorkspaceCompanyCardsSettingsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCompanyCardsSettingsPage.displayName}
+                testID="WorkspaceCompanyCardsSettingsPage"
                 style={styles.defaultModalContainer}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -158,7 +158,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         isVisible={deleteCompanyCardConfirmModalVisible}
                         onConfirm={deleteCompanyCardFeed}
                         onCancel={() => setDeleteCompanyCardConfirmModalVisible(false)}
-                        title={feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
+                        title={feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', feedName)}
                         prompt={translate('workspace.moreFeatures.companyCards.removeCardFeedDescription')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
@@ -169,7 +169,5 @@ function WorkspaceCompanyCardsSettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardsSettingsPage.displayName = 'WorkspaceCompanyCardsSettingsPage';
 
 export default WorkspaceCompanyCardsSettingsPage;

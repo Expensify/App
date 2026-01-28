@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -75,7 +75,6 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
-    violations: OnyxCollection<TransactionViolation[]>;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;

@@ -7,7 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs/actions/Modal';
-import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
 
@@ -24,7 +24,7 @@ function PopoverWithoutOverlay({
     onClose,
     onModalHide = () => {},
     children,
-    ref,
+    shouldDisplayBelowModals = false,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -33,7 +33,7 @@ function PopoverWithoutOverlay({
     const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
         StyleUtils.getModalStyles(
-            'popover',
+            CONST.MODAL.MODAL_TYPE.POPOVER,
             {
                 windowWidth,
                 windowHeight,
@@ -42,6 +42,7 @@ function PopoverWithoutOverlay({
             anchorPosition,
             innerContainerStyle,
             outerStyle,
+            shouldDisplayBelowModals,
         );
 
     useEffect(() => {
@@ -69,7 +70,7 @@ function PopoverWithoutOverlay({
             removeOnClose();
         };
         // We want this effect to run strictly ONLY when isVisible prop changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
     const modalPaddingStyles = useMemo(
@@ -91,7 +92,7 @@ function PopoverWithoutOverlay({
 
     return (
         <View
-            style={[modalStyle, {zIndex: variables.popoverZIndex}]}
+            style={modalStyle}
             ref={viewRef(withoutOverlayRef)}
             // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
             onClick={(e) => e.stopPropagation()}
@@ -103,14 +104,11 @@ function PopoverWithoutOverlay({
                     ...modalContainerStyle,
                     ...modalPaddingStyles,
                 }}
-                ref={ref}
             >
                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>
         </View>
     );
 }
-
-PopoverWithoutOverlay.displayName = 'PopoverWithoutOverlay';
 
 export default PopoverWithoutOverlay;

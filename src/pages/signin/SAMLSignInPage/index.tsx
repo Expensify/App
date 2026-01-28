@@ -37,6 +37,4 @@ function SAMLSignInPage() {
     return <SAMLLoadingIndicator />;
 }
 
-SAMLSignInPage.displayName = 'SAMLSignInPage';
-
 export default SAMLSignInPage;

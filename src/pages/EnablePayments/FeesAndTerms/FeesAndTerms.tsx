@@ -40,7 +40,7 @@ function FeesAndTerms() {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={FeesAndTerms.displayName}
+            wrapperID="FeesAndTerms"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('termsStep.headerTitleRefactor')}
@@ -56,7 +56,5 @@ function FeesAndTerms() {
         </InteractiveStepWrapper>
     );
 }
-
-FeesAndTerms.displayName = 'TermsAndFees';
 
 export default FeesAndTerms;

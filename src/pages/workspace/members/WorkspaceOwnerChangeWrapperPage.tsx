@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +15,7 @@ import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthentica
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,8 +34,17 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
     const accountID = Number(route.params.accountID);
     const error = route.params.error;
     const backTo = route.params.backTo;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
+
+    useEffect(() => {
+        if (policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {
+            return;
+        }
+        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyID]);
 
     useEffect(() => {
         if (!policy || policy?.isLoading) {
@@ -68,7 +78,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
             policyID={policyID}
             shouldBeBlocked={!shouldShowChangeWorkspaceOwnerPage(fundList, error)}
         >
-            <ScreenWrapper testID={WorkspaceOwnerChangeWrapperPage.displayName}>
+            <ScreenWrapper testID="WorkspaceOwnerChangeWrapperPage">
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={() => {
@@ -100,7 +110,5 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOwnerChangeWrapperPage.displayName = 'WorkspaceOwnerChangeWrapperPage';
 
 export default withPolicy(WorkspaceOwnerChangeWrapperPage);

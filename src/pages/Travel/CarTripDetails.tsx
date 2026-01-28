@@ -1,9 +1,9 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -17,15 +17,16 @@ type CarTripDetailsProps = {
 };
 
 function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
 
-    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
-    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
+    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
+    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
 
     let cancellationText = reservation.cancellationPolicy;
     if (reservation.cancellationDeadline) {
-        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline), preferredLocale)}`;
+        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline))}`;
     }
 
     if (reservation.cancellationPolicy === null && reservation.cancellationDeadline === null) {
@@ -87,7 +88,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 <MenuItem
                     label={translate('travel.carDetails.driver')}
                     title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    icon={personalDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
@@ -97,7 +98,5 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
         </>
     );
 }
-
-CarTripDetails.displayName = 'CarTripDetails';
 
 export default CarTripDetails;

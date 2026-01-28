@@ -124,7 +124,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BankInfo.displayName}
+            wrapperID="BankInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('bankAccount.bankInfo')}
             stepNames={stepNames}
@@ -139,7 +139,5 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
         </InteractiveStepWrapper>
     );
 }
-
-BankInfo.displayName = 'BankInfo';
 
 export default BankInfo;

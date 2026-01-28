@@ -30,6 +30,4 @@ function Country({onBackButtonPress, onSubmit, stepNames, policyID, isComingFrom
     );
 }
 
-Country.displayName = 'Country';
-
 export default Country;

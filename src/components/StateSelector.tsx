@@ -71,7 +71,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
         // This helps prevent issues where the component might not update correctly if the state is controlled by both the parent and the URL.
         Navigation.setParams({state: undefined});
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
     const title = stateCode && stateCode in COMMON_CONST.STATES ? translate(`allStates.${stateCode}.stateName`) : '';
@@ -97,8 +97,6 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
         />
     );
 }
-
-StateSelector.displayName = 'StateSelector';
 
 export default StateSelector;
 

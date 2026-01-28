@@ -7,7 +7,7 @@ import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {ImportedSpreadsheet, PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -332,15 +332,19 @@ describe('actions/PolicyMember', () => {
                     [ownerAccountID]: {notificationPreference: 'always'},
                 },
             });
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [auditorAccountID]: {login: auditorEmail},
+            });
 
             // When adding a new admin, auditor, and user members
+            mockFetch?.pause?.();
             Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber);
             Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber);
             Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
-            // Then only the admin and auditor should be added to the #admins room
+            // Then only the admin and auditor should be added to the #admins room optimistically
             const adminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
@@ -353,6 +357,20 @@ describe('actions/PolicyMember', () => {
             expect(adminRoom?.participants?.[adminAccountID]).toBeTruthy();
             expect(adminRoom?.participants?.[auditorAccountID]).toBeTruthy();
             expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
+
+            // and removed if the account is optimistic
+            await mockFetch?.resume?.();
+            const adminRoomSuccess = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(adminRoomSuccess?.participants?.[adminAccountID]).toBeUndefined();
+            expect(adminRoomSuccess?.participants?.[auditorAccountID]).toBeTruthy();
         });
 
         it('should unarchive existing workspace expense chat and expense report when adding back a member', async () => {
@@ -494,6 +512,83 @@ describe('actions/PolicyMember', () => {
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
 
+        it('Change preferred accounting exporter to owner if the members include current preferred exporter', async () => {
+            // Given a policy
+            const policyID = '1';
+            const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminAccountID = 1234;
+            const adminEmail = 'admin@example.com';
+            const auditorAccountID = 1235;
+            const auditorEmail = 'auditor@example.com';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [adminAccountID]: {login: adminEmail},
+                [auditorAccountID]: {login: auditorEmail},
+                [userAccountID]: {login: userEmail},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                approver: defaultApprover,
+                owner: ownerEmail,
+                ownerAccountID,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [auditorEmail]: {role: CONST.POLICY.ROLE.AUDITOR},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        options: {
+                            config: {
+                                exporter: adminEmail,
+                            },
+                        },
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                },
+            });
+
+            // When removing an admin, auditor, and user members
+            mockFetch?.pause?.();
+            const memberEmailsToAccountIDs = {
+                [adminEmail]: adminAccountID,
+                [auditorEmail]: auditorAccountID,
+                [userEmail]: userAccountID,
+            };
+            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
+
+            await waitForBatchedUpdates();
+
+            const policyConnectionPreferredExporter = await new Promise<string | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        resolve(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.config?.exporter);
+                    },
+                });
+            });
+
+            // Then the preferred exporter is the workspace owner
+            expect(policyConnectionPreferredExporter).toBe(ownerEmail);
+
+            await mockFetch?.resume?.();
+        });
+
         it('should archive the member expense chat and expense report', async () => {
             // Given a workspace expense chat and expense report
             const policyID = '1';
@@ -589,6 +684,48 @@ describe('actions/PolicyMember', () => {
             expect(failedMember?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(failedMember?.errors).toBeTruthy();
             expect(Object.keys(failedMember?.errors ?? {}).length).toBeGreaterThan(0);
+        });
+
+        // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
+        it('should remove "detached" members', async () => {
+            const policyID = 'ABCD123456';
+            const ownerEmail = 'owner@gmail.com';
+            const userEmail = 'user@gmail.com';
+            const detachedUserEmail = 'detacheduser@gmail.com';
+            const ownerAccountID = 1;
+            const userAccountID = 4321;
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [ownerAccountID]: {login: ownerEmail},
+                [userAccountID]: {login: userEmail},
+            });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [detachedUserEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+
+            await waitForBatchedUpdates();
+
+            const employeeList = await new Promise<PolicyEmployeeList | undefined>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        resolve(policy?.employeeList);
+                    },
+                });
+            });
+
+            expect(employeeList?.[userEmail]).toBeUndefined();
+            expect(employeeList?.[detachedUserEmail]).toBeUndefined();
+            expect(employeeList?.[ownerEmail]).toBeDefined();
         });
     });
 
@@ -839,6 +976,230 @@ describe('actions/PolicyMember', () => {
             // Then it should show the plural member added and updated success message
             expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
             expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
+        });
+    });
+
+    describe('setWorkspaceInviteMembersDraft', () => {
+        it('should save member selections to draft storage', async () => {
+            // Given a policy ID and member selections
+            const policyID = '1';
+            const user1Email = 'user1@example.com';
+            const user1AccountID = 1234;
+            const user2Email = 'user2@example.com';
+            const user2AccountID = 1235;
+            const invitedEmailsToAccountIDs = {
+                [user1Email]: user1AccountID,
+                [user2Email]: user2AccountID,
+            };
+
+            // When setWorkspaceInviteMembersDraft is called
+            Member.setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs);
+            await waitForBatchedUpdates();
+
+            // Then the draft should be saved to the correct Onyx key
+            const draft = await new Promise<typeof invitedEmailsToAccountIDs | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as typeof invitedEmailsToAccountIDs | null | undefined);
+                    },
+                });
+            });
+
+            expect(draft).toBeDefined();
+            expect(draft?.[user1Email]).toBe(user1AccountID);
+            expect(draft?.[user2Email]).toBe(user2AccountID);
+        });
+
+        it('should update existing draft with new selections', async () => {
+            // Given an existing draft
+            const policyID = '1';
+            const user1Email = 'user1@example.com';
+            const user1AccountID = 1234;
+            const initialDraft = {
+                [user1Email]: user1AccountID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, initialDraft);
+            await waitForBatchedUpdates();
+
+            // When new selections are saved
+            const user2Email = 'user2@example.com';
+            const user2AccountID = 1235;
+            const user3Email = 'user3@example.com';
+            const user3AccountID = 1236;
+            const newSelections = {
+                [user2Email]: user2AccountID,
+                [user3Email]: user3AccountID,
+            };
+
+            Member.setWorkspaceInviteMembersDraft(policyID, newSelections);
+            await waitForBatchedUpdates();
+
+            // Then the draft should be updated (not merged)
+            const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as Record<string, number> | null | undefined);
+                    },
+                });
+            });
+
+            expect(draft).toBeDefined();
+            expect(draft?.[user2Email]).toBe(user2AccountID);
+            expect(draft?.[user3Email]).toBe(user3AccountID);
+            // Old user1 should be replaced (not merged)
+            expect(draft?.[user1Email]).toBeUndefined();
+        });
+
+        it('should handle empty selections', async () => {
+            // Given an existing draft
+            const policyID = '1';
+            const user1Email = 'user1@example.com';
+            const user1AccountID = 1234;
+            const initialDraft = {
+                [user1Email]: user1AccountID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, initialDraft);
+            await waitForBatchedUpdates();
+
+            // When empty selections are saved
+            const emptySelections = {};
+
+            Member.setWorkspaceInviteMembersDraft(policyID, emptySelections);
+            await waitForBatchedUpdates();
+
+            // Then the draft should be set to empty object
+            const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as Record<string, number> | null | undefined);
+                    },
+                });
+            });
+
+            expect(draft).toBeDefined();
+            expect(Object.keys(draft ?? {}).length).toBe(0);
+        });
+
+        it('should save draft for multiple different workspaces independently', async () => {
+            // Given two different workspace IDs
+            const policyID1 = '1';
+            const policyID2 = '2';
+            const user1Email = 'user1@example.com';
+            const user1AccountID = 1234;
+            const user2Email = 'user2@example.com';
+            const user2AccountID = 1235;
+
+            const draft1 = {[user1Email]: user1AccountID};
+            const draft2 = {[user2Email]: user2AccountID};
+
+            // When drafts are saved for both workspaces
+            Member.setWorkspaceInviteMembersDraft(policyID1, draft1);
+            Member.setWorkspaceInviteMembersDraft(policyID2, draft2);
+            await waitForBatchedUpdates();
+
+            // Then each workspace should have its own independent draft
+            const savedDraft1 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID1}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as Record<string, number> | null | undefined);
+                    },
+                });
+            });
+
+            const savedDraft2 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID2}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as Record<string, number> | null | undefined);
+                    },
+                });
+            });
+
+            expect(savedDraft1?.[user1Email]).toBe(user1AccountID);
+            expect(savedDraft1?.[user2Email]).toBeUndefined();
+
+            expect(savedDraft2?.[user2Email]).toBe(user2AccountID);
+            expect(savedDraft2?.[user1Email]).toBeUndefined();
+        });
+
+        it('should handle large number of selected members', async () => {
+            // Given a large selection of members
+            const policyID = '1';
+            const largeSelection: Record<string, number> = {};
+
+            // Create 100 members
+            for (let i = 1; i <= 100; i++) {
+                largeSelection[`user${i}@example.com`] = 1000 + i;
+            }
+
+            // When the large selection is saved
+            Member.setWorkspaceInviteMembersDraft(policyID, largeSelection);
+            await waitForBatchedUpdates();
+
+            // Then all members should be saved correctly
+            const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as Record<string, number> | null | undefined);
+                    },
+                });
+            });
+
+            expect(draft).toBeDefined();
+            expect(Object.keys(draft ?? {}).length).toBe(100);
+            expect(draft?.['user1@example.com']).toBe(1001);
+            expect(draft?.['user50@example.com']).toBe(1050);
+            expect(draft?.['user100@example.com']).toBe(1100);
+        });
+
+        it('should preserve accountID as number type in draft', async () => {
+            // Given member selections with number accountIDs
+            const policyID = '1';
+            const userEmail = 'user@example.com';
+            const userAccountID = 1234;
+            const invitedEmailsToAccountIDs = {
+                [userEmail]: userAccountID,
+            };
+
+            // When the draft is saved
+            Member.setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs);
+            await waitForBatchedUpdates();
+
+            // Then the accountID should remain as a number (not string)
+            const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value as Record<string, number> | null | undefined);
+                    },
+                });
+            });
+
+            expect(draft).toBeDefined();
+            expect(typeof draft?.[userEmail]).toBe('number');
+            expect(draft?.[userEmail]).toBe(1234);
+            expect(draft?.[userEmail]).not.toBe('1234');
         });
     });
 });

@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -12,24 +12,24 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
-import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
@@ -44,7 +44,8 @@ function Confirmation() {
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
     const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`, {canBeMissing: true});
     const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
+    const transactionID = TransactionUtils.getTransactionID(report);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`, {
@@ -57,14 +58,15 @@ function Confirmation() {
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const reviewDuplicatesReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`];
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`, {canBeMissing: true});
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicates?.reportID, undefined, policyCategories);
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policyCategories);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
-    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`, {canBeMissing: true});
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
+    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const isSuperWideRHPDisplayed = superWideRHPRouteKeys.length > 0;
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -74,18 +76,22 @@ function Confirmation() {
     );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
-    const mergeDuplicates = useCallback(() => {
+    const handleMergeDuplicates = useCallback(() => {
         const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
         if (!reportAction?.childReportID) {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
-        IOU.mergeDuplicates(transactionsMergeParams);
+        mergeDuplicates(transactionsMergeParams);
+        if (isSuperWideRHPDisplayed) {
+            Navigation.dismissToSuperWideRHP();
+            return;
+        }
         Navigation.dismissModal();
-    }, [reportAction?.childReportID, transactionsMergeParams]);
+    }, [reportAction?.childReportID, transactionsMergeParams, isSuperWideRHPDisplayed]);
 
-    const resolveDuplicates = useCallback(() => {
-        IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
+    const handleResolveDuplicates = useCallback(() => {
+        resolveDuplicates(transactionsMergeParams);
+        Navigation.dismissToSuperWideRHP();
     }, [transactionsMergeParams]);
 
     const contextValue = useMemo(
@@ -102,8 +108,7 @@ function Confirmation() {
         [report, reportAction],
     );
 
-    const reportTransactionID = report?.reportID ? getTransactionID(report.reportID) : undefined;
-    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || (reportTransactionID && reviewDuplicates?.duplicates.includes(reportTransactionID));
+    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === transactionID || (transactionID && reviewDuplicates?.duplicates.includes(transactionID));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -118,7 +123,7 @@ function Confirmation() {
 
     return (
         <ScreenWrapper
-            testID={Confirmation.displayName}
+            testID="Confirmation"
             shouldShowOfflineIndicator
         >
             <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
@@ -142,12 +147,13 @@ function Confirmation() {
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <MoneyRequestView
                                 allReports={allReports}
-                                report={report}
+                                transactionThreadReport={report}
+                                parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
                                 shouldShowAnimatedBackground={false}
                                 readonly
-                                isFromReviewDuplicates
                                 updatedTransaction={newTransaction as OnyxEntry<Transaction>}
+                                isFromReviewDuplicates
                             />
                         </ShowContextMenuContext.Provider>
                     </ScrollView>
@@ -157,10 +163,10 @@ function Confirmation() {
                             success
                             onPress={() => {
                                 if (!isReportOwner) {
-                                    resolveDuplicates();
+                                    handleResolveDuplicates();
                                     return;
                                 }
-                                mergeDuplicates();
+                                handleMergeDuplicates();
                             }}
                             large
                         />
@@ -170,7 +176,5 @@ function Confirmation() {
         </ScreenWrapper>
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

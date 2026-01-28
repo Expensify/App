@@ -11,6 +11,7 @@ import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {isSafari} from './Browser';
 import type EmojiTrie from './EmojiTrie';
 import memoize from './memoize';
 
@@ -437,17 +438,6 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
 }
 
 /**
- * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
- */
-const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number => {
-    if (value !== null && Number.isInteger(Number(value))) {
-        return Number(value);
-    }
-
-    return CONST.EMOJI_DEFAULT_SKIN_TONE;
-};
-
-/**
  * Given an emoji object it returns the correct emoji code
  * based on the users preferred skin tone.
  */
@@ -673,6 +663,39 @@ function containsOnlyCustomEmoji(text?: string): boolean {
     return privateUseAreaRegex.test(text);
 }
 
+/**
+ * Insert ZWNJ (Zero-Width Non-Joiner) between digits and emojis to prevent Safari's automatic keycap sequence bug.
+ *
+ * Safari has a browser-specific behavior where it automatically converts a digit immediately followed by an emoji
+ * into a Unicode keycap sequence (e.g., "1" + "😄" becomes "1️⃣"). This happens at the browser's input handling level
+ * before React can process the text, causing character corruption or unexpected joining.
+ *
+ * The ZWNJ character (U+200C) is a non-printing Unicode character that prevents the formation of ligatures or
+ * unwanted character joining. By inserting it between digits and emojis, we break Safari's automatic keycap
+ * sequence detection, ensuring the text displays correctly.
+ *
+ * Example: "234😄" becomes "234\u200C😄" (ZWNJ is invisible but prevents Safari's corruption)
+ */
+function insertZWNJBetweenDigitAndEmoji(input: string): string {
+    if (!isSafari()) {
+        return input;
+    }
+    return input.replaceAll(CONST.REGEX.DIGIT_FOLLOWED_BY_EMOJI, '$1\u200C$2');
+}
+
+/**
+ * Calculate the ZWNJ offset for cursor position adjustment.
+ * Returns the number of ZWNJ characters inserted before the cursor position.
+ */
+function getZWNJCursorOffset(text: string, cursorPosition: number | undefined | null): number {
+    if (!isSafari() || cursorPosition === undefined || cursorPosition === null) {
+        return 0;
+    }
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    const textWithZWNJBeforeCursor = insertZWNJBetweenDigitAndEmoji(textBeforeCursor);
+    return textWithZWNJBeforeCursor.length - textBeforeCursor.length;
+}
+
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
@@ -686,7 +709,6 @@ export {
     replaceEmojis,
     suggestEmojis,
     getEmojiCodeWithSkinColor,
-    getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
     getEmojiReactionDetails,
@@ -701,4 +723,6 @@ export {
     containsCustomEmoji,
     containsOnlyCustomEmoji,
     processFrequentlyUsedEmojis,
+    insertZWNJBetweenDigitAndEmoji,
+    getZWNJCursorOffset,
 };

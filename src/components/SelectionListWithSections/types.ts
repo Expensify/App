@@ -26,9 +26,9 @@ import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchCardGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransaction, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import type {SearchCardGroup, SearchCategoryGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -39,7 +39,6 @@ import type RadioListItem from './RadioListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
-import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -126,6 +125,9 @@ type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
 
+    /** Text to be announced by screen reader */
+    accessibilityLabel?: string;
+
     /** Alternate text to display */
     alternateText?: string | null;
 
@@ -166,7 +168,7 @@ type ListItem<K extends string | number = string> = {
     icons?: Icon[];
 
     /** Errors that this user may contain */
-    errors?: Errors;
+    errors?: Errors | ReceiptErrors;
 
     /** The type of action that's pending  */
     pendingAction?: PendingAction;
@@ -238,10 +240,21 @@ type ListItem<K extends string | number = string> = {
 };
 
 type TransactionListItemType = ListItem &
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    SearchTransaction & {
+    Transaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
+
+        /** The date the report was submitted */
+        submitted?: string;
+
+        /** The date the report was approved */
+        approved?: string;
+
+        /** The date the report was posted */
+        posted?: string;
+
+        /** The date the report was exported */
+        exported?: string;
 
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
@@ -270,6 +283,12 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
+        /** The original amount of the transaction */
+        originalAmount?: number;
+
+        /** The original currency of the transaction */
+        originalCurrency?: string;
+
         /** final "date" value used for sorting */
         date: string;
 
@@ -280,6 +299,26 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /** Whether we should show the year for the submitted date.
+         * This is true if at least one transaction in the dataset was submitted in past years
+         */
+        shouldShowYearSubmitted: boolean;
+
+        /** Whether we should show the year for the approved date.
+         * This is true if at least one transaction in the dataset was approved in past years
+         */
+        shouldShowYearApproved: boolean;
+
+        /** Whether we should show the year for the posted date.
+         * This is true if at least one transaction in the dataset was posted in past years
+         */
+        shouldShowYearPosted: boolean;
+
+        /** Whether we should show the year for the exported date.
+         * This is true if at least one transaction in the dataset was exported in past years
+         */
+        shouldShowYearExported: boolean;
 
         isAmountColumnWide: boolean;
 
@@ -303,14 +342,14 @@ type TransactionListItemType = ListItem &
         /** The display name of the purchaser card, if any */
         cardName?: string;
 
-        /** Parent report action id */
-        moneyRequestReportActionID?: string;
-
         /** The available actions that can be performed for the transaction */
         allActions: SearchTransactionAction[];
 
         /** The main action that can be performed for the transaction */
         action: SearchTransactionAction;
+
+        /** The tax code of the transaction */
+        taxCode?: string;
     };
 
 type ReportActionListItemType = ListItem &
@@ -375,9 +414,11 @@ type TransactionGroupListItemType = ListItem & {
 
     /** The hash of the query to get the transactions data */
     transactionsQueryJSON?: SearchQueryJSON;
+
+    /** Whether the report has visible violations for user */
+    hasVisibleViolations?: boolean;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
@@ -394,11 +435,32 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "to" value used for displaying and sorting */
         formattedTo?: string;
 
+        /** The date the report was exported */
+        exported?: string;
+
         /**
          * Whether we should show the report year.
          * This is true if at least one report in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /**
+         * Whether we should show the year for the submitted date.
+         * This is true if at least one report in the dataset was submitted in past years
+         */
+        shouldShowYearSubmitted: boolean;
+
+        /**
+         * Whether we should show the year for the approved date.
+         * This is true if at least one report in the dataset was approved in past years
+         */
+        shouldShowYearApproved: boolean;
+
+        /**
+         * Whether we should show the year for the exported date.
+         * This is true if at least one report in the dataset was exported in past years
+         */
+        shouldShowYearExported: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
@@ -407,11 +469,30 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         allActions?: SearchTransactionAction[];
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails & SearchMemberGroup;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &
+    SearchMemberGroup & {
+        /** Final and formatted "from" value used for displaying and sorting */
+        formattedFrom?: string;
+    };
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails & SearchCardGroup;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
+    SearchCardGroup & {
+        /** Final and formatted "cardName" value used for displaying and sorting */
+        formattedCardName?: string;
 
-type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
+        /** Final and formatted "feedName" value used for displaying and sorting */
+        formattedFeedName?: string;
+    };
+
+type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
+        /** Final and formatted "withdrawalID" value used for displaying and sorting */
+        formattedWithdrawalID?: string;
+    };
+
+type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
+        /** Final and formatted "category" value used for displaying and sorting */
+        formattedCategory?: string;
+    };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -496,35 +577,6 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         FooterComponent?: ReactElement;
     };
 
-type SplitListItemType = ListItem &
-    SplitExpense & {
-        /** Item header text */
-        headerText: string;
-
-        /** Merchant or vendor name */
-        merchant: string;
-
-        /** Currency code */
-        currency: string;
-
-        /** ID of split expense */
-        transactionID: string;
-
-        /** Currency symbol */
-        currencySymbol: string;
-
-        /** Original amount before split */
-        originalAmount: number;
-
-        /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
-        isEditable: boolean;
-
-        /** Function for updating amount */
-        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
-    };
-
-type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
@@ -548,10 +600,12 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    customCardNames?: Record<number, string>;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -566,11 +620,17 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** The visible columns for the report */
+    columns?: SearchColumnType[];
+
     /** Whether the item's action is loading */
     isLoading?: boolean;
 
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -579,16 +639,17 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     policies?: OnyxCollection<Policy>;
     accountID?: number;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'areAllOptionalColumnsHidden'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
@@ -600,6 +661,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     transactionsQueryJSON?: SearchQueryJSON;
     isInSingleTransactionReport: boolean;
     searchTransactions: (pageSize?: number) => void;
+    onLongPress: (transaction: TransactionListItemType) => void;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -630,7 +692,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type ValidListItem =
     | typeof RadioListItem
     | typeof UserListItem
-    | typeof TableListItem
     | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof TransactionGroupListItem
@@ -817,6 +878,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the header of list component. */
     listHeaderContent?: React.JSX.Element | null;
 
+    /** By default, when `listHeaderContent` is passed, the section title will not be rendered. This flag allows the section title to still be rendered in certain cases. */
+    showSectionTitleWithListHeaderContent?: boolean;
+
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
@@ -885,6 +949,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles applied for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
+
+    /** Styles applied for the select all text */
+    selectAllStyle?: StyleProp<TextStyle>;
 
     /** Styles applied for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
@@ -999,6 +1066,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** When true, skips the contentHeaderHeight from the viewOffset calculation during scroll-to-index. Only needed on native platforms for split expense tabs (Amount/Percentage/Date) scroll correction. Web should always pass false. */
+    shouldSkipContentHeaderHeightOffset?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -1041,7 +1111,7 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
-type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
+type SortableColumnName = SearchColumnType;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 
@@ -1065,6 +1135,7 @@ export type {
     TransactionMemberGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionCategoryGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
@@ -1082,8 +1153,6 @@ export type {
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
-    SplitListItemProps,
-    SplitListItemType,
     SearchListItem,
     UnreportedExpenseListItemType,
 };
