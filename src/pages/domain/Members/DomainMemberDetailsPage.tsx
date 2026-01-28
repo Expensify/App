@@ -29,7 +29,9 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // we need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -106,7 +108,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             <DecisionModal
                 title={translate('domain.members.closeAccount')}
                 prompt={translate('domain.members.closeAccountInfo')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
+                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={handleSafeCloseAccount}
                 onFirstOptionSubmit={handleForceCloseAccount}
                 secondOptionText={translate('domain.members.safeCloseAccount')}
