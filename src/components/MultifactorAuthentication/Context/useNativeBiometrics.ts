@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,12 +7,10 @@ import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorA
 import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MarqetaAuthTypeName, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import {requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
-import {doesDeviceSupportBiometrics as checkDeviceSupportBiometrics, isBiometryConfigured, resetKeys} from './helpers';
-import type {MarqetaAuthTypeName} from './types';
 
 type BiometricsInfo = {
     /** Whether device supports biometric authentication */
@@ -76,12 +74,52 @@ type UseNativeBiometricsReturn = {
     resetKeysForAccount: () => Promise<void>;
 };
 
+/**
+ * Deletes both private and public keys for a given account from secure storage.
+ * Performs both deletions in parallel to reset the authentication state.
+ * @param accountID - The account ID whose keys should be deleted.
+ */
+async function resetKeys(accountID: number) {
+    await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
+}
+
+/**
+ * Determines if biometric authentication is configured for the current account.
+ * Checks both local key storage and backend registration status.
+ * @param accountID - The account ID to check biometric configuration for.
+ * @returns Object indicating whether any device is registered, if biometry is locally configured, and if local key is in auth.
+ */
+async function isBiometryConfigured(accountID: number) {
+    const {value: localPublicKey} = await PublicKeyStore.get(accountID);
+    const {publicKeys: authPublicKeys = []} = await requestAuthenticationChallenge();
+
+    const isAnyDeviceRegistered = !!authPublicKeys.length;
+    const isBiometryRegisteredLocally = !!localPublicKey;
+    const isLocalPublicKeyInAuth = isBiometryRegisteredLocally && authPublicKeys.includes(localPublicKey);
+
+    return {
+        isAnyDeviceRegistered,
+        isBiometryRegisteredLocally,
+        isLocalPublicKeyInAuth,
+    };
+}
+
 function useNativeBiometrics(): UseNativeBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
 
+    /**
+     * Checks if the device supports biometric authentication methods.
+     * Verifies both biometrics and credentials authentication capabilities.
+     * @returns True if biometrics or credentials authentication is supported on the device.
+     */
+    const doesDeviceSupportBiometrics = useCallback(() => {
+        const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
+        return biometrics || credentials;
+    }, []);
+
     const [info, setInfo] = useState<BiometricsInfo>({
-        deviceSupportsBiometrics: checkDeviceSupportBiometrics(),
+        deviceSupportsBiometrics: doesDeviceSupportBiometrics(),
         isBiometryRegisteredLocally: false,
         isLocalPublicKeyInAuth: false,
         isAnyDeviceRegistered: false,
@@ -90,7 +128,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     const refresh = async () => {
         const config = await isBiometryConfigured(accountID);
         setInfo({
-            deviceSupportsBiometrics: checkDeviceSupportBiometrics(),
+            deviceSupportsBiometrics: doesDeviceSupportBiometrics(),
             isBiometryRegisteredLocally: config.isBiometryRegisteredLocally,
             isLocalPublicKeyInAuth: config.isLocalPublicKeyInAuth,
             isAnyDeviceRegistered: config.isAnyDeviceRegistered,
@@ -101,10 +139,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         refresh();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [accountID]);
-
-    const doesDeviceSupportBiometrics = () => {
-        return checkDeviceSupportBiometrics();
-    };
 
     const isRegisteredLocally = () => {
         return info.isBiometryRegisteredLocally;
@@ -145,7 +179,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         }
 
         // Check device support
-        if (!checkDeviceSupportBiometrics()) {
+        if (!doesDeviceSupportBiometrics()) {
             onResult({
                 success: false,
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS,

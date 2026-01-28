@@ -3,12 +3,23 @@
  */
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
-import type {MarqetaAuthTypeName, OutcomePaths} from '@components/MultifactorAuthentication/Context/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
 
 type MultifactorAuthenticationMethodCode = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
+
+/**
+ * Authentication type name derived from secure store values.
+ */
+type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
+
+type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MQ_VALUE'];
+
+type OutcomePaths = {
+    successOutcome: AllMultifactorAuthenticationOutcomeType;
+    failureOutcome: AllMultifactorAuthenticationOutcomeType;
+};
 
 /**
  * Conditional type for including or omitting the step field in partial status.
@@ -18,13 +29,6 @@ type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep exte
           step: MultifactorAuthenticationStep;
       }
     : EmptyObject;
-
-type MultifactorAuthenticationTrigger = ValueOf<typeof VALUES.TRIGGER>;
-
-type MultifactorAuthenticationTriggerArgument = {
-    [VALUES.TRIGGER.FAILURE]: AllMultifactorAuthenticationOutcomeType | MultifactorAuthenticationScenario;
-    [VALUES.TRIGGER.FULFILL]: AllMultifactorAuthenticationOutcomeType | MultifactorAuthenticationScenario;
-};
 
 /**
  * Represents the reason for a multifactor authentication response from the backend.
@@ -99,31 +103,16 @@ type MultifactorAuthenticationKeyType = ValueOf<typeof VALUES.KEY_ALIASES>;
 type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationFactors> = T &
     Pick<AllMultifactorAuthenticationFactors, R> & {authenticationMethod: MarqetaAuthTypeName};
 
-/**
- * Supported key types for multifactor authentication.
- */
-type KeyInfoType = 'biometric' | 'public-key';
-
-type ResponseDetails<T extends KeyInfoType> = T extends 'biometric'
-    ? {
-          biometric: {
-              publicKey: Base64URLString;
-              /** ED25519 algorithm identifier per COSE spec: -8 */
-              algorithm: -8;
-          };
-      }
-    : {
-          clientDataJSON: Base64URLString;
-          attestationObject: Base64URLString;
-      };
-
-/**
- * Information about a cryptographic key including its raw ID, type, and response details.
- */
-type MultifactorAuthenticationKeyInfo<T extends KeyInfoType> = {
+type MultifactorAuthenticationKeyInfo = {
     rawId: Base64URLString;
-    type: T;
-    response: ResponseDetails<T>;
+    type: 'biometric';
+    response: {
+        clientDataJSON: Base64URLString;
+        biometric: {
+            publicKey: Base64URLString;
+            algorithm: -8;
+        };
+    };
 };
 
 /**
@@ -145,13 +134,13 @@ export type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationPartialStatus,
-    MultifactorAuthenticationTrigger,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationActionParams,
-    MultifactorAuthenticationTriggerArgument,
     MultifactorKeyStoreOptions,
     MultifactorAuthenticationReason,
     MultifactorAuthenticationMethodCode,
-    ResponseDetails,
     ChallengeType,
+    MarqetaAuthTypeName,
+    OutcomePaths,
+    AuthTypeName,
 };

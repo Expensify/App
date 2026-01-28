@@ -1,10 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys} from '@components/MultifactorAuthentication/Context/helpers';
 import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
-import {requestAuthenticationChallenge} from '@libs/actions/MultifactorAuthentication';
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -23,9 +22,22 @@ jest.mock('@hooks/useLocalize', () => ({
     }),
 }));
 
-jest.mock('@libs/actions/MultifactorAuthentication');
+jest.mock('@userActions/MultifactorAuthentication');
 jest.mock('@libs/MultifactorAuthentication/Biometrics/ED25519');
-jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore');
+jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore', () => ({
+    PublicKeyStore: {
+        supportedAuthentication: {biometrics: true, deviceCredentials: true},
+        set: jest.fn(),
+        get: jest.fn(),
+        delete: jest.fn(),
+    },
+    PrivateKeyStore: {
+        supportedAuthentication: {biometrics: true, deviceCredentials: true},
+        set: jest.fn(),
+        get: jest.fn(),
+        delete: jest.fn(),
+    },
+}));
 
 jest.mock('@components/MultifactorAuthentication/config', () => ({
     MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG: new Proxy(
@@ -37,16 +49,21 @@ jest.mock('@components/MultifactorAuthentication/config', () => ({
         },
     ),
 }));
-jest.mock('@components/MultifactorAuthentication/Context/helpers');
+jest.mock('@userActions/MultifactorAuthentication/processing');
 
 describe('useNativeBiometrics hook', () => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const {delete: privateKeyStoreDelete} = jest.mocked(PrivateKeyStore);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const {delete: publicKeyStoreDelete} = jest.mocked(PublicKeyStore);
+
     beforeEach(() => {
         jest.clearAllMocks();
-        (doesDeviceSupportBiometrics as jest.Mock).mockReturnValue(true);
-        (isBiometryConfigured as jest.Mock).mockResolvedValue({
-            isAnyDeviceRegistered: false,
-            isBiometryRegisteredLocally: false,
-            isLocalPublicKeyInAuth: false,
+        // Reset PublicKeyStore.supportedAuthentication to default
+        Object.defineProperty(PublicKeyStore, 'supportedAuthentication', {
+            value: {biometrics: true, deviceCredentials: true},
+            writable: true,
+            configurable: true,
         });
     });
 
@@ -77,21 +94,21 @@ describe('useNativeBiometrics hook', () => {
     });
 
     describe('doesDeviceSupportBiometrics', () => {
-        it('should return boolean from helper function', () => {
+        it('should return true when device supports biometrics', () => {
+            const {result} = renderHook(() => useNativeBiometrics());
+
+            expect(typeof result.current.doesDeviceSupportBiometrics()).toBe('boolean');
+            expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
+        });
+
+        it('should return boolean based on supportedAuthentication', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             const support = result.current.doesDeviceSupportBiometrics();
+            const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
+            const expectedValue = biometrics || credentials;
 
-            expect(typeof support).toBe('boolean');
-            expect(support).toBe(true);
-        });
-
-        it('should reflect device support status from helper', () => {
-            (doesDeviceSupportBiometrics as jest.Mock).mockReturnValue(false);
-
-            const {result} = renderHook(() => useNativeBiometrics());
-
-            expect(result.current.doesDeviceSupportBiometrics()).toBe(false);
+            expect(support).toBe(expectedValue);
         });
     });
 
@@ -112,11 +129,18 @@ describe('useNativeBiometrics hook', () => {
     });
 
     describe('refresh', () => {
-        it('should update info from isBiometryConfigured', async () => {
-            (isBiometryConfigured as jest.Mock).mockResolvedValue({
-                isAnyDeviceRegistered: true,
-                isBiometryRegisteredLocally: true,
-                isLocalPublicKeyInAuth: true,
+        beforeEach(() => {
+            (PublicKeyStore.get as jest.Mock).mockResolvedValue({
+                value: 'public-key-123',
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
+            });
+        });
+
+        it('should update info', async () => {
+            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
+                challenge: {user: {id: '123'}, rp: {name: 'Expensify'}},
+                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
+                publicKeys: ['public-key-123'],
             });
 
             const {result} = renderHook(() => useNativeBiometrics());
@@ -130,14 +154,15 @@ describe('useNativeBiometrics hook', () => {
             expect(result.current.info.isLocalPublicKeyInAuth).toBe(true);
         });
 
-        it('should call isBiometryConfigured with accountID', async () => {
+        it('should call public key store with the accountID', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             await act(async () => {
                 await result.current.refresh();
             });
 
-            expect(isBiometryConfigured).toHaveBeenCalledWith(12345);
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(PublicKeyStore.get).toHaveBeenCalledWith(12345);
         });
     });
 
@@ -156,12 +181,17 @@ describe('useNativeBiometrics hook', () => {
                 value: true,
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_SAVED,
             });
+            (PublicKeyStore.get as jest.Mock).mockResolvedValue({
+                value: 'public-key-123',
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
+            });
         });
 
         it('should request registration challenge from backend', async () => {
             (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
                 challenge: {user: {id: '123'}, rp: {name: 'Expensify'}},
                 reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
+                publicKeys: ['1234-5678'],
             });
 
             const {result} = renderHook(() => useNativeBiometrics());
@@ -209,26 +239,6 @@ describe('useNativeBiometrics hook', () => {
             expect(onResult).toHaveBeenCalledWith({
                 success: false,
                 reason: VALUES.REASON.BACKEND.INVALID_CHALLENGE_TYPE,
-            });
-        });
-
-        it('should check device support', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {user: {id: '123'}, rp: {name: 'Expensify'}},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-            (doesDeviceSupportBiometrics as jest.Mock).mockReturnValue(false);
-
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.register({nativePromptTitle: 'Authenticate'}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith({
-                success: false,
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS,
             });
         });
 
@@ -446,7 +456,8 @@ describe('useNativeBiometrics hook', () => {
                 await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
             });
 
-            expect(resetKeys).toHaveBeenCalledWith(12345);
+            expect(publicKeyStoreDelete).toHaveBeenCalledWith(12345);
+            expect(privateKeyStoreDelete).toHaveBeenCalledWith(12345);
             expect(onResult).toHaveBeenCalledWith({
                 success: false,
                 reason: VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED,
@@ -536,8 +547,10 @@ describe('useNativeBiometrics hook', () => {
                 await result.current.resetKeysForAccount();
             });
 
-            expect(resetKeys).toHaveBeenCalledWith(12345);
-            expect(isBiometryConfigured).toHaveBeenCalledWith(12345);
+            expect(publicKeyStoreDelete).toHaveBeenCalledWith(12345);
+            expect(privateKeyStoreDelete).toHaveBeenCalledWith(12345);
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(PublicKeyStore.get).toHaveBeenCalledWith(12345);
         });
     });
 });

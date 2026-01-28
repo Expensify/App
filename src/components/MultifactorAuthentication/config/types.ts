@@ -227,7 +227,7 @@ type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATI
  */
 type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
     {
-        keyInfo: MultifactorAuthenticationKeyInfo<'biometric'>;
+        keyInfo: MultifactorAuthenticationKeyInfo;
     },
     'validateCode'
 >;

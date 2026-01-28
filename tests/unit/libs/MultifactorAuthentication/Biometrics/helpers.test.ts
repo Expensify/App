@@ -1,7 +1,5 @@
-import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import {decodeExpoMessage, isChallengeSigned, parseHttpRequest, processRegistration} from '@libs/MultifactorAuthentication/Biometrics/helpers';
+import {decodeExpoMessage, parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
-import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 
 jest.mock('@userActions/MultifactorAuthentication');
 jest.mock('@libs/MultifactorAuthentication/Biometrics/ED25519', () => ({
@@ -55,101 +53,6 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
 
             expect(result.httpCode).toBe(0);
             expect(result.reason).toBe(VALUES.REASON.BACKEND.UNKNOWN_RESPONSE);
-        });
-    });
-
-    describe('isChallengeSigned', () => {
-        it('should return true for signed challenge with rawId', () => {
-            const signedChallenge: SignedChallenge = {
-                rawId: 'base64-encoded-id',
-                type: 'biometric',
-                response: {
-                    clientDataJSON: 'test-data',
-                    authenticatorData: 'test-data',
-                    signature: 'test-data',
-                },
-            };
-
-            expect(isChallengeSigned(signedChallenge)).toBe(true);
-        });
-
-        it('should return false for unsigned challenge without rawId', () => {
-            const unsignedChallenge: MultifactorAuthenticationChallengeObject = {
-                challenge: 'test-challenge',
-                timeout: 60000,
-                rpId: 'expensify.com',
-                userVerification: 'test-data',
-                allowCredentials: [],
-            };
-
-            expect(isChallengeSigned(unsignedChallenge)).toBe(false);
-        });
-
-        it('should return true only if rawId property is present', () => {
-            const objectWithRawId = {challenge: 'test-challenge', timeout: 60000, rpId: 'expensify.com', userVerification: 'test-data', allowCredentials: [], rawId: 'test-data'};
-            const objectWithoutRawId = {challenge: 'test-challenge', timeout: 60000, rpId: 'expensify.com', userVerification: 'test-data', allowCredentials: []};
-
-            expect(isChallengeSigned(objectWithRawId)).toBe(true);
-            expect(isChallengeSigned(objectWithoutRawId)).toBe(false);
-        });
-    });
-
-    describe('processRegistration', () => {
-        it('should validate and register biometrics with backend', async () => {
-            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
-                httpCode: 200,
-                reason: VALUES.REASON.BACKEND.BIOMETRICS_REGISTERED,
-            });
-
-            const result = await processRegistration({
-                publicKey: 'test-public-key',
-                validateCode: 123456,
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
-
-            expect(result.value).toBe(true);
-            expect(result.reason).toBe(VALUES.REASON.BACKEND.BIOMETRICS_REGISTERED);
-            expect(result.step.wasRecentStepSuccessful).toBe(true);
-        });
-
-        it('should handle missing validate code', async () => {
-            const result = await processRegistration({
-                publicKey: 'test-public-key',
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
-
-            expect(result.value).not.toBe(true);
-            expect(result.reason).toBe(VALUES.REASON.GENERIC.VALIDATE_CODE_MISSING);
-            expect(result.step.requiredFactorForNextStep).toBe(VALUES.FACTORS.VALIDATE_CODE);
-        });
-
-        it('should have proper error handling structure', async () => {
-            const result = await processRegistration({
-                validateCode: 123456,
-                publicKey: 'valid-key',
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
-
-            expect(result).toHaveProperty('value');
-            expect(result).toHaveProperty('step');
-            expect(result).toHaveProperty('reason');
-        });
-
-        it('should handle backend registration failure', async () => {
-            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
-                httpCode: 409,
-                reason: VALUES.REASON.BACKEND.INVALID_KEY,
-            });
-
-            const result = await processRegistration({
-                publicKey: 'test-public-key',
-                validateCode: 123456,
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
-
-            expect(result.value).toBe(false);
-            expect(result.reason).toBe(VALUES.REASON.BACKEND.INVALID_KEY);
-            expect(result.step.wasRecentStepSuccessful).toBe(false);
         });
     });
 

@@ -1,15 +1,16 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import {getOutcomePath, getOutcomePaths} from '@components/MultifactorAuthentication/config/outcomePaths';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useLocalize from '@hooks/useLocalize';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import type {MarqetaAuthTypeName, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
+import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {getOutcomePath, getOutcomePaths, processRegistration, processScenario} from './helpers';
 import MultifactorAuthenticationStateProvider, {useMultifactorAuthenticationState} from './State';
-import type {MarqetaAuthTypeName, OutcomePaths} from './types';
 import useNativeBiometrics from './useNativeBiometrics';
 import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
 

@@ -1,8 +1,7 @@
 import React, {createContext, useContext, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
-import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
-import type {OutcomePaths} from './types';
+import type {MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 
 type ErrorState = {
     reason: MultifactorAuthenticationReason;
