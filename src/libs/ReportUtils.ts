@@ -11596,110 +11596,106 @@ function prepareOnboardingOnyxData({
     let addExpenseApprovalsTaskReportID;
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
+    const tasks = shouldPostTasksInAdminsRoom ? [] : onboardingMessage.tasks;
     // If shouldPostTasksInAdminsRoom we do not want to generate tasks in favour of followups.
-    const tasksData = shouldPostTasksInAdminsRoom
-        ? []
-        : onboardingMessage.tasks
-              .filter((task) => {
-                  if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                      if (!!selectedInterestedFeatures && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
-                          return false;
-                      }
-                  }
+    const tasksData = tasks
+        .filter((task) => {
+            if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+                if (!!selectedInterestedFeatures && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
+                    return false;
+                }
+            }
 
-                  if (([CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES, CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS] as string[]).includes(task.type) && userReportedIntegration) {
-                      return false;
-                  }
+            if (([CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES, CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS] as string[]).includes(task.type) && userReportedIntegration) {
+                return false;
+            }
 
-                  if (
-                      ([CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION, CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS] as string[]).includes(task.type) &&
-                      !userReportedIntegration
-                  ) {
-                      return false;
-                  }
-                  type SkipViewTourOnboardingChoices = 'newDotSubmit' | 'newDotSplitChat' | 'newDotPersonalSpend' | 'newDotEmployer';
-                  if (
-                      task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR &&
-                      [
-                          CONST.ONBOARDING_CHOICES.EMPLOYER,
-                          CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
-                          CONST.ONBOARDING_CHOICES.SUBMIT,
-                          CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
-                          CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                      ].includes(introSelected?.choice as SkipViewTourOnboardingChoices) &&
-                      engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM
-                  ) {
-                      return false;
-                  }
+            if (([CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION, CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS] as string[]).includes(task.type) && !userReportedIntegration) {
+                return false;
+            }
+            type SkipViewTourOnboardingChoices = 'newDotSubmit' | 'newDotSplitChat' | 'newDotPersonalSpend' | 'newDotEmployer';
+            if (
+                task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR &&
+                [
+                    CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                    CONST.ONBOARDING_CHOICES.SUBMIT,
+                    CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                ].includes(introSelected?.choice as SkipViewTourOnboardingChoices) &&
+                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM
+            ) {
+                return false;
+            }
 
-                  // Exclude createWorkspace and viewTour tasks from #admin room, for test drive receivers,
-                  // since these users already have them in concierge
-                  if (
-                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER &&
-                      ([CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE, CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR] as string[]).includes(task.type) &&
-                      shouldPostTasksInAdminsRoom
-                  ) {
-                      return false;
-                  }
+            // Exclude createWorkspace and viewTour tasks from #admin room, for test drive receivers,
+            // since these users already have them in concierge
+            if (
+                introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER &&
+                ([CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE, CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR] as string[]).includes(task.type) &&
+                shouldPostTasksInAdminsRoom
+            ) {
+                return false;
+            }
 
-                  return true;
-              })
-              .map((task, index) => {
-                  const taskDescription = typeof task.description === 'function' ? task.description(onboardingTaskParams) : task.description;
-                  const taskTitle = typeof task.title === 'function' ? task.title(onboardingTaskParams) : task.title;
-                  const currentTask = buildOptimisticTaskReport(
-                      actorAccountID,
-                      targetChatReportID,
-                      currentUserAccountID,
-                      taskTitle,
-                      taskDescription,
-                      targetChatPolicyID,
-                      CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                      task.mediaAttributes,
-                  );
-                  const emailCreatingAction =
-                      engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;
-                  const taskCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
-                  const taskReportAction = buildOptimisticTaskCommentReportAction(currentTask.reportID, taskTitle, 0, `task for ${taskTitle}`, targetChatReportID, actorAccountID, index + 3);
-                  currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
+            return true;
+        })
+        .map((task, index) => {
+            const taskDescription = typeof task.description === 'function' ? task.description(onboardingTaskParams) : task.description;
+            const taskTitle = typeof task.title === 'function' ? task.title(onboardingTaskParams) : task.title;
+            const currentTask = buildOptimisticTaskReport(
+                actorAccountID,
+                targetChatReportID,
+                currentUserAccountID,
+                taskTitle,
+                taskDescription,
+                targetChatPolicyID,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                task.mediaAttributes,
+            );
+            const emailCreatingAction =
+                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;
+            const taskCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
+            const taskReportAction = buildOptimisticTaskCommentReportAction(currentTask.reportID, taskTitle, 0, `task for ${taskTitle}`, targetChatReportID, actorAccountID, index + 3);
+            currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
-                  let isTaskAutoCompleted: boolean = task.autoCompleted;
+            let isTaskAutoCompleted: boolean = task.autoCompleted;
 
-                  const onboardingSelfTourViewed = isSelfTourViewed ?? onboarding?.selfTourViewed;
-                  if (task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR && onboardingSelfTourViewed) {
-                      // If the user has already viewed the self tour, we mark the task as auto completed
-                      isTaskAutoCompleted = true;
-                  }
+            const onboardingSelfTourViewed = isSelfTourViewed ?? onboarding?.selfTourViewed;
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR && onboardingSelfTourViewed) {
+                // If the user has already viewed the self tour, we mark the task as auto completed
+                isTaskAutoCompleted = true;
+            }
 
-                  if (task.type === CONST.ONBOARDING_TASK_TYPE.INVITE_ACCOUNTANT && isInvitedAccountant) {
-                      isTaskAutoCompleted = true;
-                  }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.INVITE_ACCOUNTANT && isInvitedAccountant) {
+                isTaskAutoCompleted = true;
+            }
 
-                  const completedTaskReportAction = isTaskAutoCompleted
-                      ? buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
-                      : null;
-                  if (task.type === CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE) {
-                      createWorkspaceTaskReportID = currentTask.reportID;
-                  }
-                  if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS) {
-                      addExpenseApprovalsTaskReportID = currentTask.reportID;
-                  }
-                  if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS) {
-                      setupTagsTaskReportID = currentTask.reportID;
-                  }
-                  if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS) {
-                      setupCategoriesAndTagsTaskReportID = currentTask.reportID;
-                  }
+            const completedTaskReportAction = isTaskAutoCompleted
+                ? buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+                : null;
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE) {
+                createWorkspaceTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS) {
+                addExpenseApprovalsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS) {
+                setupTagsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS) {
+                setupCategoriesAndTagsTaskReportID = currentTask.reportID;
+            }
 
-                  return {
-                      task,
-                      currentTask,
-                      taskCreatedAction,
-                      taskReportAction,
-                      taskDescription: currentTask.description,
-                      completedTaskReportAction,
-                  };
-              });
+            return {
+                task,
+                currentTask,
+                taskCreatedAction,
+                taskReportAction,
+                taskDescription: currentTask.description,
+                completedTaskReportAction,
+            };
+        });
 
     // Sign-off welcome message - excluded when posting tasks in admins room
     let welcomeSignOffCommentAction: OptimisticAddCommentReportAction | undefined;
