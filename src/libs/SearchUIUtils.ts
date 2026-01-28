@@ -4125,6 +4125,7 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
     const now = new Date();
     let start: Date;
     let end: Date;
+    const lastMonth = subMonths(now, 1);
 
     switch (preset) {
         case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
@@ -4132,7 +4133,6 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
             end = endOfMonth(now);
             break;
         case CONST.SEARCH.DATE_PRESETS.LAST_MONTH:
-            const lastMonth = subMonths(now, 1);
             start = startOfMonth(lastMonth);
             end = endOfMonth(lastMonth);
             break;
@@ -4162,7 +4162,7 @@ function isDatePreset(value: string | number | undefined): value is SearchDatePr
 }
 
 function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, dateFilter: QueryFilters[0] | undefined): {start: string; end: string} {
-    if (!dateFilter || !dateFilter.filters) {
+    if (!dateFilter?.filters) {
         return timeRange;
     }
 
