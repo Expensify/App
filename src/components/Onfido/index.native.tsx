@@ -6,6 +6,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import saveLastRoute from '@libs/saveLastRoute';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnfidoError, OnfidoProps} from './types';
@@ -80,6 +81,10 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                         {
                                             text: translate('common.settings'),
                                             onPress: () => {
+                                                // Save the current route so the user can return to the verification flow
+                                                // after granting permissions in settings. On iOS, the app restarts when
+                                                // certain permissions are changed, so we need to preserve the navigation state.
+                                                saveLastRoute();
                                                 onUserExit();
                                                 Linking.openSettings();
                                             },
