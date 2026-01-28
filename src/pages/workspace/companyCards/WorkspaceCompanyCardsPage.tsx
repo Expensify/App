@@ -1,26 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
+import Text from '@components/Text';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
-import { useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import { openWorkspaceMembersPage } from '@libs/actions/Policy/Member';
-import { getDomainOrWorkspaceAccountID } from '@libs/CardUtils';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { WorkspaceSplitNavigatorParamList } from '@libs/Navigation/types';
-import { getMemberAccountIDsForWorkspace } from '@libs/PolicyUtils';
+import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
+import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import { openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage } from '@userActions/CompanyCards';
+import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTable from './WorkspaceCompanyCardsTable';
-
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 

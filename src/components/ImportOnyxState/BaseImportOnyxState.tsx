@@ -3,12 +3,12 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {FileObject} from '@src/types/utils/Attachment';
-
 
 function BaseImportOnyxState({
     onFileRead,

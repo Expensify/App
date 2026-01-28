@@ -1,12 +1,11 @@
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Header from './Header';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
-
 
 type DecisionModalProps = {
     /** Modal content */
