@@ -733,6 +733,11 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
         },
     },
+    homePage: {
+        forYou: 'Para ti',
+        announcements: 'Anuncios',
+        discover: 'Descubrir',
+    },
     allSettingsScreen: {
         subscription: 'Suscripcion',
         domains: 'Dominios',

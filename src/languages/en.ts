@@ -988,6 +988,11 @@ const translations = {
             description: "We're fine-tuning a few more bits and pieces of New Expensify to accommodate your specific setup. In the meantime, head over to Expensify Classic.",
         },
     },
+    homePage: {
+        forYou: 'For you',
+        announcements: 'Announcements',
+        discover: 'Discover',
+    },
     allSettingsScreen: {
         subscription: 'Subscription',
         domains: 'Domains',
