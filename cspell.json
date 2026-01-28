@@ -818,7 +818,9 @@
         "RNCORE",
         "Wooo",
         "Splittable",
-        "pgrep"
+        "pgrep",
+        "skia",
+        "canvaskit"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
