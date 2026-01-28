@@ -2431,9 +2431,8 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
+            const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
             if (queryJSON && weekGroup.week) {
-                // Create date range for the week (start date to end date of the week)
-                const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -2446,8 +2445,6 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
-
-            const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
             const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd);
 
             weekSections[key] = {
