@@ -1,15 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -33,7 +30,6 @@ function TableListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
@@ -87,26 +83,17 @@ function TableListItem<TItem extends ListItem>({
             {(hovered) => (
                 <>
                     {!!canSelectMultiple && (
-                        <PressableWithFeedback
+                        <Checkbox
                             accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
+                            isChecked={!!item.isSelected}
                             onPress={handleCheckboxPress}
+                            shouldStopMouseDownPropagation
+                            style={[item.cursorStyle, styles.p5, styles.mln4, styles.mhv5, styles.mrn1]}
+                            containerStyle={[StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}
                             testID={`TableListItemCheckbox-${item.text}`}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3, item.cursorStyle]}
-                        >
-                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}>
-                                {!!item.isSelected && (
-                                    <Icon
-                                        src={icons.Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
+                        />
                     )}
                     {!!item.accountID && (
                         <ReportActionAvatars
@@ -129,11 +116,11 @@ function TableListItem<TItem extends ListItem>({
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                                 styles.sidebarLinkTextBold,
                                 styles.pre,
-                                item.alternateText ? styles.mb1 : null,
+                                !item.shouldHideAlternateText && item.alternateText ? styles.mb1 : null,
                                 styles.justifyContentCenter,
                             ]}
                         />
-                        {!!item.alternateText && (
+                        {!item.shouldHideAlternateText && !!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
                                 text={item.alternateText}

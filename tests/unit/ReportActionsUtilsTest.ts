@@ -11,9 +11,13 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
@@ -21,6 +25,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
+    getUpdateACHAccountMessage,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
@@ -1605,10 +1610,7 @@ describe('ReportActionsUtils', () => {
         it('should return the correct message with a valid report ID and report name', () => {
             const reportID = '12345';
             const reportName = 'Test Expense Report';
-            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
-                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
-                reportName,
-            });
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
 
@@ -2532,6 +2534,126 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getUpdateACHAccountMessage', () => {
+        it('should return "set" message when setting the default bank account for the first time', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only new bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Business Checking',
+                    maskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('set the default business bank account to "Business Checking: XXXX1234"');
+        });
+
+        it('should return "set" message without bank name when bankAccountName is empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only new bank account maskedBankAccountNumber
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: '',
+                    maskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('set the default business bank account to "XXXX1234"');
+        });
+
+        it('should return "removed" message when removing the default bank account', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only old bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldBankAccountName: 'Business Checking',
+                    oldMaskedBankAccountNumber: 'XXXX5678',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('removed the default business bank account "Business Checking: XXXX5678"');
+        });
+
+        it('should return "removed" message without bank name when oldBankAccountName is empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only old bank account maskedBankAccountNumber
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldBankAccountName: '',
+                    oldMaskedBankAccountNumber: 'XXXX5678',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('removed the default business bank account "XXXX5678"');
+        });
+
+        it('should return "changed" message when changing from one bank account to another', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with both new and old bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Savings Account',
+                    maskedBankAccountNumber: 'XXXX5678',
+                    oldBankAccountName: 'Business Checking',
+                    oldMaskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('changed the default business bank account to "Savings Account: XXXX5678" (previously "Business Checking: XXXX1234")');
+        });
+
+        it('should return "changed" message with partial bank names when some names are empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action where new bank has a name but old bank does not
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Savings Account',
+                    maskedBankAccountNumber: 'XXXX5678',
+                    oldBankAccountName: '',
+                    oldMaskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('changed the default business bank account to "Savings Account: XXXX5678" (previously "XXXX1234")');
+        });
+    });
+
     describe('getWorkspaceCustomUnitRateUpdatedMessage', () => {
         it('should return the correct message when a rate is enabled', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
@@ -2823,6 +2945,157 @@ describe('ReportActionsUtils', () => {
 
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
+        });
+    });
+
+    describe('getInvoiceCompanyNameUpdateMessage', () => {
+        it('should return the correct message when changing invoice company name with previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'New Company Name',
+                    oldValue: 'Old Company Name',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyNameUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the invoice company name to "New Company Name" (previously "Old Company Name")');
+        });
+
+        it('should return the correct message when setting invoice company name without previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'New Company Name',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyNameUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the invoice company name to "New Company Name"');
+        });
+    });
+
+    describe('getInvoiceCompanyWebsiteUpdateMessage', () => {
+        it('should return the correct message when changing invoice company website with previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'https://newwebsite.com',
+                    oldValue: 'https://oldwebsite.com',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the invoice company website to "https://newwebsite.com" (previously "https://oldwebsite.com")');
+        });
+
+        it('should return the correct message when setting invoice company website without previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'https://newwebsite.com',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the invoice company website to "https://newwebsite.com"');
+        });
+    });
+
+    describe('getAutoPayApprovedReportsEnabledMessage', () => {
+        it('should return enabled message when auto-pay is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoPayApprovedReportsEnabledMessage(translateLocal, action);
+            expect(result).toBe('enabled auto-pay approved reports');
+        });
+
+        it('should return disabled message when auto-pay is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoPayApprovedReportsEnabledMessage(translateLocal, action);
+            expect(result).toBe('disabled auto-pay approved reports');
+        });
+    });
+
+    describe('getAutoReimbursementMessage', () => {
+        it('should return set message when setting limit for the first time from zero', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 0,
+                    newLimit: 50000,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('set the auto-pay approved reports threshold to "$500.00"');
+        });
+
+        it('should return removed message when limit is set to zero', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 100000,
+                    newLimit: 0,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('removed the auto-pay approved reports threshold');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 50000,
+                    newLimit: 100000,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
         });
     });
 });
