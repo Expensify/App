@@ -639,6 +639,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: '月',
         home: '首页',
         week: '周',
+        year: '年',
+        quarter: '季度',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -6804,14 +6806,17 @@ ${reportName}
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '来自',
-                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
+                [CONST.SEARCH.GROUP_BY.FROM]: '发件人',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡',
+                //_/\__/_/  \_,_/\__/\__/\_,_/
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现编号',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '商家',
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
                 [CONST.SEARCH.GROUP_BY.WEEK]: '周',
+                [CONST.SEARCH.GROUP_BY.YEAR]: '年',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
             },
             feed: '动态',
             withdrawalType: {

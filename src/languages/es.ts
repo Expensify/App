@@ -393,6 +393,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nonReimbursableTotal: 'Total no reembolsable',
         month: 'Monat',
         week: 'Semana',
+        year: 'Año',
         quarter: 'Trimestre',
     },
     supportalNoAccess: {

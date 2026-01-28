@@ -642,6 +642,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Mês',
         home: 'Início',
         week: 'Semana',
+        year: 'Ano',
+        quarter: 'Trimestre',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -6959,12 +6961,14 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID da retirada',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de Saque',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Estabelecimento',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Ano',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
             },
             feed: 'Feed',
             withdrawalType: {

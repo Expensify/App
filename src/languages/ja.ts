@@ -642,6 +642,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: '月',
         home: 'ホーム',
         week: '週',
+        year: '年',
+        quarter: '四半期',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6924,14 +6926,16 @@ ${reportName}
             reimbursable: '精算対象',
             purchaseCurrency: '購入通貨',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '送信者',
+                [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
-                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
                 [CONST.SEARCH.GROUP_BY.WEEK]: '週',
+                [CONST.SEARCH.GROUP_BY.YEAR]: '年',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
             },
             feed: 'フィード',
             withdrawalType: {

@@ -642,6 +642,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Monat',
         home: 'Startseite',
         week: 'Woche',
+        year: 'Jahr',
+        quarter: 'Quartal',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -7000,9 +7002,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Stichwort',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartal',
             },
             feed: 'Feed',
             withdrawalType: {
