@@ -17,6 +17,7 @@ import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,6 +38,7 @@ const merchantRuleFormSelector = (form: OnyxEntry<MerchantRuleForm>) => form?.me
 
 function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const policyID = route.params.policyID;
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -106,7 +108,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         const merchantOrDescription = getMerchant(item) ?? item.comment;
 
         return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.overflowHidden, styles.activeComponentBG]}>
+            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.overflowHidden, styles.highlightBG, styles.p3, styles.mb2]}>
                 <View style={[styles.flexRow]}>
                     <ReceiptCell
                         transactionItem={item}
@@ -205,7 +207,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                         data={matchingTransactionsArray}
                         renderItem={renderItem}
                         keyExtractor={keyExtractor}
-                        contentContainerStyle={[styles.mhn5]}
+                        contentContainerStyle={[styles.mh5]}
                         estimatedItemSize={64}
                     />
                 )}
