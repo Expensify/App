@@ -8,6 +8,8 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
+// eslint-disable-next-line @dword-design/import-alias/prefer-alias
+import {doesReportContainRequestsFromMultipleUsers, getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -2110,7 +2112,9 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
 
     const reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
-        return false;
+        // In case the reportActions of the report have not been loaded, we will check based on the transactions.
+        const report = getReportOrDraftReport(reportID);
+        return doesReportContainRequestsFromMultipleUsers(report, true);
     }
 
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID && !isDeletedAction(action));
