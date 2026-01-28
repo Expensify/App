@@ -1,7 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigationState} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {memo, useContext, useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
