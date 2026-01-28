@@ -6408,6 +6408,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                previewMatches: 'Aperçu des correspondances',
+                previewMatchesEmptyStateTitle: 'Rien à afficher',
+                previewMatchesEmptyStateSubtitle: 'Aucune dépense non soumise ne correspond à cette règle.',
             },
         },
         planTypePage: {

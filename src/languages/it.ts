@@ -6379,6 +6379,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                previewMatches: 'Anteprima corrispondenze',
+                previewMatchesEmptyStateTitle: 'Niente da mostrare',
+                previewMatchesEmptyStateSubtitle: 'Nessuna spesa non inviata corrisponde a questa regola.',
             },
         },
         planTypePage: {

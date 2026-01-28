@@ -6360,6 +6360,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 editRuleTitle: 'Edytuj regułę',
                 deleteRule: 'Usuń regułę',
                 deleteRuleConfirmation: 'Czy na pewno chcesz usunąć tę regułę?',
+                previewMatches: 'Podgląd dopasowań',
+                previewMatchesEmptyStateTitle: 'Nie ma nic do wyświetlenia',
+                previewMatchesEmptyStateSubtitle: 'Żadne niewysłane wydatki nie pasują do tej reguły.',
             },
         },
         planTypePage: {

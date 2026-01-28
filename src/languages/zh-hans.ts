@@ -6225,6 +6225,9 @@ ${reportName}
                 editRuleTitle: '编辑规则',
                 deleteRule: '删除规则',
                 deleteRuleConfirmation: '您确定要删除此规则吗？',
+                previewMatches: '预览匹配结果',
+                previewMatchesEmptyStateTitle: '无内容可显示',
+                previewMatchesEmptyStateSubtitle: '没有未提交的报销符合此规则。',
             },
         },
         planTypePage: {

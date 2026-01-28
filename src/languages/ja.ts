@@ -6335,6 +6335,9 @@ ${reportName}
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                previewMatches: '一致結果をプレビュー',
+                previewMatchesEmptyStateTitle: '表示するものがありません',
+                previewMatchesEmptyStateSubtitle: 'このルールに一致する未提出の経費はありません。',
             },
         },
         planTypePage: {
