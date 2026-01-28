@@ -119,7 +119,7 @@ function WorkspaceCompanyCardsTable({
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
     const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
-    const isShowingLoadingState = isLoadingPage || isLoadingFeed;
+    const isLoading = isLoadingPage || isLoadingFeed;
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed && !hasFeedErrors;
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
@@ -358,17 +358,17 @@ function WorkspaceCompanyCardsTable({
         >
             {shouldRenderHeaderAsChild && headerButtonsComponent}
 
-            {(isLoadingPage || isFeedPending || isNoFeed) && !feedErrorKey && (
+            {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView>
-                    {isLoadingPage && <TableRowSkeleton fixedNumItems={5} />}
+                    {isLoading && <TableRowSkeleton fixedNumItems={5} />}
 
-                    {!isLoadingPage && isFeedPending && (
+                    {!isLoading && isFeedPending && (
                         <View style={styles.flex1}>
                             <WorkspaceCompanyCardsFeedPendingPage />
                         </View>
                     )}
 
-                    {!isLoadingPage && isNoFeed && (
+                    {!isLoading && isNoFeed && (
                         <View style={styles.flex1}>
                             <WorkspaceCompanyCardPageEmptyState
                                 policyID={policyID}
@@ -379,7 +379,7 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {!!feedErrorKey && !isShowingLoadingState && (
+            {!!feedErrorKey && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, bottomSafeAreaPaddingStyle]}>
                     <View style={[styles.alignItemsCenter]}>
                         <BlockingView
