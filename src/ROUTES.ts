@@ -2461,8 +2461,7 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_IMPORT_TRANSACTIONS: {
         route: 'workspaces/:policyID/company-cards/:feed/import-transactions',
-        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) =>
-            `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/import-transactions` as const,
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/import-transactions` as const,
     },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',

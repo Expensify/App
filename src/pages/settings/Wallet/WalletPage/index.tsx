@@ -502,11 +502,7 @@ function WalletPage() {
                                 title={translate('workspace.companyCards.importTransactions.importButton')}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                wrapperStyle={[
-                                    hasAssignedCard ? styles.mt3 : styles.mt5,
-                                    shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                    shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-                                ]}
+                                wrapperStyle={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                             />
                         </Section>
 
