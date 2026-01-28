@@ -1,7 +1,8 @@
 /* eslint-disable rulesdir/no-api-side-effects-method */
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
-import Onyx, { OnyxUpdate } from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -78,30 +79,30 @@ async function revokeMultifactorAuthenticationCredentials() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: true
-            }
-        }
-    ]
+                isLoading: true,
+            },
+        },
+    ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false
-            }
-        }
-    ]
+                isLoading: false,
+            },
+        },
+    ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false
-            }
-        }
-    ]
+                isLoading: false,
+            },
+        },
+    ];
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {}, { optimisticData, successData, failureData });
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {}, {optimisticData, successData, failureData});
 
         const {jsonCode, message} = response ?? {};
 
