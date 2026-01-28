@@ -94,6 +94,15 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
         });
 
+        test('returns query with view parameter preserved', () => {
+            const userQuery = 'type:expense groupBy:category view:bar';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toContain('view:bar');
+            expect(result).toContain('groupBy:category');
+        });
+
         test('deduplicates conflicting type filters keeping the last occurrence', () => {
             const userQuery = 'type:expense-report action:submit from:me type:expense';
 
@@ -300,6 +309,43 @@ describe('SearchQueryUtils', () => {
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
                 expect(result).not.toContain('limit:');
+            });
+        });
+
+        describe('view parameter', () => {
+            test('with view parameter set to bar', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense groupBy:category view:bar');
+            });
+
+            test('with view parameter set to table', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    view: CONST.SEARCH.VIEW.TABLE,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense groupBy:category view:table');
+            });
+
+            test('without view parameter omits view from query', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
             });
         });
     });

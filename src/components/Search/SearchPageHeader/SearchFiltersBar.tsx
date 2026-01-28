@@ -88,8 +88,8 @@ function SearchFiltersBar({
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
-    const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
+    // type, groupBy, status, and view values are not guaranteed to respect the ts type as they come from user input
+    const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
@@ -187,6 +187,15 @@ function SearchFiltersBar({
         const value = options.find((option) => option.value === unsafeGroupBy) ?? null;
         return [options, value];
     }, [translate, unsafeGroupBy]);
+
+    const [viewOptions, viewValue] = useMemo(() => {
+        const options = [
+            {text: translate('search.view.table'), value: CONST.SEARCH.VIEW.TABLE},
+            {text: translate('search.view.bar'), value: CONST.SEARCH.VIEW.BAR},
+        ];
+        const value = options.find((option) => option.value === unsafeView) ?? options[0];
+        return [options, value];
+    }, [translate, unsafeView]);
 
     const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
         const options = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
@@ -371,6 +380,21 @@ function SearchFiltersBar({
             );
         },
         [translate, groupByOptions, groupBy, updateFilterForm],
+    );
+
+    const viewComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <SingleSelectPopup
+                    label={translate('search.view.label')}
+                    items={viewOptions}
+                    value={viewValue}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+                />
+            );
+        },
+        [translate, viewOptions, viewValue, updateFilterForm],
     );
 
     const groupCurrencyComponent = useCallback(
@@ -566,6 +590,12 @@ function SearchFiltersBar({
                           value: groupBy?.text ?? null,
                           filterKey: FILTER_KEYS.GROUP_BY,
                       },
+                      {
+                          label: translate('search.view.label'),
+                          PopoverComponent: viewComponent,
+                          value: viewValue?.text ?? null,
+                          filterKey: FILTER_KEYS.VIEW,
+                      },
                   ]
                 : []),
             ...(shouldDisplayGroupCurrencyFilter
@@ -674,6 +704,7 @@ function SearchFiltersBar({
         type?.text,
         groupBy?.value,
         groupBy?.text,
+        viewValue?.text,
         groupCurrency?.value,
         withdrawalType?.text,
         displayDate,
@@ -693,6 +724,7 @@ function SearchFiltersBar({
         isComponent,
         typeComponent,
         groupByComponent,
+        viewComponent,
         groupCurrencyComponent,
         statusComponent,
         datePickerComponent,

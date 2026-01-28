@@ -8,6 +8,7 @@ import type {
     SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
+    SearchView,
     SearchWithdrawalType,
 } from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -29,6 +30,7 @@ const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER
 const FILTER_KEYS = {
     POLICY_ID: 'policyID',
     GROUP_BY: 'groupBy',
+    VIEW: 'view',
     TYPE: 'type',
     STATUS: 'status',
 
@@ -533,6 +535,7 @@ type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
+        [FILTER_KEYS.VIEW]: SearchView;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
         [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
 
