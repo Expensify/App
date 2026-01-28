@@ -71,7 +71,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'Bank',
         'User',
         'Folder',
-        'Building',
     ] as const);
     const {showDeleteModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
