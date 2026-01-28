@@ -479,7 +479,7 @@ function BaseVideoPlayer({
                                 ) : (
                                     <View
                                         fsClass={CONST.FULLSTORY.CLASS.EXCLUDE}
-                                        style={styles.flex1}
+                                        style={[styles.flex1, styles.pointerEventsNone]}
                                         ref={(el) => {
                                             if (!el) {
                                                 return;
@@ -495,7 +495,7 @@ function BaseVideoPlayer({
                                             // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
                                             allowsFullscreen
                                             player={videoPlayerRef.current}
-                                            style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
+                                            style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}, styles.pointerEventsNone]}
                                             nativeControls={isFullScreenRef.current}
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
