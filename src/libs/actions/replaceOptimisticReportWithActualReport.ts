@@ -181,11 +181,13 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                 // Transfer draft to parent report before clearing optimistic report
                 saveReportDraftComment(parentReportID, draftReportComment, () => {
                     callback();
+
                     // We are already on the parent one expense report, so just call the API to fetch report data
                     openReport(parentReportID);
                 });
             } else {
                 callback();
+
                 // We are already on the parent one expense report, so just call the API to fetch report data
                 openReport(parentReportID);
             }
