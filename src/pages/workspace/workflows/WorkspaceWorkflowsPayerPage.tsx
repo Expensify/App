@@ -1,7 +1,5 @@
 import React, {useState} from 'react';
-import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
-import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -11,15 +9,11 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, Section} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem} from '@components/SelectionList/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -261,17 +255,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         />
                     ) : (
                         <SelectionList
-                            sections={sections}
-                            textInputLabel={textInputLabel}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
-                            headerMessage={headerMessage}
-                            ListItem={UserListItem}
-                            onSelectRow={setPolicyAuthorizedPayer}
-                            initiallyFocusedOptionKey={formattedAuthorizedPayer.at(0)?.keyForList}
-                            shouldSingleExecuteRowSelect
-                            showScrollIndicator
-                            addBottomSafeAreaPadding
                             sections={sections}
                             ListItem={UserListItem}
                             onSelectRow={setPolicyAuthorizedPayer}
