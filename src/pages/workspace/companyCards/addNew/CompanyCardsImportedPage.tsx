@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -25,7 +25,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const templateName = addNewCard?.data?.companyCardLayoutName ?? '';
@@ -77,10 +76,11 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             }
         }
         return errors;
-    }, [spreadsheet?.columns, requiredColumns, translate, columnRoles]);
+    }, [spreadsheet?.columns, requiredColumns, translate]);
+
+    const validationErrors = useMemo(() => validate(), [validate]);
 
     const importTransactions = useCallback(() => {
-        setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
             return;
@@ -123,7 +123,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                     spreadsheetColumns={spreadsheetColumns}
                     columnNames={columnNames}
                     importFunction={importTransactions}
-                    errors={isValidationEnabled ? validate() : undefined}
+                    errors={validationErrors}
                     columnRoles={columnRoles}
                     learnMoreLink={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                 />
