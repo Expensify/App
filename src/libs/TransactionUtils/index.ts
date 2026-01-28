@@ -1185,20 +1185,18 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
     if (creatorAccountID) {
         const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
         const creatorEmail = creatorDetails?.login ?? '';
-        const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
+        const creatorDisplayName = (creatorDetails?.displayName ?? creatorEmail) || `Account ${creatorAccountID}`;
 
-        if (creatorEmail) {
-            return {
-                email: creatorEmail,
-                login: creatorEmail,
-                displayName: creatorDisplayName,
-                accountID: creatorAccountID,
-                text: creatorDisplayName,
-                searchText: creatorDisplayName,
-                avatarUrl: creatorDetails?.avatarThumbnail ?? '',
-                selected: true,
-            };
-        }
+        return {
+            email: creatorEmail,
+            login: creatorEmail,
+            displayName: creatorDisplayName,
+            accountID: creatorAccountID,
+            text: creatorDisplayName,
+            searchText: creatorDisplayName,
+            avatarUrl: creatorDetails?.avatarThumbnail ?? '',
+            selected: true,
+        };
     }
 }
 

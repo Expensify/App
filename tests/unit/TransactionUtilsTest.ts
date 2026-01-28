@@ -1143,6 +1143,27 @@ describe('TransactionUtils', () => {
             expect(result?.displayName).toBe('Current User');
             expect(result?.selected).toBe(true);
         });
+
+        it('should return valid attendee with Account fallback when personal details are missing', () => {
+            const THIRD_USER_ID = 3;
+            const UNCACHED_REPORT_ID = 'UNCACHED_REPORT_ID';
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${UNCACHED_REPORT_ID}`, {
+                reportID: UNCACHED_REPORT_ID,
+                ownerAccountID: THIRD_USER_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            }).then(() => {
+                const transaction = generateTransaction({
+                    reportID: UNCACHED_REPORT_ID,
+                });
+
+                const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+
+                expect(result).toBeDefined();
+                expect(result?.accountID).toBe(THIRD_USER_ID);
+                expect(result?.email).toBe('');
+                expect(result?.displayName).toBe(`Account ${THIRD_USER_ID}`);
+            });
+        });
     });
 
     describe('getOriginalAttendees', () => {
