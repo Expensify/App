@@ -43,11 +43,11 @@ _Note: These rules override all other policy settings._
 
 ---
 
-## Add Restrict by fare name
+## Restrict by fare name
 
 Define specific keywords by airline to block flight fares containing those keywords in their fare names.
 
-Customers can click **+ Add Restriction**, select the airlines the restriction applies to, then enter comma-separated keywords that should be restricted in the fare name.
+Click **+ Add Restriction**, select the airlines the restriction applies to, then enter comma-separated keywords that should be restricted in the fare name.
 
 **Note:** Keywords are matched against fare names using complete word matching. Matching is:
 - Case-insensitive
@@ -138,15 +138,16 @@ To enable this restriction, customers can click the toggle.
 
 Create dynamic flight budgets for domestic and international flights.
 
-Customers can now set budgets in two ways:
-- **Amount or % over** a selected baseline option which includes:
+Set budgets in two ways:
+- **Maximum price per booking** for all flights booked under the policy
+  - Further customization is possible, setting a maximum price based on the flight duration, allowing higher budgets for longer flights.
+- Dynmaic **Amount or % over** the maximum price per booking, which includes the following options:
   - None
   - More than lowest fare
   - More than median fare
   - Less than median fare
   - More than lowest logical fare
-- **Maximum price per booking** for all flights under the policy
-  - Further customization is possible, setting a maximum price based on the flight duration, allowing higher budgets for longer flights
+
 
 ---
 
