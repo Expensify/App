@@ -52,7 +52,6 @@ function RuleTextBase<TFormID extends OnyxFormKey>({fieldID, hintKey, isRequired
         <RuleNotFoundPageWrapper hash={hash}>
             <ScreenWrapper
                 testID={testID}
-                shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight

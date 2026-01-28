@@ -85,7 +85,6 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, use
         <RuleNotFoundPageWrapper hash={hash}>
             <ScreenWrapper
                 testID="RuleBooleanBase"
-                shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
