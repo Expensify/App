@@ -1152,15 +1152,13 @@ function Search({
     if (shouldShowChartView) {
         return (
             <SearchScopeProvider>
-                <Animated.View style={[styles.flex1, animatedStyle, styles.p4]}>
-                    <SearchChartView
-                        queryJSON={queryJSON}
-                        view={view}
-                        groupBy={validGroupBy}
-                        data={sortedData as TransactionGroupListItemType[]}
-                        isLoading={shouldShowLoadingState}
-                    />
-                </Animated.View>
+                <SearchChartView
+                    queryJSON={queryJSON}
+                    view={view}
+                    groupBy={validGroupBy}
+                    data={sortedData as TransactionGroupListItemType[]}
+                    isLoading={shouldShowLoadingState}
+                />
             </SearchScopeProvider>
         );
     }

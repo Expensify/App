@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {
     TransactionCardGroupListItemType,
@@ -7,6 +8,8 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -81,6 +84,9 @@ const CHART_VIEW_TO_COMPONENT = {
  * and handles navigation/drill-down logic
  */
 function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     const handleBarPress = useCallback(
         (filterQuery: string) => {
             // Build new query string from current query + filter, then parse it
@@ -122,17 +128,19 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     }
 
     return (
-        <ChartComponent
-            data={data}
-            title={config.title}
-            titleIcon={config.titleIcon}
-            getLabel={config.getLabel}
-            getFilterQuery={config.getFilterQuery}
-            onBarPress={handleBarPress}
-            isLoading={isLoading}
-            yAxisUnit={yAxisUnit}
-            yAxisUnitPosition={yAxisUnitPosition}
-        />
+        <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.flex1]}>
+            <ChartComponent
+                data={data}
+                title={config.title}
+                titleIcon={config.titleIcon}
+                getLabel={config.getLabel}
+                getFilterQuery={config.getFilterQuery}
+                onBarPress={handleBarPress}
+                isLoading={isLoading}
+                yAxisUnit={yAxisUnit}
+                yAxisUnitPosition={yAxisUnitPosition}
+            />
+        </View>
     );
 }
 
