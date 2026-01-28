@@ -194,7 +194,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             onButtonPress();
             return;
         }
-        if (bankAccountInfo?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+        console.log('bankAccountInfo');
+        console.log(bankAccountInfo);
+        if (bankAccountInfo?.accountData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
             setShowValidationModal(true);
             return;
         }
