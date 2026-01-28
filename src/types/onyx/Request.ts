@@ -8,7 +8,7 @@ type ExpandOnyxKeys<TKey extends OnyxKey> = TKey extends OnyxCollectionKey ? NoI
 
 /**
  * Represents an OnyxUpdate type without strict type checks on the value.
- * Useful for contexts where the specific Onyx key is not known ahead of time.
+ * Useful for contexts where the specific Onyx keys are not known ahead of time.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
@@ -216,10 +216,10 @@ type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase
 type AnyRequestConflictResolver = RequestConflictResolverBase<any>;
 
 /** Model of requests sent to the API */
-type AnyRequest = AnyRequestData & AnyRequestConflictResolver;
-
-/** Model of requests sent to the API */
 type Request<TKey extends OnyxKey> = RequestData<TKey> & RequestConflictResolver<TKey>;
+
+/** Loosely typed model of requests sent to the API */
+type AnyRequest = AnyRequestData & AnyRequestConflictResolver;
 
 /**
  * An object used to describe how a request can be paginated.
