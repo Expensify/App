@@ -346,6 +346,7 @@ function IOURequestStepDistanceMap({
         activePolicyID,
         personalPolicy?.autoReporting,
         reportID,
+        currentUserPersonalDetails.accountID,
     ]);
 
     const getError = () => {
