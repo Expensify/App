@@ -20,6 +20,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {policyTimeTrackingSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceTimeTrackingDefaultRateForm';
 
 type WorkspaceTimeTrackingDefaultRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE>;
@@ -32,7 +33,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: policyTimeTrackingSelector});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy) {

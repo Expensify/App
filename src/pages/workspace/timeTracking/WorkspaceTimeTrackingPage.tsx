@@ -16,6 +16,7 @@ import WorkspaceTimeTrackingDefaultRateSection from './WorkspaceTimeTrackingDefa
 type WorkspaceTimeTrackingPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TIME_TRACKING>;
 
 function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
+    const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Clock']);
@@ -37,13 +38,9 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
                 icon={illustrations.Clock}
                 addBottomSafeAreaPadding
             >
-                {(_, policyID) =>
-                    !!policyID && (
-                        <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            <WorkspaceTimeTrackingDefaultRateSection policyID={policyID} />
-                        </View>
-                    )
-                }
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <WorkspaceTimeTrackingDefaultRateSection policyID={policyID} />
+                </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );

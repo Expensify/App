@@ -10,11 +10,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {policyTimeTrackingSelector} from '@src/selectors/Policy';
 
 function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        canBeMissing: true,
+        selector: policyTimeTrackingSelector,
+    });
 
     return (
         <Section
