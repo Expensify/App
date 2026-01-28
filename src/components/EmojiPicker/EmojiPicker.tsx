@@ -1,8 +1,8 @@
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
-import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
+import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -37,7 +37,7 @@ type EmojiPickerProps = {
 function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
+    const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
@@ -92,7 +92,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         withoutOverlay = true,
         composerToRefocusOnClose: composerToRefocusOnCloseValue,
     }: ShowEmojiPickerOptions) => {
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
+        transitionActionSheetState({
             type: Actions.TRANSITION_POPOVER,
         });
 
@@ -154,11 +154,11 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                 emojiPopoverAnchorRef.current = null;
             };
             setIsEmojiPickerVisible(false);
-            actionSheetAwareScrollViewContext.transitionActionSheetState({
+            transitionActionSheetState({
                 type: Actions.CLOSE_POPOVER,
             });
         },
-        [actionSheetAwareScrollViewContext],
+        [transitionActionSheetState],
     );
 
     const handleModalHide = () => {
