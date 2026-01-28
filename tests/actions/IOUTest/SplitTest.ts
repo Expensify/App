@@ -1626,6 +1626,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
@@ -1785,6 +1787,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
@@ -1949,6 +1953,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
@@ -2123,6 +2129,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
