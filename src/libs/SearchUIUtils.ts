@@ -20,6 +20,7 @@ import type {
     SearchQueryJSON,
     SearchStatus,
     SearchWithdrawalType,
+    SelectedTransactionInfo,
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
@@ -100,6 +101,7 @@ import {
 } from './ReportActionsUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    canDeleteMoneyRequestReport,
     canUserPerformWriteAction,
     findSelfDMReportID,
     generateReportID,
@@ -4000,6 +4002,31 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+function shouldShowDeleteOption(selectedTransactions: Record<string, SelectedTransactionInfo>, currentSearchResults: SearchResults['data'] | undefined, isOffline: boolean) {
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+
+    return (
+        !isOffline &&
+        selectedTransactionsKeys.every((id) => {
+            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id];
+            if (!transaction) {
+                return false;
+            }
+            const parentReportID = transaction.reportID;
+            const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
+            if (!parentReport) {
+                return false;
+            }
+            const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+            const parentReportAction =
+                Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
+                selectedTransactions[id].reportAction;
+
+            return canDeleteMoneyRequestReport(parentReport, [transaction as OnyxTypes.Transaction], parentReportAction ? [parentReportAction] : []);
+        })
+    );
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -4052,6 +4079,7 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    shouldShowDeleteOption,
     getToFieldValueForTransaction,
     isTodoSearch,
 };
