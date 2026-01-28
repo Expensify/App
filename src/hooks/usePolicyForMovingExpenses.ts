@@ -20,7 +20,17 @@ function isPolicyMemberByRole(policy: OnyxEntry<Policy>) {
     return !!policy?.role && Object.values(CONST.POLICY.ROLE).includes(policy.role);
 }
 
-function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean) {
+function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string, isPerDiemRequest?: boolean) {
+    return (
+        checkForUserPendingDelete(login, policy) &&
+        isPolicyMemberByRole(policy) &&
+        isPaidGroupPolicy(policy) &&
+        policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy))
+    );
+}
+
+function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?: string) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
@@ -30,16 +40,18 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
 
     const session = useSession();
     const login = session?.email ?? '';
-    const userPolicies = Object.values(allPolicies ?? {}).filter(
-        (policy) =>
-            checkForUserPendingDelete(login, policy) &&
-            isPolicyMemberByRole(policy) &&
-            isPaidGroupPolicy(policy) &&
-            policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)) &&
-            (!isTimeRequest || canSubmitTimeExpenseFromWorkspace(policy)),
-    );
+    const userPolicies = Object.values(allPolicies ?? {}).filter((policy) => isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest));
     const isMemberOfMoreThanOnePolicy = userPolicies.length > 1;
+
+    // If an expense policy ID is provided and valid, prefer it over the active policy
+    // This ensures that when viewing/editing an expense from workspace B, we show workspace B
+    // even if the user's default workspace is A
+    if (expensePolicyID) {
+        const expensePolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expensePolicyID}`];
+        if (expensePolicy && isPolicyValidForMovingExpenses(expensePolicy, login, isPerDiemRequest)) {
+            return {policyForMovingExpensesID: expensePolicyID, policyForMovingExpenses: expensePolicy, shouldSelectPolicy: false};
+        }
+    }
 
     if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy))) {
         return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false};
