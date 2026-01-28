@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -15,10 +15,10 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import defaultWideRHPContextValue from './default';
+import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
 import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
-import type {WideRHPContextType} from './types';
+import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
 // 0 is folded/hidden, 1 is expanded/shown
@@ -45,7 +45,8 @@ const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
 const modalStackOverlayWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - wideRHPWidth);
 const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - singleRHPWidth);
 
-const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
+const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
+const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
 
 const expenseReportSelector = (reports: OnyxCollection<Report>) => {
     return Object.fromEntries(
@@ -133,13 +134,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         };
     });
 
-    const isWideRHPFocused = useMemo(() => {
+    const isWideRHPFocused = (() => {
         return !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
-    }, [focusedRoute?.key, allWideRHPRouteKeys]);
+    })();
 
-    const isSuperWideRHPFocused = useMemo(() => {
+    const isSuperWideRHPFocused = (() => {
         return !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);
-    }, [focusedRoute?.key, allSuperWideRHPRouteKeys]);
+    })();
 
     const isRHPFocused = focusedNavigator === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
@@ -322,49 +323,55 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         return () => subscription?.remove();
     }, []);
 
-    const value = useMemo(
+    const stateValue = useMemo(
         () => ({
-            expandedRHPProgress,
             wideRHPRouteKeys,
             superWideRHPRouteKeys,
-            showWideRHPVersion,
-            showSuperWideRHPVersion,
-            removeWideRHPRouteKey,
-            removeSuperWideRHPRouteKey,
             shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
             shouldRenderSecondaryOverlayForRHPOnWideRHP,
             shouldRenderSecondaryOverlayForWideRHP,
             shouldRenderTertiaryOverlay,
+            isWideRHPFocused,
+            isSuperWideRHPFocused,
+        }),
+        [
+            wideRHPRouteKeys,
+            superWideRHPRouteKeys,
+            shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+            shouldRenderSecondaryOverlayForRHPOnWideRHP,
+            shouldRenderSecondaryOverlayForWideRHP,
+            shouldRenderTertiaryOverlay,
+            isWideRHPFocused,
+            isSuperWideRHPFocused,
+        ],
+    );
+
+    const actionsValue = useMemo(
+        () => ({
+            showWideRHPVersion,
+            showSuperWideRHPVersion,
+            removeWideRHPRouteKey,
+            removeSuperWideRHPRouteKey,
             markReportIDAsExpense,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
-            isWideRHPFocused,
-            isSuperWideRHPFocused,
             syncRHPKeys,
             clearWideRHPKeys,
             setIsWideRHPClosing,
             setIsSuperWideRHPClosing,
         }),
         [
-            wideRHPRouteKeys,
-            superWideRHPRouteKeys,
             showWideRHPVersion,
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
-            shouldRenderSecondaryOverlayForRHPOnWideRHP,
-            shouldRenderSecondaryOverlayForWideRHP,
-            shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
-            isWideRHPFocused,
-            isSuperWideRHPFocused,
             syncRHPKeys,
             clearWideRHPKeys,
             setIsWideRHPClosing,
@@ -372,7 +379,19 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         ],
     );
 
-    return <WideRHPContext.Provider value={value}>{children}</WideRHPContext.Provider>;
+    return (
+        <WideRHPStateContext.Provider value={stateValue}>
+            <WideRHPActionsContext.Provider value={actionsValue}>{children}</WideRHPActionsContext.Provider>
+        </WideRHPStateContext.Provider>
+    );
+}
+
+function useWideRHPState() {
+    return useContext(WideRHPStateContext);
+}
+
+function useWideRHPActions() {
+    return useContext(WideRHPActionsContext);
 }
 
 export default WideRHPContextProvider;
@@ -388,5 +407,8 @@ export {
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayRHPOnSuperWideRHPProgress,
     thirdOverlayProgress,
-    WideRHPContext,
+    WideRHPStateContext,
+    WideRHPActionsContext,
+    useWideRHPState,
+    useWideRHPActions,
 };

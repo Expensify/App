@@ -16,7 +16,7 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -157,7 +157,7 @@ function AuthScreens() {
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
-        useContext(WideRHPContext);
+        useWideRHPState();
 
     // Check if the user is currently on a 2FA setup screen
     // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand

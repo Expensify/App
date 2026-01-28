@@ -11,7 +11,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -225,7 +225,7 @@ function Search({
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
-    const {markReportIDAsExpense} = useContext(WideRHPContext);
+    const {markReportIDAsExpense} = useWideRHPActions();
     const {
         currentSearchHash,
         setCurrentSearchHashAndKey,
@@ -257,7 +257,7 @@ function Search({
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
+    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
