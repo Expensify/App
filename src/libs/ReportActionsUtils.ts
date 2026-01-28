@@ -2237,18 +2237,18 @@ function getMentionedEmailsFromMessage(message: string) {
     return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
 }
 
-function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string) {
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string, currentUserAccountID: number) {
     const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
     const message = getReportActionMessage(reportAction)?.html ?? '';
     const emailsFromMessage = getMentionedEmailsFromMessage(message);
-    return accountIDsFromMessage.includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentUserEmail) || message.includes('<mention-here>');
+    return accountIDsFromMessage.includes(currentUserAccountID) || emailsFromMessage.includes(currentUserEmail) || message.includes('<mention-here>');
 }
 
 /**
  * Check if the current user is the requestor of the action
  */
-function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
 }
 
 /**
@@ -3465,11 +3465,15 @@ function getUpdatedApprovalRuleMessage(translate: LocalizedTranslate, reportActi
     return getReportActionText(reportAction);
 }
 
-function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
+function getRemovedFromApprovalChainMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>,
+    currentUserAccountID: number,
+) {
     const originalMessage = getOriginalMessage(reportAction);
     const submittersNames = getPersonalDetailsByIDs({
         accountIDs: originalMessage?.submittersAccountIDs ?? [],
-        currentUserAccountID: deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserAccountID,
     }).map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
     return translate('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
@@ -3717,12 +3721,13 @@ function wasActionCreatedWhileOffline(
  */
 function wasMessageReceivedWhileOffline(
     action: ReportAction,
+    currentUserAccountID: number,
     isOffline: boolean,
     lastOfflineAt: Date | undefined,
     lastOnlineAt: Date | undefined,
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
 ) {
-    const wasByCurrentUser = wasActionTakenByCurrentUser(action);
+    const wasByCurrentUser = wasActionTakenByCurrentUser(action, currentUserAccountID);
     const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, getLocalDateFromDatetime);
 
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);

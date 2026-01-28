@@ -1555,7 +1555,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
             children = <ReportActionItemBasicMessage message={getUpdatedApprovalRuleMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
-            children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(translate, action)} />;
+            children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(translate, action, personalDetail.accountID ?? CONST.DEFAULT_NUMBER_ID)} />;
         } else if (isActionableCardFraudAlert(action)) {
             const message = getActionableCardFraudAlertMessage(translate, action, getLocalDateFromDatetime);
 

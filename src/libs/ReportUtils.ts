@@ -4989,7 +4989,7 @@ function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>, io
         if (isEmptyObject(transaction)) {
             return false;
         }
-        if (!wasActionTakenByCurrentUser(action)) {
+        if (!wasActionTakenByCurrentUser(action, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID)) {
             return false;
         }
         return hasMissingSmartscanFieldsTransactionUtils(transaction, report);

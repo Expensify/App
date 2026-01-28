@@ -373,7 +373,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
+                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
             });
         }
 
