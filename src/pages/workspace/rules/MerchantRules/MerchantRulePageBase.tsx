@@ -18,13 +18,13 @@ import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
@@ -71,6 +71,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [isDeleting, setIsDeleting] = useState(false);
     const isEditing = !!ruleID;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
@@ -155,6 +156,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!ruleID || !policy) {
             return;
         }
+        setIsDeleting(true);
         deletePolicyCodingRule(policy, ruleID);
 
         setIsDeleteModalVisible(false);
@@ -223,7 +225,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         },
     ];
 
-    if (ruleID && !existingRule) {
+    if (ruleID && !existingRule && !isDeleting) {
         return <NotFoundPage />;
     }
 
