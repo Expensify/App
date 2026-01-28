@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ImportCSVTransactionsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {generateCardID} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
@@ -188,12 +189,9 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
 
 /**
  * Creates an optimistic card object for the imported transactions
- * Returns the card and the cardID as a string (to avoid JS number precision loss with 64-bit integers)
  */
 function buildOptimisticCard(cardDisplayName: string, currency: string): {card: Card; cardID: string} {
-    // cardIDs are random, positive, 64-bit numeric strings.
-    // Because JS can only handle 53-bit numbers, cardIDs are strings in the front-end (just like transactionID)
-    const cardID = rand64();
+    const cardID = generateCardID();
     return {
         cardID,
         card: {
