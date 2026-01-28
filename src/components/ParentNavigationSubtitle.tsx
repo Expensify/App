@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchMoneyRequestReportParamList} from '@libs/Navigation/types';
+import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -90,7 +90,7 @@ function ParentNavigationSubtitle({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
+    const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         const fullScreenRoute = state?.routes?.findLast((route) => isFullScreenName(route.name));
@@ -118,30 +118,19 @@ function ParentNavigationSubtitle({
         const parentAction = getReportAction(parentReportID, parentReportActionID);
         const isVisibleAction = shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID, canUserPerformWriteAction);
 
+        const focusedNavigatorState = currentFocusedNavigator?.state;
+        const currentReportIndex = focusedNavigatorState?.index;
+
         if (openParentReportInCurrentTab && isReportInRHP) {
             // If the report is displayed in RHP in Reports tab, we want to stay in the current tab after opening the parent report
             if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && isMoneyRequestReport(report)) {
-                const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-                if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-                    const moneyRequestReportID = (lastRoute?.params as SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
-                    // If the parent report is already displayed underneath RHP, simply dismiss the modal
-                    if (moneyRequestReportID === parentReportID) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                }
-
-                const focusedNavigatorState = currentFocusedNavigator?.state;
-                const currentReportIndex = focusedNavigatorState?.index;
                 // Dismiss wide RHP and go back to already opened super wide RHP if the parent report is already opened there
                 if (currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && currentReportIndex && currentReportIndex > 0) {
                     const previousRoute = focusedNavigatorState.routes[currentReportIndex - 1];
 
                     if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
-                        const lastPreviousRoute = previousRoute.state?.routes.at(-1);
-                        const moneyRequestReportID = (lastPreviousRoute?.params as SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
-
-                        if (moneyRequestReportID === parentReportID && lastPreviousRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+                        const moneyRequestReportID = (previousRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID;
+                        if (moneyRequestReportID === parentReportID) {
                             Navigation.goBack();
                             return;
                         }
@@ -152,8 +141,13 @@ function ParentNavigationSubtitle({
                 return;
             }
 
+            if (Navigation.getTopmostSuperWideRHPReportID() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                Navigation.dismissToSuperWideRHP();
+                return;
+            }
+
             // If the parent report is already displayed underneath RHP, simply dismiss the modal
-            if (Navigation.getTopmostReportId() === parentReportID) {
+            if (Navigation.getTopmostReportId() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 Navigation.dismissModal();
                 return;
             }
@@ -173,9 +167,8 @@ function ParentNavigationSubtitle({
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
             if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
-                const lastPreviousRoute = previousRoute.state?.routes.at(-1);
-                if (lastPreviousRoute?.name === SCREENS.SEARCH.REPORT_RHP && lastPreviousRoute.params && 'reportID' in lastPreviousRoute.params) {
-                    const reportIDFromParams = lastPreviousRoute.params.reportID;
+                if (previousRoute.params && 'reportID' in previousRoute.params) {
+                    const reportIDFromParams = previousRoute.params.reportID;
 
                     if (reportIDFromParams === parentReportID) {
                         Navigation.goBack();
@@ -217,6 +210,7 @@ function ParentNavigationSubtitle({
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
                         {hasAccessToParentReport ? (
                             <TextLink
+                                testID="parent-navigation-subtitle-link"
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
@@ -245,5 +239,4 @@ function ParentNavigationSubtitle({
     );
 }
 
-ParentNavigationSubtitle.displayName = 'ParentNavigationSubtitle';
 export default ParentNavigationSubtitle;

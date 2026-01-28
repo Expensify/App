@@ -12,7 +12,6 @@
  * This two runs will generate a main.json and a delta.json with the performance data, which then you can merge via
  * node tests/e2e/merge.js
  */
-
 /* eslint-disable no-restricted-syntax,no-await-in-loop */
 import {execSync} from 'child_process';
 import fs from 'fs';

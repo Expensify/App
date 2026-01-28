@@ -8,8 +8,6 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-// eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -58,8 +56,8 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield', 'Fingerprint']);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -86,12 +84,14 @@ function SecuritySettingsPage() {
     });
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate, isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
+
+    const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== undefined;
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
@@ -147,29 +147,40 @@ function SecuritySettingsPage() {
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
                 },
             },
-            {
-                translationKey: 'mergeAccountsPage.mergeAccount',
-                icon: Expensicons.ArrowCollapse,
-                action: () => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-                    if (isAccountLocked) {
-                        showLockedAccountModal();
-                        return;
-                    }
-                    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
-                        Navigation.navigate(
-                            ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
-                        );
-                        return;
-                    }
-
-                    Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
-                },
-            },
         ];
+
+        if (hasEverRegisteredForMultifactorAuthentication) {
+            baseMenuItems.push({
+                translationKey: 'multifactorAuthentication.revoke.title',
+                icon: icons.Fingerprint,
+                action: () => {
+                    Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
+                },
+            });
+        }
+
+        baseMenuItems.push({
+            translationKey: 'mergeAccountsPage.mergeAccount',
+            icon: icons.ArrowCollapse,
+            action: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    return;
+                }
+                if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    Navigation.navigate(
+                        ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                    );
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
+            },
+        });
 
         if (isAccountLocked) {
             baseMenuItems.push({
@@ -211,8 +222,10 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
     }, [
+        icons.ArrowCollapse,
         icons.UserLock,
         icons.Shield,
+        icons.Fingerprint,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,
@@ -223,6 +236,7 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
+        hasEverRegisteredForMultifactorAuthentication,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
@@ -257,11 +271,11 @@ function SecuritySettingsPage() {
                         description: personalDetail?.displayName ? formattedEmail : '',
                         badgeText: translate('delegate.role', {role}),
                         avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        icon: personalDetail?.avatar ?? FallbackAvatar,
+                        icon: personalDetail?.avatar ?? icons.FallbackAvatar,
                         iconType: CONST.ICON_TYPE_AVATAR,
                         numberOfLinesDescription: 1,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        iconRight: Expensicons.ThreeDots,
+                        iconRight: icons.ThreeDots,
                         shouldShowRightIcon: true,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,
@@ -271,8 +285,8 @@ function SecuritySettingsPage() {
                         success: selectedEmail === email,
                     };
                 }),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, icons.FallbackAvatar, icons.ThreeDots],
     );
 
     const delegatorMenuItems: MenuItemProps[] = useMemo(
@@ -286,15 +300,15 @@ function SecuritySettingsPage() {
                     description: personalDetail?.displayName ? formattedEmail : '',
                     badgeText: translate('delegate.role', {role}),
                     avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    icon: personalDetail?.avatar ?? FallbackAvatar,
+                    icon: personalDetail?.avatar ?? icons.FallbackAvatar,
                     iconType: CONST.ICON_TYPE_AVATAR,
                     numberOfLinesDescription: 1,
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     interactive: false,
                 };
             }),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [delegators, styles, translate, personalDetails],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [delegators, styles, translate, personalDetails, icons.FallbackAvatar],
     );
 
     const delegatePopoverMenuItems: PopoverMenuItem[] = [
@@ -320,7 +334,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
             onPress: () => {
-                if (isDelegateAccessRestricted) {
+                if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -343,7 +357,7 @@ function SecuritySettingsPage() {
 
     return (
         <ScreenWrapper
-            testID={SecuritySettingsPage.displayName}
+            testID="SecuritySettingsPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -386,6 +400,7 @@ function SecuritySettingsPage() {
                                             <TextLink
                                                 style={[styles.link]}
                                                 href={CONST.COPILOT_HELP_URL}
+                                                accessibilityLabel={translate('delegate.copilotDelegatedAccess')}
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>
@@ -453,6 +468,11 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
+                                    if (isActingAsDelegate) {
+                                        setShouldShowRemoveDelegateModal(false);
+                                        showDelegateNoAccessModal();
+                                        return;
+                                    }
                                     removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                                     setShouldShowRemoveDelegateModal(false);
                                     setSelectedDelegate(undefined);
@@ -472,7 +492,5 @@ function SecuritySettingsPage() {
         </ScreenWrapper>
     );
 }
-
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
 export default SecuritySettingsPage;

@@ -115,6 +115,4 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
     );
 }
 
-BankInformation.displayName = 'BankInformation';
-
 export default BankInformation;

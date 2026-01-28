@@ -30,6 +30,4 @@ function SelectCircle({isChecked = false, selectCircleStyles}: SelectCircleProps
     );
 }
 
-SelectCircle.displayName = 'SelectCircle';
-
 export default SelectCircle;

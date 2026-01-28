@@ -32,6 +32,4 @@ function SignInHeroCopy({customHeadline, customHeroBody}: SignInHeroCopyProps) {
     );
 }
 
-SignInHeroCopy.displayName = 'SignInHeroCopy';
-
 export default SignInHeroCopy;

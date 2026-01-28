@@ -144,6 +144,4 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     );
 }
 
-DateFilterBase.displayName = 'SearchDatePresetFilterBasePage';
-
 export default DateFilterBase;

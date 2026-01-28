@@ -79,7 +79,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={CountrySelectorModal.displayName}
+                testID="CountrySelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -99,7 +99,5 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
         </Modal>
     );
 }
-
-CountrySelectorModal.displayName = 'CountrySelectorModal';
 
 export default CountrySelectorModal;

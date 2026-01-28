@@ -12,7 +12,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
@@ -79,7 +78,7 @@ function AvatarButtonWithIcon({
     onPress,
     source = '',
     avatarID,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
     avatarStyle,
@@ -90,7 +89,7 @@ function AvatarButtonWithIcon({
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Pencil']);
 
     return (
         <Tooltip
@@ -113,7 +112,7 @@ function AvatarButtonWithIcon({
                             imageStyles={[styles.alignSelfCenter, avatarStyle]}
                             source={source}
                             avatarID={avatarID}
-                            fallbackIcon={fallbackIcon}
+                            fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                             size={size}
                             type={type}
                             name={name}
@@ -137,8 +136,6 @@ function AvatarButtonWithIcon({
         </Tooltip>
     );
 }
-
-AvatarButtonWithIcon.displayName = 'AvatarButtonWithIcon';
 
 export default AvatarButtonWithIcon;
 export type {AvatarButtonWithIconProps};

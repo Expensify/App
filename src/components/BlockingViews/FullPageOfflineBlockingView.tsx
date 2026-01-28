@@ -17,7 +17,7 @@ type FullPageOfflineBlockingViewProps = ChildrenProps & {
 function FullPageOfflineBlockingView({children, addBottomSafeAreaPadding = true, addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding}: FullPageOfflineBlockingViewProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
 
     const theme = useTheme();
 
@@ -36,7 +36,5 @@ function FullPageOfflineBlockingView({children, addBottomSafeAreaPadding = true,
 
     return children;
 }
-
-FullPageOfflineBlockingView.displayName = 'FullPageOfflineBlockingView';
 
 export default FullPageOfflineBlockingView;

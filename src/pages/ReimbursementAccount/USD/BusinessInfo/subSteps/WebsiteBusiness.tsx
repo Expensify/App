@@ -73,6 +73,4 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-WebsiteBusiness.displayName = 'WebsiteBusiness';
-
 export default WebsiteBusiness;

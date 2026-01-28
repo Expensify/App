@@ -1,14 +1,19 @@
-import {useContext, useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {Platform} from 'react-native';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import {endSpan, startSpan} from './activeSpans';
 
 export default function useAbsentPageSpan() {
-    const {initialURL} = useContext(InitialURLContext);
+    const {initialURL} = useInitialURLState();
+    const hasCreatedSpan = useRef(false);
 
     useEffect(() => {
+        if (hasCreatedSpan.current) {
+            return;
+        }
+
         let isDeeplink = false;
         let currentUrl = '';
 
@@ -32,5 +37,6 @@ export default function useAbsentPageSpan() {
         });
 
         endSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE);
+        hasCreatedSpan.current = true;
     }, [initialURL]);
 }

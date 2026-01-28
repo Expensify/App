@@ -2,6 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import type {SectionListData} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {Section} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
@@ -92,7 +93,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
 
     return (
         <ScreenWrapper
-            testID={BaseShareLogList.displayName}
+            testID="BaseShareLogList"
             includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
@@ -119,7 +120,5 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         </ScreenWrapper>
     );
 }
-
-BaseShareLogList.displayName = 'ShareLogPage';
 
 export default BaseShareLogList;

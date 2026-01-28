@@ -30,13 +30,11 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
         <View
             dataSet={{dragArea: false}}
             style={[style, styles.reportSearchHeaderBar]}
-            testID={ReportSearchHeader.displayName}
+            testID="ReportSearchHeader"
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween]}>{middleContent}</View>
         </View>
     );
 }
-
-ReportSearchHeader.displayName = 'ReportSearchHeader';
 
 export default ReportSearchHeader;

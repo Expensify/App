@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,7 +49,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
     const reportIsArchived = useReportIsArchived(report?.reportID);
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const handleReportDescriptionChange = useCallback((value: string) => {
         setDescription(value);
     }, []);
@@ -61,19 +62,16 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
         const previousValue = report?.description ?? '';
         const newValue = description.trim();
 
-        updateDescription(report.reportID, previousValue, newValue);
+        updateDescription(report.reportID, previousValue, newValue, currentUserAccountID);
         goBack();
-    }, [report.reportID, report.description, description, goBack]);
+    }, [report.reportID, report.description, description, goBack, currentUserAccountID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
             const errors: Errors = {};
             const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
-                    length: descriptionLength,
-                    limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
-                });
+                errors.reportDescription = translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH);
             }
 
             return errors;
@@ -100,7 +98,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={RoomDescriptionPage.displayName}
+            testID="RoomDescriptionPage"
         >
             <HeaderWithBackButton
                 title={translate('reportDescriptionPage.roomDescription')}
@@ -151,7 +149,5 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
         </ScreenWrapper>
     );
 }
-
-RoomDescriptionPage.displayName = 'RoomDescriptionPage';
 
 export default RoomDescriptionPage;

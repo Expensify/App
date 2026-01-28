@@ -1,9 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Trashcan} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,29 +12,34 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
+import {
+    formatDefaultTaxRateText,
+    formatRequireItemizedReceiptsOverText,
+    formatRequireReceiptsOverText,
+    getCategoryApproverRule,
+    getCategoryDefaultTaxRate,
+    getDecodedCategoryName,
+} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, hasTags, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {
-    clearCategoryErrors,
-    deleteWorkspaceCategories,
-    setPolicyCategoryDescriptionRequired,
-    setWorkspaceCategoryDescriptionHint,
-    setWorkspaceCategoryEnabled,
-} from '@userActions/Policy/Category';
+import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -52,6 +56,7 @@ function CategorySettingsPage({
 }: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
@@ -74,6 +79,18 @@ function CategorySettingsPage({
         hasOutstandingChildTask,
         parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+
+    const policyHasTags = hasTags(policyTags);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -125,28 +142,74 @@ function CategorySettingsPage({
             return '';
         }
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
-    if (!policyCategory) {
-        return <NotFoundPage />;
-    }
-
-    const updateWorkspaceCategoryEnabled = (value: boolean) => {
-        if (shouldPreventDisableOrDelete) {
-            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
-            return;
+    const requireItemizedReceiptsOverText = useMemo(() => {
+        if (!policy) {
+            return '';
         }
-        setWorkspaceCategoryEnabled(
+        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt);
+    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate]);
+
+    const requiredFieldsTitle = useMemo(() => {
+        if (!policyCategory) {
+            return '';
+        }
+        return formatRequiredFieldsTitle(translate, policyCategory, policy?.isAttendeeTrackingEnabled);
+    }, [policyCategory, translate, policy?.isAttendeeTrackingEnabled]);
+
+    const requireFieldsPendingAction = useMemo(() => {
+        if (policy?.isAttendeeTrackingEnabled) {
+            // Pending fields are objects so we can't use nullish coalescing
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return policyCategory?.pendingFields?.areAttendeesRequired || policyCategory?.pendingFields?.areCommentsRequired;
+        }
+        return policyCategory?.pendingFields?.areCommentsRequired;
+    }, [policyCategory?.pendingFields, policy?.isAttendeeTrackingEnabled]);
+
+    const updateWorkspaceCategoryEnabled = useCallback(
+        (value: boolean) => {
+            if (shouldPreventDisableOrDelete) {
+                setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                return;
+            }
+            setWorkspaceCategoryEnabled({
+                policyData,
+                categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+                setupCategoryTaskReport,
+                setupCategoryTaskParentReport,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                setupCategoriesAndTagsTaskReport,
+                setupCategoriesAndTagsTaskParentReport,
+                isSetupCategoriesAndTagsTaskParentReportArchived,
+                setupCategoriesAndTagsHasOutstandingChildTask,
+                setupCategoriesAndTagsParentReportAction,
+                policyHasTags,
+            });
+        },
+        [
+            setIsCannotDeleteOrDisableLastCategoryModalVisible,
+            shouldPreventDisableOrDelete,
             policyData,
-            {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            policyCategory?.name,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
             currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
-        );
-    };
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            policyHasTags,
+        ],
+    );
 
     const navigateToEditCategory = () => {
         Navigation.navigate(
@@ -173,6 +236,10 @@ function CategorySettingsPage({
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
+    if (!policyCategory) {
+        return <NotFoundPage />;
+    }
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -182,7 +249,7 @@ function CategorySettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategorySettingsPage.displayName}
+                testID="CategorySettingsPage"
             >
                 <HeaderWithBackButton
                     title={decodedCategoryName}
@@ -288,40 +355,38 @@ function CategorySettingsPage({
                         />
                     </OfflineWithFeedback>
 
+                    {areCommentsRequired && (
+                        <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
+                            <MenuItemWithTopDescription
+                                title={policyCategory?.commentHint}
+                                description={translate('workspace.rules.categoryRules.descriptionHint')}
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
+                                }}
+                                shouldShowRightIcon
+                            />
+                        </OfflineWithFeedback>
+                    )}
+
+                    {!isThereAnyAccountingConnection && (
+                        <MenuItem
+                            icon={expensifyIcons.Trashcan}
+                            title={translate('workspace.categories.deleteCategory')}
+                            onPress={() => {
+                                if (shouldPreventDisableOrDelete) {
+                                    setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                                    return;
+                                }
+                                setDeleteCategoryConfirmModalVisible(true);
+                            }}
+                        />
+                    )}
+
                     {!!policy?.areRulesEnabled && (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areCommentsRequired}>
-                                <View style={[styles.mt2, styles.mh5]}>
-                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireDescription')}</Text>
-                                        <Switch
-                                            isOn={policyCategory?.areCommentsRequired ?? false}
-                                            accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
-                                            onToggle={() => {
-                                                if (policyCategory.commentHint && areCommentsRequired) {
-                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '', policyCategories);
-                                                }
-                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired, policyCategories);
-                                            }}
-                                        />
-                                    </View>
-                                </View>
-                            </OfflineWithFeedback>
-                            {!!policyCategory?.areCommentsRequired && (
-                                <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                                    <MenuItemWithTopDescription
-                                        title={policyCategory?.commentHint}
-                                        description={translate('workspace.rules.categoryRules.descriptionHint')}
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
-                                        }}
-                                        shouldShowRightIcon
-                                    />
-                                </OfflineWithFeedback>
-                            )}
                             <MenuItemWithTopDescription
                                 title={approverText}
                                 description={translate('workspace.rules.categoryRules.approver')}
@@ -370,27 +435,32 @@ function CategorySettingsPage({
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
+                                <MenuItemWithTopDescription
+                                    title={requireItemizedReceiptsOverText}
+                                    description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
+                                <MenuItemWithTopDescription
+                                    title={requiredFieldsTitle}
+                                    description={translate('workspace.rules.categoryRules.requireFields')}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.getRoute(policyID, policyCategory.name));
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
                         </>
-                    )}
-                    {!isThereAnyAccountingConnection && (
-                        <MenuItem
-                            icon={Trashcan}
-                            title={translate('common.delete')}
-                            onPress={() => {
-                                if (shouldPreventDisableOrDelete) {
-                                    setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
-                                    return;
-                                }
-                                setDeleteCategoryConfirmModalVisible(true);
-                            }}
-                        />
                     )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategorySettingsPage.displayName = 'CategorySettingsPage';
 
 export default CategorySettingsPage;

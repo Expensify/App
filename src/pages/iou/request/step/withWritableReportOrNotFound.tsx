@@ -53,7 +53,12 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.EDIT_REPORT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL;
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL
+    | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
@@ -79,7 +84,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
                 return;
             }
             openReport(route.params.reportID);
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         if (isEditing && isLoadingApp) {

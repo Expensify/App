@@ -48,6 +48,4 @@ function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRender
     );
 }
 
-UserDetailsRenderer.displayName = 'UserDetailsRenderer';
-
 export default UserDetailsRenderer;

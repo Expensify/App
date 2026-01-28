@@ -85,6 +85,4 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
     );
 }
 
-WorkspaceOwnerChangeCheck.displayName = 'WorkspaceOwnerChangeCheckPage';
-
 export default WorkspaceOwnerChangeCheck;

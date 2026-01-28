@@ -21,15 +21,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from './inbox/report/ContextMenu/ReportActionContextMenu';
 
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'QuestionMark']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const popoverAnchor = useRef(null);
@@ -59,7 +59,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.REFERRAL_DETAILS].backgroundColor}
-            testID={ReferralDetailsPage.displayName}
+            testID="ReferralDetailsPage"
             onBackButtonPress={() => {
                 if (backTo) {
                     Navigation.goBack(backTo as Route);
@@ -104,7 +104,5 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
         </HeaderPageLayout>
     );
 }
-
-ReferralDetailsPage.displayName = 'ReferralDetailsPage';
 
 export default ReferralDetailsPage;

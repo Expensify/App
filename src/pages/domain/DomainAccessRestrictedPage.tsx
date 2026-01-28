@@ -41,8 +41,8 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const accountID = route.params.accountID;
-    const [domainName, domainNameResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false, selector: domainNameSelector});
+    const {domainAccountID} = route.params;
+    const [domainName, domainNameResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
 
     if (isLoadingOnyxValue(domainNameResults)) {
         return <FullScreenLoadingIndicator />;
@@ -53,7 +53,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={DomainAccessRestrictedPage.displayName}>
+        <ScreenWrapper testID="DomainAccessRestrictedPage">
             <HeaderWithBackButton
                 title={translate('domain.accessRestricted.title')}
                 onBackButtonPress={Navigation.goBack}
@@ -87,12 +87,11 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                     large
                     success
                     text={translate('common.verify')}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID))}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(domainAccountID))}
                 />
             </FixedFooter>
         </ScreenWrapper>
     );
 }
 
-DomainAccessRestrictedPage.displayName = 'DomainAccessRestrictedPage';
 export default DomainAccessRestrictedPage;

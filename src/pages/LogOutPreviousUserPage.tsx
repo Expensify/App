@@ -1,6 +1,6 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
@@ -21,7 +21,7 @@ type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
-    const {initialURL} = useContext(InitialURLContext);
+    const {initialURL} = useInitialURLState();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isAccountLoading = account?.isLoading;
@@ -44,7 +44,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             });
             return;
         }
@@ -54,7 +54,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         signInWithShortLivedAuthToken(shortLivedAuthToken);
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL]);
 
     useEffect(() => {
@@ -74,12 +74,10 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 }
             });
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
     return <FullScreenLoadingIndicator />;
 }
-
-LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
 export default LogOutPreviousUserPage;

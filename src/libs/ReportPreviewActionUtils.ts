@@ -1,6 +1,7 @@
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
@@ -18,10 +19,17 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
-import {isPending, isScanning} from './TransactionUtils';
+import {hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
-function canSubmit(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, transactions?: Transaction[]) {
+function canSubmit(
+    report: Report,
+    isReportArchived: boolean,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    violations?: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+    transactions?: Transaction[],
+) {
     if (isReportArchived) {
         return false;
     }
@@ -37,6 +45,10 @@ function canSubmit(report: Report, isReportArchived: boolean, currentUserAccount
     }
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
+
+    if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+        return false;
+    }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -74,12 +86,20 @@ function canApprove(report: Report, currentUserAccountID: number, policy?: Polic
     return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, invoiceReceiverPolicy?: Policy) {
+function canPay(
+    report: Report,
+    isReportArchived: boolean,
+    currentUserAccountID: number,
+    currentUserLogin: string,
+    bankAccountList: OnyxEntry<BankAccountList>,
+    policy?: Policy,
+    invoiceReceiverPolicy?: Policy,
+) {
     if (isReportArchived) {
         return false;
     }
 
-    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
@@ -91,8 +111,12 @@ function canPay(report: Report, isReportArchived: boolean, currentUserAccountID:
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isReimbursed = isSettled(report);
 
+    const isExported = report.isExportedToIntegration ?? false;
+    const hasExportError = report?.hasExportError ?? false;
+    const didExportFail = !isExported && hasExportError;
+
     if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
-        return true;
+        return !didExportFail;
     }
 
     if (!isProcessing) {
@@ -119,9 +143,9 @@ function canPay(report: Report, isReportArchived: boolean, currentUserAccountID:
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, policy?: Policy) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
     const isExpense = isExpenseReport(report);
-    const isExporter = policy ? isPreferredExporter(policy) : false;
+    const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});
@@ -149,17 +173,35 @@ function canExport(report: Report, policy?: Policy) {
     return isApproved || isReimbursed || isClosed;
 }
 
-function getReportPreviewAction(
-    isReportArchived: boolean,
-    currentUserAccountID: number,
-    report: Report | undefined,
-    policy: Policy | undefined,
-    transactions: Transaction[],
-    invoiceReceiverPolicy?: Policy,
-    isPaidAnimationRunning?: boolean,
-    isApprovedAnimationRunning?: boolean,
-    isSubmittingAnimationRunning?: boolean,
-): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+function getReportPreviewAction({
+    isReportArchived,
+    currentUserAccountID,
+    currentUserLogin,
+    report,
+    policy,
+    transactions,
+    bankAccountList,
+    invoiceReceiverPolicy,
+    isPaidAnimationRunning,
+    isApprovedAnimationRunning,
+    isSubmittingAnimationRunning,
+    isDEWSubmitPending,
+    violationsData,
+}: {
+    isReportArchived: boolean;
+    currentUserAccountID: number;
+    currentUserLogin: string;
+    report: Report | undefined;
+    policy: Policy | undefined;
+    transactions: Transaction[];
+    bankAccountList: OnyxEntry<BankAccountList>;
+    invoiceReceiverPolicy?: Policy;
+    isPaidAnimationRunning?: boolean;
+    isApprovedAnimationRunning?: boolean;
+    isSubmittingAnimationRunning?: boolean;
+    isDEWSubmitPending?: boolean;
+    violationsData?: OnyxCollection<TransactionViolation[]>;
+}): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
@@ -177,16 +219,20 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, policy, transactions)) {
+    if (isDEWSubmitPending && isOpenReport(report)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+    }
+
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, currentUserAccountID, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, policy)) {
+    if (canExport(report, currentUserLogin, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

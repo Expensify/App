@@ -82,6 +82,4 @@ function TaskListItem<TItem extends ListItem>({
     );
 }
 
-TaskListItem.displayName = 'TaskListItem';
-
 export default TaskListItem;

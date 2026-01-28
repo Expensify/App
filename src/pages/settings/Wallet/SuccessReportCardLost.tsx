@@ -11,7 +11,7 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['CardReplacementSuccess'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CardReplacementSuccess']);
 
     return (
         <ConfirmationPage
@@ -31,5 +31,4 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     );
 }
 
-SuccessReportCardLost.displayName = 'SuccessReportCardLost';
 export default SuccessReportCardLost;

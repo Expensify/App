@@ -3,12 +3,14 @@ import React, {useCallback, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomFlatListProps} from './types';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
-function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMomentumScrollEnd, ...props}: CustomFlatListProps<T>) {
+function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMomentumScrollEnd, shouldHideContent = false, ...props}: CustomFlatListProps<T>) {
     const lastScrollOffsetRef = useRef(0);
+    const styles = useThemeStyles();
 
     const onScreenFocus = useCallback(() => {
         if (typeof ref === 'function') {
@@ -22,7 +24,7 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
         }
     }, [ref]);
 
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleScrollEnd = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             onMomentumScrollEnd?.(event);
@@ -37,6 +39,8 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
         }, [onScreenFocus]),
     );
 
+    const contentContainerStyle = [props.contentContainerStyle, shouldHideContent && styles.opacity0];
+
     if (enableAnimatedKeyboardDismissal) {
         return (
             <KeyboardDismissibleFlatList
@@ -44,6 +48,7 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
                 {...props}
                 ref={ref}
                 onMomentumScrollEnd={handleScrollEnd}
+                contentContainerStyle={contentContainerStyle}
             />
         );
     }
@@ -54,9 +59,9 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
             {...props}
             ref={ref}
             onMomentumScrollEnd={handleScrollEnd}
+            contentContainerStyle={contentContainerStyle}
         />
     );
 }
 
-CustomFlatList.displayName = 'CustomFlatList';
 export default CustomFlatList;

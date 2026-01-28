@@ -1,5 +1,4 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -10,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getErrorsWithTranslationData} from '@libs/ErrorUtils';
+import {normalizeLogin} from '@libs/LoginUtils';
 import {requestUnlinkValidationLink} from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
@@ -25,18 +25,8 @@ function UnlinkLoginForm() {
 
     const unlinkMessage =
         account?.message === 'unlinkLoginForm.linkSent' || account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account?.message) : account?.message;
-    const primaryLogin = useMemo(() => {
-        if (!account?.primaryLogin) {
-            return '';
-        }
-        return Str.isSMSLogin(account.primaryLogin) ? Str.removeSMSDomain(account.primaryLogin) : account.primaryLogin;
-    }, [account?.primaryLogin]);
-    const secondaryLogin = useMemo(() => {
-        if (!credentials?.login) {
-            return '';
-        }
-        return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
-    }, [credentials?.login]);
+    const primaryLogin = normalizeLogin(account?.primaryLogin);
+    const secondaryLogin = normalizeLogin(credentials?.login);
 
     return (
         <>
@@ -80,7 +70,5 @@ function UnlinkLoginForm() {
         </>
     );
 }
-
-UnlinkLoginForm.displayName = 'UnlinkLoginForm';
 
 export default UnlinkLoginForm;

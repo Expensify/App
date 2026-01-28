@@ -33,6 +33,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps & {
     /** Icon to display in left side of text input */
     iconLeft?: IconAsset | null;
 
+    /** Whether to include padding to the icon container */
+    includeIconPadding?: boolean;
+
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 
@@ -200,6 +203,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps & {
     navigation?: Omit<NavigationProp<ReactNavigation.RootParamList>, 'getState'> & {
         getState(): NavigationState | undefined;
     };
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

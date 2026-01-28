@@ -3,6 +3,7 @@ import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import type {ComponentType} from 'react';
 import {measureRenders} from 'reassure';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';

@@ -46,7 +46,7 @@ function EnablePaymentsPage() {
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
         return (
             <ScreenWrapper
-                testID={EnablePaymentsPage.displayName}
+                testID="EnablePaymentsPage"
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
@@ -89,7 +89,5 @@ function EnablePaymentsPage() {
 
     return null;
 }
-
-EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
 export default EnablePaymentsPage;

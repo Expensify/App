@@ -1,5 +1,4 @@
 /* eslint-disable max-lines */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
@@ -17,8 +16,6 @@ import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
-import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import {defaultTheme} from './theme';
@@ -34,7 +31,6 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
-import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -509,6 +505,13 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textMicroBoldSupporting: {
+            color: theme.textSupporting,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textMicroSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -933,6 +936,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.activeComponentBG,
         },
 
+        messagesRowHeight: {
+            height: variables.componentSizeXSmall,
+        },
+
         touchableButtonImage: {
             alignItems: 'center',
             height: variables.componentSizeNormal,
@@ -1036,6 +1043,12 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeNewFeature: {
+            minHeight: 20,
+            height: 20,
+            paddingHorizontal: 8,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -1135,15 +1148,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
-        },
-
-        headerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING,
-        },
-
-        searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 2,
-            backgroundColor: theme.appBG,
         },
 
         reportOptions: {
@@ -1253,6 +1257,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        removeSpacing: {
+            marginVertical: 0,
+            paddingHorizontal: 0,
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -1261,6 +1270,20 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRowAmountInput: {
             textAlign: 'right',
+        },
+
+        optionRowAmountMobileInputContainer: {
+            width: variables.splitExpenseAmountMobileWidth,
+        },
+
+        optionRowPercentInputContainer: {
+            width: variables.splitExpensePercentageMobileWidth,
+        },
+
+        optionRowPercentInput: {
+            width: variables.splitExpensePercentageWidth,
+            textAlign: 'right',
+            marginRight: 2,
         },
 
         textInputLabelContainer: {
@@ -1621,6 +1644,15 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        floatingSecondaryActionButton: {
+            backgroundColor: theme.buttonDefaultBG,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
+            borderRadius: 999,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -1629,6 +1661,40 @@ const staticStyles = (theme: ThemeColors) =>
         floatingCameraButton: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingCameraButtonAboveFab: {
+            position: 'absolute',
+            // floatingActionButton top property value (componentSizeLarge + 16) +
+            // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingActionButtonPosition: {
+            position: 'absolute',
+            top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButton: {
+            position: 'absolute',
+            // floatingCameraButton top property value (componentSizeLarge + 16) +
+            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButtonAboveFab: {
+            position: 'absolute',
+            // floatingActionButton top property value (componentSizeLarge + 16) +
+            // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
+            top: 3 * -variables.componentSizeLarge - 40,
             right: 16,
             zIndex: 10,
         },
@@ -1871,10 +1937,14 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
-        emptyWorkspaceListIllustrationStyle: {
+        emptyWorkspaceListLottieIllustrationStyle: {
             marginTop: 12,
             marginBottom: -20,
             height: '100%',
+        },
+        emptyWorkspaceListStaticIllustrationStyle: {
+            width: 203,
+            height: 166,
         },
 
         appContent: {
@@ -1899,7 +1969,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
-            paddingLeft: 20,
         },
 
         chatContentScrollView: {
@@ -2073,6 +2142,13 @@ const staticStyles = (theme: ThemeColors) =>
                 paddingBottom: 0,
                 alignSelf: 'center',
                 verticalAlign: 'middle',
+                ...(Platform.OS === 'android' && {
+                    height: undefined,
+                    lineHeight: undefined,
+                    alignSelf: 'stretch',
+                    flexGrow: 1,
+                    flexShrink: 1,
+                }),
             },
             0,
         ),
@@ -3265,6 +3341,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
         },
 
+        mfaBlockingViewAnimation: {
+            width: 180,
+            height: 180,
+        },
+
         locationErrorLinkText: {
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
@@ -4081,11 +4162,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 10,
         },
 
-        desktopSignInButtonContainer: {
-            width: 40,
-            height: 40,
-        },
-
         signInIconButton: {
             paddingVertical: 2,
         },
@@ -4561,6 +4637,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 32,
         },
 
+        tableHeaderIconSpacing: {
+            marginRight: variables.iconSizeExtraSmall,
+            marginBottom: 1,
+            marginTop: 1,
+        },
+
         cardItemSecondaryIconStyle: {
             position: 'absolute',
             bottom: -4,
@@ -5016,6 +5098,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredOverlay: {
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5037,6 +5123,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 172,
         },
 
+        gpsWebIllustrationContainer: {
+            width: 286,
+            height: 188,
+        },
+
         emptyStateCardIllustrationContainer: {
             height: 220,
             ...flex.alignItemsCenter,
@@ -5056,6 +5147,17 @@ const staticStyles = (theme: ThemeColors) =>
         errorStateCardIllustration: {
             width: 254,
             height: 165,
+            marginBottom: 12,
+        },
+
+        travelCardIllustration: {
+            width: 191,
+            height: 170,
+        },
+
+        successBankSharedCardIllustration: {
+            width: 164,
+            height: 164,
             marginBottom: 12,
         },
 
@@ -5163,11 +5265,21 @@ const staticStyles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFolderStaticIllustration: {
+            width: 184,
+            height: 112,
+        },
+
         emptyStateFireworksWebStyles: {
             width: 250,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        emptyStateFireworksStaticIllustration: {
+            width: 164,
+            height: 148,
         },
 
         tripEmptyStateLottieWebView: {
@@ -5215,6 +5327,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        workflowApprovalLimitText: {
+            marginLeft: 32,
+            paddingBottom: 0,
+        },
+
         integrationIcon: {
             overflow: 'hidden',
             borderRadius: variables.buttonBorderRadius,
@@ -5224,7 +5341,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
             padding: 16,
-            flexWrap: 'wrap',
         },
 
         accountSwitcherPopover: {
@@ -5253,8 +5369,8 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 16,
         },
 
-        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
-        sidePanelContainer: {zIndex: 10000},
+        // We have to use 9998 here as sidePanel has to be displayed right under popovers which have z-index of 9999
+        sidePanelContainer: {zIndex: variables.sidePanelZIndex},
 
         reportPreviewArrowButton: {
             borderRadius: 50,
@@ -5294,6 +5410,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
+        todoBadge: {
+            width: variables.w36,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: 0,
+            paddingRight: 0,
+        },
+
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
@@ -5329,10 +5453,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
-        testDriveBannerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
 
         twoColumnLayoutCol: {
@@ -5382,17 +5502,24 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPExtendedCardInterpolatorStyles: {
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            position: 'absolute',
             height: '100%',
             right: 0,
             width: animatedWideRHPWidth,
         },
 
         superWideRHPExtendedCardInterpolatorStyles: {
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            position: 'absolute',
             height: '100%',
             right: 0,
             width: animatedSuperWideRHPWidth,
+        },
+
+        singleRHPExtendedCardInterpolatorStyles: {
+            position: 'absolute',
+            height: '100%',
+            right: 0,
+            width: variables.sideBarWidth,
         },
 
         flexibleHeight: {
@@ -5568,6 +5695,9 @@ const staticStyles = (theme: ThemeColors) =>
             width: 179,
             height: 180,
         },
+        paymentMethodErrorRow: {
+            paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
@@ -5582,7 +5712,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
             marginRight: 4,
@@ -5665,46 +5795,14 @@ const dynamicStyles = (theme: ThemeColors) =>
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             }) satisfies AnchorPosition,
 
-        createAccountMenuPositionProfile: () =>
-            ({
-                horizontal: 18,
-                ...getPopOverVerticalOffset(202 + 40),
-            }) satisfies AnchorPosition,
-
-        createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
-            ({
-                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + variables.popoverMargin,
-                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
-            }) satisfies AnchorPosition,
-
-        createMenuPositionWideRHPReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
-            ({
-                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal:
-                    (shouldUseNarrowLayout
-                        ? windowWidth - calculateReceiptPaneRHPWidth(windowWidth) - variables.sideBarWidth
-                        : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + variables.popoverMargin,
-                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
-            }) satisfies AnchorPosition,
-
-        createMenuPositionSuperWideRHPReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
-            ({
-                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal:
-                    (shouldUseNarrowLayout ? windowWidth - calculateSuperWideRHPWidth(windowWidth) : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) +
-                    variables.popoverMargin,
-                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
-            }) satisfies AnchorPosition,
-
         overlayStyles: ({
             progress,
             positionLeftValue,
             positionRightValue,
         }: {
             progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value;
-            positionRightValue: number | Animated.Value;
+            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
@@ -5879,10 +5977,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
-            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+            opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
         sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,

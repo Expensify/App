@@ -123,7 +123,7 @@ function AttachmentPicker({
     fileLimit = 1,
     onOpenPicker,
 }: AttachmentPickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
@@ -164,7 +164,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                showCameraPermissionsAlert();
+                                showCameraPermissionsAlert(translate);
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -242,7 +242,7 @@ function AttachmentPicker({
                     }
                 });
             }),
-        [fileLimit, showGeneralAlert, type],
+        [fileLimit, showGeneralAlert, translate, type],
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
@@ -321,7 +321,6 @@ function AttachmentPicker({
      * @param onCanceledHandler A callback that will be called without a selected attachment
      */
     const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
-        // eslint-disable-next-line react-compiler/react-compiler
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
         onClosed.current = onClosedHandler;
@@ -498,7 +497,6 @@ function AttachmentPicker({
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
-                // eslint-disable-next-line react-compiler/react-compiler
                 onModalHide={() => onModalHide.current?.()}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
@@ -514,12 +512,9 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {renderChildren()}
         </>
     );
 }
-
-AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;

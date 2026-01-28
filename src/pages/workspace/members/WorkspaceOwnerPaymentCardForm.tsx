@@ -52,7 +52,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                 clearPaymentCardFormErrorAndSubmit();
             };
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -129,7 +129,5 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
         />
     );
 }
-
-WorkspaceOwnerPaymentCardForm.displayName = 'WorkspaceOwnerPaymentCardForm';
 
 export default WorkspaceOwnerPaymentCardForm;

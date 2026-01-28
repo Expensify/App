@@ -8,7 +8,7 @@ import usePolicy from './usePolicy';
 export default function useGetReceiptPartnersIntegrationData(policyID?: string) {
     const policy = usePolicy(policyID);
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Uber'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Uber']);
     const uber = policy?.receiptPartners?.uber;
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const shouldShowEnterCredentialsError = !!uber?.error;

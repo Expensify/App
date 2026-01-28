@@ -1,3 +1,4 @@
+import {filterPersonalCards} from '@selectors/Card';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -37,7 +38,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
 
     const [formError, setFormError] = useState('');
     const [lastFourDigits, setLastFourDigits] = useState('');
@@ -106,7 +107,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}
-            testID={ActivatePhysicalCardPageBase.displayName}
+            testID="ActivatePhysicalCardPageBase"
             shouldShowOfflineIndicatorInWideScreen
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
@@ -136,7 +137,5 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
         </IllustratedHeaderPageLayout>
     );
 }
-
-ActivatePhysicalCardPageBase.displayName = 'ActivatePhysicalCardPageBase';
 
 export default ActivatePhysicalCardPageBase;

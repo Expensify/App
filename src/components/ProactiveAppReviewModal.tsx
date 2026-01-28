@@ -26,7 +26,7 @@ type ProactiveAppReviewModalProps = {
 function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: ProactiveAppReviewModalProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
 
     return (
         <Modal
@@ -71,7 +71,5 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
         </Modal>
     );
 }
-
-ProactiveAppReviewModal.displayName = 'ProactiveAppReviewModal';
 
 export default ProactiveAppReviewModal;

@@ -23,6 +23,4 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     );
 }
 
-WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
-
 export default withPolicyAndFullscreenLoading(withCurrentUserPersonalDetails(WorkspaceInviteMessagePage));

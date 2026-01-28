@@ -32,15 +32,11 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync']);
     const policyID: string = route.params.policyID;
     const [hasError, setHasError] = useState(false);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
     const hasResultOfFetchingSetupLink = !!codatSetupLink || hasError;
-
-    const ContentWrapper = hasResultOfFetchingSetupLink
-        ? ({children}: React.PropsWithChildren) => children
-        : ({children}: React.PropsWithChildren) => <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>;
 
     const fetchSetupLink = useCallback(() => {
         setHasError(false);
@@ -65,7 +61,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useNetwork({
@@ -79,68 +75,70 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     const shouldShowError = hasError;
 
+    const children = (
+        <>
+            {shouldShowError && (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
+                    <Icon
+                        src={illustrations.BrokenMagnifyingGlass}
+                        width={116}
+                        height={168}
+                    />
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.qbd.setupPage.setupErrorTitle')}</Text>
+                    <View style={[styles.renderHTML, styles.ph5, styles.mv3]}>
+                        <RenderHTML html={translate('workspace.qbd.setupPage.setupErrorBody', {conciergeLink: `${environmentURL}/${ROUTES.CONCIERGE}`})} />
+                    </View>
+                </View>
+            )}
+            {!shouldShowError && (
+                <View style={[styles.flex1, styles.ph5]}>
+                    <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
+                        <ImageSVG src={illustrations.LaptopWithSecondScreenSync} />
+                    </View>
+
+                    <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>
+                    <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
+                    <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
+                        {!hasResultOfFetchingSetupLink ? (
+                            <ActivityIndicator />
+                        ) : (
+                            <CopyTextToClipboard
+                                text={codatSetupLink}
+                                textStyles={[styles.textSupporting]}
+                            />
+                        )}
+                    </View>
+                    <FixedFooter
+                        style={[styles.mtAuto, styles.ph0]}
+                        addBottomSafeAreaPadding
+                    >
+                        <Button
+                            success
+                            text={translate('common.done')}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID))}
+                            pressOnEnter
+                            large
+                        />
+                    </FixedFooter>
+                </View>
+            )}
+        </>
+    );
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={RequireQuickBooksDesktopModal.displayName}
+            testID="RequireQuickBooksDesktopModal"
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
-            <ContentWrapper>
-                {shouldShowError && (
-                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
-                        <Icon
-                            src={illustrations.BrokenMagnifyingGlass}
-                            width={116}
-                            height={168}
-                        />
-                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.qbd.setupPage.setupErrorTitle')}</Text>
-                        <View style={[styles.renderHTML, styles.ph5, styles.mv3]}>
-                            <RenderHTML html={translate('workspace.qbd.setupPage.setupErrorBody', {conciergeLink: `${environmentURL}/${ROUTES.CONCIERGE}`})} />
-                        </View>
-                    </View>
-                )}
-                {!shouldShowError && (
-                    <View style={[styles.flex1, styles.ph5]}>
-                        <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
-                            <ImageSVG src={illustrations.LaptopWithSecondScreenSync} />
-                        </View>
-
-                        <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>
-                        <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
-                        <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
-                            {!hasResultOfFetchingSetupLink ? (
-                                <ActivityIndicator />
-                            ) : (
-                                <CopyTextToClipboard
-                                    text={codatSetupLink}
-                                    textStyles={[styles.textSupporting]}
-                                />
-                            )}
-                        </View>
-                        <FixedFooter
-                            style={[styles.mtAuto, styles.ph0]}
-                            addBottomSafeAreaPadding
-                        >
-                            <Button
-                                success
-                                text={translate('common.done')}
-                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID))}
-                                pressOnEnter
-                                large
-                            />
-                        </FixedFooter>
-                    </View>
-                )}
-            </ContentWrapper>
+            {hasResultOfFetchingSetupLink ? children : <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>}
         </ScreenWrapper>
     );
 }
-
-RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
 
 export default RequireQuickBooksDesktopModal;

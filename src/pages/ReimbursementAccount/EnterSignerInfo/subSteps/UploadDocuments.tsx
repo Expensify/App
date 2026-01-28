@@ -253,6 +253,4 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     );
 }
 
-UploadDocuments.displayName = 'UploadDocuments';
-
 export default UploadDocuments;

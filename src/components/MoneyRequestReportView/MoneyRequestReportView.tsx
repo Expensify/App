@@ -5,7 +5,6 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager, ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -30,8 +29,8 @@ import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTra
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
-import ReportActionsView from '@pages/home/report/ReportActionsView';
-import ReportFooter from '@pages/home/report/ReportFooter';
+import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+import ReportFooter from '@pages/inbox/report/ReportFooter';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -144,7 +143,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportMetadata);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportMetadata, isOffline);
 
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
@@ -189,7 +188,9 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
     useEffect(() => {
-        return () => cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+        return () => {
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+        };
     }, [reportID]);
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
@@ -207,7 +208,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     if (isLoadingApp) {
         return (
             <View style={styles.flex1}>
-                <HeaderGap />
                 <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? (
@@ -229,6 +229,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     return (
         <View style={styles.flex1}>
             <OfflineWithFeedback
+                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
+                errors={reportErrors}
+                needsOffscreenAlphaCompositing
+                shouldShowErrorMessages={false}
+            >
+                {reportHeaderView}
+            </OfflineWithFeedback>
+            <OfflineWithFeedback
                 pendingAction={reportPendingAction}
                 errors={reportErrors}
                 onClose={dismissReportCreationError}
@@ -237,8 +245,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 contentContainerStyle={styles.flex1}
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
-                <HeaderGap />
-                {reportHeaderView}
                 <View style={[styles.flex1, styles.flexRow]}>
                     {shouldShowWideRHPReceipt && (
                         <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
@@ -300,7 +306,5 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         </View>
     );
 }
-
-MoneyRequestReportView.displayName = 'MoneyRequestReportView';
 
 export default MoneyRequestReportView;

@@ -15,6 +15,4 @@ function AnchorForCommentsOnly(props: AnchorForCommentsOnlyProps) {
     );
 }
 
-AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
-
 export default AnchorForCommentsOnly;

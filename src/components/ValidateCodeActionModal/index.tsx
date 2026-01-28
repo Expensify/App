@@ -55,6 +55,4 @@ function ValidateCodeActionModal({
     );
 }
 
-ValidateCodeActionModal.displayName = 'ValidateCodeActionModal';
-
 export default ValidateCodeActionModal;

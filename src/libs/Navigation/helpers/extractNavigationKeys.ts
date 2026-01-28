@@ -1,10 +1,10 @@
 import type {NavigationRoute} from '@libs/Navigation/types';
 
 /**
- * Utility function that extracts all unique navigation keys from a React Navigation state.
- * Recursively traverses the navigation state tree and collects all route keys.
+ * Utility function that extracts all unique navigation keys from an array of routes.
+ * Recursively traverses the routes and collects all route keys.
  *
- * @param state - The React Navigation state (can be partial or complete)
+ * @param routes - array of routes for key extraction
  * @returns Set of unique route keys found in the navigation state
  */
 function extractNavigationKeys(routes: NavigationRoute[] | undefined): Set<string> {

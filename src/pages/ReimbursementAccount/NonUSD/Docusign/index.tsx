@@ -85,6 +85,4 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Docu
     );
 }
 
-Docusign.displayName = 'Docusign';
-
 export default Docusign;

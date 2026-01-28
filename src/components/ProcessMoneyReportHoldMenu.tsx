@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -14,6 +14,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
+import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -47,11 +48,14 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Callback for displaying payment animation on IOU preview component */
     startAnimation?: () => void;
+
+    /** Whether the report has non held expenses */
+    hasNonHeldExpenses?: boolean;
 };
 
 function ProcessMoneyReportHoldMenu({
     requestType,
-    nonHeldAmount,
+    nonHeldAmount = '0',
     fullAmount,
     onClose,
     isVisible,
@@ -60,6 +64,7 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
     transactionCount,
     startAnimation,
+    hasNonHeldExpenses,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -68,6 +73,7 @@ function ProcessMoneyReportHoldMenu({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
+    const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
@@ -76,7 +82,13 @@ function ProcessMoneyReportHoldMenu({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (full: boolean) => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
         if (isApprove) {
             if (startAnimation) {
                 startAnimation();
@@ -95,17 +107,27 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full, activePolicy);
+            payMoneyRequest({
+                paymentType,
+                chatReport,
+                iouReport: moneyRequestReport,
+                introSelected,
+                iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
+                currentUserAccountID: currentUserDetails.accountID,
+                full,
+                activePolicy,
+                policy,
+            });
         }
         onClose();
     };
 
     const promptText = useMemo(() => {
-        if (nonHeldAmount) {
+        if (hasNonHeldExpenses) {
             return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
         }
         return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
-    }, [nonHeldAmount, transactionCount, translate, isApprove]);
+    }, [hasNonHeldExpenses, transactionCount, translate, isApprove]);
 
     return (
         <DecisionModal
@@ -113,7 +135,7 @@ function ProcessMoneyReportHoldMenu({
             onClose={onClose}
             isVisible={isVisible}
             prompt={promptText}
-            firstOptionText={nonHeldAmount ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
+            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
@@ -121,8 +143,6 @@ function ProcessMoneyReportHoldMenu({
         />
     );
 }
-
-ProcessMoneyReportHoldMenu.displayName = 'ProcessMoneyReportHoldMenu';
 
 export default ProcessMoneyReportHoldMenu;
 export type {ActionHandledType};

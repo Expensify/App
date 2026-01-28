@@ -27,7 +27,6 @@ import {
     isCurrencySupportedForDirectReimbursement,
     isCurrencySupportedForGlobalReimbursement,
     openPolicyWorkflowsPage,
-    setIsForcedToChangeCurrency,
     setWorkspaceApprovalMode,
     setWorkspaceAutoHarvesting,
     setWorkspaceReimbursement,
@@ -39,7 +38,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
@@ -72,8 +71,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['Workflows'] as const);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Workflows']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -104,7 +103,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const displayNameForAuthorizedPayer = useMemo(
-        () => getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
+        () => getDisplayNameOrDefault(getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? ''), policy?.achAccount?.reimburser),
         [policy?.achAccount?.reimburser],
     );
 
@@ -129,8 +128,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         setIsUpdateWorkspaceCurrencyModalOpen(false);
-        setIsForcedToChangeCurrency(true);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
     }, [policy]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
@@ -143,7 +141,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         InteractionManager.runAfterInteractions(() => {
             fetchData();
         });
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -265,6 +262,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 <ApprovalWorkflowSection
                                     approvalWorkflow={workflow}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))}
+                                    currency={policy?.outputCurrency}
                                 />
                             </OfflineWithFeedback>
                         ))}
@@ -503,7 +501,5 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
 export default withPolicy(WorkspaceWorkflowsPage);

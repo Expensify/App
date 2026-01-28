@@ -37,7 +37,7 @@ function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsL
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
 function TripDetailsPage({route}: TripDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'Pencil', 'Phone'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'Pencil', 'Phone']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -53,7 +53,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? reportID}`, {canBeMissing: true});
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
@@ -70,7 +70,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
             includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TripDetailsPage.displayName}
+            testID="TripDetailsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -146,7 +146,5 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-TripDetailsPage.displayName = 'TripDetailsPage';
 
 export default TripDetailsPage;

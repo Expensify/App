@@ -1,3 +1,4 @@
+import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -10,6 +11,7 @@ import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import useTodos from './useTodos';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -38,14 +40,17 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
+
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
+    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: defaultExpensifyCardSelector});
 
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp'] as const);
+    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
+
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']);
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
@@ -55,6 +60,7 @@ const useSearchTypeMenuSections = () => {
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
+    const {reportCounts} = useTodos();
 
     const handlePendingConfirm = useCallback(
         (shouldDismissEmptyReportsConfirmation: boolean) => {
@@ -102,6 +108,7 @@ const useSearchTypeMenuSections = () => {
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
                 allTransactionDrafts,
+                reportCounts,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -115,6 +122,7 @@ const useSearchTypeMenuSections = () => {
             shouldRedirectToExpensifyClassic,
             allTransactionDrafts,
             icons,
+            reportCounts,
         ],
     );
 

@@ -6,5 +6,4 @@ function AddDomainVerifyAccountPage() {
     return <VerifyAccountPageBase navigateBackTo={ROUTES.WORKSPACES_ADD_DOMAIN} />;
 }
 
-AddDomainVerifyAccountPage.displayName = 'AddDomainVerifyAccountPage';
 export default AddDomainVerifyAccountPage;

@@ -1,7 +1,6 @@
+import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import {emailSelector} from '@selectors/Session';
-import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -30,6 +29,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+            CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
@@ -48,7 +48,6 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -73,7 +72,6 @@ const typeFiltersKeys = {
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -111,7 +109,6 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
         [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -150,7 +147,6 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
         [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -210,10 +206,7 @@ function useAdvancedSearchFilters() {
     const {localeCompare} = useLocalize();
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const policyID = searchAdvancedFilters.policyID;
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
-
+    const [searchCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: filterCardsHiddenFromSearch});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: false,
@@ -256,7 +249,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayAttendeeFilter = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED);
     const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, selectedPolicyCategories?.length > 0);
     const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!selectedPolicyTagLists);
-    const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
+    const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(searchCards ?? {}).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
     const shouldDisplayGroupCurrencyFilter = !!searchAdvancedFilters.groupBy;

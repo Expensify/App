@@ -12,17 +12,19 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import colors from '@styles/theme/colors';
 import {openExternalLink} from '@userActions/Link';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
@@ -49,14 +51,15 @@ type MenuItem = {
 };
 
 function AboutPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['PalmTree'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
+    const illustrations = useMemoizedLazyIllustrations(['PalmTree']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const aboutIllustration = useAboutSectionIllustration();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -93,7 +96,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
-                action: waitForNavigate(navigateToConciergeChat),
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, false)),
             },
         ];
 
@@ -117,7 +120,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [icons, styles, translate, waitForNavigate]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID]);
 
     const overlayContent = useCallback(
         () => (
@@ -131,7 +134,7 @@ function AboutPage() {
             </View>
         ),
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -139,7 +142,7 @@ function AboutPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={AboutPage.displayName}
+            testID="AboutPage"
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.about')}
@@ -178,7 +181,5 @@ function AboutPage() {
         </ScreenWrapper>
     );
 }
-
-AboutPage.displayName = 'AboutPage';
 
 export default AboutPage;

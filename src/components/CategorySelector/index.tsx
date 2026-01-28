@@ -70,6 +70,4 @@ function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategor
     );
 }
 
-CategorySelector.displayName = 'CategorySelector';
-
 export default CategorySelector;

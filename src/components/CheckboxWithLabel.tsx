@@ -121,8 +121,6 @@ function CheckboxWithLabel({
     );
 }
 
-CheckboxWithLabel.displayName = 'CheckboxWithLabel';
-
 export default CheckboxWithLabel;
 
 export type {CheckboxWithLabelProps};

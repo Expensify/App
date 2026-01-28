@@ -23,8 +23,8 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     const {asset: Encryption} = useMemoizedLazyAsset(() => loadIllustration('Encryption'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const accountID = route.params.accountID;
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: true});
+    const domainAccountID = route.params.domainAccountID;
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: true});
 
     if (isLoadingOnyxValue(isAdminResults)) {
         return <FullScreenLoadingIndicator />;
@@ -35,7 +35,7 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={DomainAddedPage.displayName}>
+        <ScreenWrapper testID="DomainAddedPage">
             <HeaderWithBackButton title={translate('domain.domainAdded.title')} />
             <ConfirmationPage
                 illustration={Encryption}
@@ -45,11 +45,10 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
                 descriptionStyle={styles.textSupporting}
                 buttonText={translate('domain.domainAdded.configure')}
                 shouldShowButton
-                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID))}
+                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID))}
             />
         </ScreenWrapper>
     );
 }
 
-DomainAddedPage.displayName = 'DomainAddedPage';
 export default DomainAddedPage;

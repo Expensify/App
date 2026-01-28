@@ -64,7 +64,7 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CompleteVerification.displayName}
+            wrapperID="CompleteVerification"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('completeVerificationStep.completeVerification')}
@@ -80,7 +80,5 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
         </InteractiveStepWrapper>
     );
 }
-
-CompleteVerification.displayName = 'CompleteVerification';
 
 export default CompleteVerification;

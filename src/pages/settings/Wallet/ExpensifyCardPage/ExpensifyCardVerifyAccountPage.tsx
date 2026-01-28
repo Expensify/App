@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import useExpensifyCardContext from './useExpensifyCardContext';
+import {useExpensifyCardActions} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardVerifyAccountPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE>
@@ -26,7 +26,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const [validateError, setValidateError] = useState<Errors>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const primaryLogin = account?.primaryLogin ?? '';
-    const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardContext();
+    const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardActions();
 
     const navigateBack = () => {
         if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE) {
@@ -73,7 +73,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}
@@ -86,7 +86,5 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         />
     );
 }
-
-ExpensifyCardVerifyAccountPage.displayName = 'ExpensifyCardVerifyAccountPage';
 
 export default ExpensifyCardVerifyAccountPage;

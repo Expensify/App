@@ -8,6 +8,8 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,8 +30,10 @@ import type SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
+import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
@@ -54,12 +58,16 @@ function DistanceRequestStartPage({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const showGPSTab = isBetaEnabled(CONST.BETAS.GPS_MILEAGE);
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
@@ -94,27 +102,6 @@ function DistanceRequestStartPage({
         Navigation.closeRHPFlow();
     };
 
-    // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
-    useEffect(() => {
-        if (transaction?.amount !== 0) {
-            return;
-        }
-        initMoneyRequest({
-            reportID,
-            policy,
-            isFromGlobalCreate,
-            currentIouRequestType: transaction?.iouRequestType,
-            newIouRequestType: transaction?.iouRequestType,
-            report,
-            parentReport,
-            currentDate,
-            lastSelectedDistanceRates,
-            currentUserPersonalDetails,
-            hasOnlyPersonalPolicies,
-        });
-        // eslint-disable-next-line
-    }, []);
-
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
             Keyboard.dismiss();
@@ -124,6 +111,7 @@ function DistanceRequestStartPage({
             initMoneyRequest({
                 reportID,
                 policy,
+                personalPolicy,
                 isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
@@ -133,12 +121,14 @@ function DistanceRequestStartPage({
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
                 hasOnlyPersonalPolicies,
+                draftTransactions,
             });
         },
         [
             transaction?.iouRequestType,
             reportID,
             policy,
+            personalPolicy,
             isFromGlobalCreate,
             report,
             parentReport,
@@ -146,6 +136,7 @@ function DistanceRequestStartPage({
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
+            draftTransactions,
         ],
     );
 
@@ -179,7 +170,7 @@ function DistanceRequestStartPage({
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                testID={DistanceRequestStartPage.displayName}
+                testID="DistanceRequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
                 <View style={styles.flex1}>
@@ -221,13 +212,35 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
+                        {showGPSTab && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceGPS
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
+                        {false && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-DistanceRequestStartPage.displayName = 'DistanceRequestStartPage';
 
 export default DistanceRequestStartPage;

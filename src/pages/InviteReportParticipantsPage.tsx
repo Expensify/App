@@ -4,6 +4,7 @@ import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
@@ -31,8 +32,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
@@ -58,19 +59,20 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         return res;
     }, [report]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-        includeUserToInvite: true,
-        excludeLogins: excludedUsers,
-        includeRecentReports: true,
-        shouldInitialize: didScreenTransitionEnd,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+            includeUserToInvite: true,
+            excludeLogins: excludedUsers,
+            includeRecentReports: true,
+            shouldInitialize: didScreenTransitionEnd,
+        });
 
     useEffect(() => {
-        updateUserSearchPhrase(searchTerm);
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        updateUserSearchPhrase(debouncedSearchTerm);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const sections = useMemo(() => {
         const sectionsArray: Sections = [];
@@ -143,12 +145,12 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             }
             invitedEmailsToAccountIDs[login] = accountID;
         }
-        inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
-    }, [selectedOptions, goBack, reportID, validate, formatPhoneNumber]);
+    }, [selectedOptions, goBack, report, validate, formatPhoneNumber]);
 
     const headerMessage = useMemo(() => {
-        const processedLogin = searchTerm.trim().toLowerCase();
+        const processedLogin = debouncedSearchTerm.trim().toLowerCase();
         const expensifyEmails = CONST.EXPENSIFY_EMAILS;
         if (!availableOptions.userToInvite && expensifyEmails.includes(processedLogin)) {
             return translate('messages.errorMessageInvalidEmail');
@@ -169,7 +171,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             false,
         );
     }, [
-        searchTerm,
+        debouncedSearchTerm,
         availableOptions.userToInvite,
         availableOptions.recentReports.length,
         availableOptions.personalDetails.length,
@@ -199,7 +201,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={InviteReportParticipantsPage.displayName}
+            testID="InviteReportParticipantsPage"
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <HeaderWithBackButton
@@ -227,7 +229,5 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         </ScreenWrapper>
     );
 }
-
-InviteReportParticipantsPage.displayName = 'InviteReportParticipantsPage';
 
 export default withNavigationTransitionEnd(withReportOrNotFound()(InviteReportParticipantsPage));

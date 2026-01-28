@@ -15,10 +15,10 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
 function WorkspaceOwnerRestrictedAction() {
-    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
     const addPaymentCard = () => {
         Navigation.closeRHPFlow();
@@ -28,7 +28,7 @@ function WorkspaceOwnerRestrictedAction() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={WorkspaceOwnerRestrictedAction.displayName}
+            testID="WorkspaceOwnerRestrictedAction"
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
@@ -62,7 +62,5 @@ function WorkspaceOwnerRestrictedAction() {
         </ScreenWrapper>
     );
 }
-
-WorkspaceOwnerRestrictedAction.displayName = 'WorkspaceOwnerRestrictedAction';
 
 export default WorkspaceOwnerRestrictedAction;

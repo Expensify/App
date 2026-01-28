@@ -67,6 +67,4 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-SocialSecurityNumber.displayName = 'SocialSecurityNumber';
-
 export default SocialSecurityNumber;

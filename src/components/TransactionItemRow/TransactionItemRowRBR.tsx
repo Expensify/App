@@ -80,5 +80,4 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
     );
 }
 
-TransactionItemRowRBR.displayName = 'TransactionItemRowRBR';
 export default TransactionItemRowRBR;

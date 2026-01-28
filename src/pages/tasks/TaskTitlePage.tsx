@@ -21,8 +21,8 @@ import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength, getParsedComment, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import variables from '@styles/variables';
 import {canModifyTask, editTask} from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
             if (!parsedTitle) {
                 addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
             } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: parsedTitleLength, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', parsedTitleLength, CONST.TASK_TITLE_CHARACTER_LIMIT));
             }
 
             return errors;
@@ -88,7 +88,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                 inputRef?.current?.focus();
             }}
             shouldEnableMaxHeight
-            testID={TaskTitlePage.displayName}
+            testID="TaskTitlePage"
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
@@ -135,8 +135,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         </ScreenWrapper>
     );
 }
-
-TaskTitlePage.displayName = 'TaskTitlePage';
 
 const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskTitlePage);
 

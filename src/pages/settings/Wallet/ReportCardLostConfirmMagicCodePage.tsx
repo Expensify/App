@@ -1,5 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useState} from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -70,8 +71,12 @@ function ReportCardLostConfirmMagicCodePage({
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
-                testID={ReportCardLostConfirmMagicCodePage.displayName}
+                testID="ReportCardLostConfirmMagicCodePage"
             >
+                <HeaderWithBackButton
+                    title={translate('common.success')}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(newCardID))}
+                />
                 <SuccessReportCardLost cardID={newCardID} />
             </ScreenWrapper>
         );
@@ -83,7 +88,7 @@ function ReportCardLostConfirmMagicCodePage({
             handleSubmitForm={handleValidateCodeEntered}
             isLoading={formData?.isLoading}
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateError={validateError}
             clearError={() => {
@@ -99,7 +104,5 @@ function ReportCardLostConfirmMagicCodePage({
         />
     );
 }
-
-ReportCardLostConfirmMagicCodePage.displayName = 'ReportCardLostConfirmMagicCodePage';
 
 export default ReportCardLostConfirmMagicCodePage;

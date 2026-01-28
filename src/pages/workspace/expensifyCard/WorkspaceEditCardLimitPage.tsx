@@ -132,7 +132,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceEditCardLimitPage.displayName}
+                testID="WorkspaceEditCardLimitPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -166,7 +166,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                                 isVisible={isConfirmModalVisible}
                                 onConfirm={() => updateCardLimit(Number(inputValues[INPUT_IDS.LIMIT]) * 100)}
                                 onCancel={() => setIsConfirmModalVisible(false)}
-                                prompt={translate(getPromptTextKey, {limit: convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, currency)})}
+                                prompt={translate(getPromptTextKey, convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, currency))}
                                 confirmText={translate('workspace.expensifyCard.changeLimit')}
                                 cancelText={translate('common.cancel')}
                                 danger
@@ -179,7 +179,5 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceEditCardLimitPage.displayName = 'WorkspaceEditCardLimitPage';
 
 export default WorkspaceEditCardLimitPage;

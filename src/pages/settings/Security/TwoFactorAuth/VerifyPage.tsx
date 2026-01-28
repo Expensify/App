@@ -160,6 +160,4 @@ function VerifyPage({route}: VerifyPageProps) {
     );
 }
 
-VerifyPage.displayName = 'VerifyPage';
-
 export default VerifyPage;

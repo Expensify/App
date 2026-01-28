@@ -70,6 +70,4 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     );
 }
 
-AttachmentModalContainer.displayName = 'AttachmentModalContainer';
-
 export default memo(AttachmentModalContainer);

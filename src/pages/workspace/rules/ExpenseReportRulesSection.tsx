@@ -8,7 +8,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getWorkflowApprovalsUnavailable, hasVBBA, isControlPolicy} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -24,14 +24,15 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
-    const autoPayApprovedReportsUnavailable = !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !hasVBBA(policyID);
+    const autoPayApprovedReportsUnavailable =
+        !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         const moreFeaturesLink = `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
         if (variant === 'unlock') {
-            return translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName});
+            return translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', featureName);
         }
-        return translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName, moreFeaturesLink});
+        return translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', featureName, moreFeaturesLink);
     };
 
     const optionItems = [

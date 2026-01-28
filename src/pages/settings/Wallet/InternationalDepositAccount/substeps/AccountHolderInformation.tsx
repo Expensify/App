@@ -126,6 +126,4 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
     );
 }
 
-AccountHolderInformation.displayName = 'AccountHolderInformation';
-
 export default AccountHolderInformation;

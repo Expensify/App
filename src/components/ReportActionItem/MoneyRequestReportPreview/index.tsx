@@ -13,7 +13,7 @@ import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportAct
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -97,7 +97,7 @@ function MoneyRequestReportPreview({
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+        return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {
@@ -175,7 +175,5 @@ function MoneyRequestReportPreview({
         />
     );
 }
-
-MoneyRequestReportPreview.displayName = 'MoneyRequestReportPreview';
 
 export default MoneyRequestReportPreview;

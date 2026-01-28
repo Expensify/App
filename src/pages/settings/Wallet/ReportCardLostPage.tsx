@@ -1,3 +1,4 @@
+import {filterPersonalCards} from '@selectors/Card';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -57,7 +58,7 @@ function ReportCardLostPage({
     const {translate} = useLocalize();
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     const [reason, setReason] = useState<Option>();
@@ -121,7 +122,7 @@ function ReportCardLostPage({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={ReportCardLostPage.displayName}
+            testID="ReportCardLostPage"
         >
             <HeaderWithBackButton
                 title={translate('reportCardLostOrDamaged.screenTitle')}
@@ -180,7 +181,5 @@ function ReportCardLostPage({
         </ScreenWrapper>
     );
 }
-
-ReportCardLostPage.displayName = 'ReportCardLostPage';
 
 export default ReportCardLostPage;

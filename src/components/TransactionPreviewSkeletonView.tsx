@@ -23,7 +23,7 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
     return (
         <View style={[styles.p4, styles.mtn1, styles.justifyContentBetween, {width: transactionPreviewWidth}]}>
             <SkeletonViewContentLoader
-                testID={TransactionPreviewSkeletonView.displayName}
+                testID="TransactionPreviewSkeletonView"
                 animate
                 width={widthOfTheLeftSkeleton}
                 height={height}
@@ -64,5 +64,4 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
     );
 }
 
-TransactionPreviewSkeletonView.displayName = 'TransactionPreviewSkeletonView';
 export default TransactionPreviewSkeletonView;

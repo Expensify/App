@@ -6,6 +6,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {startSplitBill} from '@libs/actions/IOU/Split';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +30,11 @@ jest.mock('@libs/actions/IOU', () => {
     return {
         ...actualNav,
         startMoneyRequest: jest.fn(),
+        requestMoney: jest.fn(() => ({iouReport: undefined})),
+    };
+});
+jest.mock('@libs/actions/IOU/Split', () => {
+    return {
         startSplitBill: jest.fn(),
     };
 });
@@ -56,6 +62,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        dismissModalWithReport: jest.fn(),
         navigationRef: mockRef,
     };
 });
@@ -290,7 +297,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             </OnyxListItemProvider>,
         );
         fireEvent.press(await screen.findByText(translateLocal('iou.splitExpense')));
-        expect(IOU.startSplitBill).toHaveBeenCalledTimes(1);
+        expect(startSplitBill).toHaveBeenCalledTimes(1);
     });
 
     it('should create a split expense for each scanned receipt', async () => {
@@ -338,8 +345,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </HTMLProviderWrapper>
             </OnyxListItemProvider>,
         );
-        fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', {expensesNumber: 2})));
-        expect(IOU.startSplitBill).toHaveBeenCalledTimes(2);
+        fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', 2)));
+        expect(startSplitBill).toHaveBeenCalledTimes(2);
     });
 
     describe('Tax Calculation Tests', () => {
@@ -861,6 +868,231 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(updatedTaxCode).toBe('taxRate2');
             expect(updatedTaxAmount).not.toBe(initialTaxAmount);
             expect(updatedTaxCode).not.toBe(initialTaxCode);
+        });
+    });
+
+    describe('Report selection guard tests', () => {
+        beforeEach(async () => {
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        });
+
+        function getConfirmButtonRegex() {
+            // Covers all likely labels, e.g. "Create $10.00 expense" and "Create 3 expenses"
+            return /^Create .*expense/i;
+        }
+
+        it('should not fallback to route report when transaction report differs and is not usable', async () => {
+            const routeReportID = '100';
+            const transactionReportID = '200';
+            const transactionID = 'tx-1';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test Policy'),
+                id: POLICY_ID,
+                harvesting: {enabled: false},
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${routeReportID}`, {
+                    reportID: routeReportID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`, {
+                    reportID: transactionReportID,
+                    policyID: POLICY_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: transactionReportID,
+                    amount: 1000,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: routeReportID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            expect(IOU.requestMoney).toHaveBeenCalled();
+            const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+            const params = requestMoneyMock.mock.calls.at(0)?.at(0);
+            expect(params?.report).toBeUndefined();
+        });
+
+        it('should fallback to route report when transaction report matches the route and is not usable', async () => {
+            const routeReportID = '101';
+            const transactionID = 'tx-2';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test Policy'),
+                id: POLICY_ID,
+                harvesting: {enabled: false},
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                // Make the (route + transaction) report "processing" so shouldUseTransactionReport becomes false
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${routeReportID}`, {
+                    reportID: routeReportID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: routeReportID,
+                    amount: 1000,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: routeReportID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            expect(IOU.requestMoney).toHaveBeenCalled();
+            const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+            const params = requestMoneyMock.mock.calls.at(0)?.at(0);
+            expect(params?.report?.reportID).toBe(routeReportID);
+        });
+
+        it('should use the transaction report when it is allowed, even if it differs from the route', async () => {
+            const routeReportID = '102';
+            const transactionReportID = '202';
+            const transactionID = 'tx-3';
+
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test Policy'),
+                id: POLICY_ID,
+                harvesting: {enabled: false},
+            };
+
+            const isReportOutstandingSpy = jest.spyOn(require('@libs/ReportUtils'), 'isReportOutstanding').mockReturnValue(true);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${routeReportID}`, {
+                        reportID: routeReportID,
+                        policyID: POLICY_ID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                    });
+                    // Make the transaction report not "processing"
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`, {
+                        reportID: transactionReportID,
+                        policyID: POLICY_ID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: transactionReportID,
+                        amount: 1000,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID,
+                                                reportID: routeReportID,
+                                            },
+                                        }}
+                                        // @ts-expect-error we don't need navigation param here.
+                                        navigation={undefined}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                await waitForBatchedUpdatesWithAct();
+                fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+                expect(IOU.requestMoney).toHaveBeenCalled();
+                const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+                const params = requestMoneyMock.mock.calls.at(0)?.at(0);
+                expect(params?.report?.reportID).toBe(transactionReportID);
+            } finally {
+                isReportOutstandingSpy.mockRestore();
+            }
         });
     });
 });

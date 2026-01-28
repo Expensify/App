@@ -46,7 +46,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteExistingConnectionsPage.displayName}
+            displayName="NetSuiteExistingConnectionsPage"
             headerTitle="workspace.common.existingConnections"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -66,7 +66,5 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
         </ConnectionLayout>
     );
 }
-
-NetSuiteExistingConnectionsPage.displayName = 'NetSuiteExistingConnectionsPage';
 
 export default NetSuiteExistingConnectionsPage;

@@ -72,7 +72,7 @@ function WorkspaceResetBankAccountModal({
                 setIsResettingBankAccount(true);
             }
 
-            resetNonUSDBankAccount(policyID, policy?.achAccount, !achData?.bankAccountID, lastPaymentMethod);
+            resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID, lastPaymentMethod);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);
@@ -114,7 +114,7 @@ function WorkspaceResetBankAccountModal({
             prompt={
                 isInOpenState ? (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', {bankName: bankShortName})} />
+                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', bankShortName)} />
                     </View>
                 ) : (
                     translate('workspace.bankAccount.clearProgress')
@@ -128,7 +128,5 @@ function WorkspaceResetBankAccountModal({
         />
     );
 }
-
-WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 
 export default WorkspaceResetBankAccountModal;

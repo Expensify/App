@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -31,13 +32,14 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
+    const isFocused = useIsFocused();
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
@@ -53,9 +55,16 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
+
+        // This screen is rendered underneath other 2FA screens. We don't want it making
+        // API calls in the background in response to state updates
+        if (!isFocused) {
+            return;
+        }
+
         toggleTwoFactorAuth(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
+    }, [isUserValidated, accountMetadata.status, isFocused]);
 
     return (
         <TwoFactorAuthWrapper
@@ -124,7 +133,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             text={translate('common.download')}
                                             icon={icons.Download}
                                             onPress={() => {
-                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '');
+                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
                                                 setError('');
                                                 setCodesAreCopied();
                                             }}
@@ -166,7 +175,5 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
         </TwoFactorAuthWrapper>
     );
 }
-
-CopyCodesPage.displayName = 'CopyCodesPage';
 
 export default CopyCodesPage;

@@ -58,6 +58,11 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
+    } else if (!isEmpty(htmlAttribAccountID)) {
+        // accountID not found in personal details and mention data not provided
+        accountID = parseInt(htmlAttribAccountID, 10);
+        mentionDisplayText = getDisplayNameOrDefault();
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;
@@ -121,7 +126,5 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         </ShowContextMenuContext.Consumer>
     );
 }
-
-MentionUserRenderer.displayName = 'MentionUserRenderer';
 
 export default withCurrentUserPersonalDetails(MentionUserRenderer);

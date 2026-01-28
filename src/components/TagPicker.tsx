@@ -11,6 +11,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import RadioListItem from './SelectionListWithSections/RadioListItem';
 
@@ -134,11 +135,13 @@ function TagPicker({
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
+    const listItemTitleStyles = [styles.breakAll, styles.w100];
+
     return (
         <SelectionList
             ListItem={RadioListItem}
             sectionTitleStyles={styles.mt5}
-            listItemTitleStyles={styles.breakAll}
+            listItemTitleStyles={listItemTitleStyles}
             sections={sections}
             textInputValue={searchValue}
             headerMessage={headerMessage}
@@ -149,8 +152,6 @@ function TagPicker({
         />
     );
 }
-
-TagPicker.displayName = 'TagPicker';
 
 export default TagPicker;
 

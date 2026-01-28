@@ -4,6 +4,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
@@ -11,6 +12,7 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import RadioListItem from './SelectionListWithSections/RadioListItem';
 import type {ListItem} from './SelectionListWithSections/types';
@@ -28,6 +30,7 @@ type CategoryPickerProps = {
 };
 
 function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false, contentContainerStyle}: CategoryPickerProps) {
+    const styles = useThemeStyles();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -87,10 +90,9 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             contentContainerStyle={contentContainerStyle}
+            listItemTitleStyles={styles.w100}
         />
     );
 }
-
-CategoryPicker.displayName = 'CategoryPicker';
 
 export default CategoryPicker;

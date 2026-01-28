@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect} from 'react';
+import {filterPersonalCards} from '@selectors/Card';
+import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +23,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
         params: {cardID = ''},
     },
 }: ReportVirtualCardFraudVerifyAccountPageProps) {
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: false});
     const virtualCard = cardList?.[cardID];
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -50,29 +51,26 @@ function ReportVirtualCardFraudVerifyAccountPage({
         }
     }, [formData?.isLoading, latestIssuedVirtualCardID, cardError, codeError, prevIsLoading]);
 
-    const handleValidateCodeEntered = useCallback(
-        (validateCode: string) => {
-            if (!virtualCard) {
-                return;
-            }
+    const handleValidateCodeEntered = (validateCode: string) => {
+        if (!virtualCard) {
+            return;
+        }
 
-            reportVirtualExpensifyCardFraud(virtualCard, validateCode);
-        },
-        [virtualCard],
-    );
+        reportVirtualExpensifyCardFraud(virtualCard, validateCode);
+    };
 
-    const handleClearError = useCallback(() => {
+    const handleClearError = () => {
         clearValidateCodeActionError(ONYXKEYS.VALIDATE_ACTION_CODE);
         if (!virtualCard?.cardID) {
             return;
         }
         clearCardListErrors(virtualCard.cardID);
-    }, [virtualCard?.cardID]);
+    };
 
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="reportVirtualCard"
             handleSubmitForm={handleValidateCodeEntered}
@@ -85,7 +83,5 @@ function ReportVirtualCardFraudVerifyAccountPage({
         />
     );
 }
-
-ReportVirtualCardFraudVerifyAccountPage.displayName = 'ReportVirtualCardFraudVerifyAccountPage';
 
 export default ReportVirtualCardFraudVerifyAccountPage;

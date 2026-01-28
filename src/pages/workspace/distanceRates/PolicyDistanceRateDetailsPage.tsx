@@ -150,7 +150,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                testID={PolicyDistanceRateDetailsPage.displayName}
+                testID="PolicyDistanceRateDetailsPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
             >
@@ -271,7 +271,5 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRateDetailsPage.displayName = 'PolicyDistanceRateDetailsPage';
 
 export default PolicyDistanceRateDetailsPage;

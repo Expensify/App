@@ -131,7 +131,7 @@ function Banner({
                                 <PressableWithFeedback
                                     onPress={onClose}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('common.close')}
+                                    accessibilityLabel={text ? `${translate('common.close')}, ${text}` : translate('common.close')}
                                 >
                                     <Icon
                                         src={expensifyIcons.Close}
@@ -146,8 +146,6 @@ function Banner({
         </Hoverable>
     );
 }
-
-Banner.displayName = 'Banner';
 
 export default memo(Banner);
 

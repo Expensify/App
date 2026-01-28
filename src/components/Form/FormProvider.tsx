@@ -4,7 +4,7 @@ import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
-import {useInputBlurContext} from '@components/InputBlurContext';
+import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
@@ -139,7 +139,7 @@ function FormProvider({
     }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
-    const {setIsBlurred} = useInputBlurContext();
+    const {setIsBlurred} = useInputBlurActions();
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
@@ -221,7 +221,7 @@ function FormProvider({
         onValidate(trimmedStringValues, !hasServerError);
 
         // Only run when locales change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [preferredLocale]);
 
     /** @param inputID - The inputID of the input being touched */
@@ -247,6 +247,10 @@ function FormProvider({
                 touchedInputs.current[inputID] = true;
             }
 
+            if (hasServerError) {
+                return;
+            }
+
             // Validate form and return early if any errors are found
             if (!isEmptyObject(onValidate(trimmedStringValues))) {
                 return;
@@ -258,7 +262,7 @@ function FormProvider({
             }
 
             KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues]),
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError]),
         1000,
         {leading: true, trailing: false},
     );
@@ -323,7 +327,6 @@ function FormProvider({
                 inputRefs.current[inputID] = newRef;
             }
             if (inputProps.value !== undefined) {
-                // eslint-disable-next-line react-compiler/react-compiler
                 inputValues[inputID] = inputProps.value;
             } else if (inputProps.shouldSaveDraft && draftValues?.[inputID] !== undefined && inputValues[inputID] === undefined) {
                 inputValues[inputID] = draftValues[inputID];
@@ -470,8 +473,6 @@ function FormProvider({
         </FormContext.Provider>
     );
 }
-
-FormProvider.displayName = 'Form';
 
 export default FormProvider as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID>) => ReactNode;
 

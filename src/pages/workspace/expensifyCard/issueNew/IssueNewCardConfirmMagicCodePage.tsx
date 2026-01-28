@@ -55,14 +55,14 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
 
     const handleClose = useCallback(() => {
         resetValidateActionCodeSent();
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, backTo));
+        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, backTo));
     }, [policyID, backTo]);
 
     return (
         <ValidateCodeActionContent
             isLoading={issueNewCard?.isLoading}
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
             handleSubmitForm={handleSubmit}
@@ -72,7 +72,5 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
         />
     );
 }
-
-IssueNewCardConfirmMagicCodePage.displayName = 'ExpensifyCardVerifyAccountPage';
 
 export default IssueNewCardConfirmMagicCodePage;

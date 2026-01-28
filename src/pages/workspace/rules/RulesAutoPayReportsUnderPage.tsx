@@ -8,10 +8,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -30,6 +31,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyList();
     const styles = useThemeStyles();
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -40,7 +42,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};
         if (convertToBackendAmount(parseFloat(maxExpenseAutoPayAmount)) > CONST.POLICY.AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS) {
-            errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLimitError', {currency: currencySymbol});
+            errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLimitError', currencySymbol);
         }
         return errors;
     };
@@ -55,7 +57,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesAutoPayReportsUnderPage.displayName}
+                testID="RulesAutoPayReportsUnderPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
@@ -92,7 +94,5 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesAutoPayReportsUnderPage.displayName = 'RulesAutoPayReportsUnderPage';
 
 export default RulesAutoPayReportsUnderPage;

@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -25,7 +25,7 @@ type DownloadMenuItem = MenuItemProps & {
 };
 
 function AppDownloadLinksPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Monitor', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Monitor', 'NewWindow']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
@@ -49,19 +49,10 @@ function AppDownloadLinksPage() {
             icon: Expensicons.Apple,
             iconRight: icons.NewWindow,
         },
-        {
-            translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
-            action: () => {
-                openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
-            },
-            link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
-            icon: icons.Monitor,
-            iconRight: icons.NewWindow,
-        },
     ];
 
     return (
-        <ScreenWrapper testID={AppDownloadLinksPage.displayName}>
+        <ScreenWrapper testID="AppDownloadLinksPage">
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -96,13 +87,12 @@ function AppDownloadLinksPage() {
                         iconRight={item.iconRight}
                         shouldBlockSelection
                         shouldShowRightIcon
+                        role={CONST.ROLE.LINK}
                     />
                 ))}
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
 export default AppDownloadLinksPage;

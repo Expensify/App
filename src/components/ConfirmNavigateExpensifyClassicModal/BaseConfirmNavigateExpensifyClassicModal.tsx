@@ -39,6 +39,4 @@ function BaseConfirmNavigateExpensifyClassicModal() {
     );
 }
 
-BaseConfirmNavigateExpensifyClassicModal.displayName = 'BaseConfirmNavigateExpensifyClassicModal';
-
 export default BaseConfirmNavigateExpensifyClassicModal;

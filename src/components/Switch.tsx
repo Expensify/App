@@ -36,7 +36,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     const styles = useThemeStyles();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
     useEffect(() => {
         offsetX.set(withTiming(isOn ? OFFSET_X.ON : OFFSET_X.OFF, {duration: 300}));
@@ -88,5 +88,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     );
 }
 
-Switch.displayName = 'Switch';
 export default Switch;

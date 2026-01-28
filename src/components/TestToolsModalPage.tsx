@@ -38,7 +38,7 @@ function TestToolsModalPage() {
 
     // If no backTo param is provided (direct access to /test-tools),
     // use home route as a default backTo param for console navigation
-    const effectiveBackTo = backTo ?? ROUTES.HOME;
+    const effectiveBackTo = backTo ?? ROUTES.INBOX;
     const consoleRoute = getRouteBasedOnAuthStatus(isAuthenticated, effectiveBackTo);
 
     const maxHeight = windowHeight;
@@ -85,7 +85,5 @@ function TestToolsModalPage() {
         </SafeAreaConsumer>
     );
 }
-
-TestToolsModalPage.displayName = 'TestToolsModalPage';
 
 export default TestToolsModalPage;

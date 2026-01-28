@@ -1,14 +1,13 @@
-import type {ForwardedRef} from 'react';
-import {forwardRef, useEffect} from 'react';
-import type {FlatList} from 'react-native';
+import {useEffect} from 'react';
 import {useAnimatedProps, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
 import CONST from '@src/CONST';
-import useKeyboardDismissibleFlatListValues from './useKeyboardDismissibleFlatListValues';
+import {useKeyboardDismissibleFlatListActions, useKeyboardDismissibleFlatListState} from './KeyboardDismissibleFlatListContext';
 
-function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
-    const {keyboardHeight, keyboardOffset, onScroll: onScrollHandleKeyboard, setListBehavior} = useKeyboardDismissibleFlatListValues();
+function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ref, ...restProps}: AnimatedFlatListWithCellRendererProps<T>) {
+    const {keyboardHeight, keyboardOffset} = useKeyboardDismissibleFlatListState();
+    const {onScroll: onScrollHandleKeyboard, setListBehavior} = useKeyboardDismissibleFlatListActions();
 
     const onScroll = useComposedEventHandler([onScrollHandleKeyboard, onScrollProp ?? null]);
 
@@ -52,6 +51,5 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: 
         />
     );
 }
-KeyboardDismissibleFlatList.displayName = 'KeyboardDismissibleFlatList';
 
-export default forwardRef(KeyboardDismissibleFlatList);
+export default KeyboardDismissibleFlatList;

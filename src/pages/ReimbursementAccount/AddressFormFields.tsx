@@ -215,6 +215,4 @@ function AddressFormFields({
     );
 }
 
-AddressFormFields.displayName = 'AddressFormFields';
-
 export default AddressFormFields;

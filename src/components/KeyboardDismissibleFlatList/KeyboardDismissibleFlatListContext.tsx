@@ -1,24 +1,29 @@
 import type {PropsWithChildren} from 'react';
-import React, {createContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createDummySharedValue from '@src/utils/createDummySharedValue';
-import type {KeyboardDismissibleFlatListContextValue, ListBehavior} from './types';
+import type {KeyboardDismissibleFlatListActionsContextValue, KeyboardDismissibleFlatListStateContextValue, ListBehavior} from './types';
 
-const defaultValue: KeyboardDismissibleFlatListContextValue = {
+const defaultStateValue: KeyboardDismissibleFlatListStateContextValue = {
     keyboardHeight: createDummySharedValue(0),
     keyboardOffset: createDummySharedValue(0),
     scrollY: createDummySharedValue(0),
-    onScroll: () => {},
     contentSizeHeight: createDummySharedValue(0),
     layoutMeasurementHeight: createDummySharedValue(0),
+};
+
+const defaultActionsValue: KeyboardDismissibleFlatListActionsContextValue = {
+    onScroll: () => {},
     setListBehavior: () => {},
 };
 
-const KeyboardDismissibleFlatListContext = createContext<KeyboardDismissibleFlatListContextValue>(defaultValue);
+const KeyboardDismissibleFlatListStateContext = createContext<KeyboardDismissibleFlatListStateContextValue>(defaultStateValue);
+
+const KeyboardDismissibleFlatListActionsContext = createContext<KeyboardDismissibleFlatListActionsContextValue>(defaultActionsValue);
 
 function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildren) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
@@ -113,22 +118,33 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
         },
     });
 
-    const value = useMemo<KeyboardDismissibleFlatListContextValue>(
-        () => ({
-            keyboardHeight: height,
-            keyboardOffset: offset,
-            onScroll,
-            scrollY,
-            contentSizeHeight,
-            layoutMeasurementHeight,
-            setListBehavior,
-        }),
-        [contentSizeHeight, height, layoutMeasurementHeight, offset, onScroll, scrollY],
-    );
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const stateValue: KeyboardDismissibleFlatListStateContextValue = {
+        keyboardHeight: height,
+        keyboardOffset: offset,
+        scrollY,
+        contentSizeHeight,
+        layoutMeasurementHeight,
+    };
 
-    return <KeyboardDismissibleFlatListContext.Provider value={value}>{children}</KeyboardDismissibleFlatListContext.Provider>;
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsValue: KeyboardDismissibleFlatListActionsContextValue = {onScroll, setListBehavior};
+
+    return (
+        <KeyboardDismissibleFlatListActionsContext.Provider value={actionsValue}>
+            <KeyboardDismissibleFlatListStateContext.Provider value={stateValue}>{children}</KeyboardDismissibleFlatListStateContext.Provider>
+        </KeyboardDismissibleFlatListActionsContext.Provider>
+    );
 }
 
-KeyboardDismissibleFlatListContextProvider.displayName = 'KeyboardDismissibleFlatListContextProvider';
+function useKeyboardDismissibleFlatListState(): KeyboardDismissibleFlatListStateContextValue {
+    return useContext(KeyboardDismissibleFlatListStateContext);
+}
 
-export {KeyboardDismissibleFlatListContext, KeyboardDismissibleFlatListContextProvider};
+function useKeyboardDismissibleFlatListActions(): KeyboardDismissibleFlatListActionsContextValue {
+    return useContext(KeyboardDismissibleFlatListActionsContext);
+}
+
+export {KeyboardDismissibleFlatListContextProvider, useKeyboardDismissibleFlatListState, useKeyboardDismissibleFlatListActions};

@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
-import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +31,9 @@ type ExportWithDropdownMenuProps = {
     dropdownAnchorAlignment?: AnchorAlignment;
 
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 function ExportWithDropdownMenu({
@@ -42,6 +45,7 @@ function ExportWithDropdownMenu({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
     wrapperStyle,
+    sentryLabel,
 }: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
@@ -49,7 +53,7 @@ function ExportWithDropdownMenu({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {canBeMissing: true});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtils(report);
@@ -83,7 +87,7 @@ function ExportWithDropdownMenu({
         }
         return options;
         // We do not include exportMethods not to re-render the component when the preferred export method changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
     const confirmExport = useCallback(() => {
@@ -131,6 +135,7 @@ function ExportWithDropdownMenu({
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
                 wrapperStyle={flattenedWrapperStyle}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                sentryLabel={sentryLabel}
             />
             <ConfirmModal
                 title={translate('workspace.exportAgainModal.title')}

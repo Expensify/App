@@ -19,7 +19,6 @@ const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(0);
 const modalStackOverlayWideRHPPositionLeft = new Animated.Value(0);
 
 const expandedRHPProgress = new Animated.Value(0);
-const innerRHPProgress = new Animated.Value(0);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
@@ -27,15 +26,12 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     return <WideRHPContext.Provider value={defaultWideRHPContextValue}>{children}</WideRHPContext.Provider>;
 }
 
-WideRHPContextProvider.displayName = 'WideRHPContextProvider';
-
 export default WideRHPContextProvider;
 export {
     animatedReceiptPaneRHPWidth,
     animatedSuperWideRHPWidth,
     animatedWideRHPWidth,
     expandedRHPProgress,
-    innerRHPProgress,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
     secondOverlayRHPOnSuperWideRHPProgress,

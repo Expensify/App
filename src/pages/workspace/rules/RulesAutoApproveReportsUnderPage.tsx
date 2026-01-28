@@ -45,7 +45,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesAutoApproveReportsUnderPage.displayName}
+                testID="RulesAutoApproveReportsUnderPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
@@ -81,7 +81,5 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesAutoApproveReportsUnderPage.displayName = 'RulesAutoApproveReportsUnderPage';
 
 export default RulesAutoApproveReportsUnderPage;

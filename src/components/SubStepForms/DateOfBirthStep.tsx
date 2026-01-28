@@ -6,7 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getFieldRequiredErrors, isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
@@ -14,7 +14,7 @@ import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
         /** The ID of the form */
         formID: TFormID;
@@ -112,7 +112,5 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
         </FormProvider>
     );
 }
-
-DateOfBirthStep.displayName = 'DateOfBirthStep';
 
 export default DateOfBirthStep;

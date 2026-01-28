@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {useImperativeHandle} from 'react';
+import React from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,11 +6,12 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';
 
-type ContextMenuItemProps = {
+type ContextMenuItemProps = WithSentryLabel & {
     /** Icon Component */
     icon: IconAsset;
 
@@ -61,13 +61,6 @@ type ContextMenuItemProps = {
 
     /** Whether the menu item should show loading icon */
     shouldShowLoadingSpinnerIcon?: boolean;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<ContextMenuItemHandle>;
-};
-
-type ContextMenuItemHandle = {
-    triggerPressAndUpdateSuccess?: () => void;
 };
 
 function ContextMenuItem({
@@ -88,7 +81,7 @@ function ContextMenuItem({
     onBlur = () => {},
     disabled = false,
     shouldShowLoadingSpinnerIcon = false,
-    ref,
+    sentryLabel,
 }: ContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -108,8 +101,6 @@ function ContextMenuItem({
         }
     };
 
-    useImperativeHandle(ref, () => ({triggerPressAndUpdateSuccess}));
-
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
 
@@ -120,6 +111,7 @@ function ContextMenuItem({
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={!isThrottledButtonActive}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPress}
+            sentryLabel={sentryLabel}
         >
             {({hovered, pressed}) => (
                 <Icon
@@ -146,11 +138,9 @@ function ContextMenuItem({
             onBlur={onBlur}
             disabled={disabled}
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            sentryLabel={sentryLabel}
         />
     );
 }
 
-ContextMenuItem.displayName = 'ContextMenuItem';
-
 export default ContextMenuItem;
-export type {ContextMenuItemHandle};

@@ -6,10 +6,4 @@ const willAlertModalBecomeVisibleSelector = (modal: OnyxEntry<Modal>) => modal?.
 
 const isRHPVisibleSelector = (modal: OnyxEntry<Modal>) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
 
-const isModalCenteredVisibleSelector = (modal: OnyxEntry<Modal>) =>
-    modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT ||
-    modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
-    modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
-    modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED;
-
-export {willAlertModalBecomeVisibleSelector, isRHPVisibleSelector, isModalCenteredVisibleSelector};
+export {willAlertModalBecomeVisibleSelector, isRHPVisibleSelector};

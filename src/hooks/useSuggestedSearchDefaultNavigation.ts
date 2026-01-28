@@ -1,5 +1,4 @@
 import {useEffect, useRef} from 'react';
-import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
@@ -40,11 +39,10 @@ function useSuggestedSearchDefaultNavigation({
 
         const defaultMenuItem = getDefaultActionableSearchMenuItem(flattenedMenuItems);
 
-        if (!defaultMenuItem || similarSearchHash === defaultMenuItem.similarSearchHash) {
+        if (!defaultMenuItem || similarSearchHash !== undefined) {
             return;
         }
 
-        clearAllFilters();
         clearSelectedTransactions();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultMenuItem.searchQuery}));
     }, [shouldShowSkeleton, flattenedMenuItems, similarSearchHash, clearSelectedTransactions, shouldSkipNavigation]);

@@ -5,6 +5,7 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
+    SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
     SearchWithdrawalType,
@@ -164,6 +165,9 @@ const FILTER_KEYS = {
     ATTENDEE_NOT: 'attendeeNot',
     ATTENDEE: 'attendee',
     REPORT_FIELD: 'reportField',
+
+    COLUMNS: 'columns',
+    LIMIT: 'limit',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -261,6 +265,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.ATTENDEE,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.ATTENDEE_NOT,
+        FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.LIMIT,
     ],
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: [
         FILTER_KEYS.TYPE,
@@ -316,6 +322,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
+        FILTER_KEYS.COLUMNS,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -399,6 +406,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.TITLE_NOT,
+        FILTER_KEYS.COLUMNS,
     ],
 
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
@@ -476,6 +484,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
+        FILTER_KEYS.COLUMNS,
     ],
 
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
@@ -524,8 +533,8 @@ type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
-
         [FILTER_KEYS.TYPE]: SearchDataTypes;
+        [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
 
         [FILTER_KEYS.STATUS]: string[] | string;
 
@@ -667,6 +676,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.IS]: string[];
         [FILTER_KEYS.HAS]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
+        [FILTER_KEYS.LIMIT]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &
         Record<ReportFieldNegatedKey, string>

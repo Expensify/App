@@ -10,8 +10,8 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEmojiReactionDetails, getLocalizedEmojiName} from '@libs/EmojiUtils';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import type {ReactionListAnchor, ReactionListEvent} from '@pages/home/ReportScreenContext';
+import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
+import type {ReactionListAnchor, ReactionListEvent} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
@@ -183,7 +183,5 @@ function ReportActionItemEmojiReactions({
         )
     );
 }
-
-ReportActionItemEmojiReactions.displayName = 'ReportActionItemReactions';
 
 export default withCurrentUserPersonalDetails(ReportActionItemEmojiReactions);

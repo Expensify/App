@@ -131,6 +131,5 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
     );
 }
 
-MultiSelectPopup.displayName = 'MultiSelectPopup';
 export type {MultiSelectItem};
 export default MultiSelectPopup;
