@@ -1,6 +1,7 @@
 ---
 title: Overview of Analytics
 description: Learn how to use Expensify Travel analytics to monitor spend, track bookings, and access company-wide travel insights.
+internalScope: Audience is Workspace Admins and approvers. Covers using Expensify Travel analytics to track spend, generate reports, and schedule insights. Does not cover booking travel.
 keywords: [Expensify Travel, travel analytics, company reports, travel spend tracking, schedule report, export travel data, filter reports, Workspace Admin, approver, company-wide analytics]
 ---
 
