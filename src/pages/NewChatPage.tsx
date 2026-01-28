@@ -6,6 +6,7 @@ import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -63,10 +64,13 @@ function useOptions() {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
+    const currentUserAccountID = personalData.accountID;
+    const currentUserEmail = personalData.email ?? '';
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const allPersonalDetails = usePersonalDetails();
 
     const {
         options: listOptions,
@@ -99,10 +103,13 @@ function useOptions() {
         draftComments,
         nvpDismissedProductTraining,
         loginList,
+        currentUserAccountID,
+        currentUserEmail,
         {
             betas: betas ?? [],
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
+            personalDetails: allPersonalDetails,
         },
         countryCode,
     );
@@ -111,7 +118,7 @@ function useOptions() {
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, {
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -123,7 +130,7 @@ function useOptions() {
         !!options.userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
+        selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
     );
 
     useFocusEffect(() => {
@@ -155,6 +162,8 @@ function useOptions() {
                       getUserToInviteOption({
                           searchValue: participant?.login,
                           loginList,
+                          currentUserEmail: personalData.email ?? '',
+                          currentUserAccountID: personalData.accountID,
                       });
                   if (participantOption) {
                       result.push({
@@ -225,11 +234,13 @@ function NewChatPage({ref}: NewChatPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
+    const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
+    const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
 
     useImperativeHandle(ref, () => ({
@@ -259,7 +270,8 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
-        undefined,
+        currentUserAccountID,
+        allPersonalDetails,
         undefined,
         undefined,
         reportAttributesDerived,
