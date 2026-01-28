@@ -99,7 +99,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true, selector: matchingTransactionsSelector});
 
     useEffect(() => {
-        getTransactionsMatchingCodingRule({merchant, policyID});
+        getTransactionsMatchingCodingRule(policyID, merchant);
     }, [merchant, policyID]);
 
     const onBack = () => {

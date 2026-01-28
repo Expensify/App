@@ -1,7 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {GetTransactionsMatchingCodingRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -12,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type Policy from '@src/types/onyx/Policy';
-import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
 
 /**
  * Builds the tax object from a tax key and policy
@@ -175,7 +174,13 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-function getTransactionsMatchingCodingRule({merchant, policyID}: GetTransactionsMatchingCodingRuleParams) {
+function getTransactionsMatchingCodingRule(policyID: string, merchant: string) {
+    const filters: CodingRuleFilter = {
+        left: 'merchant',
+        operator: 'eq',
+        right: merchant,
+    };
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -198,7 +203,7 @@ function getTransactionsMatchingCodingRule({merchant, policyID}: GetTransactions
         },
     ];
 
-    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {merchant, policyID}, {optimisticData, successData, failureData});
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {filters, policyID}, {optimisticData, successData, failureData});
 }
 
 /**
