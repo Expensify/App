@@ -1,8 +1,8 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -18,6 +18,7 @@ import TotalCell from '@components/TransactionItemRow/DataCells/TotalCell';
 import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,14 +26,13 @@ import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isOpenExpenseReport} from '@libs/ReportUtils';
 import {getCreated, getDescription, getMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {MerchantRuleForm} from '@src/types/form';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 
 type PreviewMatchesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES>;
 
@@ -44,69 +44,26 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW, {canBeMissing: true});
+    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION, {canBeMissing: true});
     const [merchant = ''] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true, selector: merchantRuleFormSelector});
 
-    const matchingReportIDsSelector = useCallback(
-        (reports: OnyxCollection<Report>) => {
-            return Object.values(reports ?? {}).reduce((matchingReports, report) => {
-                if (!report) {
-                    return matchingReports;
-                }
-
-                if (isOpenExpenseReport(report) && report?.policyID === policyID) {
-                    matchingReports.add(report.reportID);
-                }
-
-                return matchingReports;
-            }, new Set<string>());
-        },
-        // We need to update the available reports when the merchant changes, since the transaction selector changes when the merchant changes, and it
-        // relies on the available reports
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [policyID, merchant],
-    );
-
-    const [matchingReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: matchingReportIDsSelector});
-
-    const matchingTransactionsSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) => {
-            return Object.values(transactions ?? {}).reduce((matchingTransactions, transaction) => {
-                const transactionReportID = transaction?.reportID;
-
-                if (!transactionReportID || !matchingReportIDs?.has(transactionReportID)) {
-                    return matchingTransactions;
-                }
-
-                // This merchant matching logic should match
-                // https://github.com/Expensify/Web-Expensify/blob/fcdbe59e80ecaa4a63f0c4a2779b2aa6c9b1d165/lib/ExpenseRule.php#L54-L59
-                const targetMerchant = merchant.replaceAll(/\s+/g, ' ').toLowerCase();
-                const transactionMerchant = getMerchant(transaction)?.replaceAll(/\s+/g, ' ').toLowerCase();
-                const hasMatchingMerchant = new RegExp(targetMerchant, 'i').test(transactionMerchant);
-
-                if (hasMatchingMerchant) {
-                    matchingTransactions.add(transaction);
-                }
-
-                return matchingTransactions;
-            }, new Set<Transaction>());
-        },
-        [matchingReportIDs, merchant],
-    );
-
-    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true, selector: matchingTransactionsSelector});
-
     useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
         getTransactionsMatchingCodingRule(policyID, merchant);
-    }, [merchant, policyID]);
+    }, [merchant, policyID, isOffline]);
 
     const onBack = () => {
         Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
-    const matchingTransactionsArray = Array.from(matchingTransactions ?? []);
+    const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const hasMatchingTransactions = !!(merchant && matchingTransactionsArray.length);
 
     const isLoadedAndEmpty = !isLoading && !hasMatchingTransactions;
@@ -236,7 +193,5 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         </ScreenWrapper>
     );
 }
-
-PreviewMatchesPage.displayName = 'PreviewMatchesPage';
 
 export default PreviewMatchesPage;
