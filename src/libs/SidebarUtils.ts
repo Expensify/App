@@ -808,7 +808,6 @@ function getOptionData({
             movedToReport,
             policy,
             isReportArchived,
-            currentUserAccountID,
             reportAttributesDerived,
         });
     }

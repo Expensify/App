@@ -3282,7 +3282,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
                 const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
@@ -3315,7 +3314,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
@@ -3339,7 +3337,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -3364,7 +3361,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -3389,7 +3385,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -3411,7 +3406,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -3432,7 +3426,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -3452,7 +3445,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -3472,7 +3464,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -3496,7 +3487,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -3522,7 +3512,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).toBe(expectedVisibleText);
         });
@@ -3573,7 +3562,6 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     policy,
                     reportMetadata,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -3605,7 +3593,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -3634,7 +3621,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
