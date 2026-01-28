@@ -987,6 +987,11 @@ function getRecentWaypoints(): OnyxTypes.RecentWaypoint[] {
     return deprecatedRecentWaypoints;
 }
 
+/**
+ * This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
+ * All usages of this function should be replaced with params passed to the functions or useOnyx hook in React components.
+ */
 function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
     return allPolicyTags;
 }
