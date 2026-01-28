@@ -1416,7 +1416,7 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getMemberInviteOptions()', () => {
-        it('should sort personal details alphabetically', () => {
+        it('should sort personal details alphabetically and return expected structure', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
             const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, []);
@@ -1426,17 +1426,9 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
             expect(results.personalDetails.at(2)?.text).toBe('Captain America');
             expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
-        });
-
-        it('should return personal details with expected structure', () => {
-            // Given a set of personalDetails
-            // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, [CONST.BETAS.ALL]);
-
-            // Then personal details should be returned
-            expect(results.personalDetails.length).toBeGreaterThan(0);
 
             // Then the results should contain expected structure
+            expect(results.personalDetails.length).toBeGreaterThan(0);
             expect(results.recentReports).toEqual([]);
             expect(results.currentUserOption).toBeUndefined();
         });
