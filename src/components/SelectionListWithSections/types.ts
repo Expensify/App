@@ -28,7 +28,17 @@ import type CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchCardGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import type {
+    SearchCardGroup,
+    SearchCategoryGroup,
+    SearchDataTypes,
+    SearchMemberGroup,
+    SearchMonthGroup,
+    SearchTagGroup,
+    SearchTask,
+    SearchTransactionAction,
+    SearchWithdrawalIDGroup,
+} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -124,6 +134,9 @@ type ExtendedTargetedEvent = TargetedEvent & {
 type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
+
+    /** Text to be announced by screen reader */
+    accessibilityLabel?: string;
 
     /** Alternate text to display */
     alternateText?: string | null;
@@ -472,6 +485,14 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
         formattedFrom?: string;
     };
 
+type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
+        /** Final and formatted "month" value used for displaying */
+        formattedMonth: string;
+
+        /** Key used for sorting */
+        sortKey: number;
+    };
+
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
         /** Final and formatted "cardName" value used for displaying and sorting */
@@ -484,6 +505,16 @@ type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedB
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
+    };
+
+type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
+        /** Final and formatted "category" value used for displaying and sorting */
+        formattedCategory?: string;
+    };
+
+type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
+        /** Final and formatted "tag" value used for displaying and sorting */
+        formattedTag?: string;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -1125,8 +1156,11 @@ export type {
     TransactionGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMonthGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionTagGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

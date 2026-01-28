@@ -8,7 +8,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
@@ -167,7 +167,7 @@ function ScreenWrapper({
     const {isOffline} = useNetwork();
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
-    const {initialURL} = useContext(InitialURLContext);
+    const {initialURL} = useInitialURLState();
     const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
 
     usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()), () => {
