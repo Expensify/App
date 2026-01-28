@@ -600,6 +600,64 @@ describe('SearchQueryUtils', () => {
                 amountEqualTo: '-54321',
             });
         });
+
+        describe('view parameter', () => {
+            const emptyParams = {
+                policyCategories: {},
+                policyTags: {},
+                currencyList: {},
+                personalDetails: {},
+                cardList: {},
+                reports: {},
+                taxRates: {},
+            };
+
+            test('sets view in form when groupBy is also set', () => {
+                const queryString = 'type:expense groupBy:category view:bar';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(
+                    queryJSON,
+                    emptyParams.policyCategories,
+                    emptyParams.policyTags,
+                    emptyParams.currencyList,
+                    emptyParams.personalDetails,
+                    emptyParams.cardList,
+                    emptyParams.reports,
+                    emptyParams.taxRates,
+                );
+
+                expect(result.groupBy).toEqual(CONST.SEARCH.GROUP_BY.CATEGORY);
+                expect(result.view).toEqual(CONST.SEARCH.VIEW.BAR);
+            });
+
+            test('does not set view in form when groupBy is not set', () => {
+                const queryString = 'type:expense view:bar';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(
+                    queryJSON,
+                    emptyParams.policyCategories,
+                    emptyParams.policyTags,
+                    emptyParams.currencyList,
+                    emptyParams.personalDetails,
+                    emptyParams.cardList,
+                    emptyParams.reports,
+                    emptyParams.taxRates,
+                );
+
+                expect(result.groupBy).toBeUndefined();
+                expect(result.view).toBeUndefined();
+            });
+        });
     });
 
     describe('shouldHighlight', () => {
