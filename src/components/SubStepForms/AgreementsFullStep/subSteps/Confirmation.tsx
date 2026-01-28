@@ -67,7 +67,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValue
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             if (!isRequiredFulfilled(values[inputIDs.authorizedToBindClientToAgreement] as string)) {
                 errors[inputIDs.authorizedToBindClientToAgreement] = translate('agreementsStep.error.authorized');

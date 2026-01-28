@@ -54,7 +54,7 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     };
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (!isRequiredFulfilled(values.acceptTermsAndConditions)) {
                 errors.acceptTermsAndConditions = translate('common.error.acceptTerms');

@@ -27,20 +27,23 @@ function DateOfBirthPage() {
     /**
      * @returns An object containing the errors for each inputID
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
-        const requiredFields = ['dob' as const];
-        const errors = getFieldRequiredErrors(values, requiredFields);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
+            const requiredFields = ['dob' as const];
+            const errors = getFieldRequiredErrors(values, requiredFields, translate);
 
-        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
-        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
-        const dateError = getAgeRequirementError(values.dob ?? '', minimumAge, maximumAge);
+            const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+            const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+            const dateError = getAgeRequirementError(translate, values.dob ?? '', minimumAge, maximumAge);
 
-        if (values.dob && dateError) {
-            errors.dob = dateError;
-        }
+            if (values.dob && dateError) {
+                errors.dob = dateError;
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <ScreenWrapper

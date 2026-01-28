@@ -25,7 +25,7 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values[TAX_ID_EIN_NUMBER] && !isValidTaxIDEINNumber(values[TAX_ID_EIN_NUMBER], businessStepCountryValue)) {
                 errors[TAX_ID_EIN_NUMBER] = translate('businessInfoStep.error.taxIDEIN', businessStepCountryValue);

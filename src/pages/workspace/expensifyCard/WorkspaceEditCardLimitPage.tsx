@@ -108,7 +108,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
 
             // We only want integers to be sent as the limit
             if (!Number(values.limit)) {

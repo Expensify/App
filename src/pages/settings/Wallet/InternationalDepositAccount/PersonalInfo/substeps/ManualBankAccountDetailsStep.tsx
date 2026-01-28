@@ -29,7 +29,7 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
-        const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
         const routingNumber = values.routingNumber?.trim();
 
         if (
