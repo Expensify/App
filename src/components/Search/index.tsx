@@ -15,7 +15,6 @@ import type {
     SelectionListHandle,
     TransactionGroupListItemType,
     TransactionListItemType,
-    TransactionWeekGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
@@ -883,7 +882,7 @@ function Search({
             }
 
             if (isTransactionWeekGroupListItemType(item)) {
-                const weekGroupItem = item as TransactionWeekGroupListItemType;
+                const weekGroupItem = item;
                 if (!weekGroupItem.week) {
                     return;
                 }

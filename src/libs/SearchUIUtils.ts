@@ -1,4 +1,4 @@
-import {addDays, endOfWeek, format} from 'date-fns';
+import {format} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -156,6 +156,7 @@ type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdraw
 type TransactionCategoryGroupSorting = ColumnSortMapping<TransactionCategoryGroupListItemType>;
 type TransactionTagGroupSorting = ColumnSortMapping<TransactionTagGroupListItemType>;
 type TransactionMonthGroupSorting = ColumnSortMapping<TransactionMonthGroupListItemType>;
+type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -260,6 +261,12 @@ const transactionTagGroupColumnNamesToSortingProperty: TransactionTagGroupSortin
 
 const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'sortKey' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+};
+
+const transactionWeekGroupColumnNamesToSortingProperty: TransactionWeekGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'sortKey' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
@@ -2494,6 +2501,8 @@ function getSortedSections(
                 return getSortedTagData(data as TransactionTagGroupListItemType[], localeCompare, sortBy, sortOrder);
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return getSortedMonthData(data as TransactionMonthGroupListItemType[], localeCompare, sortBy, sortOrder);
+            case CONST.SEARCH.GROUP_BY.WEEK:
+                return getSortedWeekData(data as TransactionWeekGroupListItemType[], localeCompare, sortBy, sortOrder);
         }
     }
 
@@ -2879,6 +2888,15 @@ function getSortedTagData(data: TransactionTagGroupListItemType[], localeCompare
  */
 function getSortedMonthData(data: TransactionMonthGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     return getSortedData(data, localeCompare, transactionMonthGroupColumnNamesToSortingProperty, (a, b) => a.sortKey - b.sortKey, sortBy, sortOrder);
+}
+
+/**
+ * Sorts week group data based on a specified column and sort order.
+ */
+function getSortedWeekData(data: TransactionWeekGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    // For week groups, sortKey is a string (date in YYYY-MM-DD format), so we compare strings
+    // Use localeCompare from context for consistent string comparison
+    return getSortedData(data, localeCompare, transactionWeekGroupColumnNamesToSortingProperty, (a, b) => localeCompare(b.sortKey, a.sortKey), sortBy, sortOrder);
 }
 
 /**
@@ -3557,7 +3575,7 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
@@ -3574,7 +3592,7 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
@@ -3591,7 +3609,7 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
@@ -3608,7 +3626,7 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
@@ -3642,7 +3660,7 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
@@ -3659,7 +3677,7 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
