@@ -2262,6 +2262,7 @@ describe('actions/Report', () => {
     });
 
     describe('deleteAppReport', () => {
+        const currentUserAccountID = 1;
         it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
             // Given an expense report with CREATE, TRACK, and PAY of IOU actions
             const reportID = '1';
@@ -2305,7 +2306,7 @@ describe('actions/Report', () => {
             });
 
             // When deleting the expense report
-            Report.deleteAppReport(reportID, '', {}, {}, {});
+            Report.deleteAppReport(reportID, '', currentUserAccountID, {}, {}, {});
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
@@ -2324,7 +2325,6 @@ describe('actions/Report', () => {
         });
 
         it('should not reset the chatReport hasOutstandingChildRequest if there is another outstanding report', async () => {
-            const currentUserAccountID = 1;
             const fakePolicy: OnyxTypes.Policy = {
                 ...createRandomPolicy(6),
                 role: 'admin',
@@ -2404,6 +2404,7 @@ describe('actions/Report', () => {
             Report.deleteAppReport(
                 expenseReport1.reportID,
                 '',
+                currentUserAccountID,
                 {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
                 },

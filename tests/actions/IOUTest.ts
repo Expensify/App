@@ -4212,6 +4212,7 @@ describe('actions/IOU', () => {
         it('clears outstanding IOUReport', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
+            const currentUserAccountID = 123;
             let chatReport: OnyxEntry<Report>;
             let iouReport: OnyxEntry<Report>;
             let createIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
@@ -4234,7 +4235,7 @@ describe('actions/IOU', () => {
                 },
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
+                currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
@@ -4319,7 +4320,14 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.pause?.();
                     if (chatReport && iouReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, undefined, undefined);
+                        payMoneyRequest({
+                            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            chatReport,
+                            iouReport,
+                            introSelected: undefined,
+                            iouReportCurrentNextStepDeprecated: undefined,
+                            currentUserAccountID,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4509,7 +4517,14 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport, undefined, undefined);
+                        payMoneyRequest({
+                            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                            chatReport,
+                            iouReport: expenseReport,
+                            introSelected: undefined,
+                            iouReportCurrentNextStepDeprecated: undefined,
+                            currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4653,7 +4668,14 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (chatReport && expenseReport) {
-                        payMoneyRequest('ACH', chatReport, expenseReport, undefined, undefined);
+                        payMoneyRequest({
+                            paymentType: 'ACH',
+                            chatReport,
+                            iouReport: expenseReport,
+                            introSelected: undefined,
+                            iouReportCurrentNextStepDeprecated: undefined,
+                            currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4694,7 +4716,14 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When paying the IOU report
-            payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, undefined, undefined);
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+            });
 
             await waitForBatchedUpdates();
 
@@ -4796,7 +4825,15 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, undefined, undefined, undefined, false);
+                    payMoneyRequest({
+                        paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        chatReport: {reportID: topMostReportID},
+                        iouReport,
+                        introSelected: undefined,
+                        iouReportCurrentNextStepDeprecated: undefined,
+                        currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        full: false,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -4878,7 +4915,16 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
-            const newExpenseReportID = payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined, undefined, undefined, false, undefined, policy);
+            const newExpenseReportID = payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport: expenseReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                full: false,
+                policy,
+            });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
             expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
@@ -4966,7 +5012,14 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // When the expense report is paid elsewhere (but really, any payment option would work)
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined, undefined);
+                        payMoneyRequest({
+                            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            chatReport,
+                            iouReport: expenseReport,
+                            introSelected: undefined,
+                            iouReportCurrentNextStepDeprecated: undefined,
+                            currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5154,6 +5207,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5242,6 +5296,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5319,6 +5374,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5422,6 +5478,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5562,6 +5619,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5644,6 +5702,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5804,6 +5863,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5912,6 +5972,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -6004,6 +6065,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isSingleTransactionView: true,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
 
@@ -6060,6 +6122,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             // Then we expect to navigate to the chat report
@@ -6072,6 +6135,8 @@ describe('actions/IOU', () => {
     });
 
     describe('bulk deleteMoneyRequest', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+
         it('update IOU report total properly for bulk deletion of expenses', async () => {
             const expenseReport: Report = {
                 ...createRandomReport(11, undefined),
@@ -6134,6 +6199,7 @@ describe('actions/IOU', () => {
                 transactionIDsPendingDeletion: [],
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             deleteMoneyRequest({
                 transactionID: transaction2.transactionID,
@@ -6145,8 +6211,8 @@ describe('actions/IOU', () => {
                 transactionIDsPendingDeletion: [transaction1.transactionID],
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
-
             await waitForBatchedUpdates();
 
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -6166,6 +6232,7 @@ describe('actions/IOU', () => {
     });
 
     describe('deleteMoneyRequest with allTransactionViolationsParam', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
         it('should pass transaction violations to hasOutstandingChildRequest correctly', async () => {
             // Given an expense report with a transaction
             const expenseReport: Report = {
@@ -6219,6 +6286,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport: expenseReport,
                 allTransactionViolationsParam: transactionViolations,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -6281,6 +6349,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport: expenseReport,
                 allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -8671,7 +8740,14 @@ describe('actions/IOU', () => {
             // When the expense report is paid elsewhere (but really, any payment option would work)
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
-                payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined, undefined);
+                payMoneyRequest({
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    chatReport,
+                    iouReport: expenseReport,
+                    introSelected: undefined,
+                    iouReportCurrentNextStepDeprecated: undefined,
+                    currentUserAccountID: CARLOS_ACCOUNT_ID,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -10943,7 +11019,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
+            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID);
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
@@ -10959,7 +11035,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -11015,7 +11091,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID);
             await waitForBatchedUpdates();
 
             // Then: createdIOUReportActionID shouldn't be undefined
