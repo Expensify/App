@@ -620,12 +620,6 @@ function IOURequestStepScan({
         });
     };
 
-    const submitMultiScanReceipts = () => {
-        const transactionIDs = new Set(optimisticTransactions?.map((transaction) => transaction?.transactionID));
-        const validReceiptFiles = receiptFiles.filter((receiptFile) => transactionIDs.has(receiptFile.transactionID));
-        submitReceipts(validReceiptFiles);
-    };
-
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -799,7 +793,7 @@ function IOURequestStepScan({
             {canUseMultiScan && (
                 <ReceiptPreviews
                     isMultiScanEnabled={isMultiScanEnabled}
-                    submit={submitMultiScanReceipts}
+                    submit={submitReceipts}
                 />
             )}
         </>
