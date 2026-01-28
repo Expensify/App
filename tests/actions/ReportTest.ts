@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as Report from '@src/libs/actions/Report';
+import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
@@ -3280,8 +3281,7 @@ describe('actions/Report', () => {
         });
     });
 
-<<<<<<< HEAD
-    describe('handlePreexistingReport', () => {
+describe('replaceOptimisticReportWithActualReport', () => {
         beforeEach(async () => {
             await Onyx.clear();
             global.fetch = TestHelper.getGlobalFetchMock();
@@ -3337,10 +3337,10 @@ describe('actions/Report', () => {
 
             await waitForBatchedUpdates();
 
-            // Then handlePreexistingReport is called
+            // Then replaceOptimisticReportWithActualReport is called
             const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
             if (report) {
-                Report.handlePreexistingReport(report);
+                replaceOptimisticReportWithActualReport(report, undefined);
             }
 
             await waitForBatchedUpdates();
@@ -3416,10 +3416,10 @@ describe('actions/Report', () => {
 
             await waitForBatchedUpdates();
 
-            // When handlePreexistingReport is called
+            // When replaceOptimisticReportWithActualReport is called
             const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
             if (report) {
-                Report.handlePreexistingReport(report);
+                replaceOptimisticReportWithActualReport(report, undefined);
             }
 
             await waitForBatchedUpdates();
@@ -3476,10 +3476,10 @@ describe('actions/Report', () => {
 
             await waitForBatchedUpdates();
 
-            // When handlePreexistingReport is called
+            // When replaceOptimisticReportWithActualReport is called
             const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
             if (report) {
-                Report.handlePreexistingReport(report);
+                replaceOptimisticReportWithActualReport(report, undefined);
             }
 
             await waitForBatchedUpdates();
@@ -3491,7 +3491,9 @@ describe('actions/Report', () => {
             // And the parent report action should be updated to point to preexisting thread
             const parentChatReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
             expect(parentChatReportActions?.['1']?.childReportID).toBe(preexistingReportID);
-=======
+        });
+    });
+
     describe('navigateToConciergeChat', () => {
         const CONCIERGE_REPORT_ID = '123456';
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -3804,7 +3806,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
->>>>>>> main
         });
     });
 });
