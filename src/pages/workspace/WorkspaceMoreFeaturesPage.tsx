@@ -99,6 +99,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
 
@@ -223,7 +224,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    navigateToConciergeChat();
+                    navigateToConciergeChat(conciergeReportID, false);
                 });
             },
             onPress: () => {
@@ -258,7 +259,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                navigateToConciergeChat();
+                navigateToConciergeChat(conciergeReportID, false);
             });
         },
         onPress: () => {
