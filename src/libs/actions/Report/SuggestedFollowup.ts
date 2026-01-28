@@ -1,12 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Ancestor} from '@libs/ReportUtils';
-// We have directory and file with the same name, so below is needed
-// eslint-disable-next-line @dword-design/import-alias/prefer-alias
-import {addComment, buildOptimisticResolvedFollowups} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
+import {addComment, buildOptimisticResolvedFollowups} from '.';
 
 /**
  * Resolves a suggested followup by posting the selected question as a comment
