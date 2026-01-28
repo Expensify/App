@@ -4906,6 +4906,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: '新しい取引の開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
         },
         expensifyCard: {
@@ -6863,6 +6864,7 @@ ${reportName}
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
         topCategories: 'トップカテゴリ',
+        topMerchants: 'トップマーチャント',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
             approve: '承認',
@@ -6924,7 +6926,8 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '送信者',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
-                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
@@ -6948,6 +6951,7 @@ ${reportName}
             accessPlaceHolder: '詳細を開く',
         },
         noCategory: 'カテゴリなし',
+        noMerchant: '加盟店なし',
         noTag: 'タグなし',
         expenseType: '経費の種類',
         withdrawalType: '出金タイプ',

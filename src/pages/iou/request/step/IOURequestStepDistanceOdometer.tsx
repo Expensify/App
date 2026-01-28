@@ -343,6 +343,7 @@ function IOURequestStepDistanceOdometer({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep,
+                    recentWaypoints,
                 });
             }
             Navigation.goBack();
